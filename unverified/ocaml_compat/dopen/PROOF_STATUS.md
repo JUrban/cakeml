@@ -209,6 +209,13 @@ syntactic result when `tenv = ienv_to_tenv ienv`, using
 relational theorem because the current public soundness assumptions contain
 only `env_rel`.
 
+The unbuilt `dopenTests` theory now contains an inference-level arity witness:
+an older top-level `C` takes one argument, the opened module's `C` takes zero,
+and `[Dopen M; val y = C]` succeeds while `[Dopen M; val y = C 1]` fails.
+This pins constructor shadowing through `inf_c`.  It starts from AST values;
+the single parser-to-inference pipeline regression remains outstanding and
+must follow the `Decl_OK` repair.
+
 ## Static consumer backlog
 
 Before any dependency build, an AST-constructor inventory found the following
