@@ -1309,7 +1309,7 @@ Theorem ptree_ModPath_LongidT[simp]:
   ptree_ModPath (Lf (TOK (LongidT p n),locs)) =
     SOME (path_to_mods p ++ [n])
 Proof
-  simp [ptree_ModPath_def]
+  simp [ptree_ModPath_def, ptree_StructName_def]
 QED
 
 Theorem ptree_ModPath_nonempty:
