@@ -805,10 +805,19 @@ Theorem env_rel_open_tenv_exists:
    open_ienv path ienv = SOME inferred_open ⇒
    ∃typed_open. open_tenv path tenv = SOME typed_open
 Proof
-  rw [open_ienv_def, open_tenv_def] >>
-  every_case_tac >>
-  gvs [env_rel_def, env_rel_sound_def] >>
-  metis_tac [nsOpen_some_from_same_mod_domain, option_nchotomy]
+  strip_tac >>
+  imp_res_tac open_ienv_success_components >>
+  `∃opened_v. nsOpen path tenv.v = SOME opened_v`
+    by (
+      irule nsOpen_some_from_same_mod_domain >>
+      fs [env_rel_def]) >>
+  pop_assum strip_assume_tac >>
+  `ienv.inf_c = tenv.c ∧ ienv.inf_t = tenv.t`
+    by fs [env_rel_def, env_rel_sound_def] >>
+  qexists_tac
+    `<|v := opened_v; c := inferred_open.inf_c;
+       t := inferred_open.inf_t|>` >>
+  rw [open_tenv_def]
 QED
 
 (* Opening selects an existing declaration environment; it does not convert
@@ -840,9 +849,10 @@ Proof
   >- metis_tac []
   >- (
     rw [] >>
-    first_x_assum
-      (qspec_then
-        `mk_id (path ++ id_to_mods x) (id_to_n x)` mp_tac) >>
+    qpat_x_assum
+      `∀id ts. nsLookup ienv.inf_v id = SOME ts ⇒ _`
+      (qspecl_then
+        [`mk_id (path ++ id_to_mods x) (id_to_n x)`, `ts`] mp_tac) >>
     impl_tac
     >- metis_tac [nsLookup_after_nsOpen] >>
     rw [lookup_var_def] >>
@@ -851,9 +861,10 @@ Proof
   >- metis_tac []
   >- (
     rw [lookup_var_def] >>
-    first_x_assum
-      (qspec_then
-        `mk_id (path ++ id_to_mods x) (id_to_n x)` mp_tac) >>
+    qpat_x_assum
+      `∀id tvs t. lookup_var id Empty tenv = SOME (tvs,t) ⇒ _`
+      (qspecl_then
+        [`mk_id (path ++ id_to_mods x) (id_to_n x)`, `tvs`, `t`] mp_tac) >>
     impl_tac
     >- metis_tac [nsLookup_after_nsOpen] >>
     rw [] >>
