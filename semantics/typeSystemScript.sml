@@ -325,8 +325,11 @@ Theorem open_tenv_success_components:
   nsOpen path tenv.c = SOME opened.c ∧
   nsOpen path tenv.t = SOME opened.t
 Proof
-  rw [open_tenv_def] >>
-  every_case_tac >> gvs []
+  Cases_on `opened` >>
+  Cases_on `nsOpen path tenv.v` >> gvs [open_tenv_def] >>
+  Cases_on `nsOpen path tenv.c` >> gvs [open_tenv_def] >>
+  Cases_on `nsOpen path tenv.t` >>
+  gvs [open_tenv_def, DB.fetch "-" "type_env_component_equality"]
 QED
 
 
