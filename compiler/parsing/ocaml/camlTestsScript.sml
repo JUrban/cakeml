@@ -1361,6 +1361,16 @@ val _ = parsetest0 “nDefinition” “ptree_Definition”
   (SOME “[]:dec list”)
   ;
 
+val _ = parsetest0 “nDefinition” “ptree_Definition”
+  "open M"
+  (SOME “[Dopen L [«M»]]”)
+  ;
+
+val _ = parsetest0 “nDefinition” “ptree_Definition”
+  "open Outer.Inner"
+  (SOME “[Dopen L [«Outer»; «Inner»]]”)
+  ;
+
 (* -------------------------------------------------------------------------
  * Candle compatibility layer.
  *

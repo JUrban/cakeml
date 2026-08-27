@@ -3243,7 +3243,14 @@ Definition ptree_Definition_def:
     else if nterm = INL nExcDefinition then
       fmap (λd. [d]) $ ptree_ExcDefinition (Nd (nterm, locs) args)
     else if nterm = INL nOpen then
-      fail (locs, «open-declarations are not supported (yet)»)
+      case args of
+        [opent; modpath] =>
+          do
+            expect_tok opent OpenT;
+            path <- ptree_ModulePath modpath;
+            return [Dopen locs path]
+          od
+      | _ => fail (locs, «Impossible: nOpen»)
     else if nterm = INL nModuleTypeDef then
       case args of
         [modt; typet; name; eqt; typ] =>
