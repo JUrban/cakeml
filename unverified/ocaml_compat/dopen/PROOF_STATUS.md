@@ -92,6 +92,16 @@ representation into the declarative semantics.  The module-selection
 preservation lemma plus relational soundness remains the smallest candidate
 that respects the existing abstraction boundary.
 
+A concrete witness rules out treating this as a tactic accident.  Put one
+closed integer binding under module `M`, with declarative scheme `(1,Tint)`
+and inference scheme `(0,Infer_Tapp [] Tint_num)`, and use empty constructor
+and type namespaces.  The unused declarative quantifier makes the schemes
+syntactically different, while each is an instance of the other in the sense
+used by the two `tscheme_approx` directions of `env_rel`.  Both environments
+are well formed and have the same module domain.  Opening `M` therefore
+preserves `env_rel` but cannot make the declarative result equal to
+`ienv_to_tenv` of the inference result.
+
 No equality axiom, `cheat`, qualification rewrite, or host-inference bypass is
 present or proposed.
 
