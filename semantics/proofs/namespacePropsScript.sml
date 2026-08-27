@@ -99,6 +99,25 @@ Proof
  rw [nsLookupMod_def, nsEmpty_def]
 QED
 
+Theorem nsOpen_nil[simp]:
+   nsOpen [] env = NONE
+Proof
+  simp [nsOpen_def]
+QED
+
+Theorem nsOpen_cons[simp]:
+   nsOpen (mn::path) env = nsLookupMod env (mn::path)
+Proof
+  simp [nsOpen_def]
+QED
+
+Theorem nsOpen_eq_some:
+   nsOpen path env = SOME opened ⇔
+   path ≠ [] ∧ nsLookupMod env path = SOME opened
+Proof
+  Cases_on `path` >> simp []
+QED
+
 Theorem nsAppend_nsEmpty[simp]:
    !env. nsAppend env nsEmpty = env ∧ nsAppend nsEmpty env = env
 Proof
@@ -1275,4 +1294,3 @@ Proof
     fs [] >>
     metis_tac [option_nchotomy])
 QED
-
