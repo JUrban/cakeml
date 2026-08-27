@@ -203,21 +203,36 @@ db69b70e9ee28abd5d144e210a8fc6a396be4454 -- semantics
 ```
 
 Once a semantic slice is introduced, use the isolated current HOL checkout
-and one CakeML build worker:
+and one CakeML build worker.  These are ordered narrow gates; stop at the
+first failure and record it rather than skipping ahead:
 
 ```sh
 export HOLDIR=/project/worktrees/HOL-cakeml-dopen-v13
 cd /project/worktrees/cakeml-dopen-v13/semantics
 "$HOLDIR/bin/Holmake" -j 1 \
-  namespaceTheory.uo astTheory.uo semanticPrimitivesTheory.uo \
+  namespaceTheory.uo astTheory.uo gramTheory.uo \
+  cmlPtreeConversionTheory.uo semanticPrimitivesTheory.uo \
   evaluateTheory.uo typeSystemTheory.uo
+
+cd /project/worktrees/cakeml-dopen-v13/semantics/proofs
+"$HOLDIR/bin/Holmake" -j 1 namespacePropsTheory.uo
+
+cd /project/worktrees/cakeml-dopen-v13/compiler/parsing/tests
+"$HOLDIR/bin/Holmake" -j 1 cmlTestsTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/compiler/inference
 "$HOLDIR/bin/Holmake" -j 1 inferTheory.uo infer_cvTheory.uo
 
+cd /project/worktrees/cakeml-dopen-v13/compiler/inference/tests
+"$HOLDIR/bin/Holmake" -j 1 dopenTestsTheory.uo
+
 cd /project/worktrees/cakeml-dopen-v13/compiler/inference/proofs
 "$HOLDIR/bin/Holmake" -j 1 \
-  inferSoundTheory.uo inferCompleteTheory.uo type_dCanonTheory.uo
+  envRelTheory.uo inferSoundTheory.uo inferCompleteTheory.uo \
+  type_dCanonTheory.uo
+
+cd /project/worktrees/cakeml-dopen-v13/translator
+"$HOLDIR/bin/Holmake" -j 1 evaluate_decTheory.uo ml_progTheory.uo
 ```
 
 The complete A2/A3 change must then rebuild bootstrap inference translation
