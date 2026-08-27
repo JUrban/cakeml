@@ -174,6 +174,16 @@ Definition identUpperLower_def:
     EXISTS isLower (TL s)
 End
 
+(* Module names are disambiguated by the grammar, so unlike HOL Light's
+ * constructor-name heuristic they may be a single capital or contain further
+ * uppercase letters. *)
+Definition identModule_def:
+  identModule s ⇔
+    s ≠ "" ∧
+    isUpper (HD s) ∧
+    idChar isAlpha (TL s)
+End
+
 (* Names of values according to HOL light are all combinations of identifier
  * characters (alphanumerics, underscore and tick) _except_ those that are
  * module names or type constructors. In particular, if there are letters in
@@ -296,7 +306,7 @@ Definition camlPEG_def[nocompute]:
       (INL nTypeConstrName,
        pegf (tokIdP (identLower ∘ explode)) (bindNT nTypeConstrName));
       (INL nModuleName,
-       pegf (tokIdP (identUpperLower ∘ explode)) (bindNT nModuleName));
+       pegf (tokIdP (identModule ∘ explode)) (bindNT nModuleName));
       (INL nFieldName,
        pegf (tokIdP (identLower ∘ explode)) (bindNT nFieldName));
       (INL nValuePath,
