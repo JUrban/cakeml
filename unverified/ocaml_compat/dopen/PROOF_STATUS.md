@@ -159,9 +159,8 @@ component selectors succeed.
 
 The branch now contains this alignment statement as
 `env_rel_open_tenv_exists`, backed by the generic namespace-domain lemma
-`nsOpen_some_from_same_mod_domain`.  It remains an unbuilt proof candidate
-until the shared HOL checkout is released; no downstream theorem currently
-depends on it.
+`nsOpen_some_from_same_mod_domain`.  It remains an unbuilt proof candidate;
+no downstream theorem currently depends on it.
 
 Only after that alignment lemma should the preservation theorem assume the
 two matching successful results:
@@ -199,6 +198,12 @@ five conjuncts of `env_rel` as follows.
 This lemma needs no `nsAppend` reasoning: opening is selection.  `nsAppend`
 enters only in the declaration-list case, where the relational soundness
 results for the head and tail compose via the existing `env_rel_extend`.
+
+The branch now also contains the preservation statement as the unbuilt
+`env_rel_open` proof candidate.  Its proof follows the five transports above,
+with six separate `nsAll_after_nsOpen` uses for the inference/declarative
+value, constructor, and type well-formedness components.  This is deliberately
+not wired into `infer_d_sound` before the selector proof gate is green.
 
 After the lemma is green, the mutual soundness result should return an
 existential typed delta related to the inferred delta.  Existing declaration
@@ -255,11 +260,25 @@ Additional files that branch on `Dmod`/`Dlocal` but may use generic cases are
 AST/presentation helpers under `candle/`.  A full reverse-dependency build is
 still the authority on completeness.
 
-## Deferred build commands
+## Build gates
 
-The shared HOL checkout is temporarily owned by another work lane.  No
-`Holmake` command was run for this code slice while it was shared.  Once it is
-released, start with one worker and stop at the first honest failure:
+The foundational gate is green against shared HOL commit
+`a390cbabd3a4521bab4ee20281e3e42933a8a3ae`, using one worker.  The first run
+failed in `cmlPtreeConversionTheory` on the new non-empty path theorem; after
+unfolding `OPTION_CHOICE`/`OPTION_BIND` and using `APPEND_eq_NIL`, the rerun and
+the remaining foundational theories completed:
+
+```text
+semantics/cmlPtreeConversionTheory.uo
+semantics/semanticPrimitivesTheory.uo
+semantics/evaluateTheory.uo
+semantics/typeSystemTheory.uo
+```
+
+The shared HOL checkout is temporarily owned by another work lane after the
+explicit foundational handoff.  Once it is released again, continue with one
+worker and stop at the first honest failure (already-green targets are retained
+below so the command sequence remains reproducible):
 
 ```sh
 export HOLDIR=/project/worktrees/HOL-cakeml-dopen-v13

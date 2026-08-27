@@ -811,6 +811,55 @@ Proof
   metis_tac [nsOpen_some_from_same_mod_domain, option_nchotomy]
 QED
 
+(* Opening selects an existing declaration environment; it does not convert
+   inference schemes into declarative schemes.  Preserve the input relation
+   by transporting each selected lookup through the common module path. *)
+Theorem env_rel_open:
+   env_rel tenv ienv ∧
+   open_tenv path tenv = SOME typed_open ∧
+   open_ienv path ienv = SOME inferred_open ⇒
+   env_rel typed_open inferred_open
+Proof
+  rw [open_tenv_def, open_ienv_def] >>
+  every_case_tac >>
+  gvs [env_rel_def, ienv_ok_def, ienv_val_ok_def,
+       typeSoundInvariantsTheory.tenv_ok_def,
+       typeSoundInvariantsTheory.tenv_val_ok_def,
+       typeSoundInvariantsTheory.tenv_ctor_ok_def,
+       typeSoundInvariantsTheory.tenv_abbrev_ok_def,
+       env_rel_sound_def, env_rel_complete_def] >>
+  rpt conj_tac
+  >- metis_tac [nsAll_after_nsOpen]
+  >- metis_tac [nsAll_after_nsOpen]
+  >- metis_tac [nsAll_after_nsOpen]
+  >- metis_tac [nsAll_after_nsOpen]
+  >- metis_tac [nsAll_after_nsOpen]
+  >- metis_tac [nsAll_after_nsOpen]
+  >- metis_tac [nsLookupMod_after_nsOpen]
+  >- metis_tac []
+  >- metis_tac []
+  >- (
+    rw [] >>
+    first_x_assum
+      (qspec_then
+        `mk_id (path ++ id_to_mods x) (id_to_n x)` mp_tac) >>
+    impl_tac
+    >- metis_tac [nsLookup_after_nsOpen] >>
+    rw [lookup_var_def] >>
+    metis_tac [nsLookup_after_nsOpen])
+  >- metis_tac []
+  >- metis_tac []
+  >- (
+    rw [lookup_var_def] >>
+    first_x_assum
+      (qspec_then
+        `mk_id (path ++ id_to_mods x) (id_to_n x)` mp_tac) >>
+    impl_tac
+    >- metis_tac [nsLookup_after_nsOpen] >>
+    rw [] >>
+    metis_tac [nsLookup_after_nsOpen])
+QED
+
 Definition ienv_to_tenv_def:
   ienv_to_tenv ienv =
     <| v := nsMap (\(tvs, t). (tvs, convert_t t)) ienv.inf_v;
