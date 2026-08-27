@@ -280,8 +280,8 @@ still the authority on completeness.
 
 ## Build gates
 
-The foundational gate is green against shared HOL commit
-`a390cbabd3a4521bab4ee20281e3e42933a8a3ae`, using one worker.  The first run
+The foundational gate was green at CakeML commit `56d2ed995` against shared
+HOL commit `a390cbabd3a4521bab4ee20281e3e42933a8a3ae`, using one worker.  The first run
 failed in `cmlPtreeConversionTheory` on the new non-empty path theorem; after
 unfolding `OPTION_CHOICE`/`OPTION_BIND` and using `APPEND_eq_NIL`, the rerun and
 the remaining foundational theories completed:
@@ -292,6 +292,10 @@ semantics/semanticPrimitivesTheory.uo
 semantics/evaluateTheory.uo
 semantics/typeSystemTheory.uo
 ```
+
+Later queued commits add selector-component theorems, the OCaml path theorem,
+and proof-stack consumers, so this is historical baseline evidence rather than
+a claim that current HEAD is green.  Current HEAD must rerun the targets below.
 
 The shared HOL checkout is temporarily owned by another work lane after the
 explicit foundational handoff.  Once it is released again, continue with one
@@ -307,7 +311,7 @@ cd /project/worktrees/cakeml-dopen-v13/semantics
 
 cd /project/worktrees/cakeml-dopen-v13/semantics/proofs
 "$HOLDIR/bin/Holmake" -j 1 namespacePropsTheory.uo \
-  cmlPtreeConversionPropsTheory.uo
+  cmlPtreeConversionPropsTheory.uo typeSysPropsTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/compiler/parsing/tests
 "$HOLDIR/bin/Holmake" -j 1 cmlTestsTheory.uo
@@ -316,14 +320,15 @@ cd /project/worktrees/cakeml-dopen-v13/compiler/parsing/ocaml
 "$HOLDIR/bin/Holmake" -j 1 camlTestsTheory.uo caml_parserTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/compiler/inference
-"$HOLDIR/bin/Holmake" -j 1 inferTheory.uo infer_cvTheory.uo
+"$HOLDIR/bin/Holmake" -j 1 inferTheory.uo infer_cvTheory.uo \
+  inferPropsTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/compiler/inference/tests
 "$HOLDIR/bin/Holmake" -j 1 dopenTestsTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/compiler/inference/proofs
-"$HOLDIR/bin/Holmake" -j 1 envRelTheory.uo inferSoundTheory.uo \
-  inferCompleteTheory.uo type_dCanonTheory.uo
+"$HOLDIR/bin/Holmake" -j 1 envRelTheory.uo type_dCanonTheory.uo \
+  inferCompleteTheory.uo inferSoundTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/translator
 "$HOLDIR/bin/Holmake" -j 1 evaluate_decTheory.uo ml_progTheory.uo
