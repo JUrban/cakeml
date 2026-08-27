@@ -21,6 +21,11 @@ The current branch introduces:
   state; and
 - source-to-flat and its CV-side equation, which emit no runtime declaration.
 
+The executable test theory also fixes the sequencing contract at namespace
+lookup level: an opened `x` shadows an older `x`, while a later declaration
+delta shadows the opened `x`.  These tests exercise the existing
+left-biased `extend_dec_env`; they do not replace its proof obligations.
+
 Every successful layer returns the selected module contents only.  Existing
 list sequencing appends that delta to the current environment exactly once.
 
