@@ -2615,6 +2615,17 @@ Definition inf_set_tids_ienv_def:
   nsAll (λi (n,t). inf_set_tids_subset tids t) ienv.inf_v
 End
 
+Theorem inf_set_tids_ienv_open_ienv:
+  inf_set_tids_ienv tids ienv ∧
+  open_ienv path ienv = SOME opened ⇒
+  inf_set_tids_ienv tids opened
+Proof
+  rw [open_ienv_def] >>
+  every_case_tac >>
+  gvs [inf_set_tids_ienv_def] >>
+  metis_tac [nsAll_after_nsOpen]
+QED
+
 Definition inf_set_tids_subst_def:
   inf_set_tids_subst tids subst ⇔
   !t. t ∈ FRANGE subst ⇒ inf_set_tids_subset tids t
@@ -4183,6 +4194,7 @@ Proof
     fs[EVERY_MAP, set_tids_subset_type_name_subst]
     \\ fs[start_type_id_def] \\ EVAL_TAC \\ fs[] )
   >- ( fs[lift_ienv_def] )
+  >- metis_tac [infer_open_success, inf_set_tids_ienv_open_ienv]
   \\ ( (* cases with two components (x::xs and [Dlocal lds ds]) *)
     qpat_x_assum` _ ⇒ _` mp_tac>>
     imp_res_tac infer_d_next_id_mono>>
