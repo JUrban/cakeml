@@ -468,6 +468,9 @@ Definition cmlPEG_def[nocompute]:
                        tokeq EndT] (bindNT nDecl);
                  seql [pnt nTypeDec] (bindNT nDecl);
                  seql [pnt nTypeAbbrevDec] (bindNT nDecl);
+                 seql [tokeq OpenT;
+                       choicel [pnt nStructName; tok isLongidT mktokLf]]
+                      (bindNT nDecl);
                  seql [pnt nStructure] (bindNT nDecl);
                ]);
               (mkNT nTypeAbbrevDec,
