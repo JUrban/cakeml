@@ -14,7 +14,7 @@ and inventory advance A0, while A1--A4 remain proof and integration work.
 | CakeML `dopen` | `947cd55ce284658eadaa42a43c3ab0482057d269` | Original 2022 Open/Dopen branch tip |
 | CakeML `dopen2` | `db69b70e9ee28abd5d144e210a8fc6a396be4454` | Historical experimental anchor |
 | `master`--`dopen2` merge base | `5204d423c1b89d92a970f41f52da476d6cfb1e47` | CakeML master merged into `dopen2` on 2025-09-06 |
-| Current HOL prerequisite | `a390cbabd3a4521bab4ee20281e3e42933a8a3ae` | Isolated HOL master used for current CakeML tests |
+| Current HOL prerequisite | `a390cbabd3a4521bab4ee20281e3e42933a8a3ae` | Isolated HOL master built for current CakeML testing |
 | OCaml oracle | `4.14.1` | Reference compiler for A0 cases |
 | Current Flyspeck integration corpus | `2ea440e9f7c55734d1e47738e44a6129ce0ecf5a` | Source inventory input; development pin, not a release freeze |
 
@@ -147,6 +147,27 @@ OCAML_OPEN_ORACLE_OK cases=10 version=4.14.1
 OCAML_OPEN_INVENTORY_TEST_OK
 FLYSPECK_OPEN_INVENTORY_OK
 ```
+
+The isolated HOL prerequisite was configured and completed without its
+optional help documentation, using one requested build worker:
+
+```sh
+cd /project/worktrees/HOL-cakeml-dopen-v13
+poly --script tools/smart-configure.sml
+bin/build -j 1 --no-helpdocs
+bin/Holmake --help
+bin/hol heapname
+```
+
+The build ended with `Hol built successfully`; `Holmake --help` exited zero,
+and `hol heapname` selected this checkout's `bin/hol.state`.  A preceding
+default build completed its theory phase but its optional help generator
+deadlocked while processing `smlOpen.view_struct.smd`; repeated samples showed
+both fork participants waiting with zero CPU and a zero-byte output for nine
+minutes.  The supported `--no-helpdocs` completion avoids that unrelated
+documentation path.  No CakeML Dopen theory target had been run at the time of
+this audit, so the commands below are the exact gates to execute rather than a
+claim that they already pass.
 
 Audit the historical delta without checking it out:
 
