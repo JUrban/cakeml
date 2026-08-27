@@ -103,7 +103,15 @@ def scan(source: str) -> list[Directive]:
             index, line = skip_quoted(source, index, source[index], line)
             line_has_code = True
             continue
-        if source[index] == "#" and not line_has_code:
+        if source[index] == "#" and line_has_code:
+            line_end = source.find("\n", index)
+            if line_end == -1:
+                line_end = len(source)
+            spelling = source[index:line_end].strip()
+            raise ValueError(
+                f"directive-like # after code at line {line}: {spelling}"
+            )
+        if source[index] == "#":
             match = DIRECTIVE.match(source, index)
             if match is None:
                 line_end = source.find("\n", index)

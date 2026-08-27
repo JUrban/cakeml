@@ -150,7 +150,8 @@ Deleting arbitrary directives would therefore be unsound.
 `scan_bootstrap_directives.py` freezes the exact direct-pin contract as the
 ordered allowlist `unix.cma`, then `str.cma`.  It ignores occurrences inside
 comments, strings, and HOL quotations and fails closed on malformed
-directives, other directive names, extra libraries, omissions, or reordering.
+directives, directive-like hashes after code on the same line, other directive
+names, extra libraries, omissions, or reordering.
 This inventory does **not** make `#load` a silent no-op and does not claim the
 libraries exist in Candle.  An implementation may erase these two exact lines
 only after the compiled initial environment is shown to provide the required

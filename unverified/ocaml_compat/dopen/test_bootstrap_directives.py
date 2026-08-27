@@ -36,6 +36,10 @@ let decoy = "#load \\"not-code.cma\\";;";;
         with self.assertRaisesRegex(ValueError, "malformed or unsupported directive"):
             scan('#load "unix.cma"\n')
 
+    def test_directive_after_code_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ValueError, "directive-like # after code"):
+            scan('let x = 0;; #load "unix.cma";;\n#load "str.cma";;\n')
+
 
 if __name__ == "__main__":
     unittest.main()
