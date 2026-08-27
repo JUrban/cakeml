@@ -125,7 +125,8 @@ Theorem nsLookupMod_append:
    | SOME opened => nsLookupMod opened suffix
 Proof
   qid_spec_tac `env` >> Induct_on `path` >>
-  Cases >> simp [nsLookupMod_def] >> every_case_tac >> simp []
+  rpt gen_tac >> Cases_on `env` >>
+  simp [nsLookupMod_def] >> every_case_tac >> simp []
 QED
 
 Theorem nsLookup_after_nsLookupMod:
@@ -134,9 +135,9 @@ Theorem nsLookup_after_nsLookupMod:
    nsLookup env (mk_id (path ++ id_to_mods id) (id_to_n id)) =
      nsLookup opened id
 Proof
-  gen_tac >> Induct_on `path` >>
+  qid_spec_tac `env` >> Induct_on `path` >> rpt gen_tac >>
   simp [nsLookupMod_def, mk_id_thm] >>
-  Cases >> simp [nsLookupMod_def, mk_id_def, nsLookup_def] >>
+  Cases_on `env` >> simp [nsLookupMod_def, mk_id_def, nsLookup_def] >>
   every_case_tac >> simp []
 QED
 
@@ -190,7 +191,9 @@ Theorem nsOpen_some_from_same_mod_domain:
    ∃opened2. nsOpen path env2 = SOME opened2
 Proof
   rw [nsOpen_eq_some] >>
-  metis_tac [option_nchotomy]
+  Cases_on `nsLookupMod env2 path`
+  >- (first_x_assum (qspec_then `path` assume_tac) >> gvs [])
+  >- (qexists_tac `x` >> simp [])
 QED
 
 Theorem nsAll2_after_nsOpen:
@@ -203,13 +206,36 @@ Theorem nsAll2_after_nsOpen:
 Proof
   strip_tac >>
   `∀p. nsLookupMod env1 p = NONE ⇔ nsLookupMod env2 p = NONE`
-    by fs [nsAll2_def, nsSub_def] >>
+    by (fs [nsAll2_def, nsSub_def] >> metis_tac []) >>
   `∃opened2. nsOpen path env2 = SOME opened2`
     by metis_tac [nsOpen_some_from_same_mod_domain] >>
   pop_assum strip_assume_tac >>
   qexists_tac `opened2` >>
-  rw [nsAll2_def, nsSub_def] >>
-  metis_tac [nsLookup_after_nsOpen, nsLookupMod_after_nsOpen]
+  rw [nsAll2_def, nsSub_def]
+  >- (`nsLookup env1 (mk_id (path ++ id_to_mods id) (id_to_n id)) =
+         SOME v1`
+        by metis_tac [nsLookup_after_nsOpen] >>
+      `nsLookup opened2 id =
+         nsLookup env2 (mk_id (path ++ id_to_mods id) (id_to_n id))`
+        by metis_tac [nsLookup_after_nsOpen] >>
+      fs [nsAll2_def, nsSub_def])
+  >- (`nsLookupMod opened2 path' = nsLookupMod env2 (path ++ path')`
+        by metis_tac [nsLookupMod_after_nsOpen] >>
+      `nsLookupMod opened1 path' = nsLookupMod env1 (path ++ path')`
+        by metis_tac [nsLookupMod_after_nsOpen] >>
+      first_x_assum (qspec_then `path ++ path'` assume_tac) >> gvs [])
+  >- (`nsLookup env2 (mk_id (path ++ id_to_mods id) (id_to_n id)) =
+         SOME y`
+        by metis_tac [nsLookup_after_nsOpen] >>
+      `nsLookup opened1 id =
+         nsLookup env1 (mk_id (path ++ id_to_mods id) (id_to_n id))`
+        by metis_tac [nsLookup_after_nsOpen] >>
+      fs [nsAll2_def, nsSub_def])
+  >- (`nsLookupMod opened2 path' = nsLookupMod env2 (path ++ path')`
+        by metis_tac [nsLookupMod_after_nsOpen] >>
+      `nsLookupMod opened1 path' = nsLookupMod env1 (path ++ path')`
+        by metis_tac [nsLookupMod_after_nsOpen] >>
+      first_x_assum (qspec_then `path ++ path'` assume_tac) >> gvs [])
 QED
 
 Theorem nsAppend_nsEmpty[simp]:
