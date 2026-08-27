@@ -65,6 +65,13 @@ turns either a simple `StructName` or a `LongidT` into the non-empty AST list.
 The constructor carries the declaration location so an absent module is an
 ordinary located inference error.
 
+The separate OCaml frontend has its own `nOpen` and recursive `nModulePath`
+productions.  Its conversion now validates the `OpenT`, converts the successful
+module path directly to the same non-empty AST list, preserves the declaration
+location, and applies the existing `compatModName` mapping to every component
+(for example `Text_io` becomes `TextIO`).  It does not route OCaml source
+through the Standard ML grammar.
+
 The current CakeML base has no active constructor-arity elaboration state.
 `PCstate0.ctr_arities` and its state-monad scaffolding remain near the top of
 `cmlPtreeConversionScript.sml`, but repository-wide reference analysis finds
@@ -81,9 +88,15 @@ Declaration open exposes the constructor namespace through `open_ienv.inf_c`;
 the required gate is a parser-to-inference regression in which constructors
 used after an open resolve with the selected arity, plus wrong-arity and
 shadowing failures.  `cmlPtreeConversionProps$Decl_OK` still needs proof
-branches for the two open grammar productions.  If a future parser restores
+coverage for the two open grammar productions; the branch now contains queued
+proof branches for both.  If a future parser restores
 stateful arity elaboration, that state will need the same proved namespace
 selection operation before it can be accepted.
+
+The branch has queued both pieces of this gate: `Decl_OK` branches for the
+standard parser and source-to-inference tests for both `parse_prog` and the
+OCaml-specific `caml_parser$run`.  They remain proof/test candidates until the
+ordered HOL targets build.
 
 ## Proof obligations
 
