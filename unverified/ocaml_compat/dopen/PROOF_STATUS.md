@@ -313,7 +313,7 @@ cd /project/worktrees/cakeml-dopen-v13/compiler/parsing/tests
 "$HOLDIR/bin/Holmake" -j 1 cmlTestsTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/compiler/parsing/ocaml
-"$HOLDIR/bin/Holmake" -j 1 camlTestsTheory.uo
+"$HOLDIR/bin/Holmake" -j 1 camlTestsTheory.uo caml_parserTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/compiler/inference
 "$HOLDIR/bin/Holmake" -j 1 inferTheory.uo infer_cvTheory.uo
