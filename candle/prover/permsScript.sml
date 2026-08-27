@@ -258,6 +258,19 @@ Proof
   rw [perms_ok_env_def]
 QED
 
+Theorem perms_ok_env_open_dec_env[local]:
+  ∀ps env path opened.
+    perms_ok_env ps UNIV env ∧
+    open_dec_env path env = SOME opened ⇒
+    perms_ok_env ps UNIV opened
+Proof
+  rw [perms_ok_env_def,open_dec_env_def]
+  \\ gvs [AllCaseEqs()]
+  \\ first_x_assum irule
+  \\ gs []
+  \\ metis_tac [nsLookup_after_nsOpen]
+QED
+
 Definition dfreevars_def:
   dfreevars (Dlet locs p x) =
     (freevars x DIFF set (MAP Short (pat_bindings p))) ∧
@@ -946,6 +959,10 @@ Proof
          perms_ok_state_def, SF SFY_ss])
   >~ [‘Dexn locs cn ts’] >- (
     gvs [evaluate_decs_def, perms_ok_env_def, perms_ok_state_def])
+  >~ [‘Dopen locs path’] >- (
+    gvs [evaluate_decs_def, AllCaseEqs()]
+    \\ imp_res_tac perms_ok_env_open_dec_env
+    \\ gvs [])
   >~ [‘Dmod mn ds’] >- (
     gvs [evaluate_decs_def, CaseEqs ["prod", "result"], perms_ok_env_def,
          nsLookup_nsLift]
