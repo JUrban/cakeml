@@ -2456,11 +2456,38 @@ Theorem tenv_ok_open_tenv:
     tenv_ok tenv ∧ open_tenv path tenv = SOME opened ⇒
     tenv_ok opened
 Proof
-  rw [open_tenv_def] >>
-  every_case_tac >>
-  gvs [tenv_ok_def, tenv_val_ok_def, tenv_ctor_ok_def,
-       tenv_abbrev_ok_def] >>
-  metis_tac [nsAll_after_nsOpen]
+  rpt strip_tac >>
+  drule_then strip_assume_tac open_tenv_success_components >>
+  fs [tenv_ok_def, tenv_val_ok_def, tenv_ctor_ok_def,
+      tenv_abbrev_ok_def] >>
+  rpt conj_tac
+  >- (rw [nsAll_def] >>
+      `nsLookup tenv.v (mk_id (path ++ id_to_mods id) (id_to_n id)) =
+         SOME v`
+        by metis_tac [nsLookup_after_nsOpen] >>
+      fs [nsAll_def] >>
+      qpat_x_assum `∀id v. nsLookup tenv.v id = SOME v ⇒ _`
+        (qspecl_then
+          [`mk_id (path ++ id_to_mods id) (id_to_n id)`, `v`] mp_tac) >>
+      simp [])
+  >- (rw [nsAll_def] >>
+      `nsLookup tenv.c (mk_id (path ++ id_to_mods id) (id_to_n id)) =
+         SOME v`
+        by metis_tac [nsLookup_after_nsOpen] >>
+      fs [nsAll_def] >>
+      qpat_x_assum `∀id v. nsLookup tenv.c id = SOME v ⇒ _`
+        (qspecl_then
+          [`mk_id (path ++ id_to_mods id) (id_to_n id)`, `v`] mp_tac) >>
+      simp [])
+  >- (rw [nsAll_def] >>
+      `nsLookup tenv.t (mk_id (path ++ id_to_mods id) (id_to_n id)) =
+         SOME v`
+        by metis_tac [nsLookup_after_nsOpen] >>
+      fs [nsAll_def] >>
+      qpat_x_assum `∀id v. nsLookup tenv.t id = SOME v ⇒ _`
+        (qspecl_then
+          [`mk_id (path ++ id_to_mods id) (id_to_n id)`, `v`] mp_tac) >>
+      simp [])
 QED
 
 Theorem type_d_tenv_ok_helper:
@@ -2548,9 +2575,9 @@ Proof
    >> rw []
    >> irule check_freevars_type_name_subst
    >> simp [tenv_abbrev_ok_def])
+ >- metis_tac [tenv_ok_open_tenv]
  >- fs [tenv_ok_def, tenv_val_ok_def, tenv_ctor_ok_def, tenv_abbrev_ok_def]
  >- metis_tac [extend_dec_tenv_ok]
- >- metis_tac [tenv_ok_open_tenv]
  >- metis_tac [extend_dec_tenv_ok]
 QED
 
