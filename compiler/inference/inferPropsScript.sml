@@ -3173,7 +3173,7 @@ Theorem infer_d_next_id_mono:
   st.next_id ≤ st'.next_id))
 Proof
   Induct>>rw[]>>
-  fs [infer_d_def, success_eqns]>>
+  fs [infer_d_def, success_eqns, infer_open_success]>>
   rpt (pairarg_tac >> fs [success_eqns])>>
   fs[init_state_def,init_infer_state_def]>>
   rw[]>>
@@ -4239,7 +4239,7 @@ Theorem infer_d_wfs:
      t_wfs st'.subst)
 Proof
   Induct
-  \\ rw[infer_d_def, success_eqns, init_state_def]
+  \\ rw[infer_d_def, success_eqns, infer_open_success, init_state_def]
   \\ rpt(pairarg_tac \\ fs[success_eqns])
   \\ rw[] >>
   imp_res_tac type_name_check_subst_state >>
