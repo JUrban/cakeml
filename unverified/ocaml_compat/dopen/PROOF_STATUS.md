@@ -13,6 +13,8 @@ The current branch introduces:
 - `Dopen locs (modN list)` plus syntax/pretty-print/S-expression support;
 - grammar and parse-tree conversion for `open A` and `open A.B.C`, with a
   non-empty-path theorem and parser regressions;
+- OCaml-front-end conversion of `open M` and `open Outer.Inner` to the same
+  `Dopen` constructor, replacing the former explicit rejection;
 - declaration-delta selectors for dynamic, declarative typing, inference,
   and source-to-flat environments;
 - functional, big-step, small-step, itree, and translator evaluator cases;
@@ -296,6 +298,9 @@ cd /project/worktrees/cakeml-dopen-v13/semantics/proofs
 
 cd /project/worktrees/cakeml-dopen-v13/compiler/parsing/tests
 "$HOLDIR/bin/Holmake" -j 1 cmlTestsTheory.uo
+
+cd /project/worktrees/cakeml-dopen-v13/compiler/parsing/ocaml
+"$HOLDIR/bin/Holmake" -j 1 camlTestsTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/compiler/inference
 "$HOLDIR/bin/Holmake" -j 1 inferTheory.uo infer_cvTheory.uo
