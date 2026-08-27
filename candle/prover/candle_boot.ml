@@ -290,6 +290,7 @@ type token =
   | T_begin | T_end | T_struct | T_sig | T_semis | T_newline
   | T_use | T_needs | T_loads (* converted into source-loading directives *)
   | T_static_load (* exact #load selection; never reads a .cma as source *)
+  | T_flyspeck_needs (* manifest-selected source load plus neutralization *)
   | T_other of string
   | T_symb of string
   | T_comment of string
@@ -322,6 +323,7 @@ let string_of_token unquote tok =
   | T_loads -> "loads"
   | T_needs -> "needs"
   | T_static_load -> "#load"
+  | T_flyspeck_needs -> "#flyspeck_needs"
   | T_done -> "(* shouldn't happen *)"
 ;;
 
@@ -344,6 +346,7 @@ let scan nextChar peekChar =
       (* top-level directives *)
       "#use",   T_use;
       "#load",  T_static_load;
+      "#flyspeck_needs", T_flyspeck_needs;
       "needs",  T_needs;
       "loads",  T_loads;
     ] in
@@ -566,11 +569,17 @@ let select_static_library fname =
   | None -> reject_static_load ("unsupported library " ^ fname)
 ;;
 
+let reject_flyspeck_needs message =
+  print ("- Static #flyspeck_needs rejected: " ^ message ^ "\n");
+  raise Repl_error
+;;
+
 let () =
   let prompt = ref (!prompt2) in
   let pushLoad, popLoad, clearLoadStack =
-    let stack = ref ([]: string list) in
-    let pushLoad fname = stack := fname :: !stack in
+    let stack = ref ([]: (string * bool) list) in
+    let pushLoad fname flyspeck_action =
+      stack := (fname,flyspeck_action) :: !stack in
     let popLoad () =
       match !stack with
       | fname :: rest as res -> stack := rest; Some (fname, rest)
@@ -597,7 +606,7 @@ let () =
     peek, next in
   (* Load files from disk and keep track on what has been loaded.
    *)
-  let load =
+  let loadWithStatus =
     let loadedFiles = (ref [] : string list ref) in
     let loadMsg s = print ("- Loading " ^ s ^ "\n") in
     let load_use fname =
@@ -634,9 +643,10 @@ let () =
                        | Lexer.D_need -> load1
                        | Lexer.D_use -> load_use in
           (match loader fname with
-          | None -> []
-          | Some ls -> ls) in
+          | None -> false,[]
+          | Some ls -> true,ls) in
     loadOnPath in
+  let load pragma fname = snd (loadWithStatus pragma fname) in
   (* Instantiate lexer *)
   let scan1 = Lexer.scan nextChar peekChar in
   (* Enqueue input here *)
@@ -684,6 +694,10 @@ let () =
     match next () with
     | Some (Lexer.T_spaces _) -> next_nonspace ()
     | res -> res in
+  let rec append_lines left right =
+    match left with
+    | [] -> right
+    | line::rest -> line :: append_lines rest right in
   let rec discard_phrase () =
     match next () with
     | None | Some Lexer.T_semis | Some Lexer.T_done -> ()
@@ -723,6 +737,50 @@ let () =
         | Some Lexer.T_static_load ->
             discard_phrase ();
             reject_static_load "#load must be a standalone top-level phrase"
+        (* The manifest-generated full-build driver uses a distinct action.
+           A new source is evaluated exactly once and followed by exactly one
+           neutralization phrase.  Its completion marker is reached only after
+           the evaluator has accepted both.  An already-loaded source performs
+           neither step.  Any evaluator or neutralization error is observed by
+           [checkError] before the marker and aborts the one-shot REPL action. *)
+        | Some Lexer.T_flyspeck_needs when level = 0 && phrase_start ->
+            begin
+              match next_nonspace () with
+              | Some (Lexer.T_string fname) ->
+                  begin
+                    match next_nonspace () with
+                    | Some Lexer.T_semis ->
+                        let selected,lines =
+                          loadWithStatus Lexer.D_need fname in
+                        if not selected then scan level true else
+                          begin
+                            pushLoad fname true;
+                            userInput := false;
+                            scan_lines
+                              (append_lines lines
+                                ["\nState_manager.neutralize_state ();;\n"]);
+                            scan level true
+                          end
+                    | None ->
+                        reject_flyspeck_needs
+                          "#flyspeck_needs \"string\" must end with double semicolon [;;]"
+                    | Some _ ->
+                        discard_phrase ();
+                        reject_flyspeck_needs
+                          "#flyspeck_needs \"string\" must end with double semicolon [;;]"
+                  end
+              | None | Some Lexer.T_semis ->
+                  reject_flyspeck_needs
+                    "#flyspeck_needs requires one string literal and double semicolon [;;]"
+              | Some _ ->
+                  discard_phrase ();
+                  reject_flyspeck_needs
+                    "#flyspeck_needs requires one string literal and double semicolon [;;]"
+            end
+        | Some Lexer.T_flyspeck_needs ->
+            discard_phrase ();
+            reject_flyspeck_needs
+              "#flyspeck_needs must be a standalone top-level phrase"
         (* Attempt to use token as part of loading directive if it sits at the
            top level (i.e. not inside parenthesis). The REPL fails and reports
            and error unless the token is followed by a string literal and then
@@ -746,7 +804,7 @@ let () =
                         let lines = load dir fname in
                         if List.null lines then scan level true else
                           begin
-                            pushLoad fname;
+                            pushLoad fname false;
                             userInput := false;
                             scan_lines lines;
                             scan level true
@@ -771,8 +829,10 @@ let () =
             end
         | Some (Lexer.T_done) ->
             (match popLoad () with
-             | Some (fname, rest) -> (
-               print ("- Finished loading " ^ fname ^ "\n");
+             | Some ((fname,flyspeck_action), rest) -> (
+               if flyspeck_action then
+                 print ("- Flyspeck source action complete: " ^ fname ^ "\n")
+               else print ("- Finished loading " ^ fname ^ "\n");
                if List.null rest then userInput := true)
             | None -> failwith "candle_boot.ml: scan - should be unreachable");
             scan level phrase_start
