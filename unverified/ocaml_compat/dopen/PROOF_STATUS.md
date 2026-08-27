@@ -115,6 +115,9 @@ cd /project/worktrees/cakeml-dopen-v13/compiler/parsing/tests
 cd /project/worktrees/cakeml-dopen-v13/compiler/inference
 "$HOLDIR/bin/Holmake" -j 1 inferTheory.uo infer_cvTheory.uo
 
+cd /project/worktrees/cakeml-dopen-v13/compiler/inference/tests
+"$HOLDIR/bin/Holmake" -j 1 dopenTestsTheory.uo
+
 cd /project/worktrees/cakeml-dopen-v13/compiler/inference/proofs
 "$HOLDIR/bin/Holmake" -j 1 envRelTheory.uo inferSoundTheory.uo \
   inferCompleteTheory.uo type_dCanonTheory.uo
