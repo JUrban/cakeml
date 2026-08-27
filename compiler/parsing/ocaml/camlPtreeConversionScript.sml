@@ -1627,7 +1627,14 @@ Definition ptree_Expr_def:
               ptree_Expr nERecUpdate arg
             else if n = INL nLiteral then
               fmap (λid. Con (SOME id) []) (ptree_Bool arg) ++
-              fmap Lit (ptree_Literal arg)
+              fmap Lit (ptree_Literal arg) ++
+              fmap
+                (λx.
+                  App Opapp
+                    [Var (Long «Option» (Short «valOf»));
+                     App Opapp
+                       [Var (Long «Double» (Short «fromString»)); x]])
+                (ptree_Double arg)
             else if n = INL nValuePath then
               do
                 cns <- ptree_ValuePath arg;
