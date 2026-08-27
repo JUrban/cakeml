@@ -820,6 +820,26 @@ Proof
   rw [open_tenv_def]
 QED
 
+Theorem env_rel_open_ienv_exists:
+   env_rel tenv ienv ∧
+   open_tenv path tenv = SOME typed_open ⇒
+   ∃inferred_open. open_ienv path ienv = SOME inferred_open
+Proof
+  strip_tac >>
+  imp_res_tac open_tenv_success_components >>
+  `∃opened_v. nsOpen path ienv.inf_v = SOME opened_v`
+    by (
+      irule nsOpen_some_from_same_mod_domain >>
+      fs [env_rel_def]) >>
+  pop_assum strip_assume_tac >>
+  `ienv.inf_c = tenv.c ∧ ienv.inf_t = tenv.t`
+    by fs [env_rel_def, env_rel_sound_def] >>
+  qexists_tac
+    `<|inf_v := opened_v; inf_c := typed_open.c;
+       inf_t := typed_open.t|>` >>
+  rw [open_ienv_def]
+QED
+
 (* Opening selects an existing declaration environment; it does not convert
    inference schemes into declarative schemes.  Preserve the input relation
    by transporting each selected lookup through the common module path. *)

@@ -1348,6 +1348,14 @@ Proof
     goal_assum(first_assum o mp_then Any mp_tac)>>
     fs[]
   )
+  >- ( (* Dopen *)
+    `∃inferred_open. open_ienv path ienv = SOME inferred_open`
+      by metis_tac [env_rel_open_ienv_exists] >>
+    pop_assum strip_assume_tac >>
+    qexists_tac `inferred_open` >>
+    qexists_tac `st1` >>
+    rw [infer_d_def, infer_open_success] >>
+    metis_tac [env_rel_open])
   >-
     rw[infer_d_def,success_eqns]
   >>
