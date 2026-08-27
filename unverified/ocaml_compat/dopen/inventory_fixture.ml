@@ -12,3 +12,5 @@ let local = let open Local.Inner in value
 include Included.Path
 
 let packed = (module Alias : Signature)
+
+let ignored_camlp5_pattern = `'('; let text = "(*"

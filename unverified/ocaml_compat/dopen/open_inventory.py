@@ -78,7 +78,34 @@ def lex(source: str) -> list[Token]:
                 raise ValueError(f"unterminated string before line {line}")
             continue
 
-        if char == "`":
+        # Skip ordinary OCaml character literals without confusing type
+        # variables such as 'a with quoted characters such as '"'.
+        if char == "'" and index + 2 < length:
+            char_end = index + 2
+            if source[index + 1] == "\\":
+                char_end = index + 2
+                if char_end < length and source[char_end].isdigit():
+                    while char_end < length and char_end < index + 5 and source[char_end].isdigit():
+                        char_end += 1
+                elif char_end < length and source[char_end] in "xX":
+                    char_end = min(length, char_end + 3)
+                else:
+                    char_end += 1
+            if char_end < length and source[char_end] == "'":
+                index = char_end + 1
+                continue
+
+        # HOL Light quotations use `...`/``...``.  Camlp5 revised-syntax
+        # stream patterns use an unpaired backtick before a token.  Treat a
+        # single backtick as a quotation only when it closes on the same line;
+        # double-backtick quotations may span lines.
+        line_end = source.find("\n", index + 1)
+        if line_end == -1:
+            line_end = length
+        single_quote_closes = source.find("`", index + 1, line_end) != -1
+        if char == "`" and (
+            source.startswith("``", index) or single_quote_closes
+        ):
             delimiter_length = 2 if source.startswith("``", index) else 1
             delimiter = "`" * delimiter_length
             index += delimiter_length

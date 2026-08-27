@@ -34,6 +34,7 @@ not silently acquire an unproved expression-open implementation.
 `open_inventory.py` is a conservative lexical inventory tool for the real
 HOL Light/Flyspeck sources.  A stock OCaml parser cannot read their HOL
 quotations without the pinned preprocessor, so the tool ignores nested
-comments, strings, and backtick quotations and emits only unambiguous token
-prefixes.  Its output must still be reviewed against the ordered production
-manifest; it is not a replacement for parser acceptance tests.
+comments, strings, single-line backtick quotations, and double-backtick
+quotations and emits only unambiguous token prefixes.  Its output must still
+be reviewed against the ordered production manifest; it is not a replacement
+for parser acceptance tests.
