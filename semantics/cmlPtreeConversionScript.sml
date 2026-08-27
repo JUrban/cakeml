@@ -1298,6 +1298,20 @@ Definition ptree_ModPath_def:
     od
 End
 
+Theorem ptree_ModPath_StructName:
+  ptree_StructName pt = SOME mn ⇒
+  ptree_ModPath pt = SOME [mn]
+Proof
+  simp [ptree_ModPath_def]
+QED
+
+Theorem ptree_ModPath_LongidT[simp]:
+  ptree_ModPath (Lf (TOK (LongidT p n),locs)) =
+    SOME (path_to_mods p ++ [n])
+Proof
+  simp [ptree_ModPath_def]
+QED
+
 Theorem ptree_ModPath_nonempty:
   ptree_ModPath pt = SOME path ⇒ path ≠ []
 Proof
