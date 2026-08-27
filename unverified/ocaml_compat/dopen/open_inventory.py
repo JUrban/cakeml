@@ -30,7 +30,7 @@ def is_ident_continue(char: str) -> bool:
     return char == "_" or char == "'" or char.isalnum()
 
 
-def lex(source: str) -> list[Token]:
+def lex(source: str, *, multiline_single_backticks: bool = False) -> list[Token]:
     tokens: list[Token] = []
     index = 0
     line = 1
@@ -104,7 +104,9 @@ def lex(source: str) -> list[Token]:
             line_end = length
         single_quote_closes = source.find("`", index + 1, line_end) != -1
         if char == "`" and (
-            source.startswith("``", index) or single_quote_closes
+            source.startswith("``", index)
+            or multiline_single_backticks
+            or single_quote_closes
         ):
             delimiter_length = 2 if source.startswith("``", index) else 1
             delimiter = "`" * delimiter_length
@@ -169,16 +171,20 @@ def inventory(tokens: list[Token]) -> list[tuple[int, str, str]]:
             and index + 1 < len(tokens)
             and tokens[index + 1].text == "open"
         ):
+            has_bang = index + 2 < len(tokens) and tokens[index + 2].text == "!"
             path_index = after_open_bang(tokens, index + 2)
             path, _ = read_module_path(tokens, path_index)
-            found.append((tokens[index + 1].line, "let-open", path or "?"))
+            kind = "let-open-bang" if has_bang else "let-open"
+            found.append((tokens[index + 1].line, kind, path or "?"))
 
         elif token.text == "open" and not (
             index > 0 and tokens[index - 1].text == "let"
         ):
+            has_bang = index + 1 < len(tokens) and tokens[index + 1].text == "!"
             path_index = after_open_bang(tokens, index + 1)
             path, _ = read_module_path(tokens, path_index)
-            found.append((token.line, "declaration-open", path or "?"))
+            kind = "declaration-open-bang" if has_bang else "declaration-open"
+            found.append((token.line, kind, path or "?"))
 
         elif token.text == "include":
             path, _ = read_module_path(tokens, index + 1)
@@ -222,7 +228,12 @@ def main() -> int:
     for source_path in args.files:
         try:
             source = source_path.read_text(encoding="utf-8", errors="surrogateescape")
-            rows = inventory(lex(source))
+            rows = inventory(
+                lex(
+                    source,
+                    multiline_single_backticks=source_path.suffix == ".hl",
+                )
+            )
         except (OSError, UnicodeError, ValueError) as error:
             print(f"{source_path}: {error}", file=sys.stderr)
             return 1

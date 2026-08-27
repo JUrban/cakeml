@@ -38,3 +38,18 @@ comments, strings, single-line backtick quotations, and double-backtick
 quotations and emits only unambiguous token prefixes.  Its output must still
 be reviewed against the ordered production manifest; it is not a replacement
 for parser acceptance tests.
+
+Files ending in `.hl` use HOL mode, where single-backtick quotations may span
+lines.  Plain `.ml`/`.mli` files use the conservative same-line rule so Camlp5
+revised-syntax stream tokens are not mistaken for HOL quotations.
+
+`scan_flyspeck_build.py` extracts the comment-aware ordered
+`Build.build_sequence_full` list, requires an exact Flyspeck Git head, resolves
+every entry, and reports either a stable summary or full TSV inventory.  For
+the audited development pin:
+
+```sh
+./scan_flyspeck_build.py \
+  --flyspeck-root /project/repos/flyspeck \
+  --expected-head 2ea440e9f7c55734d1e47738e44a6129ce0ecf5a
+```

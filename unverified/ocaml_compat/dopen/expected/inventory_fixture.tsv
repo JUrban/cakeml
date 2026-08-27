@@ -3,7 +3,7 @@ inventory_fixture.ml	5	module-alias	Original.Nested
 inventory_fixture.ml	6	functor	Parameterized
 inventory_fixture.ml	7	functor	?
 inventory_fixture.ml	9	declaration-open	Alias.Inner
-inventory_fixture.ml	10	declaration-open	Warned
+inventory_fixture.ml	10	declaration-open-bang	Warned
 inventory_fixture.ml	11	let-open	Local.Inner
 inventory_fixture.ml	12	include	Included.Path
 inventory_fixture.ml	14	first-class-module	Alias

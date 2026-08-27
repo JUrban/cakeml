@@ -91,6 +91,7 @@ scanner error.  It found:
 | Construct | Occurrences |
 | --- | ---: |
 | Declaration `open` | 3,276 |
+| Warning-suppressing `open!` | 0 |
 | `include` | 1 |
 | Module alias | 1 |
 | Nested-path declaration `open` | 0 |
@@ -131,6 +132,9 @@ Run the committed A0 lane:
 cd /project/worktrees/cakeml-dopen-v13
 ./unverified/ocaml_compat/dopen/run-oracle.sh
 ./unverified/ocaml_compat/dopen/run-inventory-test.sh
+./unverified/ocaml_compat/dopen/scan_flyspeck_build.py \
+  --flyspeck-root /project/repos/flyspeck \
+  --expected-head 2ea440e9f7c55734d1e47738e44a6129ce0ecf5a
 ```
 
 Expected terminal markers are:
@@ -138,6 +142,7 @@ Expected terminal markers are:
 ```text
 OCAML_OPEN_ORACLE_OK cases=10 version=4.14.1
 OCAML_OPEN_INVENTORY_TEST_OK
+FLYSPECK_OPEN_INVENTORY_OK
 ```
 
 Audit the historical delta without checking it out:
