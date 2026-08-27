@@ -584,6 +584,14 @@ Definition ptree_ModulePath_def:
       fail (locs, «Expected module-path non-terminal»)
 End
 
+Theorem ptree_ModulePath_nonempty:
+  ∀pt path. ptree_ModulePath pt = INR path ⇒ path ≠ []
+Proof
+  recInduct ptree_ModulePath_ind >>
+  rw [ptree_ModulePath_def] >>
+  every_case_tac >> gvs []
+QED
+
 Definition ptree_ValuePath_def:
   ptree_ValuePath (Lf (_, locs)) =
     fail (locs, «Expected value-path non-terminal») ∧
