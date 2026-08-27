@@ -17,7 +17,7 @@ implementation surface, while A1--A4 proof and integration gates remain open.
 | `master`--`dopen2` merge base | `5204d423c1b89d92a970f41f52da476d6cfb1e47` | CakeML master merged into `dopen2` on 2025-09-06 |
 | Current HOL prerequisite | `a390cbabd3a4521bab4ee20281e3e42933a8a3ae` | Isolated HOL master built for current CakeML testing |
 | OCaml oracle | `4.14.1` | Reference compiler for A0 cases |
-| Current Flyspeck integration corpus | `2ea440e9f7c55734d1e47738e44a6129ce0ecf5a` | Source inventory input; development pin, not a release freeze |
+| Flyspeck direct-source corpus | `1ce0353008eba83d3c76ae9a25c3c242e4802d53` | Roadmap v1.3 source inventory pin; excludes PFT-added source |
 
 Enumerating local and remote refs found the two historical Dopen refs above
 (in addition to this development branch).  `git ls-remote` confirmed both
@@ -103,6 +103,11 @@ scanner error.  It found:
 | Nested-path declaration `open` | 0 |
 | Expression `let open` | 0 |
 
+The inventory was rerun against exact direct-source commit `1ce0353...` after
+a provenance review distinguished it from the later `2ea440e...` PFT-added
+tree.  The selected build-manifest counts are unchanged, but only the direct
+pin is authoritative for S2/S3 source-compatibility claims.
+
 The one alias is `Set.Make` in `general/serialization.hl`; the one include is
 `Flyspeck_eval` in `general/flyspeck_lib.hl`.  These are lexical inventory
 results, not parser-acceptance results.  They show that declaration open is
@@ -180,8 +185,8 @@ cd /project/worktrees/cakeml-dopen-v13
 ./unverified/ocaml_compat/dopen/run-oracle.sh
 ./unverified/ocaml_compat/dopen/run-inventory-test.sh
 ./unverified/ocaml_compat/dopen/scan_flyspeck_build.py \
-  --flyspeck-root /project/repos/flyspeck \
-  --expected-head 2ea440e9f7c55734d1e47738e44a6129ce0ecf5a
+  --flyspeck-root /project/worktrees/flyspeck-v13-source \
+  --expected-head 1ce0353008eba83d3c76ae9a25c3c242e4802d53
 ```
 
 Expected terminal markers are:

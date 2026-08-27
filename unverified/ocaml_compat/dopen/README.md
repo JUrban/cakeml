@@ -46,10 +46,10 @@ revised-syntax stream tokens are not mistaken for HOL quotations.
 `scan_flyspeck_build.py` extracts the comment-aware ordered
 `Build.build_sequence_full` list, requires an exact Flyspeck Git head, resolves
 every entry, and reports either a stable summary or full TSV inventory.  For
-the audited development pin:
+roadmap v1.3's audited direct-source pin (kept separate from PFT-added source):
 
 ```sh
 ./scan_flyspeck_build.py \
-  --flyspeck-root /project/repos/flyspeck \
-  --expected-head 2ea440e9f7c55734d1e47738e44a6129ce0ecf5a
+  --flyspeck-root /project/worktrees/flyspeck-v13-source \
+  --expected-head 1ce0353008eba83d3c76ae9a25c3c242e4802d53
 ```
