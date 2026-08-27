@@ -319,6 +319,16 @@ Definition open_tenv_def:
         | SOME env_t => SOME <|v := env_v; c := env_c; t := env_t|>
 End
 
+Theorem open_tenv_success_components:
+  open_tenv path tenv = SOME opened ⇒
+  nsOpen path tenv.v = SOME opened.v ∧
+  nsOpen path tenv.c = SOME opened.c ∧
+  nsOpen path tenv.t = SOME opened.t
+Proof
+  rw [open_tenv_def] >>
+  every_case_tac >> gvs []
+QED
+
 
 (*val num_tvs : tenv_val_exp -> nat*)
 Definition num_tvs_def:

@@ -1066,6 +1066,16 @@ Definition open_ienv_def:
           SOME <|inf_v := env_v; inf_c := env_c; inf_t := env_t|>
 End
 
+Theorem open_ienv_success_components:
+  open_ienv path ienv = SOME opened ⇒
+  nsOpen path ienv.inf_v = SOME opened.inf_v ∧
+  nsOpen path ienv.inf_c = SOME opened.inf_c ∧
+  nsOpen path ienv.inf_t = SOME opened.inf_t
+Proof
+  rw [open_ienv_def] >>
+  every_case_tac >> gvs []
+QED
+
 Definition mod_path_to_string_def:
   mod_path_to_string [] = «» ∧
   mod_path_to_string (mn::path) =
