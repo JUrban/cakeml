@@ -133,6 +133,23 @@ QED
 fun str_tac strs = ConseqConv.CONSEQ_CONV_TAC
   (ConseqConv.CONSEQ_REWRITE_CONV ([], strs, []));
 
+Theorem infer_d_open_sound_rel:
+   infer_d ienv (Dopen locs path) st1 = (M_success inferred_open,st2) ∧
+   env_rel tenv ienv ⇒
+   ∃typed_open.
+     st2 = st1 ∧
+     type_d T tenv (Dopen locs path) {} typed_open ∧
+     env_rel typed_open inferred_open
+Proof
+  rw [infer_d_def, infer_open_success] >>
+  `∃typed_open. open_tenv path tenv = SOME typed_open`
+    by metis_tac [env_rel_open_tenv_exists] >>
+  pop_assum strip_assume_tac >>
+  qexists_tac `typed_open` >>
+  simp [Once type_d_cases] >>
+  metis_tac [env_rel_open]
+QED
+
 Theorem infer_d_sound:
    (!d tenv ienv st1 st2 ienv'.
     infer_d ienv d st1 = (M_success ienv', st2) ∧
