@@ -25,6 +25,10 @@ The executable test theory also fixes the sequencing contract at namespace
 lookup level: an opened `x` shadows an older `x`, while a later declaration
 delta shadows the opened `x`.  These tests exercise the existing
 left-biased `extend_dec_env`; they do not replace its proof obligations.
+It also includes a deliberately malformed inference environment in which
+only the value and type namespaces contain `M`; opening it must fail because
+the constructor component is absent.  This pins the all-components selector
+contract used by the alignment proof.
 
 Every successful layer returns the selected module contents only.  Existing
 list sequencing appends that delta to the current environment exactly once.
