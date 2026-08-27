@@ -262,10 +262,13 @@ QED
 
 val _ = cv_trans namespaceTheory.nsSing_def;
 
+val _ = cv_auto_trans namespaceTheory.nsLookupMod_def;
 val _ = cv_trans namespaceTheory.nsOpen_def;
 val _ = cv_auto_trans open_ienv_def;
 val _ = cv_trans mod_path_to_string_def;
-val _ = cv_auto_trans (infer_open_def |> expand);
+val _ = cv_auto_trans
+  (infer_open_def |> expand |>
+   SRULE [option_case_rand, failwith_def, st_ex_return_def, FUN_EQ_THM]);
 
 val infer_d_pre = cv_auto_trans_pre ""
   (infer_d_expand |>
