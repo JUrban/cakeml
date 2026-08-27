@@ -111,8 +111,9 @@ The next proof pass must establish, in order:
 
 1. `nsOpen` lookup, `nsMap`, `nsAppend`, and module-domain lemmas for non-empty
    paths (the elementary lookup and `nsMap` lemmas are already in the slice).
-2. Selection preserves `env_rel`: matching successful `open_tenv` and
-   `open_ienv` results are related, including nested module domains.
+2. Inference-side success implies declarative-side selector success under
+   `env_rel`, and matching selected results preserve `env_rel`, including
+   nested module domains.
 3. The generalized declaration/result soundness statement above, state/ID
    preservation for `Dopen`, and its declaration-list composition.
 4. `cmlPtreeConversionProps$Decl_OK` branches for the two new grammar
@@ -130,8 +131,34 @@ The next proof pass must establish, in order:
 
 ### Next lemma: selection preserves `env_rel`
 
-The immediate theorem should assume the two component selectors have
-matching successful results:
+There are two lemmas, in this order.  `infer_d` supplies only inference-side
+success, so matching success cannot be assumed at the soundness call site:
+
+```text
+env_rel tenv ienv /\
+open_ienv path ienv = SOME inferred_open
+  ==> exists typed_open.
+        open_tenv path tenv = SOME typed_open
+```
+
+Unfolding `open_ienv` gives successful value, constructor, and type namespace
+selections.  For the value component, use the module-domain equivalence in
+`env_rel` plus `nsOpen_some_from_same_mod_domain`; inference-side `SOME`
+rules out declarative-side `NONE` at the same non-empty path.  For constructor
+and type components, `env_rel_sound` gives exact namespace equality, so their
+same-path selections are the identical `SOME` results.  The witness is the
+record made from those three declarative selections.  Checking only the value
+module domain would be insufficient: `open_tenv` succeeds only if all three
+component selectors succeed.
+
+The branch now contains this alignment statement as
+`env_rel_open_tenv_exists`, backed by the generic namespace-domain lemma
+`nsOpen_some_from_same_mod_domain`.  It remains an unbuilt proof candidate
+until the shared HOL checkout is released; no downstream theorem currently
+depends on it.
+
+Only after that alignment lemma should the preservation theorem assume the
+two matching successful results:
 
 ```text
 env_rel tenv ienv /\

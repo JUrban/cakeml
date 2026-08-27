@@ -157,6 +157,42 @@ Proof
   metis_tac [nsLookup_after_nsLookupMod]
 QED
 
+Theorem nsLookup_after_nsOpen:
+   nsOpen path env = SOME opened ⇒
+   nsLookup opened id =
+     nsLookup env (mk_id (path ++ id_to_mods id) (id_to_n id))
+Proof
+  rw [nsOpen_eq_some] >>
+  metis_tac [nsLookup_after_nsLookupMod]
+QED
+
+Theorem nsLookupMod_after_nsOpen:
+   nsOpen path env = SOME opened ⇒
+   nsLookupMod opened suffix = nsLookupMod env (path ++ suffix)
+Proof
+  rw [nsOpen_eq_some] >>
+  metis_tac [nsLookupMod_after_nsLookupMod]
+QED
+
+Theorem nsAll_after_nsOpen:
+   nsOpen path env = SOME opened ∧ nsAll P env ⇒
+   nsAll
+     (λid v. P (mk_id (path ++ id_to_mods id) (id_to_n id)) v)
+     opened
+Proof
+  rw [nsOpen_eq_some] >>
+  metis_tac [nsAll_after_nsLookupMod]
+QED
+
+Theorem nsOpen_some_from_same_mod_domain:
+   nsOpen path env1 = SOME opened1 ∧
+   (∀p. nsLookupMod env1 p = NONE ⇔ nsLookupMod env2 p = NONE) ⇒
+   ∃opened2. nsOpen path env2 = SOME opened2
+Proof
+  rw [nsOpen_eq_some] >>
+  metis_tac [option_nchotomy]
+QED
+
 Theorem nsAppend_nsEmpty[simp]:
    !env. nsAppend env nsEmpty = env ∧ nsAppend nsEmpty env = env
 Proof

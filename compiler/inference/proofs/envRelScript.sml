@@ -800,6 +800,17 @@ Proof
     rw [])
 QED
 
+Theorem env_rel_open_tenv_exists:
+   env_rel tenv ienv ∧
+   open_ienv path ienv = SOME inferred_open ⇒
+   ∃typed_open. open_tenv path tenv = SOME typed_open
+Proof
+  rw [open_ienv_def, open_tenv_def] >>
+  every_case_tac >>
+  gvs [env_rel_def, env_rel_sound_def] >>
+  metis_tac [nsOpen_some_from_same_mod_domain, option_nchotomy]
+QED
+
 Definition ienv_to_tenv_def:
   ienv_to_tenv ienv =
     <| v := nsMap (\(tvs, t). (tvs, convert_t t)) ienv.inf_v;
