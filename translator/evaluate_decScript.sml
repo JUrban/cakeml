@@ -227,6 +227,66 @@ Proof
   \\ metis_tac [LIST_REL_APPEND]
 QED
 
+Theorem con_check_eqv_alookup[local]:
+  ∀xs ys.
+    LIST_REL (λ(a,x) (b,y). a = b ∧ con_check_eqv x y) xs ys ⇒
+    ∀k y. ALOOKUP ys k = SOME y ⇒
+      ∃x. ALOOKUP xs k = SOME x ∧ con_check_eqv x y
+Proof
+  Induct
+  \\ gvs [FORALL_PROD]
+  \\ rw []
+  \\ Cases_on ‘y’
+  \\ gvs []
+  \\ Cases_on ‘p_1 = k’
+  \\ gvs []
+  \\ first_x_assum drule
+  \\ strip_tac
+  \\ first_x_assum drule
+  \\ gvs []
+QED
+
+Theorem con_check_eqv_nsLookupMod[local]:
+  ∀path x y opened_y.
+    con_check_eqv x y ∧ nsLookupMod y path = SOME opened_y ⇒
+    ∃opened_x.
+      nsLookupMod x path = SOME opened_x ∧
+      con_check_eqv opened_x opened_y
+Proof
+  Induct
+  \\ gvs [nsLookupMod_def]
+  \\ rw []
+  \\ Cases_on ‘x’
+  \\ Cases_on ‘y’
+  \\ fs [nsLookupMod_def]
+  \\ qpat_x_assum ‘con_check_eqv (Bind l0 l) (Bind l0' l')’ mp_tac
+  \\ simp [Once con_check_eqv_def]
+  \\ strip_tac
+  \\ Cases_on ‘ALOOKUP l' h’
+  \\ gvs []
+  \\ drule con_check_eqv_alookup
+  \\ disch_then drule
+  \\ strip_tac
+  \\ qpat_assum
+       ‘∀xx yy oo.
+          con_check_eqv xx yy ∧ nsLookupMod yy path = SOME oo ⇒ _’
+       (qspecl_then [‘x'’,‘x’,‘opened_y’] mp_tac)
+  \\ simp []
+  \\ strip_tac
+  \\ gvs []
+QED
+
+Theorem con_check_eqv_nsOpen[local]:
+  ∀path x y opened_y.
+    con_check_eqv x y ∧ nsOpen path y = SOME opened_y ⇒
+    ∃opened_x.
+      nsOpen path x = SOME opened_x ∧
+      con_check_eqv opened_x opened_y
+Proof
+  rw [nsOpen_def]
+  \\ metis_tac [con_check_eqv_nsLookupMod]
+QED
+
 Theorem con_check_eqv_switch:
   con_check_eqv env2 env1 ⇒
   every_exp (one_con_check env1) e = every_exp (one_con_check env2) e
@@ -342,6 +402,12 @@ Proof
   >~ [‘Dexn’] >-
    (gvs [check_cons_dec_list_def,evaluate_decs_def,evaluate_dec_list_def]
     \\ rw [] \\ simp [Once con_check_eqv_def,nsSing_def])
+  >~ [‘Dopen’] >-
+   (gvs [check_cons_dec_list_def,evaluate_decs_def,evaluate_dec_list_def,
+         open_dec_env_def,AllCaseEqs()]
+    \\ rpt strip_tac
+    \\ imp_res_tac con_check_eqv_nsOpen
+    \\ gvs [])
   >~ [‘Dmod’] >-
    (gvs [check_cons_dec_list_def,evaluate_decs_def,evaluate_dec_list_def]
     \\ gvs [AllCaseEqs(),PULL_EXISTS]
