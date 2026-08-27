@@ -79,15 +79,40 @@ opened value schemes, but that would duplicate the inference/type relation
 inside `typeSystem` and currently has less evidence behind it.
 
 The downstream check is now explicit.  The compiler-facing
-`infertype_prog_correct` theorem only needs the existential result in
-`can_type_prog`; it does not require the declarative delta to be syntactically
-`ienv_to_tenv inferred_delta`.  The current internal `infer_top_sound` and
-`infer_prog_sound` theorems do state that exact result, however, and are used
-to compose successive top-level inference calls.  A relational repair must
-therefore generalise those two results (and use `env_rel_extend` at each
-composition point), or supply a separate exact-input corollary under
-`tenv = ienv_to_tenv ienv`.  Merely changing the statement of `infer_d_sound`
-would leave the proof stack incomplete.
+`infertype_prog_correct` theorem has one active use of `infer_d_sound` and only
+needs the existential result in `can_type_prog`; it does not require the
+declarative delta to be syntactically `ienv_to_tenv inferred_delta`.  The
+`infer_top_sound` and `infer_prog_sound` candidates near the end of
+`inferSoundScript.sml` do state exact converted results, but they are inside a
+comment and are not current consumers.
+
+There are nevertheless five active exact-result consumers in
+`compiler/repl/repl_typesScript.sml`: four in
+`repl_types_F_repl_types_TS` and one in `repl_types_F_thm`.  They maintain the
+declarative REPL state as `ienv_to_tenv` of the incremental inference state.
+All five supply an exact converted input environment (directly, or through
+the exact initial-configuration equation), so they do not justify demanding
+an exact result from an arbitrary merely-related input.  They do require a
+separate exact-input corollary:
+
+```text
+infer_ds ienv ds st1 = success inferred_delta /\
+ienv_ok {} ienv /\ ...
+  ==> type_ds T (ienv_to_tenv ienv) ds ids
+        (ienv_to_tenv inferred_delta)
+```
+
+One economical mutual proof interface is to return a related typed witness
+and additionally prove that the chosen witness equals the converted inferred
+result whenever the input declarative environment is itself the converted
+inference environment.  The relational projection serves
+`infertype_prog_correct`; the conditional exactness projection gives the REPL
+corollary.  In the open case, conditional exactness follows from
+`ienv_to_tenv_open`; list, local, and module cases compose it through the
+existing extend/lift equations.  Whether implemented as that strengthened
+witness or as two mutually proved theorems, merely replacing
+`infer_d_sound` with an existential statement would leave the active REPL
+proof stack incomplete.
 
 Strengthening `env_rel` globally to equality is not a justified shortcut.
 Its value component deliberately relates schemes through bidirectional
