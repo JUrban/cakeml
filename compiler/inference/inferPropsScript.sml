@@ -2965,6 +2965,19 @@ Proof
  >> metis_tac [nsAll_nsAppend]
 QED
 
+Theorem ienv_ok_open_ienv:
+   !uvars ienv path opened.
+    ienv_ok uvars ienv ∧ open_ienv path ienv = SOME opened ⇒
+    ienv_ok uvars opened
+Proof
+  rw [open_ienv_def] >>
+  every_case_tac >>
+  gvs [ienv_ok_def, ienv_val_ok_def,
+       typeSoundInvariantsTheory.tenv_ctor_ok_def,
+       typeSoundInvariantsTheory.tenv_abbrev_ok_def] >>
+  metis_tac [nsAll_after_nsOpen]
+QED
+
 Theorem infer_d_check:
  (!d ienv st1 st2 ienv'.
   infer_d ienv d st1 = (M_success ienv', st2) ∧
@@ -3084,7 +3097,7 @@ Proof
   \\ rw []
   \\ metis_tac [ienv_ok_extend_dec_ienv]
  )
- >- fs[ienv_ok_def,ienv_val_ok_def]
+ >- metis_tac [infer_open_success, ienv_ok_open_ienv]
  >>
    match_mp_tac ienv_ok_extend_dec_ienv>>
    rpt (first_x_assum old_drule)>> rw[]>>

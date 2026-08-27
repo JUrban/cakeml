@@ -2451,6 +2451,18 @@ Proof
  >> simp []
 QED
 
+Theorem tenv_ok_open_tenv:
+   !tenv path opened.
+    tenv_ok tenv ∧ open_tenv path tenv = SOME opened ⇒
+    tenv_ok opened
+Proof
+  rw [open_tenv_def] >>
+  every_case_tac >>
+  gvs [tenv_ok_def, tenv_val_ok_def, tenv_ctor_ok_def,
+       tenv_abbrev_ok_def] >>
+  metis_tac [nsAll_after_nsOpen]
+QED
+
 Theorem type_d_tenv_ok_helper:
   (∀check tenv d tdecs tenv'.
    type_d check tenv d tdecs tenv' ⇒
@@ -2538,6 +2550,7 @@ Proof
    >> simp [tenv_abbrev_ok_def])
  >- fs [tenv_ok_def, tenv_val_ok_def, tenv_ctor_ok_def, tenv_abbrev_ok_def]
  >- metis_tac [extend_dec_tenv_ok]
+ >- metis_tac [tenv_ok_open_tenv]
  >- metis_tac [extend_dec_tenv_ok]
 QED
 
