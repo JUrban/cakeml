@@ -171,28 +171,31 @@ module Filename = struct
     let trimSep s = (* trim trailing separators *)
       let len = String.size s in
       let dsl = String.size dirSep in
-      let rec search i =
-        if i < dsl then s
-        else if String.substring s i dsl = dirSep then
-          search (i - dsl)
+      let rec search n =
+        if n <= dsl then String.substring s 0 n
+        else if String.substring s (n - dsl) dsl = dirSep then
+          search (n - dsl)
         else
-          String.substring s 0 i in
-      search (len - 1) in
+          String.substring s 0 n in
+      search len in
     let splitPath s =
-      let len = String.size s in
       let dsl = String.size dirSep in
       let s = trimSep s in
+      let len = String.size s in
       let rec search i =
-        if i <= dsl then
+        if i < 0 then
           (currentDir, s)
         else if String.substring s i dsl = dirSep then
-          (String.substring s 0 (i - 1),
+          let prefix = trimSep (String.substring s 0 i) in
+          ((if prefix = "" then dirSep else prefix),
            String.extract s (i + dsl) None)
         else
           search (i - dsl) in
-      search (len - 1) in
-    ((fun s -> let (_, b) = splitPath s in b),
-     (fun s -> let (d, _) = splitPath s in d))
+      if len = 0 then currentDir,currentDir
+      else if s = dirSep then dirSep,dirSep
+      else search (len - dsl) in
+    ((fun s -> let _,b = splitPath s in b),
+     (fun s -> let d,_ = splitPath s in d))
 end;; (* struct *)
 
 (* ------------------------------------------------------------------------- *
