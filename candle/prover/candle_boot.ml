@@ -288,7 +288,8 @@ let string_of_directive d =
 
 type token =
   | T_begin | T_end | T_struct | T_sig | T_semis | T_newline
-  | T_use | T_needs | T_loads (* converted into directives *)
+  | T_use | T_needs | T_loads (* converted into source-loading directives *)
+  | T_static_load (* exact #load selection; never reads a .cma as source *)
   | T_other of string
   | T_symb of string
   | T_comment of string
@@ -320,6 +321,7 @@ let string_of_token unquote tok =
   | T_use -> "#use"
   | T_loads -> "loads"
   | T_needs -> "needs"
+  | T_static_load -> "#load"
   | T_done -> "(* shouldn't happen *)"
 ;;
 
@@ -341,6 +343,7 @@ let scan nextChar peekChar =
       "sig",    T_sig;
       (* top-level directives *)
       "#use",   T_use;
+      "#load",  T_static_load;
       "needs",  T_needs;
       "loads",  T_loads;
     ] in
@@ -538,6 +541,26 @@ let unquote = ref (fun (s: string) -> s);;
 
 exception Repl_error;;
 
+(* Candle links these OCaml-library compatibility modules statically.  This
+   fixed-name selector is deliberately distinct from the source-file loader:
+   a [.cma] is never opened or evaluated as source, and every other library
+   name fails closed.  Individual Str/Unix members retain their own explicit
+   compatibility checks and failures. *)
+let static_library_module fname =
+  match fname with
+  | "unix.cma" -> Some "Unix"
+  | "str.cma" -> Some "Str"
+  | _ -> None
+;;
+
+let select_static_library fname =
+  match static_library_module fname with
+  | Some module_name ->
+      print ("- Selecting statically linked library " ^ fname ^
+             " (module " ^ module_name ^ ")\n")
+  | None -> failwith ("Unsupported #load library: " ^ fname)
+;;
+
 let () =
   let prompt = ref (!prompt2) in
   let pushLoad, popLoad, clearLoadStack =
@@ -656,9 +679,33 @@ let () =
     match next () with
     | Some (Lexer.T_spaces _) -> next_nonspace ()
     | res -> res in
-  let rec scan level =
+  let rec scan level phrase_start =
     try match next () with
         | None -> None
+        (* Static-library selection is accepted only as a complete standalone
+           top-level phrase.  In particular, seeing [#load] at the start of a
+           line is not sufficient if expression tokens precede it in the
+           current phrase. *)
+        | Some Lexer.T_static_load when level = 0 && phrase_start ->
+            begin
+              match next_nonspace () with
+              | Some (Lexer.T_string fname) ->
+                  begin
+                    match next_nonspace () with
+                    | Some Lexer.T_semis ->
+                        select_static_library fname;
+                        scan level true
+                    | _ ->
+                        failwith
+                          "\nREPL error: #load \"string\" should be followed by a double semicolon [;;].\n"
+                  end
+              | _ ->
+                  failwith
+                    "\nREPL error: #load should be followed by a \"string literal\" and then a double semicolon [;;].\n"
+            end
+        | Some Lexer.T_static_load ->
+            failwith
+              "\nREPL error: #load must be a standalone top-level phrase.\n"
         (* Attempt to use token as part of loading directive if it sits at the
            top level (i.e. not inside parenthesis). The REPL fails and reports
            and error unless the token is followed by a string literal and then
@@ -680,12 +727,12 @@ let () =
                     (* OK directive, perform load: *)
                     | Some (Lexer.T_semis) ->
                         let lines = load dir fname in
-                        if List.null lines then scan level else
+                        if List.null lines then scan level true else
                           begin
                             pushLoad fname;
                             userInput := false;
                             scan_lines lines;
-                            scan level
+                            scan level true
                           end
                     (* Malformed *)
                     | _ ->
@@ -710,22 +757,24 @@ let () =
              | Some (fname, rest) -> (
                print ("- Finished loading " ^ fname ^ "\n");
                if List.null rest then userInput := true)
-             | None -> failwith "candle_boot.ml: scan - should be unreachable");
-            scan level
+            | None -> failwith "candle_boot.ml: scan - should be unreachable");
+            scan level phrase_start
         | Some tok ->
             Buffer.push_back output_buffer tok;
             match tok with
             | Lexer.T_begin | Lexer.T_struct | Lexer.T_sig ->
-                scan (level + 1)
-            | Lexer.T_end -> scan (level - 1)
+                scan (level + 1) false
+            | Lexer.T_end -> scan (level - 1) false
             | Lexer.T_semis when level = 0 ->
                 prompt := !prompt1;
                 Some (Buffer.flush output_buffer)
             | Lexer.T_newline when !userInput ->
                 print (!prompt);
                 prompt := !prompt2;
-                scan level
-            | _ -> scan level
+                scan level phrase_start
+            | Lexer.T_spaces _ | Lexer.T_comment _ | Lexer.T_newline ->
+                scan level phrase_start
+            | _ -> scan level false
     with Interrupt ->
       print "Compilation interrupted\n";
       raise Repl_error in
@@ -735,7 +784,7 @@ let () =
     if err <> "" then raise Repl_error in
   let next () =
     try checkError ();
-        match scan 0 with
+        match scan 0 true with
         | None ->
             Repl.isEOF := true;
             Repl.nextString := ""
