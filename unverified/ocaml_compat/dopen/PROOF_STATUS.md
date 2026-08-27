@@ -121,7 +121,9 @@ The next proof pass must establish, in order:
 3. The generalized declaration/result soundness statement above, state/ID
    preservation for `Dopen`, and its declaration-list composition.
 4. `cmlPtreeConversionProps$Decl_OK` branches for the two new grammar
-   productions and constructor-arity state work required by roadmap A2.
+   productions, followed by parser-to-inference constructor resolution,
+   wrong-arity, and shadowing regressions.  The current parser has no active
+   constructor-arity state to mutate; see `DESIGN.md`.
 5. Type-system properties: weakening, lookup precedence, well-formedness,
    type-identity preservation, and `type_d` canonicalisation.
 6. Inference completeness and CV correctness, including generated precondition

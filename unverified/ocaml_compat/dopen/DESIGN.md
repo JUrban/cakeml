@@ -65,11 +65,25 @@ turns either a simple `StructName` or a `LongidT` into the non-empty AST list.
 The constructor carries the declaration location so an absent module is an
 ordinary located inference error.
 
-The current `PCstate0.ctr_arities` field is not wired into declaration
-conversion.  This slice must not claim the roadmap's constructor-arity gate:
-parser acceptance and inference lookup can be tested now, but A2 still needs
-module-scoped constructor-arity recording/import (and its shadowing tests)
-before the supported subset is frozen.
+The current CakeML base has no active constructor-arity elaboration state.
+`PCstate0.ctr_arities` and its state-monad scaffolding remain near the top of
+`cmlPtreeConversionScript.sml`, but repository-wide reference analysis finds
+no consumer of the field and the parser tests explicitly note that
+`elab_decs` was removed.  The actual `ptree_Decl`/`ptree_Decls` conversion is
+pure `option` code.  Constructors are recognized syntactically by uppercase
+names, pattern application is accumulated by `Papply`, and expression
+application to a constructor is accumulated by `mkAst_App`; constructor
+arity is subsequently validated by type inference.
+
+Consequently, this current-base A2 slice must not resurrect the dead parser
+state merely to satisfy wording inherited from an older architecture.
+Declaration open exposes the constructor namespace through `open_ienv.inf_c`;
+the required gate is a parser-to-inference regression in which constructors
+used after an open resolve with the selected arity, plus wrong-arity and
+shadowing failures.  `cmlPtreeConversionProps$Decl_OK` still needs proof
+branches for the two open grammar productions.  If a future parser restores
+stateful arity elaboration, that state will need the same proved namespace
+selection operation before it can be accepted.
 
 ## Proof obligations
 

@@ -157,6 +157,20 @@ necessarily syntactically equal.  The proof must be generalized or supplied
 with a justified declarative equivalence; no assumption or inference bypass
 has been inserted.
 
+### Current-base parser-state finding
+
+The roadmap's constructor-arity parser-state requirement does not map
+literally to the chosen CakeML base.  A repository-wide reference audit shows
+that `PCstate0.ctr_arities` is only declared and initialized; no parser entry
+point reads or updates it, and the parser tests state that the former
+`elab_decs` phase no longer exists.  Current conversion recognizes constructor
+names syntactically and builds constructor/pattern applications directly;
+arity validation belongs to inference.  The Dopen A2 gate on this base is
+therefore constructor lookup through the selected `inf_c` namespace, including
+correct-arity, wrong-arity, and shadowing tests, together with the missing
+`Decl_OK` grammar proof.  Reintroducing unused parser state would add an
+unverified second namespace mechanism and is not proposed.
+
 ## Commands and current evidence
 
 Run the committed A0 lane:
