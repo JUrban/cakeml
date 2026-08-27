@@ -10,6 +10,12 @@ The AST constructor is `Dopen locs (modN list)`.  A list represents the
 non-empty module path in source order, so `open A.B` becomes
 `Dopen locs [«A»; «B»]`.  Keeping a path, rather than the historical single
 `modN`, avoids another AST migration when a later corpus needs nested open.
+The new constructor is appended after the pre-existing final `Denv`
+constructor.  This preserves every existing declaration constructor ordinal,
+including the compiled representation of `Denv`, and makes old exhaustive
+case proofs retain their prior branch order before acquiring one new final
+case.  It does not remove the requirement to regenerate and test all AST/CV
+and bootstrap consumers.
 
 All semantic layers use one namespace operation:
 
