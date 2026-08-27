@@ -128,6 +128,54 @@ The next proof pass must establish, in order:
    clean full dependency build; generic wildcard consumers still need review,
    not just compilation.
 
+### Next lemma: selection preserves `env_rel`
+
+The immediate theorem should assume the two component selectors have
+matching successful results:
+
+```text
+env_rel tenv ienv /\
+open_tenv path tenv = SOME typed_open /\
+open_ienv path ienv = SOME inferred_open
+  ==> env_rel typed_open inferred_open
+```
+
+Its proof should unfold the record selectors only once and then transport the
+five conjuncts of `env_rel` as follows.
+
+1. `ienv_ok {}` and `tenv_ok` are component-wise `nsAll` properties.  Apply
+   `nsAll_after_nsLookupMod`; their predicates ignore the qualified identifier,
+   so the prefixed identifier produced by the lemma simplifies away.
+2. Module-domain agreement for a suffix `q` follows by rewriting each lookup
+   below the selected namespace to the original lookup at `path ++ q` with
+   `nsLookupMod_after_nsLookupMod`, then instantiating the input domain
+   agreement at that appended path.
+3. The exact constructor and type components in `env_rel_sound` and
+   `env_rel_complete` follow from their input equalities and selection at the
+   same path.
+4. For sound value lookup, turn a lookup in `inferred_open.inf_v` into the
+   input lookup at
+   `mk_id (path ++ id_to_mods id) (id_to_n id)` using
+   `nsLookup_after_nsLookupMod`.  Apply input `env_rel_sound`; with `Empty`,
+   `lookup_var` reduces to the declarative value namespace.  The same lookup
+   lemma in reverse moves that result into `typed_open.v`.  The
+   `tscheme_approx` witness is unchanged.
+5. The complete direction is symmetric, starting from the selected
+   declarative lookup and applying input `env_rel_complete`.
+
+This lemma needs no `nsAppend` reasoning: opening is selection.  `nsAppend`
+enters only in the declaration-list case, where the relational soundness
+results for the head and tail compose via the existing `env_rel_extend`.
+
+After the lemma is green, the mutual soundness result should return an
+existential typed delta related to the inferred delta.  Existing declaration
+cases can still choose `ienv_to_tenv inferred_delta`; Dopen chooses
+`typed_open`.  A separate exact-input corollary can retain the convenient
+syntactic result when `tenv = ienv_to_tenv ienv`, using
+`ienv_to_tenv_open` and `ienv_to_tenv_extend`.  It cannot replace the
+relational theorem because the current public soundness assumptions contain
+only `env_rel`.
+
 ## Static consumer backlog
 
 Before any dependency build, an AST-constructor inventory found the following
