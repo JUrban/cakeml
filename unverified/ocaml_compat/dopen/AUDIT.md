@@ -11,16 +11,19 @@ and inventory advance A0, while A1--A4 remain proof and integration work.
 | Item | Commit | Role |
 | --- | --- | --- |
 | CakeML `master` / chosen integration base | `dcc03f2866f05b1db18b9f45c731ce45c3a3133e` | Current public master at audit time |
+| CakeML `dopen` | `947cd55ce284658eadaa42a43c3ab0482057d269` | Original 2022 Open/Dopen branch tip |
 | CakeML `dopen2` | `db69b70e9ee28abd5d144e210a8fc6a396be4454` | Historical experimental anchor |
 | `master`--`dopen2` merge base | `5204d423c1b89d92a970f41f52da476d6cfb1e47` | CakeML master merged into `dopen2` on 2025-09-06 |
 | Current HOL prerequisite | `a390cbabd3a4521bab4ee20281e3e42933a8a3ae` | Isolated HOL master used for current CakeML tests |
 | OCaml oracle | `4.14.1` | Reference compiler for A0 cases |
 | Current Flyspeck integration corpus | `2ea440e9f7c55734d1e47738e44a6129ce0ecf5a` | Source inventory input; development pin, not a release freeze |
 
-`git ls-remote` confirmed that the public `dopen2` head is still the recorded
-anchor.  The current histories have 2,630 commits reachable only from master
-and 13 reachable only from `dopen2`.  Twelve of those branch commits are the
-2022 Open/Dopen experiment; the thirteenth is its 2025 master merge.
+Enumerating local and remote refs found the two historical Dopen refs above
+(in addition to this development branch).  `git ls-remote` confirmed both
+public branch tips.  The current histories have 2,630 commits reachable only
+from master and 13 reachable only from `dopen2`.  Twelve of those branch
+commits are the 2022 Open/Dopen experiment ending at `dopen`; the thirteenth
+is the 2025 master merge that produced `dopen2`.
 
 Relative to the merge base, the Dopen-specific patch changes only these eight
 files (657 insertions, 233 deletions):
