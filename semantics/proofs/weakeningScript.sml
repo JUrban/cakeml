@@ -669,9 +669,28 @@ Proof
   \\ fs [extend_dec_tenv_def]
 QED
 
+(* Exact-output declaration weakening predates Dopen.  It is not true for an
+   open declaration: its output is a selected slice of the input environment,
+   so weakening that input can legitimately change the selected value
+   schemes.  Keep the exact-output theorem for the declaration fragment where
+   its statement is valid.  Dopen itself is covered by the inference
+   soundness/completeness and environment-relation theorems. *)
+Definition dopen_free_dec_def:
+  (dopen_free_dec (Dlet locs p e) = T) /\
+  (dopen_free_dec (Dletrec locs funs) = T) /\
+  (dopen_free_dec (Dtype locs tdefs) = T) /\
+  (dopen_free_dec (Dtabbrev locs tvs tn t) = T) /\
+  (dopen_free_dec (Dexn locs cn ts) = T) /\
+  (dopen_free_dec (Dopen locs path) = F) /\
+  (dopen_free_dec (Dmod mn ds) = EVERY dopen_free_dec ds) /\
+  (dopen_free_dec (Dlocal lds ds) =
+     (EVERY dopen_free_dec lds /\ EVERY dopen_free_dec ds))
+End
+
 Theorem type_d_weakening:
  (!check tenv d decls tenv'.
   type_d check tenv d decls tenv' ⇒
+  dopen_free_dec d ⇒
   !tenv''.
   check = F ∧
   tenv_ok tenv'' ∧
@@ -680,6 +699,7 @@ Theorem type_d_weakening:
   type_d check tenv'' d decls tenv') ∧
  (!check tenv d decls tenv'.
   type_ds check tenv d decls tenv' ⇒
+  EVERY dopen_free_dec d ⇒
   !tenv''.
   check = F ∧
   tenv_ok tenv'' ∧
@@ -688,7 +708,7 @@ Theorem type_d_weakening:
   type_ds check tenv'' d decls tenv')
 Proof
  ho_match_mp_tac type_d_ind >>
- rw [] >>
+ rw [dopen_free_dec_def] >>
  simp [Once type_d_cases] >>
  rw []
  >- metis_tac[type_p_weakening,LESS_EQ_REFL,GREATER_EQ,type_e_weakening,weak_def,weak_tenvE_refl]
