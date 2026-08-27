@@ -584,12 +584,21 @@ Definition ptree_ModulePath_def:
       fail (locs, «Expected module-path non-terminal»)
 End
 
+Theorem fmap_singleton_nonempty:
+  fmap (λx. [x]) result ≠ INR []
+Proof
+  Cases_on `result` >> simp [fmap_def]
+QED
+
 Theorem ptree_ModulePath_nonempty:
   ∀pt path. ptree_ModulePath pt = INR path ⇒ path ≠ []
 Proof
   recInduct ptree_ModulePath_ind >>
   rw [ptree_ModulePath_def] >>
-  every_case_tac >> gvs []
+  every_case_tac >> gvs [fmap_singleton_nonempty] >>
+  Cases_on `expect_tok h' DotT` >> gvs [bind_def] >>
+  Cases_on `ptree_ModulePath h''` >> gvs [bind_def] >>
+  Cases_on `ptree_ModuleName h` >> gvs [bind_def]
 QED
 
 Definition ptree_ValuePath_def:
