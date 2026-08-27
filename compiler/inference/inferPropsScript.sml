@@ -2615,16 +2615,51 @@ Definition inf_set_tids_ienv_def:
   nsAll (λi (n,t). inf_set_tids_subset tids t) ienv.inf_v
 End
 
+Theorem nsAll_after_nsOpen_id_invariant:
+  nsOpen path env = SOME opened ∧
+  nsAll P env ∧
+  (∀id1 id2 v. P id1 v ⇔ P id2 v) ⇒
+  nsAll P opened
+Proof
+  strip_tac >>
+  drule nsAll_after_nsOpen >>
+  disch_then (qspec_then `P` mp_tac) >>
+  impl_tac >- simp [] >>
+  strip_tac >>
+  qpat_x_assum `nsAll _ opened` mp_tac >>
+  match_mp_tac nsAll_mono >>
+  simp [] >>
+  metis_tac []
+QED
+
 Theorem inf_set_tids_ienv_open_ienv:
   inf_set_tids_ienv tids ienv ∧
   open_ienv path ienv = SOME opened ⇒
   inf_set_tids_ienv tids opened
 Proof
-  rw [open_ienv_def] >>
-  every_case_tac >>
-  gvs [inf_set_tids_ienv_def] >>
-  metis_tac [nsAll_after_nsOpen]
+  rw [inf_set_tids_ienv_def] >>
+  imp_res_tac open_ienv_success_components >>
+  rpt conj_tac
+  >- (irule nsAll_after_nsOpen_id_invariant >>
+      conj_tac >- simp [] >>
+      qexists_tac `ienv.inf_t` >>
+      qexists_tac `path` >>
+      simp [])
+  >- (irule nsAll_after_nsOpen_id_invariant >>
+      conj_tac >- simp [] >>
+      qexists_tac `ienv.inf_c` >>
+      qexists_tac `path` >>
+      simp [])
+  >- (irule nsAll_after_nsOpen_id_invariant >>
+      conj_tac >- simp [] >>
+      qexists_tac `ienv.inf_v` >>
+      qexists_tac `path` >>
+      simp [])
 QED
+
+Theorem inf_set_tids_ienv_open_ienv_components =
+  inf_set_tids_ienv_open_ienv
+  |> SRULE [inf_set_tids_ienv_def]
 
 Definition inf_set_tids_subst_def:
   inf_set_tids_subst tids subst ⇔
@@ -2981,12 +3016,14 @@ Theorem ienv_ok_open_ienv:
     ienv_ok uvars ienv ∧ open_ienv path ienv = SOME opened ⇒
     ienv_ok uvars opened
 Proof
-  rw [open_ienv_def] >>
-  every_case_tac >>
-  gvs [ienv_ok_def, ienv_val_ok_def,
-       typeSoundInvariantsTheory.tenv_ctor_ok_def,
-       typeSoundInvariantsTheory.tenv_abbrev_ok_def] >>
-  metis_tac [nsAll_after_nsOpen]
+  rw [ienv_ok_def, ienv_val_ok_def,
+      typeSoundInvariantsTheory.tenv_ctor_ok_def,
+      typeSoundInvariantsTheory.tenv_abbrev_ok_def] >>
+  imp_res_tac open_ienv_success_components >>
+  rpt conj_tac >>
+  irule nsAll_after_nsOpen_id_invariant >>
+  simp [] >>
+  metis_tac []
 QED
 
 Theorem infer_d_check:
@@ -3002,7 +3039,7 @@ Theorem infer_d_check:
   ienv_ok {} ienv')
 Proof
  Induct>>rw[]>>
- fs [infer_d_def, success_eqns]>>
+ fs [infer_d_def, success_eqns, infer_open_success]>>
  rpt (pairarg_tac >> fs [success_eqns])>>
  fs [init_state_def]>> rw[]>>
  strip_assume_tac init_infer_state_wfs
@@ -3108,7 +3145,8 @@ Proof
   \\ rw []
   \\ metis_tac [ienv_ok_extend_dec_ienv]
  )
- >- metis_tac [infer_open_success, ienv_ok_open_ienv]
+ >- (irule ienv_ok_open_ienv >> metis_tac [])
+ >- fs [ienv_ok_def, ienv_val_ok_def]
  >>
    match_mp_tac ienv_ok_extend_dec_ienv>>
    rpt (first_x_assum old_drule)>> rw[]>>
@@ -4071,7 +4109,7 @@ Theorem infer_d_inf_set_tids:
      inf_set_tids_ienv (count st'.next_id) ienv')
 Proof
   Induct
-  \\ rw[infer_d_def, success_eqns]
+  \\ rw[infer_d_def, success_eqns, infer_open_success]
   \\ rpt(pairarg_tac \\ fs[success_eqns]) \\ rw[]
   \\ rpt(first_x_assum old_drule \\ rw[])
   \\ imp_res_tac generalise_list_length
@@ -4148,12 +4186,32 @@ Proof
     TRY(match_mp_tac nsAll_nsAppend >> rw[] ) >>
     TRY(qpat_x_assum`_ _ ienv.inf_t` mp_tac>>  match_mp_tac nsAll_mono)>>
     TRY(qpat_x_assum`_ _ ienv.inf_c` mp_tac>>  match_mp_tac nsAll_mono)>>
-    TRY(qpat_x_assum`_ _ ienv.inf_v` mp_tac>>  match_mp_tac nsAll_mono)>>
-    fs[inf_set_tids_unconvert,inf_set_tids_subset_def,set_tids_subset_def]>>
-    match_mp_tac nsAll_alist_to_ns >>
-    simp[MAP2_MAP,LENGTH_COUNT_LIST,EVERY_MAP,EVERY_MEM,MEM_MAP,PULL_EXISTS,MEM_ZIP]>>
-    rw[]>> rpt (pairarg_tac >> fs[])>> rw[]>>
-    simp[EL_MAP,LENGTH_COUNT_LIST,inf_set_tids_def])
+    TRY(qpat_x_assum`_ _ ienv.inf_v` mp_tac>>  match_mp_tac nsAll_mono)
+    >- (
+      rw[] \\
+      rpt (pairarg_tac \\ fs[]) \\
+      rw[] \\
+      fs [inf_set_tids_unconvert, inf_set_tids_subset_def,
+          set_tids_subset_def])
+    >- (
+      rw[] \\
+      rpt (pairarg_tac \\ fs[]) \\
+      rw[] \\
+      fs [inf_set_tids_unconvert, inf_set_tids_subset_def,
+          set_tids_subset_def])
+    >- (
+      match_mp_tac nsAll_alist_to_ns >>
+      simp[MAP2_MAP,LENGTH_COUNT_LIST,EVERY_MAP,EVERY_MEM,MEM_MAP,
+           PULL_EXISTS,MEM_ZIP] >>
+      rw[] >> rpt (pairarg_tac >> fs[]) >> rw[] >>
+      simp[EL_MAP,LENGTH_COUNT_LIST,inf_set_tids_def,
+           inf_set_tids_subset_def])
+    >- (
+      rpt gen_tac \\
+      PairCases_on `x` \\
+      simp [] \\
+      disch_then
+        (ACCEPT_TAC o MATCH_MP (iffRL inf_set_tids_subset_def))))
   >- (
     rw[]
     >- (
@@ -4201,8 +4259,14 @@ Proof
     fs [] >>
     fs[EVERY_MAP, set_tids_subset_type_name_subst]
     \\ fs[start_type_id_def] \\ EVAL_TAC \\ fs[] )
-  >- ( fs[lift_ienv_def] )
-  >- metis_tac [infer_open_success, inf_set_tids_ienv_open_ienv]
+  >- fs[lift_ienv_def]
+  \\ TRY (
+    qpat_x_assum `open_ienv _ _ = SOME _` assume_tac \\
+    imp_res_tac open_ienv_success_components \\
+    rpt conj_tac \\
+    irule nsAll_after_nsOpen_id_invariant \\
+    conj_tac >- simp[] \\
+    metis_tac[] )
   \\ ( (* cases with two components (x::xs and [Dlocal lds ds]) *)
     qpat_x_assum` _ ⇒ _` mp_tac>>
     imp_res_tac infer_d_next_id_mono>>
