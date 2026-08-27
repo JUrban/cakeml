@@ -792,7 +792,13 @@ let () =
     match next () with
     | None | Some Lexer.T_semis | Some Lexer.T_done -> ()
     | Some _ -> discard_phrase () in
-  let rec scan level phrase_start =
+  (* [contexts] records the end-delimited lexical constructs surrounding the
+     current token: [true] is a module [struct]/[sig], [false] is [begin].
+     OCaml permits [;;] between structure/signature items, but the CakeML PEG
+     accepts those items without the optional separator.  Erase a separator
+     only when the innermost construct is a structure/signature; a [;;]
+     inside [begin ... end] remains parser input and therefore fails closed. *)
+  let rec scan level contexts phrase_start =
     try match next () with
         | None -> None
         (* Static-library selection is accepted only as a complete standalone
@@ -807,7 +813,7 @@ let () =
                     match next_nonspace () with
                     | Some Lexer.T_semis ->
                         select_static_library fname;
-                        scan level true
+                        scan level contexts true
                     | None ->
                         reject_static_load
                           "#load \"string\" must end with double semicolon [;;]"
@@ -842,7 +848,7 @@ let () =
                     | Some Lexer.T_semis ->
                         let selected,lines,original =
                           loadWithStatus Lexer.D_need fname in
-                        if not selected then scan level true else
+                        if not selected then scan level contexts true else
                           begin
                             pendingLoadedSourceId := Some (sourceIdentity original);
                             pushLoad fname true;
@@ -857,7 +863,7 @@ let () =
                                  "       Cakeml.loadedSourceIds := fileid :: !Cakeml.loadedSourceIds;\n";
                                  "     Cakeml.pendingLoadedSourceId := None);;\n";
                                  "State_manager.neutralize_state ();;\n"]);
-                            scan level true
+                            scan level contexts true
                           end
                     | None ->
                         reject_flyspeck_needs
@@ -907,7 +913,7 @@ let () =
                                  " | Some fileid ->\n";
                                  "     Cakeml.loadedSourceIds := fileid :: !Cakeml.loadedSourceIds;\n";
                                  "     Cakeml.pendingLoadedSourceId := None);;\n"]);
-                            scan level true
+                            scan level contexts true
                           end
                     | None ->
                         reject_flyspeck_loadt
@@ -946,12 +952,12 @@ let () =
                     (* OK directive, perform load: *)
                     | Some (Lexer.T_semis) ->
                         let lines = load dir fname in
-                        if List.null lines then scan level true else
+                        if List.null lines then scan level contexts true else
                           begin
                             pushLoad fname false;
                             userInput := false;
                             scan_lines lines;
-                            scan level true
+                            scan level contexts true
                           end
                     (* Malformed *)
                     | _ ->
@@ -991,23 +997,34 @@ let () =
                Its EOF still terminates that evaluator input.  The suspended
                parent stream resumes immediately after the loading directive's
                consumed [;;], which is necessarily a fresh phrase boundary. *)
-            scan level true
+            scan level contexts true
+        | Some Lexer.T_semis when level > 0 ->
+            (match contexts with
+             | true::_ -> scan level contexts false
+             | _ ->
+                 Buffer.push_back output_buffer Lexer.T_semis;
+                 scan level contexts false)
         | Some tok ->
             Buffer.push_back output_buffer tok;
             match tok with
-            | Lexer.T_begin | Lexer.T_struct | Lexer.T_sig ->
-                scan (level + 1) false
-            | Lexer.T_end -> scan (level - 1) false
+            | Lexer.T_begin ->
+                scan (level + 1) (false::contexts) false
+            | Lexer.T_struct | Lexer.T_sig ->
+                scan (level + 1) (true::contexts) false
+            | Lexer.T_end ->
+                (match contexts with
+                 | _::rest -> scan (level - 1) rest false
+                 | [] -> scan (level - 1) [] false)
             | Lexer.T_semis when level = 0 ->
                 prompt := !prompt1;
                 Some (Buffer.flush output_buffer)
             | Lexer.T_newline when !userInput ->
                 print (!prompt);
                 prompt := !prompt2;
-                scan level phrase_start
+                scan level contexts phrase_start
             | Lexer.T_spaces _ | Lexer.T_comment _ | Lexer.T_newline ->
-                scan level phrase_start
-            | _ -> scan level false
+                scan level contexts phrase_start
+            | _ -> scan level contexts false
     with Interrupt ->
       print "Compilation interrupted\n";
       raise Repl_error in
@@ -1017,7 +1034,7 @@ let () =
     if err <> "" then raise Repl_error in
   let next () =
     try checkError ();
-        match scan 0 true with
+        match scan 0 [] true with
         | None ->
             Repl.isEOF := true;
             Repl.nextString := ""
