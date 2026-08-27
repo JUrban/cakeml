@@ -2066,6 +2066,94 @@ Proof
   \\ metis_tac [nsAll2_nsAppend]
 QED
 
+Theorem type_ctor_nsAll2_before_open[local]:
+   nsAll2 (type_ctor ctMap) envC tenvC ∧
+   nsOpen path tenvC = SOME openedT ⇒
+   ∃openedE.
+     nsOpen path envC = SOME openedE ∧
+     nsAll2 (type_ctor ctMap) openedE openedT
+Proof
+  strip_tac >>
+  drule nsAll2_before_nsOpen >>
+  disch_then drule >>
+  rw [] >>
+  qexists_tac `opened1` >>
+  rw [] >>
+  irule nsAll2_mono >>
+  qexists_tac
+    `(λid. type_ctor ctMap
+       (mk_id (path ++ id_to_mods id) (id_to_n id)))` >>
+  conj_tac
+  >- (rw [] >>
+      PairCases_on `y` >>
+      PairCases_on `z` >>
+      fs [type_ctor_def])
+  >- rw []
+QED
+
+Theorem type_v_nsAll2_before_open[local]:
+   nsAll2 (λi v (tvs,t). type_v tvs ctMap tenvS v t) envV tenvV ∧
+   nsOpen path tenvV = SOME openedT ⇒
+   ∃openedE.
+     nsOpen path envV = SOME openedE ∧
+     nsAll2 (λi v (tvs,t). type_v tvs ctMap tenvS v t) openedE openedT
+Proof
+  strip_tac >>
+  drule nsAll2_before_nsOpen >>
+  disch_then drule >>
+  rw [] >>
+  qexists_tac `opened1` >>
+  rw [] >>
+  irule nsAll2_mono >>
+  qexists_tac
+    `(λid. (λi v (tvs,t). type_v tvs ctMap tenvS v t)
+       (mk_id (path ++ id_to_mods id) (id_to_n id)))` >>
+  rw []
+QED
+
+Theorem type_all_env_before_open[local]:
+   type_all_env ctMap tenvS env tenv ∧
+   open_tenv path tenv = SOME openedT ⇒
+   ∃openedE.
+     open_dec_env path env = SOME openedE ∧
+     type_all_env ctMap tenvS openedE openedT
+Proof
+  strip_tac >>
+  drule open_tenv_success_components >>
+  strip_tac >>
+  fs [type_all_env_def] >>
+  drule type_ctor_nsAll2_before_open >>
+  disch_then drule >>
+  strip_tac >>
+  drule type_v_nsAll2_before_open >>
+  disch_then drule >>
+  strip_tac >>
+  qexists_tac `<|v := openedE'; c := openedE|>` >>
+  simp [open_dec_env_def, type_all_env_def]
+QED
+
+Theorem dopen_type_sound_invariant[local]:
+   type_sound_invariant st env ctMap tenvS {} tenv ∧
+   open_tenv path tenv = SOME openedT ⇒
+   ∃openedE.
+     open_dec_env path env = SOME openedE ∧
+     type_all_env ctMap tenvS openedE openedT ∧
+     type_sound_invariant st (extend_dec_env openedE env)
+       ctMap tenvS {} (extend_dec_tenv openedT tenv)
+Proof
+  strip_tac >>
+  `type_all_env ctMap tenvS env tenv`
+    by fs [type_sound_invariant_def] >>
+  drule type_all_env_before_open >>
+  disch_then drule >>
+  rw [] >>
+  qexists_tac `openedE` >>
+  rw [] >>
+  fs [type_sound_invariant_def] >>
+  metis_tac [extend_dec_tenv_ok, type_all_env_extend,
+             tenv_ok_open_tenv]
+QED
+
 Theorem type_e_con_check:
  (!tenv tenvE e t.
    type_e tenv tenvE e t ⇒
@@ -2517,6 +2605,15 @@ Proof
      >> irule nsAll2_nsBind
      >> simp [])
    >- metis_tac [type_s_weakening, good_ctMap_def])
+ >- ( (* case open *)
+   fs [Once type_d_cases] >>
+   rveq >>
+   imp_res_tac dopen_type_sound_invariant >>
+   fs [] >>
+   rveq >>
+   qexists_tac `ctMap` >>
+   qexists_tac `tenvS` >>
+   simp [weakCT_refl, store_type_extension_refl])
  >- ( (* Case module *)
    qpat_x_assum `type_d _ _ (Dmod _ _) _ _` mp_tac >>
    rw [Once type_d_cases] >>

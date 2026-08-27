@@ -238,6 +238,41 @@ Proof
       first_x_assum (qspec_then `path ++ path'` assume_tac) >> gvs [])
 QED
 
+Theorem nsAll2_flip:
+   nsAll2 R env1 env2 ⇒ nsAll2 (λid y x. R id x y) env2 env1
+Proof
+  rw [nsAll2_def] >>
+  irule nsSub_mono >>
+  qexists_tac `R` >>
+  simp []
+QED
+
+(* The symmetric lookup direction is useful when the namespace selected by
+   [nsOpen] is known on the right-hand side of an [nsAll2] relation. *)
+Theorem nsAll2_before_nsOpen:
+   nsAll2 R env1 env2 ∧ nsOpen path env2 = SOME opened2 ⇒
+   ∃opened1.
+     nsOpen path env1 = SOME opened1 ∧
+     nsAll2
+       (λid. R (mk_id (path ++ id_to_mods id) (id_to_n id)))
+       opened1 opened2
+Proof
+  strip_tac >>
+  drule nsAll2_flip >>
+  strip_tac >>
+  drule nsAll2_after_nsOpen >>
+  disch_then drule >>
+  rw [] >>
+  qexists_tac `opened2'` >>
+  rw [] >>
+  drule nsAll2_flip >>
+  rw [nsAll2_def] >>
+  irule nsSub_mono >>
+  qexists_tac
+    `(λid y x. R (mk_id (path ++ id_to_mods id) (id_to_n id)) y x)` >>
+  simp []
+QED
+
 Theorem nsAppend_nsEmpty[simp]:
    !env. nsAppend env nsEmpty = env ∧ nsAppend nsEmpty env = env
 Proof
