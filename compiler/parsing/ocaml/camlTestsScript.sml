@@ -1371,6 +1371,11 @@ val _ = parsetest0 “nDefinition” “ptree_Definition”
   (SOME “[Dopen L [«Outer»; «Inner»]]”)
   ;
 
+val _ = parsetest0 “nDefinition” “ptree_Definition”
+  "open Text_io"
+  (SOME “[Dopen L [«TextIO»]]”)
+  ;
+
 (* -------------------------------------------------------------------------
  * Candle compatibility layer.
  *
