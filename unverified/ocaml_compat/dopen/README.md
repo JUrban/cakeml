@@ -53,3 +53,20 @@ roadmap v1.3's audited direct-source pin (kept separate from PFT-added source):
   --flyspeck-root /project/worktrees/flyspeck-v13-source \
   --expected-head 1ce0353008eba83d3c76ae9a25c3c242e4802d53
 ```
+
+The production loader has an earlier compatibility boundary that is not in
+`Build.build_sequence_full`: `strictbuild.hl` begins with exact `#load`
+directives for `unix.cma` and `str.cma`.  Freeze that separate, fail-closed
+inventory with:
+
+```sh
+./scan_bootstrap_directives.py \
+  --flyspeck-root /project/worktrees/flyspeck-v13-source \
+  --expected-head 1ce0353008eba83d3c76ae9a25c3c242e4802d53
+./test_bootstrap_directives.py
+```
+
+The scanner is not a normalizer and acceptance is not a claim that Candle
+provides either library.  Any later removal of those two directives requires
+an explicit contract showing that their required bindings are already in the
+compiled environment.  Unknown or malformed directives must remain errors.

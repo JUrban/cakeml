@@ -126,6 +126,38 @@ first-class modules are not mapped to `Dopen`.  The manifest's single include
 and functor-application alias remain separate compatibility-ledger blockers;
 they must not be counted as solved by declaration open.
 
+### Direct-loader bootstrap directives
+
+The ordered `Build.build_sequence_full` inventory starts after the bootstrap
+loader and therefore does not expose a separate, earlier parser frontier.
+The clean compiled self-load now reaches
+`text_formalization/build/strictbuild.hl` and stops at line 21 on:
+
+```ocaml
+#load "unix.cma";;
+#load "str.cma";;
+```
+
+This is an OCaml-frontend gap distinct from declaration open.  The current
+lexer deliberately produces `HashT` for the leading `#`, but no OCaml PEG
+production consumes `HashT`; `nStart` accepts only module items.  Thus the
+failure is at the grammar boundary, not an unrecognized-character lexer
+error.  The two directives also have semantic content: later in
+`strictbuild.hl`, `Unix.open_process_in` and `Unix.close_process_in` are used,
+and the selected build later uses `Str` in `general/serialization.hl`.
+Deleting arbitrary directives would therefore be unsound.
+
+`scan_bootstrap_directives.py` freezes the exact direct-pin contract as the
+ordered allowlist `unix.cma`, then `str.cma`.  It ignores occurrences inside
+comments, strings, and HOL quotations and fails closed on malformed
+directives, other directive names, extra libraries, omissions, or reordering.
+This inventory does **not** make `#load` a silent no-op and does not claim the
+libraries exist in Candle.  An implementation may erase these two exact lines
+only after the compiled initial environment is shown to provide the required
+`Unix`/`Str` bindings with an explicit capability/refinement contract;
+otherwise it must reject them deterministically or implement a verified load
+operation.  Generic directive skipping is outside the accepted subset.
+
 ## First executable A0 slice
 
 The first committed slice was a pinned OCaml 4.14.1 differential oracle.  Ten
@@ -187,6 +219,10 @@ cd /project/worktrees/cakeml-dopen-v13
 ./unverified/ocaml_compat/dopen/scan_flyspeck_build.py \
   --flyspeck-root /project/worktrees/flyspeck-v13-source \
   --expected-head 1ce0353008eba83d3c76ae9a25c3c242e4802d53
+./unverified/ocaml_compat/dopen/scan_bootstrap_directives.py \
+  --flyspeck-root /project/worktrees/flyspeck-v13-source \
+  --expected-head 1ce0353008eba83d3c76ae9a25c3c242e4802d53
+./unverified/ocaml_compat/dopen/test_bootstrap_directives.py
 ```
 
 Expected terminal markers are:
@@ -195,6 +231,7 @@ Expected terminal markers are:
 OCAML_OPEN_ORACLE_OK cases=10 version=4.14.1
 OCAML_OPEN_INVENTORY_TEST_OK
 FLYSPECK_OPEN_INVENTORY_OK
+FLYSPECK_BOOTSTRAP_DIRECTIVE_INVENTORY_OK
 ```
 
 The isolated HOL prerequisite was configured and completed without its
