@@ -555,7 +555,7 @@ let static_library_module fname =
 
 let reject_static_load message =
   print ("- Static #load rejected: " ^ message ^ "\n");
-  failwith message
+  raise Repl_error
 ;;
 
 let select_static_library fname =
@@ -684,6 +684,10 @@ let () =
     match next () with
     | Some (Lexer.T_spaces _) -> next_nonspace ()
     | res -> res in
+  let rec discard_phrase () =
+    match next () with
+    | None | Some Lexer.T_semis | Some Lexer.T_done -> ()
+    | Some _ -> discard_phrase () in
   let rec scan level phrase_start =
     try match next () with
         | None -> None
@@ -700,15 +704,24 @@ let () =
                     | Some Lexer.T_semis ->
                         select_static_library fname;
                         scan level true
-                    | _ ->
+                    | None ->
+                        reject_static_load
+                          "#load \"string\" must end with double semicolon [;;]"
+                    | Some _ ->
+                        discard_phrase ();
                         reject_static_load
                           "#load \"string\" must end with double semicolon [;;]"
                   end
-              | _ ->
+              | None | Some Lexer.T_semis ->
+                  reject_static_load
+                    "#load requires one string literal and double semicolon [;;]"
+              | Some _ ->
+                  discard_phrase ();
                   reject_static_load
                     "#load requires one string literal and double semicolon [;;]"
             end
         | Some Lexer.T_static_load ->
+            discard_phrase ();
             reject_static_load "#load must be a standalone top-level phrase"
         (* Attempt to use token as part of loading directive if it sits at the
            top level (i.e. not inside parenthesis). The REPL fails and reports
