@@ -216,13 +216,26 @@ syntactic result when `tenv = ienv_to_tenv ienv`, using
 relational theorem because the current public soundness assumptions contain
 only `env_rel`.
 
+Completeness needs the converse alignment direction.  The queued
+`env_rel_open_ienv_exists` candidate derives inference-side selection from
+declarative-side success under the same existing `env_rel`: value-module
+existence uses the bidirectional module-domain condition, while the constructor
+and type components use their existing exact namespace equalities.  It does
+not assume equality of related value schemes.  The queued canonical typing and
+`infer_d_complete_canon` branches then select matching environments, preserve
+zero fresh IDs and the full inference state, and conclude through
+`env_rel_open`.  These are not green until the namespace, canonicalisation,
+and completeness gates build.
+
 The unbuilt `dopenTests` theory now contains an inference-level arity witness:
 an older top-level `C` takes one argument, the opened module's `C` takes zero,
 and `[Dopen M; val y = C]` succeeds while `[Dopen M; val y = C 1]` fails.
 This pins constructor shadowing through `inf_c`.  Two additional candidates
 run the source strings `open M; val y = C` and `open M; val y = C 1` through
 `lexer_fun`, `parse_prog`, and `infertype_prog`; they pin the same success and
-wrong-arity failure end to end.  The `Decl_OK` proof candidate now has branches
+wrong-arity failure end to end.  The OCaml-specific pair runs
+`open M;; let y = C;;` and its `C 1` variant through `caml_parser$run` and the
+same inferencer.  The `Decl_OK` proof candidate now has branches
 for both the `StructName` and `LongidT` open productions.  None of these A2
 claims is green until the parser-properties and `dopenTests` build gates pass.
 
