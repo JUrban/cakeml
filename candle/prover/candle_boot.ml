@@ -171,28 +171,31 @@ module Filename = struct
     let trimSep s = (* trim trailing separators *)
       let len = String.size s in
       let dsl = String.size dirSep in
-      let rec search i =
-        if i < dsl then s
-        else if String.substring s i dsl = dirSep then
-          search (i - dsl)
+      let rec search n =
+        if n <= dsl then String.substring s 0 n
+        else if String.substring s (n - dsl) dsl = dirSep then
+          search (n - dsl)
         else
-          String.substring s 0 i in
-      search (len - 1) in
+          String.substring s 0 n in
+      search len in
     let splitPath s =
-      let len = String.size s in
       let dsl = String.size dirSep in
       let s = trimSep s in
+      let len = String.size s in
       let rec search i =
-        if i <= dsl then
+        if i < 0 then
           (currentDir, s)
         else if String.substring s i dsl = dirSep then
-          (String.substring s 0 (i - 1),
+          let prefix = trimSep (String.substring s 0 i) in
+          ((if prefix = "" then dirSep else prefix),
            String.extract s (i + dsl) None)
         else
           search (i - dsl) in
-      search (len - 1) in
-    ((fun s -> let (_, b) = splitPath s in b),
-     (fun s -> let (d, _) = splitPath s in d))
+      if len = 0 then currentDir,currentDir
+      else if s = dirSep then dirSep,dirSep
+      else search (len - dsl) in
+    ((fun s -> let _,b = splitPath s in b),
+     (fun s -> let d,_ = splitPath s in d))
 end;; (* struct *)
 
 (* ------------------------------------------------------------------------- *
@@ -290,6 +293,8 @@ type token =
   | T_begin | T_end | T_struct | T_sig | T_semis | T_newline
   | T_use | T_needs | T_loads (* converted into source-loading directives *)
   | T_static_load (* exact #load selection; never reads a .cma as source *)
+  | T_flyspeck_needs (* manifest-selected source load plus neutralization *)
+  | T_flyspeck_loadt (* manifest-selected unconditional source load *)
   | T_other of string
   | T_symb of string
   | T_comment of string
@@ -322,6 +327,8 @@ let string_of_token unquote tok =
   | T_loads -> "loads"
   | T_needs -> "needs"
   | T_static_load -> "#load"
+  | T_flyspeck_needs -> "#flyspeck_needs"
+  | T_flyspeck_loadt -> "#flyspeck_loadt"
   | T_done -> "(* shouldn't happen *)"
 ;;
 
@@ -344,6 +351,8 @@ let scan nextChar peekChar =
       (* top-level directives *)
       "#use",   T_use;
       "#load",  T_static_load;
+      "#flyspeck_needs", T_flyspeck_needs;
+      "#flyspeck_loadt", T_flyspeck_loadt;
       "needs",  T_needs;
       "loads",  T_loads;
     ] in
@@ -529,6 +538,11 @@ end;; (* struct *)
 module Cakeml = struct
 
 let loadPath = ref [Filename.currentDir];;
+(* Logical HOL Light identities for manifest-driven Flyspeck source actions.
+   Keep these separate from any normalization output path: source-visible
+   bookkeeping is defined by the manifest-selected original file. *)
+let loadedSourceIds = ref ([]: (string * string) list);;
+let pendingLoadedSourceId = ref (None: (string * string) option);;
 let stdIn = Text_io.openStdIn ();;
 let (input1 : (unit -> char option) ref) =
   ref (fun () -> Text_io.input1 stdIn);;
@@ -538,6 +552,78 @@ let prompt2 = ref "  ";;
 let userInput = ref true;;
 
 let unquote = ref (fun (s: string) -> s);;
+
+(* The manifest loader authenticates the sources and installs their standard
+   HOL Light basename/digest identities exactly once.  Boot code deliberately
+   does not hash files: [Digest.file] is part of the later HOL environment. *)
+let sourceIdentities =
+  ref (None: ((string * (string * string)) list) option);;
+
+let configureSourceIdentities mappings =
+  match !sourceIdentities with
+  | Some _ -> failwith "Candle source identities already configured"
+  | None ->
+      let rec check seen remaining =
+        match remaining with
+        | [] -> ()
+        | (original,(basename,digest))::rest ->
+            if List.exists (fun path -> path = original) seen then
+              failwith "duplicate Candle source identity"
+            else if not (isFile original) then
+              failwith ("missing Candle identity source: " ^ original)
+            else if basename = "" || String.size digest <> 32 then
+              failwith "malformed Candle source identity"
+            else check (original::seen) rest in
+      check [] mappings;
+      sourceIdentities := Some mappings
+;;
+
+let sourceIdentity original =
+  match !sourceIdentities with
+  | None -> failwith "Candle source identities are not configured"
+  | Some mappings ->
+      match Alist.lookup mappings original with
+      | None -> failwith ("unauthenticated Candle source action: " ^ original)
+      | Some fileid -> fileid
+;;
+
+(* Source overlays are inactive during boot and can be installed exactly once
+   after an outer manifest has authenticated both sides.  Resolution first
+   selects an existing original source on [loadPath], then substitutes only an
+   exact registered path.  An overlay directory is never added to [loadPath],
+   so an unregistered file cannot shadow a pinned source. *)
+let normalizationOverlay = ref (None: ((string * string) list) option);;
+
+let configureNormalizationOverlay mappings =
+  match !normalizationOverlay with
+  | Some _ -> failwith "Candle normalization overlay already configured"
+  | None ->
+      let rec check seen remaining =
+        match remaining with
+        | [] -> ()
+        | (original,normalized)::rest ->
+            if List.exists (fun path -> path = original) seen then
+              failwith "duplicate Candle normalization source"
+            else if not (isFile original) then
+              failwith ("missing Candle normalization source: " ^ original)
+            else if not (isFile normalized) then
+              failwith ("missing Candle normalized output: " ^ normalized)
+            else check (original::seen) rest in
+      check [] mappings;
+      normalizationOverlay := Some mappings
+;;
+
+let selectNormalizedSource original =
+  match !normalizationOverlay with
+  | None -> original
+  | Some mappings ->
+      match Alist.lookup mappings original with
+      | None -> original
+      | Some normalized ->
+          print ("- Selecting normalized source " ^ original ^ " -> " ^
+                 normalized ^ "\n");
+          normalized
+;;
 
 exception Repl_error;;
 
@@ -566,11 +652,22 @@ let select_static_library fname =
   | None -> reject_static_load ("unsupported library " ^ fname)
 ;;
 
+let reject_flyspeck_needs message =
+  print ("- Static #flyspeck_needs rejected: " ^ message ^ "\n");
+  raise Repl_error
+;;
+
+let reject_flyspeck_loadt message =
+  print ("- Static #flyspeck_loadt rejected: " ^ message ^ "\n");
+  raise Repl_error
+;;
+
 let () =
   let prompt = ref (!prompt2) in
   let pushLoad, popLoad, clearLoadStack =
-    let stack = ref ([]: string list) in
-    let pushLoad fname = stack := fname :: !stack in
+    let stack = ref ([]: (string * bool) list) in
+    let pushLoad fname flyspeck_action =
+      stack := (fname,flyspeck_action) :: !stack in
     let popLoad () =
       match !stack with
       | fname :: rest as res -> stack := rest; Some (fname, rest)
@@ -597,7 +694,7 @@ let () =
     peek, next in
   (* Load files from disk and keep track on what has been loaded.
    *)
-  let load =
+  let loadWithStatus =
     let loadedFiles = (ref [] : string list ref) in
     let loadMsg s = print ("- Loading " ^ s ^ "\n") in
     let load_use fname =
@@ -610,7 +707,7 @@ let () =
       | Some lns ->
           begin
             if not (List.exists (fun x -> x = fname) (!loadedFiles)) then
-             loadedFiles := fname :: !loadedFiles
+              loadedFiles := fname :: !loadedFiles
           end;
           Some lns in
     let load1 fname =
@@ -628,15 +725,18 @@ let () =
           print ("- No such file: " ^ fname ^ "\n");
           Repl.nextString := "";
           failwith ("No such file : " ^ fname)
-      | Some fname ->
+      | Some original ->
+          let selected = selectNormalizedSource original in
           let loader = match pragma with
                        | Lexer.D_load -> load
                        | Lexer.D_need -> load1
                        | Lexer.D_use -> load_use in
-          (match loader fname with
-          | None -> []
-          | Some ls -> ls) in
+          (match loader selected with
+          | None -> false,[],original
+          | Some ls -> true,ls,original) in
     loadOnPath in
+  let load pragma fname =
+    let _,lines,_ = loadWithStatus pragma fname in lines in
   (* Instantiate lexer *)
   let scan1 = Lexer.scan nextChar peekChar in
   (* Enqueue input here *)
@@ -684,11 +784,21 @@ let () =
     match next () with
     | Some (Lexer.T_spaces _) -> next_nonspace ()
     | res -> res in
+  let rec append_lines left right =
+    match left with
+    | [] -> right
+    | line::rest -> line :: append_lines rest right in
   let rec discard_phrase () =
     match next () with
     | None | Some Lexer.T_semis | Some Lexer.T_done -> ()
     | Some _ -> discard_phrase () in
-  let rec scan level phrase_start =
+  (* [contexts] records the end-delimited lexical constructs surrounding the
+     current token: [true] is a module [struct]/[sig], [false] is [begin].
+     OCaml permits [;;] between structure/signature items, but the CakeML PEG
+     accepts those items without the optional separator.  Erase a separator
+     only when the innermost construct is a structure/signature; a [;;]
+     inside [begin ... end] remains parser input and therefore fails closed. *)
+  let rec scan level contexts phrase_start =
     try match next () with
         | None -> None
         (* Static-library selection is accepted only as a complete standalone
@@ -703,7 +813,7 @@ let () =
                     match next_nonspace () with
                     | Some Lexer.T_semis ->
                         select_static_library fname;
-                        scan level true
+                        scan level contexts true
                     | None ->
                         reject_static_load
                           "#load \"string\" must end with double semicolon [;;]"
@@ -723,17 +833,115 @@ let () =
         | Some Lexer.T_static_load ->
             discard_phrase ();
             reject_static_load "#load must be a standalone top-level phrase"
-        (* Attempt to use token as part of loading directive if it sits at the
-           top level (i.e. not inside parenthesis). The REPL fails and reports
-           and error unless the token is followed by a string literal and then
-           double semicolons. Ideally we should also check that the token sits
-           at the start of the line, but we don't, so odd things such as this:
-             foo needs "bar.ml";;
-           are OK and will cause the file bar.ml to be loaded and appear
-           directly after 'foo' in the token stream.
-         *)
+        (* The manifest-generated full-build driver uses a distinct action.
+           A new source is evaluated exactly once and followed by exactly one
+           neutralization phrase.  Its completion marker is reached only after
+           the evaluator has accepted both.  An already-loaded source performs
+           neither step.  Any evaluator or neutralization error is observed by
+           [checkError] before the marker and aborts the one-shot REPL action. *)
+        | Some Lexer.T_flyspeck_needs when level = 0 && phrase_start ->
+            begin
+              match next_nonspace () with
+              | Some (Lexer.T_string fname) ->
+                  begin
+                    match next_nonspace () with
+                    | Some Lexer.T_semis ->
+                        let selected,lines,original =
+                          loadWithStatus Lexer.D_need fname in
+                        if not selected then scan level contexts true else
+                          begin
+                            pendingLoadedSourceId := Some (sourceIdentity original);
+                            pushLoad fname true;
+                            userInput := false;
+                            scan_lines
+                              (append_lines lines
+                                ["\n(match !Cakeml.pendingLoadedSourceId with\n";
+                                 " | None -> failwith \"missing Flyspeck source identity\"\n";
+                                 " | Some fileid ->\n";
+                                 "     if not (List.exists (fun x -> x = fileid)\n";
+                                 "                          !Cakeml.loadedSourceIds) then\n";
+                                 "       Cakeml.loadedSourceIds := fileid :: !Cakeml.loadedSourceIds;\n";
+                                 "     Cakeml.pendingLoadedSourceId := None);;\n";
+                                 "State_manager.neutralize_state ();;\n"]);
+                            scan level contexts true
+                          end
+                    | None ->
+                        reject_flyspeck_needs
+                          "#flyspeck_needs \"string\" must end with double semicolon [;;]"
+                    | Some _ ->
+                        discard_phrase ();
+                        reject_flyspeck_needs
+                          "#flyspeck_needs \"string\" must end with double semicolon [;;]"
+                  end
+              | None | Some Lexer.T_semis ->
+                  reject_flyspeck_needs
+                    "#flyspeck_needs requires one string literal and double semicolon [;;]"
+              | Some _ ->
+                  discard_phrase ();
+                  reject_flyspeck_needs
+                    "#flyspeck_needs requires one string literal and double semicolon [;;]"
+            end
+        | Some Lexer.T_flyspeck_needs ->
+            discard_phrase ();
+            reject_flyspeck_needs
+              "#flyspeck_needs must be a standalone top-level phrase"
+        (* Strictbuild has three manifest-selected [loadt] phrases that must
+           evaluate even if their logical identity was loaded before, must add
+           that identity again after success, and must not neutralize state.
+           Keep this distinct from [#flyspeck_needs], whose duplicate and
+           neutralization observations differ. *)
+        | Some Lexer.T_flyspeck_loadt when level = 0 && phrase_start ->
+            begin
+              match next_nonspace () with
+              | Some (Lexer.T_string fname) ->
+                  begin
+                    match next_nonspace () with
+                    | Some Lexer.T_semis ->
+                        let selected,lines,original =
+                          loadWithStatus Lexer.D_load fname in
+                        if not selected then
+                          failwith "Candle Flyspeck loadt source read failed"
+                        else
+                          begin
+                            pendingLoadedSourceId := Some (sourceIdentity original);
+                            pushLoad fname true;
+                            userInput := false;
+                            scan_lines
+                              (append_lines lines
+                                ["\n(match !Cakeml.pendingLoadedSourceId with\n";
+                                 " | None -> failwith \"missing Flyspeck loadt source identity\"\n";
+                                 " | Some fileid ->\n";
+                                 "     Cakeml.loadedSourceIds := fileid :: !Cakeml.loadedSourceIds;\n";
+                                 "     Cakeml.pendingLoadedSourceId := None);;\n"]);
+                            scan level contexts true
+                          end
+                    | None ->
+                        reject_flyspeck_loadt
+                          "#flyspeck_loadt \"string\" must end with double semicolon [;;]"
+                    | Some _ ->
+                        discard_phrase ();
+                        reject_flyspeck_loadt
+                          "#flyspeck_loadt \"string\" must end with double semicolon [;;]"
+                  end
+              | None | Some Lexer.T_semis ->
+                  reject_flyspeck_loadt
+                    "#flyspeck_loadt requires one string literal and double semicolon [;;]"
+              | Some _ ->
+                  discard_phrase ();
+                  reject_flyspeck_loadt
+                    "#flyspeck_loadt requires one string literal and double semicolon [;;]"
+            end
+        | Some Lexer.T_flyspeck_loadt ->
+            discard_phrase ();
+            reject_flyspeck_loadt
+              "#flyspeck_loadt must be a standalone top-level phrase"
+        (* Treat an ordinary loading token as a directive only at the exact
+           start of a complete top-level phrase.  Elsewhere [needs] and [loads]
+           remain ordinary identifiers for the real parser; in particular a
+           definition, conditional, or function body cannot be executed
+           lexically as a load action. *)
         | Some (Lexer.T_use | Lexer.T_needs | Lexer.T_loads as tok)
-          when level = 0 ->
+          when level = 0 && phrase_start ->
             begin
               let dir = Option.valOf (Lexer.directive_of_token tok) in
               match next_nonspace () with
@@ -744,12 +952,12 @@ let () =
                     (* OK directive, perform load: *)
                     | Some (Lexer.T_semis) ->
                         let lines = load dir fname in
-                        if List.null lines then scan level true else
+                        if List.null lines then scan level contexts true else
                           begin
-                            pushLoad fname;
+                            pushLoad fname false;
                             userInput := false;
                             scan_lines lines;
-                            scan level true
+                            scan level contexts true
                           end
                     (* Malformed *)
                     | _ ->
@@ -769,29 +977,54 @@ let () =
                        " should be followed by a \"string literal\" and then a";
                        " double semicolon [;;].\n"])
             end
+        | Some Lexer.T_done when not phrase_start ->
+            (* EOF terminates a loaded file's final declaration even when that
+               declaration has no explicit [;;].  Submit the buffered phrase
+               first and defer the completion token until its evaluator result
+               is known; otherwise the next parent-stream directive would be
+               concatenated to the unfinished buffer. *)
+            Buffer.push_front input_buffer Lexer.T_done;
+            Some (Buffer.flush output_buffer)
         | Some (Lexer.T_done) ->
             (match popLoad () with
-             | Some (fname, rest) -> (
-               print ("- Finished loading " ^ fname ^ "\n");
+             | Some ((fname,flyspeck_action), rest) -> (
+               if flyspeck_action then
+                 print ("- Flyspeck source action complete: " ^ fname ^ "\n")
+               else print ("- Finished loading " ^ fname ^ "\n");
                if List.null rest then userInput := true)
             | None -> failwith "candle_boot.ml: scan - should be unreachable");
-            scan level phrase_start
+            (* A loaded file may end with a complete declaration but no [;;].
+               Its EOF still terminates that evaluator input.  The suspended
+               parent stream resumes immediately after the loading directive's
+               consumed [;;], which is necessarily a fresh phrase boundary. *)
+            scan level contexts true
+        | Some Lexer.T_semis when level > 0 ->
+            (match contexts with
+             | true::_ -> scan level contexts false
+             | _ ->
+                 Buffer.push_back output_buffer Lexer.T_semis;
+                 scan level contexts false)
         | Some tok ->
             Buffer.push_back output_buffer tok;
             match tok with
-            | Lexer.T_begin | Lexer.T_struct | Lexer.T_sig ->
-                scan (level + 1) false
-            | Lexer.T_end -> scan (level - 1) false
+            | Lexer.T_begin ->
+                scan (level + 1) (false::contexts) false
+            | Lexer.T_struct | Lexer.T_sig ->
+                scan (level + 1) (true::contexts) false
+            | Lexer.T_end ->
+                (match contexts with
+                 | _::rest -> scan (level - 1) rest false
+                 | [] -> scan (level - 1) [] false)
             | Lexer.T_semis when level = 0 ->
                 prompt := !prompt1;
                 Some (Buffer.flush output_buffer)
             | Lexer.T_newline when !userInput ->
                 print (!prompt);
                 prompt := !prompt2;
-                scan level phrase_start
+                scan level contexts phrase_start
             | Lexer.T_spaces _ | Lexer.T_comment _ | Lexer.T_newline ->
-                scan level phrase_start
-            | _ -> scan level false
+                scan level contexts phrase_start
+            | _ -> scan level contexts false
     with Interrupt ->
       print "Compilation interrupted\n";
       raise Repl_error in
@@ -801,7 +1034,7 @@ let () =
     if err <> "" then raise Repl_error in
   let next () =
     try checkError ();
-        match scan 0 true with
+        match scan 0 [] true with
         | None ->
             Repl.isEOF := true;
             Repl.nextString := ""
@@ -815,6 +1048,7 @@ let () =
       Buffer.flush input_buffer;
       Buffer.flush output_buffer;
       clearLoadStack ();
+      pendingLoadedSourceId := None;
       Repl.nextString := "";
       userInput := true in
   Repl.readNextString := (fun () ->
