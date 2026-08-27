@@ -43,7 +43,7 @@ def git_head(repository: Path) -> str:
 
 
 def skip_quoted(source: str, index: int, delimiter: str, line: int) -> tuple[int, int]:
-    """Skip a string, character, or HOL quotation and preserve line count."""
+    """Skip a string or HOL quotation and preserve line count."""
 
     index += len(delimiter)
     while index < len(source):
@@ -56,6 +56,36 @@ def skip_quoted(source: str, index: int, delimiter: str, line: int) -> tuple[int
             line += 1
         index += 1
     raise ValueError(f"unterminated {delimiter!r} quotation before line {line}")
+
+
+def char_literal_end(source: str, index: int) -> int | None:
+    """Return the end of an OCaml character literal, or None for an apostrophe.
+
+    Apostrophes also occur in type variables and identifier suffixes.  Treating
+    every apostrophe as an open-ended quote can hide directives between two
+    primed identifiers, so only the exact one-character forms are skipped.
+    """
+
+    cursor = index + 1
+    if cursor >= len(source) or source[cursor] == "\n":
+        return None
+    if source[cursor] != "\\":
+        cursor += 1
+    else:
+        cursor += 1
+        if cursor >= len(source) or source[cursor] == "\n":
+            return None
+        if source[cursor].isdigit():
+            cursor += 3
+        elif source[cursor] in "xX":
+            cursor += 3
+        elif source[cursor] in "oO":
+            cursor += 4
+        else:
+            cursor += 1
+    if cursor < len(source) and source[cursor] == "'":
+        return cursor + 1
+    return None
 
 
 def scan(source: str) -> list[Directive]:
@@ -99,10 +129,16 @@ def scan(source: str) -> list[Directive]:
             index, line = skip_quoted(source, index, "`", line)
             line_has_code = True
             continue
-        if source[index] in ('"', "'"):
-            index, line = skip_quoted(source, index, source[index], line)
+        if source[index] == '"':
+            index, line = skip_quoted(source, index, '"', line)
             line_has_code = True
             continue
+        if source[index] == "'":
+            char_end = char_literal_end(source, index)
+            if char_end is not None:
+                index = char_end
+                line_has_code = True
+                continue
         if source[index] == "#" and line_has_code:
             line_end = source.find("\n", index)
             if line_end == -1:

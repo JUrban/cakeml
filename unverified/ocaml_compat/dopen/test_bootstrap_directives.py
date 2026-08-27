@@ -40,6 +40,17 @@ let decoy = "#load \\"not-code.cma\\";;";;
         with self.assertRaisesRegex(ValueError, "directive-like # after code"):
             scan('let x = 0;; #load "unix.cma";;\n#load "str.cma";;\n')
 
+    def test_primed_identifiers_do_not_hide_directives(self) -> None:
+        source = '''
+#load "unix.cma";;
+#load "str.cma";;
+let x' = '#';;
+#load "dynlink.cma";;
+let y' = 1;;
+'''
+        with self.assertRaisesRegex(ValueError, "contract mismatch"):
+            check_contract(scan(source))
+
 
 if __name__ == "__main__":
     unittest.main()
