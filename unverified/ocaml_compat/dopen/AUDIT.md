@@ -4,7 +4,8 @@ Date: 2026-08-27
 
 This audit fixes the integration boundary for roadmap v1.3 Work Package A.
 It is intentionally narrower than a completion claim: the checked-in oracle
-and inventory advance A0, while A1--A4 remain proof and integration work.
+and inventory advance A0, and a path-based core candidate advances the
+implementation surface, while A1--A4 proof and integration gates remain open.
 
 ## Pinned heads and ancestry
 
@@ -109,10 +110,10 @@ pinned HOL Light/Candle base manifest demonstrates a dependency.  The oracle
 keeps nested and expression-open cases visible so a later scope expansion
 cannot silently choose semantics.
 
-## Smallest implemented slice
+## First executable A0 slice
 
-The first committed slice is a pinned OCaml 4.14.1 differential oracle, not an
-unproved CakeML constructor.  Ten independent cases cover:
+The first committed slice was a pinned OCaml 4.14.1 differential oracle.  Ten
+independent cases cover:
 
 - value precedence, repeated opens, later declarations, and qualified-name
   stability;
@@ -126,6 +127,24 @@ directory, compares exact stdout or diagnostic categories, and leaves no
 compiler output in the checkout.  The separate lexical scanner has a fixture
 covering comments, strings, HOL quotations, Camlp5 token syntax, `open!`,
 aliases, functors, include, and first-class modules.
+
+## Current core candidate
+
+The branch now also contains a reviewable declaration-open vertical slice:
+`Dopen locs (modN list)`, non-empty shared namespace selection, simple and
+nested grammar/conversion tests, delta-only functional and relational
+semantics, declarative typing, inference with unchanged state, CV hooks,
+serialization/presentation, and compile-time source-to-flat exposure.
+
+This code is deliberately not presented as proof-green.  The exact active
+obstruction and the proposed relational repair are recorded in
+[`PROOF_STATUS.md`](PROOF_STATUS.md).  In brief, the existing
+`infer_d_sound` theorem demands exact equality between its declarative result
+and `ienv_to_tenv` of its inference result.  Opening exposes an existing input
+environment whose value schemes are related by `env_rel`/`tscheme_approx`, not
+necessarily syntactically equal.  The proof must be generalized or supplied
+with a justified declarative equivalence; no assumption or inference bypass
+has been inserted.
 
 ## Commands and current evidence
 
@@ -208,11 +227,11 @@ gate.
 ## Integration decision
 
 Use current master as the implementation base and `dopen2` only as a source
-of semantic ideas and candidate lemmas.  The next A1 slice should define one
-path-based namespace exposure delta and prove lookup characterization,
-left-biased shadowing, qualified lookup stability, composition, module/stamp
-preservation, and well-formedness before adding AST cases.  Dynamic semantics,
-declarative typing, parser state, and `infer_open` should then consume that
-operation with an explicit proof that inference counters and stamps do not
-change.  No Flyspeck source rewrite or inference bypass counts as progress on
-this gate.
+of semantic ideas and candidate lemmas.  The current candidate implements one
+path-based exposure delta and makes dynamic semantics, declarative typing,
+parsing, inference, and source compilation consume it.  The next proof slice
+must establish module-selection preservation for `env_rel`, repair the exact
+result shape of declaration soundness, and then discharge lookup/shadowing,
+well-formedness, identity/stamp, canonicalisation, completeness, CV, and
+compiled-regression gates.  No Flyspeck source rewrite or inference bypass
+counts as progress on this gate.
