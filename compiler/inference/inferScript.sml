@@ -1094,7 +1094,9 @@ Theorem infer_open_success:
   infer_open l path ienv st = (M_success opened,st') ⇔
   open_ienv path ienv = SOME opened ∧ st' = st
 Proof
-  simp [infer_open_def, AllCaseEqs(), failwith_def, st_ex_return_def]
+  Cases_on `open_ienv path ienv` >>
+  simp [infer_open_def, failwith_def, st_ex_return_def] >>
+  metis_tac []
 QED
 
 Theorem infer_open_missing:
