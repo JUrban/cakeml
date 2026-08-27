@@ -553,12 +553,17 @@ let static_library_module fname =
   | _ -> None
 ;;
 
+let reject_static_load message =
+  print ("- Static #load rejected: " ^ message ^ "\n");
+  failwith message
+;;
+
 let select_static_library fname =
   match static_library_module fname with
   | Some module_name ->
       print ("- Selecting statically linked library " ^ fname ^
              " (module " ^ module_name ^ ")\n")
-  | None -> failwith ("Unsupported #load library: " ^ fname)
+  | None -> reject_static_load ("unsupported library " ^ fname)
 ;;
 
 let () =
@@ -696,16 +701,15 @@ let () =
                         select_static_library fname;
                         scan level true
                     | _ ->
-                        failwith
-                          "\nREPL error: #load \"string\" should be followed by a double semicolon [;;].\n"
+                        reject_static_load
+                          "#load \"string\" must end with double semicolon [;;]"
                   end
               | _ ->
-                  failwith
-                    "\nREPL error: #load should be followed by a \"string literal\" and then a double semicolon [;;].\n"
+                  reject_static_load
+                    "#load requires one string literal and double semicolon [;;]"
             end
         | Some Lexer.T_static_load ->
-            failwith
-              "\nREPL error: #load must be a standalone top-level phrase.\n"
+            reject_static_load "#load must be a standalone top-level phrase"
         (* Attempt to use token as part of loading directive if it sits at the
            top level (i.e. not inside parenthesis). The REPL fails and reports
            and error unless the token is followed by a string literal and then
