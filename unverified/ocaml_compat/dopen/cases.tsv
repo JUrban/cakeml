@@ -1,0 +1,11 @@
+# case	outcome	category	expectation
+values_shadowing	pass	values-precedence	values_shadowing.out
+constructors_types	pass	constructors-types	constructors_types.out
+exceptions	pass	exceptions	exceptions.out
+nested_path	pass	nested-module-path	nested_path.out
+repeated_open	pass	repeated-open	repeated_open.out
+exposed_module	pass	module-namespace	exposed_module.out
+module_alias	pass	module-alias	module_alias.out
+let_open	pass	expression-let-open	let_open.out
+missing_module	fail	missing-module	Error: Unbound module Missing
+missing_nested_module	fail	missing-nested-module	Error: Unbound module Outer.Missing
