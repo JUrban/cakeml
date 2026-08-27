@@ -98,6 +98,8 @@ scanner error.  It found:
 | Warning-suppressing `open!` | 0 |
 | `include` | 1 |
 | Module alias | 1 |
+| Functor-definition prefix | 0 |
+| First-class module prefix | 0 |
 | Nested-path declaration `open` | 0 |
 | Expression `let open` | 0 |
 
@@ -109,6 +111,15 @@ expression `Open` from the first real Flyspeck slice unless the separately
 pinned HOL Light/Candle base manifest demonstrates a dependency.  The oracle
 keeps nested and expression-open cases visible so a later scope expansion
 cannot silently choose semantics.
+
+The first Dopen subset is consequently frozen as a declaration followed by a
+non-empty module path.  Simple paths are required by the pinned Flyspeck
+manifest; nested paths are supported and tested because the representation
+cost is small and path resolution is already the namespace primitive.
+Expression `let open`, `open!`, `include`, module aliases, functor syntax, and
+first-class modules are not mapped to `Dopen`.  The manifest's single include
+and functor-application alias remain separate compatibility-ledger blockers;
+they must not be counted as solved by declaration open.
 
 ## First executable A0 slice
 
