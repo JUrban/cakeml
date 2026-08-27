@@ -67,6 +67,26 @@ must be checked.  The alternative is a declarative equivalence relation on
 opened value schemes, but that would duplicate the inference/type relation
 inside `typeSystem` and currently has less evidence behind it.
 
+The downstream check is now explicit.  The compiler-facing
+`infertype_prog_correct` theorem only needs the existential result in
+`can_type_prog`; it does not require the declarative delta to be syntactically
+`ienv_to_tenv inferred_delta`.  The current internal `infer_top_sound` and
+`infer_prog_sound` theorems do state that exact result, however, and are used
+to compose successive top-level inference calls.  A relational repair must
+therefore generalise those two results (and use `env_rel_extend` at each
+composition point), or supply a separate exact-input corollary under
+`tenv = ienv_to_tenv ienv`.  Merely changing the statement of `infer_d_sound`
+would leave the proof stack incomplete.
+
+Strengthening `env_rel` globally to equality is not a justified shortcut.
+Its value component deliberately relates schemes through bidirectional
+`tscheme_approx`; constructor and type namespaces are exact, but value
+schemes need not be syntactically identical.  Conversely, changing `type_d`
+to accept an arbitrary converted inference environment would leak inference
+representation into the declarative semantics.  The module-selection
+preservation lemma plus relational soundness remains the smallest candidate
+that respects the existing abstraction boundary.
+
 No equality axiom, `cheat`, qualification rewrite, or host-inference bypass is
 present or proposed.
 
@@ -92,6 +112,43 @@ The next proof pass must establish, in order:
    translators, Candle safety predicates, REPL/eval support) identified by a
    clean full dependency build; generic wildcard consumers still need review,
    not just compilation.
+
+## Static consumer backlog
+
+Before any dependency build, an AST-constructor inventory found the following
+files with declaration-specific branches but no `Dopen` occurrence.  This is
+not evidence that every file needs a new semantic case: several proofs may
+close a read-only, state-preserving case by simplification.  It is the exact
+manual-review backlog, so a successful narrow parser build cannot hide it.
+
+- evaluation/type-safety proof consumers:
+  `semantics/proofs/typeSoundScript.sml`,
+  `semantics/alt_semantics/proofs/interpScript.sml`,
+  `compiler/repl/evaluate_initScript.sml`,
+  `compiler/repl/evaluate_skipScript.sml`, and
+  `candle/prover/candle_prover_evaluateScript.sml`;
+- backend correctness consumers:
+  `compiler/backend/proofs/source_evalProofScript.sml` and
+  `compiler/backend/proofs/source_to_flatProofScript.sml`;
+- inference proof consumers:
+  `compiler/inference/proofs/inferSoundScript.sml` (known semantic
+  obstruction), `compiler/inference/proofs/inferCompleteScript.sml`, and
+  `compiler/inference/proofs/type_dCanonScript.sml`;
+- translator/REPL consumers:
+  `translator/ml_progScript.sml`, `translator/ml_progLib.sml`, and
+  `compiler/repl/repl_init_envProgScript.sml`.
+
+Additional files that branch on `Dmod`/`Dlocal` but may use generic cases are
+`semantics/alt_semantics/proofs/bigSmallEquivScript.sml`,
+`semantics/alt_semantics/proofs/itree_semanticsEquivScript.sml`,
+`semantics/alt_semantics/proofs/smallStepPropsScript.sml`,
+`compiler/backend/source_letScript.sml`,
+`compiler/backend/proofs/source_letProofScript.sml`,
+`compiler/inference/inferPropsScript.sml`,
+`compiler/bootstrap/translation/inferProgScript.sml`,
+`compiler/parsing/ocaml/camlPtreeConversionScript.sml`, and the Candle
+AST/presentation helpers under `candle/`.  A full reverse-dependency build is
+still the authority on completeness.
 
 ## Deferred build commands
 
