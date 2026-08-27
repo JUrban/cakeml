@@ -532,6 +532,11 @@ end;; (* struct *)
 module Cakeml = struct
 
 let loadPath = ref [Filename.currentDir];;
+(* Logical HOL Light identities for manifest-driven Flyspeck source actions.
+   Keep these separate from any normalization output path: source-visible
+   bookkeeping is defined by the manifest-selected original file. *)
+let loadedSourceIds = ref ([]: (string * string) list);;
+let pendingLoadedSourceId = ref (None: (string * string) option);;
 let stdIn = Text_io.openStdIn ();;
 let (input1 : (unit -> char option) ref) =
   ref (fun () -> Text_io.input1 stdIn);;
@@ -541,6 +546,40 @@ let prompt2 = ref "  ";;
 let userInput = ref true;;
 
 let unquote = ref (fun (s: string) -> s);;
+
+(* The manifest loader authenticates the sources and installs their standard
+   HOL Light basename/digest identities exactly once.  Boot code deliberately
+   does not hash files: [Digest.file] is part of the later HOL environment. *)
+let sourceIdentities =
+  ref (None: ((string * (string * string)) list) option);;
+
+let configureSourceIdentities mappings =
+  match !sourceIdentities with
+  | Some _ -> failwith "Candle source identities already configured"
+  | None ->
+      let rec check seen remaining =
+        match remaining with
+        | [] -> ()
+        | (original,(basename,digest))::rest ->
+            if List.exists (fun path -> path = original) seen then
+              failwith "duplicate Candle source identity"
+            else if not (isFile original) then
+              failwith ("missing Candle identity source: " ^ original)
+            else if basename = "" || String.size digest <> 32 then
+              failwith "malformed Candle source identity"
+            else check (original::seen) rest in
+      check [] mappings;
+      sourceIdentities := Some mappings
+;;
+
+let sourceIdentity original =
+  match !sourceIdentities with
+  | None -> failwith "Candle source identities are not configured"
+  | Some mappings ->
+      match Alist.lookup mappings original with
+      | None -> failwith ("unauthenticated Candle source action: " ^ original)
+      | Some fileid -> fileid
+;;
 
 (* Source overlays are inactive during boot and can be installed exactly once
    after an outer manifest has authenticated both sides.  Resolution first
@@ -657,7 +696,7 @@ let () =
       | Some lns ->
           begin
             if not (List.exists (fun x -> x = fname) (!loadedFiles)) then
-             loadedFiles := fname :: !loadedFiles
+              loadedFiles := fname :: !loadedFiles
           end;
           Some lns in
     let load1 fname =
@@ -675,17 +714,18 @@ let () =
           print ("- No such file: " ^ fname ^ "\n");
           Repl.nextString := "";
           failwith ("No such file : " ^ fname)
-      | Some fname ->
-          let fname = selectNormalizedSource fname in
+      | Some original ->
+          let selected = selectNormalizedSource original in
           let loader = match pragma with
                        | Lexer.D_load -> load
                        | Lexer.D_need -> load1
                        | Lexer.D_use -> load_use in
-          (match loader fname with
-          | None -> false,[]
-          | Some ls -> true,ls) in
+          (match loader selected with
+          | None -> false,[],original
+          | Some ls -> true,ls,original) in
     loadOnPath in
-  let load pragma fname = snd (loadWithStatus pragma fname) in
+  let load pragma fname =
+    let _,lines,_ = loadWithStatus pragma fname in lines in
   (* Instantiate lexer *)
   let scan1 = Lexer.scan nextChar peekChar in
   (* Enqueue input here *)
@@ -789,15 +829,23 @@ let () =
                   begin
                     match next_nonspace () with
                     | Some Lexer.T_semis ->
-                        let selected,lines =
+                        let selected,lines,original =
                           loadWithStatus Lexer.D_need fname in
                         if not selected then scan level true else
                           begin
+                            pendingLoadedSourceId := Some (sourceIdentity original);
                             pushLoad fname true;
                             userInput := false;
                             scan_lines
                               (append_lines lines
-                                ["\nState_manager.neutralize_state ();;\n"]);
+                                ["\n(match !Cakeml.pendingLoadedSourceId with\n";
+                                 " | None -> failwith \"missing Flyspeck source identity\"\n";
+                                 " | Some fileid ->\n";
+                                 "     if not (List.exists (fun x -> x = fileid)\n";
+                                 "                          !Cakeml.loadedSourceIds) then\n";
+                                 "       Cakeml.loadedSourceIds := fileid :: !Cakeml.loadedSourceIds;\n";
+                                 "     Cakeml.pendingLoadedSourceId := None);;\n";
+                                 "State_manager.neutralize_state ();;\n"]);
                             scan level true
                           end
                     | None ->
@@ -914,6 +962,7 @@ let () =
       Buffer.flush input_buffer;
       Buffer.flush output_buffer;
       clearLoadStack ();
+      pendingLoadedSourceId := None;
       Repl.nextString := "";
       userInput := true in
   Repl.readNextString := (fun () ->
