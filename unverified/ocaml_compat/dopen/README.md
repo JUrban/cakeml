@@ -18,6 +18,7 @@ Flyspeck/HOL Light development environment.  Run the pack with:
 
 ```sh
 ./run-oracle.sh
+./run-inventory-test.sh
 ```
 
 The runner copies sources into a temporary directory, so it leaves no OCaml
@@ -29,3 +30,10 @@ with regenerated expectations.
 expression-level open belongs to the supported Candle subset.  The pinned
 source-corpus inventory must make that scope decision; declaration open must
 not silently acquire an unproved expression-open implementation.
+
+`open_inventory.py` is a conservative lexical inventory tool for the real
+HOL Light/Flyspeck sources.  A stock OCaml parser cannot read their HOL
+quotations without the pinned preprocessor, so the tool ignores nested
+comments, strings, and backtick quotations and emits only unambiguous token
+prefixes.  Its output must still be reviewed against the ordered production
+manifest; it is not a replacement for parser acceptance tests.
