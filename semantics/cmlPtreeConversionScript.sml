@@ -1283,6 +1283,27 @@ Definition ptree_StructName_def:
         | _ => NONE
 End
 
+Definition path_to_mods_def:
+  path_to_mods End = [] ∧
+  path_to_mods (Mod mn path) = mn::path_to_mods path
+End
+
+Definition ptree_ModPath_def:
+  ptree_ModPath pt =
+    OPTION_MAP (λmn. [mn]) (ptree_StructName pt) ++
+    do
+      tk <- destTOK ' (destLf pt);
+      (path,mn) <- destLongidT tk;
+      return (path_to_mods path ++ [mn])
+    od
+End
+
+Theorem ptree_ModPath_nonempty:
+  ptree_ModPath pt = SOME path ⇒ path ≠ []
+Proof
+  rw [ptree_ModPath_def] >> every_case_tac >> gvs []
+QED
+
 Definition ptree_OptTypEqn_def:
   ptree_OptTypEqn (Lf _) = NONE : ast_t option option ∧
   ptree_OptTypEqn (Nd nt args) =
@@ -1390,6 +1411,11 @@ Definition ptree_Decl_def:
                assert (tokcheck funtok ExceptionT);
                (enm, etys) <- ptree_Dconstructor fdecls;
                SOME (Dexn (locs) enm etys)
+             od ++
+             do
+               assert (tokcheck funtok OpenT);
+               path <- ptree_ModPath fdecls;
+               SOME (Dopen locs path)
              od
            | [valtok; patpt; eqtok; ept] =>
              do

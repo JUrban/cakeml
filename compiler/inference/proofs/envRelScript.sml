@@ -821,6 +821,14 @@ Proof
   rw [ienv_to_tenv_def, lift_ienv_def, tenvLift_def, nsLift_nsMap]
 QED
 
+Theorem ienv_to_tenv_open:
+   open_ienv path ienv = SOME opened ⇒
+   open_tenv path (ienv_to_tenv ienv) = SOME (ienv_to_tenv opened)
+Proof
+  rw [open_ienv_def, open_tenv_def, ienv_to_tenv_def, nsOpen_nsMap] >>
+  every_case_tac >> gvs []
+QED
+
 Theorem env_rel_ienv_to_tenv:
    !ienv. ienv_ok {} ienv ⇒ env_rel (ienv_to_tenv ienv) ienv
 Proof

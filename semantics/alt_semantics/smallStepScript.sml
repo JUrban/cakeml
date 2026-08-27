@@ -397,6 +397,10 @@ Definition decl_step_def:
             ( st with<| next_exn_stamp := (st.next_exn_stamp +( 1 : num)) |>),
             Env <| v := nsEmpty; c := (nsSing cn (LENGTH ts, ExnStamp st.next_exn_stamp)) |>,
             c)
+      | Dopen locs path =>
+          (case open_dec_env path (collapse_env benv c) of
+             NONE => Dabort Rtype_error
+           | SOME opened => Dstep (st,Env opened,c))
       | Dmod mn ds =>
           Dstep (st, Env empty_dec_env, (Cdmod mn empty_dec_env ds :: c))
       | Dlocal lds gds =>

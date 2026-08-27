@@ -600,6 +600,10 @@ Definition dstep_def:
   dstep benv st (Decl $ Dexn locs cn ts) c =
     dreturn (st with next_exn_stamp := st.next_exn_stamp + 1) c
       (Env <| v := nsEmpty; c := nsSing cn (LENGTH ts, ExnStamp st.next_exn_stamp) |>) ∧
+  dstep benv st (Decl $ Dopen locs path) c = (
+    case open_dec_env path (collapse_env benv c) of
+    | NONE => Dtype_error
+    | SOME opened => dreturn st c (Env opened)) ∧
   dstep benv st (Decl $ Dmod mn ds) c =
     dpush st c (Env empty_dec_env) (Cdmod mn empty_dec_env ds) ∧
   dstep benv st (Decl $ Dlocal lds gds) c =

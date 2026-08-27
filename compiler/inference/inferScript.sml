@@ -1051,6 +1051,43 @@ Definition lift_ienv_def:
        inf_t := nsLift mn ienv.inf_t |>
 End
 
+(* Select a module's inference components as a declaration delta. *)
+Definition open_ienv_def:
+  open_ienv path (ienv:inf_env) =
+    case nsOpen path ienv.inf_v of
+    | NONE => NONE
+    | SOME env_v =>
+      case nsOpen path ienv.inf_c of
+      | NONE => NONE
+      | SOME env_c =>
+        case nsOpen path ienv.inf_t of
+        | NONE => NONE
+        | SOME env_t =>
+          SOME <|inf_v := env_v; inf_c := env_c; inf_t := env_t|>
+End
+
+Definition infer_open_def:
+  infer_open l path ienv =
+    case open_ienv path ienv of
+    | NONE => failwith l «Undefined module in open declaration»
+    | SOME opened => return opened
+End
+
+Theorem infer_open_success:
+  infer_open l path ienv st = (M_success opened,st') ⇔
+  open_ienv path ienv = SOME opened ∧ st' = st
+Proof
+  simp [infer_open_def, AllCaseEqs(), failwith_def, st_ex_return_def]
+QED
+
+Theorem infer_open_missing:
+  open_ienv path ienv = NONE ⇒
+  infer_open l path ienv st =
+    (M_failure (l.loc,«Undefined module in open declaration»),st)
+Proof
+  simp [infer_open_def, failwith_def]
+QED
+
 Definition infer_d_def:
 (infer_d ienv (Dlet locs p e) =
   do () <- init_state;
@@ -1123,6 +1160,8 @@ Definition infer_d_def:
               inf_c := nsSing cn ([], ts', Texn_num);
               inf_t := nsEmpty |>
   od) ∧
+(infer_d ienv (Dopen locs path) =
+  infer_open <|loc := SOME locs; err := ienv.inf_t|> path ienv) ∧
 (infer_d ienv (Denv n) =
   failwith <| loc := NONE; err := ienv.inf_t |>
     («Env declaration (Denv) is not supported.»)) ∧

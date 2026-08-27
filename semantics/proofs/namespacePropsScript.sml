@@ -1165,6 +1165,12 @@ Proof
   fs []
 QED
 
+Theorem nsOpen_nsMap:
+   nsOpen path (nsMap f env) = OPTION_MAP (nsMap f) (nsOpen path env)
+Proof
+  Cases_on `path` >> simp [nsLookupMod_nsMap]
+QED
+
 Theorem nsLookup_nsMap:
    !n x f. nsLookup (nsMap f n) x = OPTION_MAP f (nsLookup n x)
 Proof

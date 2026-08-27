@@ -244,6 +244,8 @@ Datatype:
   | Dmod modN (dec list)
   (* Local: local part, visible part *)
   | Dlocal (dec list) (dec list)
+  (* Expose the contents of a non-empty module path as a declaration delta *)
+  | Dopen locs (modN list)
   (* Store current lexical env in an env value *)
   | Denv tvarN
 End

@@ -252,6 +252,11 @@ Definition evaluate_def[nocompute]:
        <|v := nsEmpty;
          c := nsSing cn (LENGTH ts,ExnStamp st.next_exn_stamp)|>)
   ∧
+  evaluate_decs st env [Dopen locs path] =
+    (case open_dec_env path env of
+       NONE => (st,Rerr (Rabort Rtype_error))
+     | SOME opened => (st,Rval opened))
+  ∧
   evaluate_decs st env [Dmod mn ds] =
     (case evaluate_decs st env ds of
        (st',r) =>
@@ -360,4 +365,3 @@ Theorem evaluate_decs_ind =
   |> Q.SPECL [‘λv1 v2 v3. T’,‘λv1 v2 v3 v4 v5. T’,‘P’]
   |> SIMP_RULE std_ss []
   |> Q.GEN ‘P’;
-

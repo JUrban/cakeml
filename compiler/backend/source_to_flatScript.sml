@@ -300,6 +300,16 @@ Definition lift_env_def:
   lift_env mn e = <| v := nsLift mn e.v; c := nsLift mn e.c |>
 End
 
+Definition open_compile_env_def:
+  open_compile_env path (env:environment) =
+    case nsOpen path env.v of
+    | NONE => NONE
+    | SOME env_v =>
+      case nsOpen path env.c of
+      | NONE => NONE
+      | SOME env_c => SOME <|v := env_v; c := env_c|>
+End
+
 Datatype:
   next_indices = <| vidx : num; tidx : num; eidx : num |>
 End
@@ -383,6 +393,10 @@ Definition compile_decs_def:
       <| v := nsEmpty; c := nsSing cn (next.eidx, NONE) |>,
       envs,
       [])) ∧
+  (compile_decs t n next env envs [Dopen locs path] =
+     case open_compile_env path env of
+     | NONE => (n, next, empty_env, envs, [])
+     | SOME opened => (n, next, opened, envs, [])) ∧
   (compile_decs t n next env envs [Dmod mn ds] =
      let (n', next', new_env, envs', ds') = compile_decs (mn::t) n next env envs ds in
        (n', next', (lift_env mn new_env), envs', ds')) ∧

@@ -67,6 +67,11 @@ Definition evaluate_dec_list_def:
        <|v := nsEmpty;
          c := nsSing cn (LENGTH ts,ExnStamp st.next_exn_stamp)|>)
   ∧
+  evaluate_dec_list st env [Dopen locs path] =
+    (case open_dec_env path env of
+       NONE => (st,Rerr (Rabort Rtype_error))
+     | SOME opened => (st,Rval opened))
+  ∧
   evaluate_dec_list st env [Dmod mn ds] =
     (case evaluate_dec_list st env ds of
        (st',r) =>
@@ -148,6 +153,8 @@ Definition check_cons_dec_list_def:
     (SOME (build_tdefs 0 tds))
   ∧
   check_cons_dec env_c (Dtabbrev locs tvs tn t) = SOME nsEmpty
+  ∧
+  check_cons_dec env_c (Dopen locs path) = nsOpen path env_c
   ∧
   check_cons_dec env_c (Denv _) = SOME nsEmpty
   ∧

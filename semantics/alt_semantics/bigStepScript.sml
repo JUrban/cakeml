@@ -469,6 +469,16 @@ evaluate_dec ck env s (Dexn locs cn ts)
     (( s with<| next_exn_stamp := (s.next_exn_stamp +( 1 : num)) |>),
      Rval  <| v := nsEmpty; c := (nsSing cn (LENGTH ts, ExnStamp s.next_exn_stamp)) |>))
 
+/\ (! ck env locs path opened s.
+(open_dec_env path env = SOME opened)
+==>
+evaluate_dec ck env s (Dopen locs path) (s,Rval opened))
+
+/\ (! ck env locs path s.
+(open_dec_env path env = NONE)
+==>
+evaluate_dec ck env s (Dopen locs path) (s,Rerr (Rabort Rtype_error)))
+
 /\ (! ck s1 s2 env ds mn new_env.
 (evaluate_decs ck env s1 ds (s2, Rval new_env))
 ==>

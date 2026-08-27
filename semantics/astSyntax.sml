@@ -99,6 +99,7 @@ structure astSyntax = struct
   val (Dletrec_tm,mk_Dletrec,dest_Dletrec,is_Dletrec) = s "Dletrec";
   val (Dmod_tm,mk_Dmod,dest_Dmod,is_Dmod) = s "Dmod";
   val (Dlocal_tm,mk_Dlocal,dest_Dlocal,is_Dlocal) = s "Dlocal";
+  val (Dopen_tm,mk_Dopen,dest_Dopen,is_Dopen) = s "Dopen";
   val (Dtype_tm,mk_Dtype,dest_Dtype,is_Dtype) = s "Dtype";
   val (Fun_tm,mk_Fun,dest_Fun,is_Fun) = s "Fun";
   val (Handle_tm,mk_Handle,dest_Handle,is_Handle) = s "Handle";

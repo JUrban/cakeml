@@ -1373,5 +1373,17 @@ Definition extend_dec_env_def:
     <|c := nsAppend new_env.c env.c; v := nsAppend new_env.v env.v|>
 End
 
+(* Select a module's contents as a declaration delta.  In particular, this
+   does not append env: evaluate_decs performs that extension exactly once. *)
+Definition open_dec_env_def:
+  open_dec_env path (env:v sem_env) =
+    case nsOpen path env.v of
+    | NONE => NONE
+    | SOME env_v =>
+      case nsOpen path env.c of
+      | NONE => NONE
+      | SOME env_c => SOME <|v := env_v; c := env_c|>
+End
+
 val _ = set_fixity "+++" (Infixl 480);
 Overload "+++" = “extend_dec_env”;

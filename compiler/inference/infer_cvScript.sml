@@ -262,6 +262,10 @@ QED
 
 val _ = cv_trans namespaceTheory.nsSing_def;
 
+val _ = cv_trans namespaceTheory.nsOpen_def;
+val _ = cv_auto_trans open_ienv_def;
+val _ = cv_auto_trans (infer_open_def |> expand);
+
 val infer_d_pre = cv_auto_trans_pre ""
   (infer_d_expand |>
    SRULE [exp_is_value_eq, nsEmpty_def, extend_dec_ienv_def, init_state_def]);
@@ -371,6 +375,7 @@ Proof
   >~ [‘Dtype’] >- (once_rewrite_tac [infer_d_pre] \\ gvs [])
   >~ [‘Dtabbrev’] >- (once_rewrite_tac [infer_d_pre] \\ gvs [])
   >~ [‘Dexn’] >- (once_rewrite_tac [infer_d_pre] \\ gvs [])
+  >~ [‘Dopen’] >- (once_rewrite_tac [infer_d_pre] \\ gvs [])
   >~ [‘Dmod’] >- (once_rewrite_tac [infer_d_pre] \\ gvs [])
   >~ [‘Denv’] >- (once_rewrite_tac [infer_d_pre] \\ gvs [])
   >~ [‘infer_ds_pre ienv [] s’] >- (once_rewrite_tac [infer_d_pre] \\ gvs [])

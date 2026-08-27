@@ -305,6 +305,20 @@ Definition lookup_var_def:
   )))
 End
 
+(* Select a module's type components as a declaration delta. *)
+Definition open_tenv_def:
+  open_tenv path (tenv:type_env) =
+    case nsOpen path tenv.v of
+    | NONE => NONE
+    | SOME env_v =>
+      case nsOpen path tenv.c of
+      | NONE => NONE
+      | SOME env_c =>
+        case nsOpen path tenv.t of
+        | NONE => NONE
+        | SOME env_t => SOME <|v := env_v; c := env_c; t := env_t|>
+End
+
 
 (*val num_tvs : tenv_val_exp -> nat*)
 Definition num_tvs_def:
@@ -878,6 +892,11 @@ type_d extra_checks tenv (Dexn locs cn ts)
   <| v := nsEmpty;
      c := (nsSing cn ([], MAP (type_name_subst tenv.t) ts, Texn_num));
      t := nsEmpty |>)
+
+/\ (! extra_checks tenv locs path opened.
+(open_tenv path tenv = SOME opened)
+==>
+type_d extra_checks tenv (Dopen locs path) {} opened)
 
 /\ (! extra_checks tenv mn ds decls tenv'.
 (type_ds extra_checks tenv ds decls tenv')
