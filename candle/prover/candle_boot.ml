@@ -971,6 +971,14 @@ let () =
                        " should be followed by a \"string literal\" and then a";
                        " double semicolon [;;].\n"])
             end
+        | Some Lexer.T_done when not phrase_start ->
+            (* EOF terminates a loaded file's final declaration even when that
+               declaration has no explicit [;;].  Submit the buffered phrase
+               first and defer the completion token until its evaluator result
+               is known; otherwise the next parent-stream directive would be
+               concatenated to the unfinished buffer. *)
+            Buffer.push_front input_buffer Lexer.T_done;
+            Some (Buffer.flush output_buffer)
         | Some (Lexer.T_done) ->
             (match popLoad () with
              | Some ((fname,flyspeck_action), rest) -> (
@@ -979,7 +987,11 @@ let () =
                else print ("- Finished loading " ^ fname ^ "\n");
                if List.null rest then userInput := true)
             | None -> failwith "candle_boot.ml: scan - should be unreachable");
-            scan level phrase_start
+            (* A loaded file may end with a complete declaration but no [;;].
+               Its EOF still terminates that evaluator input.  The suspended
+               parent stream resumes immediately after the loading directive's
+               consumed [;;], which is necessarily a fresh phrase boundary. *)
+            scan level true
         | Some tok ->
             Buffer.push_back output_buffer tok;
             match tok with
