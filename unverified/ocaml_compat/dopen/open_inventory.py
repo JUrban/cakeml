@@ -109,7 +109,7 @@ def lex(source: str) -> list[Token]:
 
 
 def read_module_path(tokens: list[Token], index: int) -> tuple[str | None, int]:
-    if index >= len(tokens) or not is_ident_start(tokens[index].text[0]):
+    if index >= len(tokens) or not tokens[index].text[0].isupper():
         return None, index
 
     segments = [tokens[index].text]
@@ -117,7 +117,7 @@ def read_module_path(tokens: list[Token], index: int) -> tuple[str | None, int]:
     while (
         index + 1 < len(tokens)
         and tokens[index].text == "."
-        and is_ident_start(tokens[index + 1].text[0])
+        and tokens[index + 1].text[0].isupper()
     ):
         segments.append(tokens[index + 1].text)
         index += 2
@@ -194,7 +194,7 @@ def main() -> int:
     print("file\tline\tkind\tpath")
     for source_path in args.files:
         try:
-            source = source_path.read_text(encoding="utf-8")
+            source = source_path.read_text(encoding="utf-8", errors="surrogateescape")
             rows = inventory(lex(source))
         except (OSError, UnicodeError, ValueError) as error:
             print(f"{source_path}: {error}", file=sys.stderr)
