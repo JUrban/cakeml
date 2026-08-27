@@ -118,6 +118,45 @@ Proof
   Cases_on `path` >> simp []
 QED
 
+Theorem nsLookupMod_append:
+   nsLookupMod env (path ++ suffix) =
+   case nsLookupMod env path of
+   | NONE => NONE
+   | SOME opened => nsLookupMod opened suffix
+Proof
+  qid_spec_tac `env` >> Induct_on `path` >>
+  Cases >> simp [nsLookupMod_def] >> every_case_tac >> simp []
+QED
+
+Theorem nsLookup_after_nsLookupMod:
+   ∀env path opened id.
+   nsLookupMod env path = SOME opened ⇒
+   nsLookup env (mk_id (path ++ id_to_mods id) (id_to_n id)) =
+     nsLookup opened id
+Proof
+  gen_tac >> Induct_on `path` >>
+  simp [nsLookupMod_def, mk_id_thm] >>
+  Cases >> simp [nsLookupMod_def, mk_id_def, nsLookup_def] >>
+  every_case_tac >> simp []
+QED
+
+Theorem nsLookupMod_after_nsLookupMod:
+   nsLookupMod env path = SOME opened ⇒
+   nsLookupMod opened suffix = nsLookupMod env (path ++ suffix)
+Proof
+  simp [nsLookupMod_append]
+QED
+
+Theorem nsAll_after_nsLookupMod:
+   nsLookupMod env path = SOME opened ∧ nsAll P env ⇒
+   nsAll
+     (λid v. P (mk_id (path ++ id_to_mods id) (id_to_n id)) v)
+     opened
+Proof
+  rw [nsAll_def] >> first_x_assum irule >>
+  metis_tac [nsLookup_after_nsLookupMod]
+QED
+
 Theorem nsAppend_nsEmpty[simp]:
    !env. nsAppend env nsEmpty = env ∧ nsAppend nsEmpty env = env
 Proof
