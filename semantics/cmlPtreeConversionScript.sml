@@ -1301,7 +1301,9 @@ End
 Theorem ptree_ModPath_nonempty:
   ptree_ModPath pt = SOME path ⇒ path ≠ []
 Proof
-  rw [ptree_ModPath_def] >> every_case_tac >> gvs []
+  rw [ptree_ModPath_def] >>
+  fs [OPTION_CHOICE_EQUALS_OPTION, optionTheory.OPTION_BIND_def] >>
+  gvs [APPEND_eq_NIL]
 QED
 
 Definition ptree_OptTypEqn_def:
