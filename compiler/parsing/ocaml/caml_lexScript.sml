@@ -413,7 +413,7 @@ End
 
 (* FLOATS
  *
- *   float-lit ::= [0-9] [0-9_]* ("." [0-9_]* )? ([eE] [+-]? [0-9_]* )?
+ *   float-lit ::= [0-9] [0-9_]* ("." [0-9_]* )? ([eE] [+-]? [0-9_]+ )?
  *
  *)
 
@@ -454,6 +454,13 @@ Definition scan_float3_def:
     | _ => NONE
 End
 
+(* OCaml reports a malformed numeric literal instead of splitting a decimal
+ * float from an immediately adjacent identifier. *)
+Definition invalid_float_suffix_def:
+  invalid_float_suffix cs ⇔
+    cs ≠ "" ∧ (isAlpha (HD cs) ∨ HD cs = #"_")
+End
+
 (* At least one of scan_float2 or scan_float3 must succeed. If they fail,
  * try to scan an integer instead.
  *)
@@ -466,19 +473,31 @@ Definition scan_float_or_int_def:
           NONE =>
             (* try scan_float3 *)
             (case scan_float3 cs1 of
-              NONE => scan_number isDigit (λs. &dec2num s) 0 cs loc
-            | SOME (s2, n2, cs2) => SOME (FloatS (s1 ++ s2),
-                                          Locs loc (next_loc (n1 + n2) loc),
-                                          cs2))
+              NONE =>
+                if cs1 ≠ "" ∧ MEM (HD cs1) "eE" then
+                  SOME (ErrorS, Locs loc (next_loc n1 loc), cs1)
+                else
+                  scan_number isDigit (λs. &dec2num s) 0 cs loc
+            | SOME (s2, n2, cs2) =>
+                if invalid_float_suffix cs2 then
+                  SOME (ErrorS, Locs loc (next_loc (n1 + n2) loc), cs2)
+                else
+                  SOME (FloatS (s1 ++ s2),
+                        Locs loc (next_loc (n1 + n2) loc), cs2))
         | SOME (s2, n2, cs2) =>
             (case scan_float3 cs2 of
-              NONE => SOME (FloatS (s1 ++ s2),
-                            Locs loc (next_loc (n1 + n2) loc),
-                            cs2)
+              NONE =>
+                if invalid_float_suffix cs2 then
+                  SOME (ErrorS, Locs loc (next_loc (n1 + n2) loc), cs2)
+                else
+                  SOME (FloatS (s1 ++ s2),
+                        Locs loc (next_loc (n1 + n2) loc), cs2)
             | SOME (s3, n3, cs3) =>
-                SOME (FloatS (s1 ++ s2 ++ s3),
-                      Locs loc (next_loc (n1 + n2 + n3) loc),
-                      cs3))
+                if invalid_float_suffix cs3 then
+                  SOME (ErrorS, Locs loc (next_loc (n1 + n2 + n3) loc), cs3)
+                else
+                  SOME (FloatS (s1 ++ s2 ++ s3),
+                        Locs loc (next_loc (n1 + n2 + n3) loc), cs3))
 End
 
 Definition scan_pragma_def:
@@ -526,7 +545,7 @@ Theorem scan_float_or_int_thm:
 Proof
   simp [scan_float_or_int_def, scan_float1_def, scan_float2_def,
         scan_float3_def, CaseEqs ["prod", "string", "option", "bool"],
-        IS_SOME_EXISTS]
+        invalid_float_suffix_def, IS_SOME_EXISTS]
   \\ rw [] \\ gvs [UNCURRY_eq_pair, NOT_NIL_EQ_LENGTH_NOT_0]
   \\ imp_res_tac take_while_thm \\ gs [LENGTH_TL]
   \\ imp_res_tac scan_number_thm \\ gs []
@@ -659,7 +678,7 @@ Proof
   (* Two identical scan_float goals: *)
   \\ TRY (
     qpat_x_assum ‘scan_float_or_int _ _ = _’ mp_tac
-    \\ simp [scan_float_or_int_def]
+    \\ simp [scan_float_or_int_def, invalid_float_suffix_def]
     \\ CASE_TAC \\ gs []
     \\ gvs [scan_float1_def, UNCURRY_eq_pair]
     \\ rw [CaseEqs ["option", "prod"]] \\ gs []
@@ -671,6 +690,7 @@ Proof
     \\ gs [NOT_NIL_EQ_LENGTH_NOT_0, LENGTH_TL]
     \\ gs [take_while_def]
     \\ drule_at (Pos (el 3)) take_while_lemma \\ gs [])
+  \\ gs [scan_float2_def, scan_float3_def]
   \\ map_every imp_res_tac [
       scan_pragma_thm,
       skip_comment_thm] \\ gs []

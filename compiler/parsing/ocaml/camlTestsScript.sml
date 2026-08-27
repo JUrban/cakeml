@@ -131,6 +131,10 @@ fun expectFailure prefix test =
     else
       (print "Unexpected failure!\n"; raise Fail m);
 
+fun expectAnyFailure test =
+  (test (); raise ExpectedFailure)
+  handle Fail m => print ("OK, failed as expected, message: " ^ m ^ "\n");
+
 (* -------------------------------------------------------------------------
  * Various identifiers
  * ------------------------------------------------------------------------- *)
@@ -1136,6 +1140,47 @@ val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   "- 3"
   (SOME “App Opapp [V «~-»; Lit (IntLit 3)]”)
   ;
+
+(* OCaml 4.14 decimal floating-point literals. The lexer has already removed
+ * separator underscores. Double.fromString is an existing basis operation
+ * returning an option, so the generated expression must unwrap it explicitly.
+ *)
+
+Definition mkfloat_def:
+  mkfloat s =
+    App Opapp
+      [Var (Long «Option» (Short «valOf»));
+       App Opapp [Var (Long «Double» (Short «fromString»));
+                  Lit (StrLit s)]]
+End
+
+fun floatParseTest source normalized =
+  parsetest0 “nExpr” “ptree_Expr nExpr” source
+    (SOME $ eval “mkfloat ^normalized”);
+
+val _ = floatParseTest "0.0" “«0.0»”;
+val _ = floatParseTest "2.0" “«2.0»”;
+val _ = floatParseTest "2." “«2.»”;
+val _ = floatParseTest "22.0" “«22.0»”;
+val _ = floatParseTest "0.1" “«0.1»”;
+val _ = floatParseTest "2e3" “«2e3»”;
+val _ = floatParseTest "1024.0" “«1024.0»”;
+val _ = floatParseTest "3_000e+37" “«3000e+37»”;
+val _ = floatParseTest "1E-77" “«1E-77»”;
+val _ = floatParseTest "3.14151E+0_0__0" “«3.14151E+000»”;
+
+(* These are rejected by OCaml 4.14 as invalid literals. *)
+
+fun floatRejectTest source =
+  expectAnyFailure
+    (fn () => parsetest0 “nExpr” “ptree_Expr nExpr” source NONE);
+
+val _ = floatRejectTest "1e";
+val _ = floatRejectTest "1e+";
+val _ = floatRejectTest "2.0foo";
+val _ = floatRejectTest ".5";
+val _ = floatRejectTest "1.0.0";
+val _ = floatRejectTest "1e--2";
 
 (* if without the else *)
 
