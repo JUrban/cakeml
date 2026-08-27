@@ -217,9 +217,12 @@ only `env_rel`.
 The unbuilt `dopenTests` theory now contains an inference-level arity witness:
 an older top-level `C` takes one argument, the opened module's `C` takes zero,
 and `[Dopen M; val y = C]` succeeds while `[Dopen M; val y = C 1]` fails.
-This pins constructor shadowing through `inf_c`.  It starts from AST values;
-the single parser-to-inference pipeline regression remains outstanding and
-must follow the `Decl_OK` repair.
+This pins constructor shadowing through `inf_c`.  Two additional candidates
+run the source strings `open M; val y = C` and `open M; val y = C 1` through
+`lexer_fun`, `parse_prog`, and `infertype_prog`; they pin the same success and
+wrong-arity failure end to end.  The `Decl_OK` proof candidate now has branches
+for both the `StructName` and `LongidT` open productions.  None of these A2
+claims is green until the parser-properties and `dopenTests` build gates pass.
 
 ## Static consumer backlog
 
@@ -288,7 +291,8 @@ cd /project/worktrees/cakeml-dopen-v13/semantics
   semanticPrimitivesTheory.uo evaluateTheory.uo typeSystemTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/semantics/proofs
-"$HOLDIR/bin/Holmake" -j 1 namespacePropsTheory.uo
+"$HOLDIR/bin/Holmake" -j 1 namespacePropsTheory.uo \
+  cmlPtreeConversionPropsTheory.uo
 
 cd /project/worktrees/cakeml-dopen-v13/compiler/parsing/tests
 "$HOLDIR/bin/Holmake" -j 1 cmlTestsTheory.uo
