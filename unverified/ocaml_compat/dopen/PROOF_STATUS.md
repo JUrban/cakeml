@@ -140,8 +140,10 @@ manual-review backlog, so a successful narrow parser build cannot hide it.
   obstruction), `compiler/inference/proofs/inferCompleteScript.sml`, and
   `compiler/inference/proofs/type_dCanonScript.sml`;
 - translator/REPL consumers:
-  `translator/ml_progScript.sml`, `translator/ml_progLib.sml`, and
-  `compiler/repl/repl_init_envProgScript.sml`.
+  `translator/ml_progLib.sml` and
+  `compiler/repl/repl_init_envProgScript.sml`.  The core translator theorem
+  file now has a `Decls_Dopen` equation, but that theorem is still in the
+  deferred HOL build set.
 
 Additional files that branch on `Dmod`/`Dlocal` but may use generic cases are
 `semantics/alt_semantics/proofs/bigSmallEquivScript.sml`,
@@ -183,6 +185,9 @@ cd /project/worktrees/cakeml-dopen-v13/compiler/inference/tests
 cd /project/worktrees/cakeml-dopen-v13/compiler/inference/proofs
 "$HOLDIR/bin/Holmake" -j 1 envRelTheory.uo inferSoundTheory.uo \
   inferCompleteTheory.uo type_dCanonTheory.uo
+
+cd /project/worktrees/cakeml-dopen-v13/translator
+"$HOLDIR/bin/Holmake" -j 1 evaluate_decTheory.uo ml_progTheory.uo
 ```
 
 After those targets are repaired, the acceptance build must include the
