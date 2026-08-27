@@ -3508,6 +3508,14 @@ Definition remap_tenv_def:
    |>
 End
 
+Theorem remap_tenv_open_tenv:
+  open_tenv path tenv = SOME opened ⇒
+  open_tenv path (remap_tenv f tenv) = SOME (remap_tenv f opened)
+Proof
+  rw [open_tenv_def, remap_tenv_def, nsOpen_nsMap] >>
+  every_case_tac >> gvs []
+QED
+
 Theorem remap_tenv_I[simp]:
    remap_tenv I = I
 Proof

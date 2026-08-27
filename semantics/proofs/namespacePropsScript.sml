@@ -193,6 +193,25 @@ Proof
   metis_tac [option_nchotomy]
 QED
 
+Theorem nsAll2_after_nsOpen:
+   nsAll2 R env1 env2 ∧ nsOpen path env1 = SOME opened1 ⇒
+   ∃opened2.
+     nsOpen path env2 = SOME opened2 ∧
+     nsAll2
+       (λid. R (mk_id (path ++ id_to_mods id) (id_to_n id)))
+       opened1 opened2
+Proof
+  strip_tac >>
+  `∀p. nsLookupMod env1 p = NONE ⇔ nsLookupMod env2 p = NONE`
+    by fs [nsAll2_def, nsSub_def] >>
+  `∃opened2. nsOpen path env2 = SOME opened2`
+    by metis_tac [nsOpen_some_from_same_mod_domain] >>
+  pop_assum strip_assume_tac >>
+  qexists_tac `opened2` >>
+  rw [nsAll2_def, nsSub_def] >>
+  metis_tac [nsLookup_after_nsOpen, nsLookupMod_after_nsOpen]
+QED
+
 Theorem nsAppend_nsEmpty[simp]:
    !env. nsAppend env nsEmpty = env ∧ nsAppend nsEmpty env = env
 Proof
