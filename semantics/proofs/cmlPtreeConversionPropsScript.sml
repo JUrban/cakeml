@@ -793,8 +793,7 @@ Proof
           Cases_on ‘foo’ >> simp[])
       >- (drule_then (first_assum o mp_then Any mp_tac) StructName_OK >>
           dsimp[] >> rw[] >>
-          simp[ptree_ModPath_StructName])
-      >- simp[ptree_ModPath_def])
+          metis_tac[ptree_ModPath_StructName]))
   >- (rename [‘ptree_Decls (Nd pt loc) = SOME _’] >>
       Cases_on ‘pt’ >> fs[] >> rveq >>
       fs[cmlG_FDOM, cmlG_applied, MAP_EQ_CONS] >>
