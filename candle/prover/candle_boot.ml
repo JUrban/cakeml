@@ -542,6 +542,44 @@ let userInput = ref true;;
 
 let unquote = ref (fun (s: string) -> s);;
 
+(* Source overlays are inactive during boot and can be installed exactly once
+   after an outer manifest has authenticated both sides.  Resolution first
+   selects an existing original source on [loadPath], then substitutes only an
+   exact registered path.  An overlay directory is never added to [loadPath],
+   so an unregistered file cannot shadow a pinned source. *)
+let normalizationOverlay = ref (None: ((string * string) list) option);;
+
+let configureNormalizationOverlay mappings =
+  match !normalizationOverlay with
+  | Some _ -> failwith "Candle normalization overlay already configured"
+  | None ->
+      let rec check seen remaining =
+        match remaining with
+        | [] -> ()
+        | (original,normalized)::rest ->
+            if List.exists (fun path -> path = original) seen then
+              failwith "duplicate Candle normalization source"
+            else if not (isFile original) then
+              failwith ("missing Candle normalization source: " ^ original)
+            else if not (isFile normalized) then
+              failwith ("missing Candle normalized output: " ^ normalized)
+            else check (original::seen) rest in
+      check [] mappings;
+      normalizationOverlay := Some mappings
+;;
+
+let selectNormalizedSource original =
+  match !normalizationOverlay with
+  | None -> original
+  | Some mappings ->
+      match Alist.lookup mappings original with
+      | None -> original
+      | Some normalized ->
+          print ("- Selecting normalized source " ^ original ^ " -> " ^
+                 normalized ^ "\n");
+          normalized
+;;
+
 exception Repl_error;;
 
 (* Candle links these OCaml-library compatibility modules statically.  This
@@ -638,6 +676,7 @@ let () =
           Repl.nextString := "";
           failwith ("No such file : " ^ fname)
       | Some fname ->
+          let fname = selectNormalizedSource fname in
           let loader = match pragma with
                        | Lexer.D_load -> load
                        | Lexer.D_need -> load1
