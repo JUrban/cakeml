@@ -294,6 +294,7 @@ type token =
   | T_use | T_needs | T_loads (* converted into source-loading directives *)
   | T_static_load (* exact #load selection; never reads a .cma as source *)
   | T_flyspeck_needs (* manifest-selected source load plus neutralization *)
+  | T_flyspeck_loadt (* manifest-selected unconditional source load *)
   | T_other of string
   | T_symb of string
   | T_comment of string
@@ -327,6 +328,7 @@ let string_of_token unquote tok =
   | T_needs -> "needs"
   | T_static_load -> "#load"
   | T_flyspeck_needs -> "#flyspeck_needs"
+  | T_flyspeck_loadt -> "#flyspeck_loadt"
   | T_done -> "(* shouldn't happen *)"
 ;;
 
@@ -350,6 +352,7 @@ let scan nextChar peekChar =
       "#use",   T_use;
       "#load",  T_static_load;
       "#flyspeck_needs", T_flyspeck_needs;
+      "#flyspeck_loadt", T_flyspeck_loadt;
       "needs",  T_needs;
       "loads",  T_loads;
     ] in
@@ -654,6 +657,11 @@ let reject_flyspeck_needs message =
   raise Repl_error
 ;;
 
+let reject_flyspeck_loadt message =
+  print ("- Static #flyspeck_loadt rejected: " ^ message ^ "\n");
+  raise Repl_error
+;;
+
 let () =
   let prompt = ref (!prompt2) in
   let pushLoad, popLoad, clearLoadStack =
@@ -871,17 +879,63 @@ let () =
             discard_phrase ();
             reject_flyspeck_needs
               "#flyspeck_needs must be a standalone top-level phrase"
-        (* Attempt to use token as part of loading directive if it sits at the
-           top level (i.e. not inside parenthesis). The REPL fails and reports
-           and error unless the token is followed by a string literal and then
-           double semicolons. Ideally we should also check that the token sits
-           at the start of the line, but we don't, so odd things such as this:
-             foo needs "bar.ml";;
-           are OK and will cause the file bar.ml to be loaded and appear
-           directly after 'foo' in the token stream.
-         *)
+        (* Strictbuild has three manifest-selected [loadt] phrases that must
+           evaluate even if their logical identity was loaded before, must add
+           that identity again after success, and must not neutralize state.
+           Keep this distinct from [#flyspeck_needs], whose duplicate and
+           neutralization observations differ. *)
+        | Some Lexer.T_flyspeck_loadt when level = 0 && phrase_start ->
+            begin
+              match next_nonspace () with
+              | Some (Lexer.T_string fname) ->
+                  begin
+                    match next_nonspace () with
+                    | Some Lexer.T_semis ->
+                        let selected,lines,original =
+                          loadWithStatus Lexer.D_load fname in
+                        if not selected then
+                          failwith "Candle Flyspeck loadt source read failed"
+                        else
+                          begin
+                            pendingLoadedSourceId := Some (sourceIdentity original);
+                            pushLoad fname true;
+                            userInput := false;
+                            scan_lines
+                              (append_lines lines
+                                ["\n(match !Cakeml.pendingLoadedSourceId with\n";
+                                 " | None -> failwith \"missing Flyspeck loadt source identity\"\n";
+                                 " | Some fileid ->\n";
+                                 "     Cakeml.loadedSourceIds := fileid :: !Cakeml.loadedSourceIds;\n";
+                                 "     Cakeml.pendingLoadedSourceId := None);;\n"]);
+                            scan level true
+                          end
+                    | None ->
+                        reject_flyspeck_loadt
+                          "#flyspeck_loadt \"string\" must end with double semicolon [;;]"
+                    | Some _ ->
+                        discard_phrase ();
+                        reject_flyspeck_loadt
+                          "#flyspeck_loadt \"string\" must end with double semicolon [;;]"
+                  end
+              | None | Some Lexer.T_semis ->
+                  reject_flyspeck_loadt
+                    "#flyspeck_loadt requires one string literal and double semicolon [;;]"
+              | Some _ ->
+                  discard_phrase ();
+                  reject_flyspeck_loadt
+                    "#flyspeck_loadt requires one string literal and double semicolon [;;]"
+            end
+        | Some Lexer.T_flyspeck_loadt ->
+            discard_phrase ();
+            reject_flyspeck_loadt
+              "#flyspeck_loadt must be a standalone top-level phrase"
+        (* Treat an ordinary loading token as a directive only at the exact
+           start of a complete top-level phrase.  Elsewhere [needs] and [loads]
+           remain ordinary identifiers for the real parser; in particular a
+           definition, conditional, or function body cannot be executed
+           lexically as a load action. *)
         | Some (Lexer.T_use | Lexer.T_needs | Lexer.T_loads as tok)
-          when level = 0 ->
+          when level = 0 && phrase_start ->
             begin
               let dir = Option.valOf (Lexer.directive_of_token tok) in
               match next_nonspace () with
