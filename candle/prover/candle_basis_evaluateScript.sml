@@ -85,6 +85,7 @@ Theorem simple_dec_simps[simp] =
    “simple_dec (Dexn l n ts)”,
    “simple_dec (Dmod mn ds)”,
    “simple_dec (Dlocal ds1 ds2)”,
+   “simple_dec (Dopen l path)”,
    “simple_dec (Denv n)”]
   |> map (ONCE_REWRITE_CONV [simple_dec_def])
   |> map (SIMP_RULE (srw_ss()) [GSYM simple_dec_def, SF ETA_ss])

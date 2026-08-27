@@ -264,6 +264,7 @@ val _ = cv_trans namespaceTheory.nsSing_def;
 
 val _ = cv_trans namespaceTheory.nsOpen_def;
 val _ = cv_auto_trans open_ienv_def;
+val _ = cv_trans mod_path_to_string_def;
 val _ = cv_auto_trans (infer_open_def |> expand);
 
 val infer_d_pre = cv_auto_trans_pre ""

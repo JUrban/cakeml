@@ -1066,10 +1066,17 @@ Definition open_ienv_def:
           SOME <|inf_v := env_v; inf_c := env_c; inf_t := env_t|>
 End
 
+Definition mod_path_to_string_def:
+  mod_path_to_string [] = «» ∧
+  mod_path_to_string (mn::path) =
+    if NULL path then mn else concat [mn; «.»; mod_path_to_string path]
+End
+
 Definition infer_open_def:
   infer_open l path ienv =
     case open_ienv path ienv of
-    | NONE => failwith l «Undefined module in open declaration»
+    | NONE =>
+      failwith l (concat [«Undefined module: »; mod_path_to_string path])
     | SOME opened => return opened
 End
 
@@ -1083,7 +1090,8 @@ QED
 Theorem infer_open_missing:
   open_ienv path ienv = NONE ⇒
   infer_open l path ienv st =
-    (M_failure (l.loc,«Undefined module in open declaration»),st)
+    (M_failure
+       (l.loc,concat [«Undefined module: »; mod_path_to_string path]),st)
 Proof
   simp [infer_open_def, failwith_def]
 QED

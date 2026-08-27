@@ -79,6 +79,7 @@ Theorem perms_ok_dec_thm[simp] =
    “perms_ok_dec ps (Dexn l n ts)”,
    “perms_ok_dec ps (Dmod n ds)”,
    “perms_ok_dec ps (Dlocal ds1 ds2)”,
+   “perms_ok_dec ps (Dopen l path)”,
    “perms_ok_dec ps (Denv n)”]
   |> map (SIMP_CONV (srw_ss()) [perms_ok_dec_def])
   |> map (SIMP_RULE (srw_ss()) [GSYM perms_ok_dec_def, SF ETA_ss])
