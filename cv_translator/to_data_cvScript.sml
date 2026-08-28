@@ -211,6 +211,7 @@ Proof
   rpt(PURE_TOP_CASE_TAC >> gvs[source_to_flatTheory.compile_decs_def]) >>
   gvs[source_to_flatTheory.extend_env_def,source_to_flatTheory.empty_env_def,
       UNCURRY_eq_pair,PULL_EXISTS] >>
+  TRY (rw[source_to_flatTheory.environment_component_equality]) >>
   qmatch_goalsub_abbrev_tac ‘$= a1’ >> PairCases_on ‘a1’ >>
   pop_assum $ assume_tac o GSYM >>
   gvs[markerTheory.Abbrev_def] >>
@@ -232,6 +233,7 @@ Proof
      source_to_flatTheory.empty_env_def, UNCURRY_eq_pair, PULL_EXISTS,
      source_to_flatTheory.lift_env_def]
   >- (rpt (TOP_CASE_TAC \\ gvs []))
+  >- metis_tac[FST,SND,PAIR]
   >- metis_tac[FST,SND,PAIR]
   >- metis_tac[FST,SND,PAIR] >>
   res_tac >>
