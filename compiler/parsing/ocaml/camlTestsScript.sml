@@ -807,6 +807,22 @@ val _ = parsetest0 “nValuePath” “ptree_ValuePath”
   (SOME “[«cDEF»]”)
   ;
 
+val _ = parsetest0 “nValuePath” “ptree_ValuePath”
+  "Aa.B_b.POLY_ASSUME_TAC"
+  (SOME “[«Aa»; «B_b»; «POLY_ASSUME_TAC»]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "Kernel.EQ_MP"
+  (SOME “Var (Long «Kernel» (Short «EQ_MP»))”)
+  ;
+
+val _ = parsetest0 “nDefinition” “ptree_Definition”
+  "let f = Kernel.EQ_MP"
+  (SOME “[Dlet L (Pvar «f»)
+                 (Var (Long «Kernel» (Short «EQ_MP»)))]”)
+  ;
+
 val _ = parsetest0 “nConstr” “ptree_Constr”
   "Cd"
   (SOME “[«Cd»]”)

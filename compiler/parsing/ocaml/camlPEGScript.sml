@@ -310,7 +310,8 @@ Definition camlPEG_def[nocompute]:
       (INL nFieldName,
        pegf (tokIdP (identLower ∘ explode)) (bindNT nFieldName));
       (INL nValuePath,
-       seql [try (seql [pnt nModulePath; tokeq DotT] I); pnt nValueName]
+       pegf (choicel [seql [pnt nModuleName; tokeq DotT; pnt nValuePath] I;
+                      pnt nValueName])
             (bindNT nValuePath));
       (* Can't use nModulePath in nConstr, because it would parse the
          nConstrName as a nModuleName (because they're the same). But we can

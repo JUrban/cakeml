@@ -608,12 +608,12 @@ Definition ptree_ValuePath_def:
     if nterm = INL nValuePath then
       case args of
         [arg] => fmap (λx. [x]) $ ptree_ValueName arg
-      | [path; dot; arg] =>
+      | [name; dot; rest] =>
           do
             expect_tok dot DotT;
-            vp <- ptree_ModulePath path;
-            vn <- ptree_ValueName arg;
-            return (vp ++ [vn])
+            vp <- ptree_ModuleName name;
+            vn <- ptree_ValuePath rest;
+            return (vp::vn)
           od
       | _ => fail (locs, «Impossible: nValuePath»)
     else
