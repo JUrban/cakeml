@@ -85,6 +85,113 @@ Theorem cake_compiled_thm =
   CONJ compile_correct_applied cake_output
   |> DISCH_ALL
 
+(* The ordinary compiler theorem above deliberately excludes the parser
+   diagnostic command lines.  Carry each diagnostic source theorem through
+   the same x64 backend theorem separately, so neither the capability query
+   nor a parser run can accidentally acquire ordinary compiler semantics. *)
+
+val parser_capability_io_events_def =
+  new_specification
+    ("parser_capability_io_events_def",["parser_capability_io_events"],
+     semantics_compiler64_prog_parser_capability
+     |> SRULE [ml_progTheory.prog_syntax_ok_semantics, compiler64_compiled]
+     |> Q.INST
+          [‘eval_state_var’|->‘the_EvalDecs
+             (mk_init_eval_state compiler_instance)’]
+     |> SIMP_RULE (srw_ss())
+          [source_evalProofTheory.mk_init_eval_state_def,the_EvalDecs_def]
+     |> SIMP_RULE (srw_ss())
+          [GSYM source_evalProofTheory.mk_init_eval_state_def
+           |> SIMP_RULE (srw_ss()) []]
+     |> Q.GENL [`ext`,`cl`,`fs`]
+     |> SIMP_RULE bool_ss
+          [SKOLEM_THM,Once(GSYM RIGHT_EXISTS_IMP_THM)]);
+
+val parser_ok_io_events_def =
+  new_specification
+    ("parser_ok_io_events_def",["parser_ok_io_events"],
+     semantics_compiler64_prog_parser_ok_exact
+     |> SRULE [ml_progTheory.prog_syntax_ok_semantics, compiler64_compiled]
+     |> Q.INST
+          [‘eval_state_var’|->‘the_EvalDecs
+             (mk_init_eval_state compiler_instance)’]
+     |> SIMP_RULE (srw_ss())
+          [source_evalProofTheory.mk_init_eval_state_def,the_EvalDecs_def]
+     |> SIMP_RULE (srw_ss())
+          [GSYM source_evalProofTheory.mk_init_eval_state_def
+           |> SIMP_RULE (srw_ss()) []]
+     |> Q.GENL [`ext`,`cl`,`fs`,`nonce`,`inp`,`res`]
+     |> SIMP_RULE bool_ss
+          [SKOLEM_THM,Once(GSYM RIGHT_EXISTS_IMP_THM)]);
+
+val parser_error_io_events_def =
+  new_specification
+    ("parser_error_io_events_def",["parser_error_io_events"],
+     semantics_compiler64_prog_parser_error_exact
+     |> SRULE [ml_progTheory.prog_syntax_ok_semantics, compiler64_compiled]
+     |> Q.INST
+          [‘eval_state_var’|->‘the_EvalDecs
+             (mk_init_eval_state compiler_instance)’]
+     |> SIMP_RULE (srw_ss())
+          [source_evalProofTheory.mk_init_eval_state_def,the_EvalDecs_def]
+     |> SIMP_RULE (srw_ss())
+          [GSYM source_evalProofTheory.mk_init_eval_state_def
+           |> SIMP_RULE (srw_ss()) []]
+     |> Q.GENL [`ext`,`cl`,`fs`,`nonce`,`inp`,`l`,`err`]
+     |> SIMP_RULE bool_ss
+          [SKOLEM_THM,Once(GSYM RIGHT_EXISTS_IMP_THM)]);
+
+fun x64_compile_correct_from_termination sem = let
+  val (not_fail,sem_sing) =
+    MATCH_MP semantics_prog_Terminate_not_Fail sem |> CONJ_PAIR
+  in
+    MATCH_MP compile_correct_eval (cj 1 compiler64_compiled)
+    |> SIMP_RULE(srw_ss())
+         [LET_THM,ml_progTheory.init_state_env_thm,
+          GSYM AND_IMP_INTRO,with_clos_conf_simp]
+    |> Q.INST [‘ev’|->‘SOME compiler_instance’]
+    |> SIMP_RULE (srw_ss())
+         [add_eval_state_def,opt_eval_config_wf_def,
+          compiler_instance_lemma,mc_init_ok_init_conf]
+    |> C MATCH_MP not_fail
+    |> C MATCH_MP backend_config_ok_init_conf
+    |> REWRITE_RULE [sem_sing,AND_IMP_INTRO]
+    |> REWRITE_RULE [Once (GSYM AND_IMP_INTRO)]
+    |> C MATCH_MP (CONJ(UNDISCH x64_machine_config_ok)
+                        (UNDISCH x64_init_ok))
+    |> DISCH (#1 (dest_imp (concl x64_init_ok)))
+    |> REWRITE_RULE [AND_IMP_INTRO]
+  end;
+
+val (parser_capability_sem,parser_capability_output) =
+  parser_capability_io_events_def |> SPEC_ALL |> UNDISCH |> CONJ_PAIR;
+
+Theorem cake_parser_diagnostic_capability_compiled_thm =
+  CONJ
+    (x64_compile_correct_from_termination parser_capability_sem)
+    parser_capability_output
+  |> DISCH_ALL
+
+val (parser_ok_sem,parser_ok_output) =
+  parser_ok_io_events_def |> SPEC_ALL |> UNDISCH |> CONJ_PAIR;
+
+Theorem cake_parser_diagnostic_ok_compiled_thm =
+  CONJ
+    (x64_compile_correct_from_termination parser_ok_sem)
+    parser_ok_output
+  |> DISCH_ALL
+
+val (parser_error_sem,parser_error_output) =
+  parser_error_io_events_def |> SPEC_ALL |> UNDISCH |> CONJ_PAIR;
+
+(* In particular, the error theorem binds all three external-call fields:
+     name = "exit", command bytes = [], payload bytes = [65w]. *)
+Theorem cake_parser_diagnostic_error_compiled_thm =
+  CONJ
+    (x64_compile_correct_from_termination parser_error_sem)
+    parser_error_output
+  |> DISCH_ALL
+
 (* --- *)
 
 Theorem mk_compiler_fun_from_ci_tuple[local]:
