@@ -634,6 +634,244 @@ val res = translate candle_parser_diagnostic_run_args_def;
 val _ = (next_ml_names := ["compiler_has_candle_parser_diagnostic_mode"]);
 val res = translate has_candle_parser_diagnostic_mode_def;
 
+(* Pure SHA-256 for binding the exact parser diagnostic written to stderr. *)
+Definition candle_sha256_ch_def:
+  candle_sha256_ch (x:word32) y z =
+    word_xor (word_and x y) (word_and (¬x) z)
+End
+
+Definition candle_sha256_maj_def:
+  candle_sha256_maj (x:word32) y z =
+    word_xor (word_xor (word_and x y) (word_and x z)) (word_and y z)
+End
+
+Definition candle_sha256_bigsigma0_def:
+  candle_sha256_bigsigma0 (x:word32) =
+    word_xor
+      (word_xor (word_or (x >>> 2) (x << 30))
+                (word_or (x >>> 13) (x << 19)))
+      (word_or (x >>> 22) (x << 10))
+End
+
+Definition candle_sha256_bigsigma1_def:
+  candle_sha256_bigsigma1 (x:word32) =
+    word_xor
+      (word_xor (word_or (x >>> 6) (x << 26))
+                (word_or (x >>> 11) (x << 21)))
+      (word_or (x >>> 25) (x << 7))
+End
+
+Definition candle_sha256_smallsigma0_def:
+  candle_sha256_smallsigma0 (x:word32) =
+    word_xor
+      (word_xor (word_or (x >>> 7) (x << 25))
+                (word_or (x >>> 18) (x << 14)))
+      (x >>> 3)
+End
+
+Definition candle_sha256_smallsigma1_def:
+  candle_sha256_smallsigma1 (x:word32) =
+    word_xor
+      (word_xor (word_or (x >>> 17) (x << 15))
+                (word_or (x >>> 19) (x << 13)))
+      (x >>> 10)
+End
+
+Definition candle_sha256_nth_def:
+  (candle_sha256_nth 0 (x::xs) = (x:word32)) ∧
+  (candle_sha256_nth (SUC n) (x::xs) = candle_sha256_nth n xs) ∧
+  (candle_sha256_nth n [] = 0w)
+End
+
+Definition candle_sha256_schedule_word_def:
+  candle_sha256_schedule_word ws =
+    candle_sha256_smallsigma1
+      (candle_sha256_nth (LENGTH ws - 2) ws) +
+    candle_sha256_nth (LENGTH ws - 7) ws +
+    candle_sha256_smallsigma0
+      (candle_sha256_nth (LENGTH ws - 15) ws) +
+    candle_sha256_nth (LENGTH ws - 16) ws
+End
+
+Definition candle_sha256_extend_schedule_def:
+  (candle_sha256_extend_schedule 0 ws = ws) ∧
+  (candle_sha256_extend_schedule (SUC n) ws =
+     candle_sha256_extend_schedule n
+       (ws ++ [candle_sha256_schedule_word ws]))
+End
+
+Definition candle_sha256_pack_word_def:
+  candle_sha256_pack_word a b c d =
+    (((n2w (ORD a)):word32) << 24) +
+    (((n2w (ORD b)):word32) << 16) +
+    (((n2w (ORD c)):word32) << 8) +
+    ((n2w (ORD d)):word32)
+End
+
+Definition candle_sha256_pack_words_def:
+  (candle_sha256_pack_words (a::b::c::d::rest) =
+     candle_sha256_pack_word a b c d ::
+       candle_sha256_pack_words rest) ∧
+  (candle_sha256_pack_words _ = [])
+End
+
+Definition candle_sha256_constants_def:
+  candle_sha256_constants : word32 list =
+    [0x428a2f98w; 0x71374491w; 0xb5c0fbcfw; 0xe9b5dba5w;
+     0x3956c25bw; 0x59f111f1w; 0x923f82a4w; 0xab1c5ed5w;
+     0xd807aa98w; 0x12835b01w; 0x243185bew; 0x550c7dc3w;
+     0x72be5d74w; 0x80deb1few; 0x9bdc06a7w; 0xc19bf174w;
+     0xe49b69c1w; 0xefbe4786w; 0x0fc19dc6w; 0x240ca1ccw;
+     0x2de92c6fw; 0x4a7484aaw; 0x5cb0a9dcw; 0x76f988daw;
+     0x983e5152w; 0xa831c66dw; 0xb00327c8w; 0xbf597fc7w;
+     0xc6e00bf3w; 0xd5a79147w; 0x06ca6351w; 0x14292967w;
+     0x27b70a85w; 0x2e1b2138w; 0x4d2c6dfcw; 0x53380d13w;
+     0x650a7354w; 0x766a0abbw; 0x81c2c92ew; 0x92722c85w;
+     0xa2bfe8a1w; 0xa81a664bw; 0xc24b8b70w; 0xc76c51a3w;
+     0xd192e819w; 0xd6990624w; 0xf40e3585w; 0x106aa070w;
+     0x19a4c116w; 0x1e376c08w; 0x2748774cw; 0x34b0bcb5w;
+     0x391c0cb3w; 0x4ed8aa4aw; 0x5b9cca4fw; 0x682e6ff3w;
+     0x748f82eew; 0x78a5636fw; 0x84c87814w; 0x8cc70208w;
+     0x90befffaw; 0xa4506cebw; 0xbef9a3f7w; 0xc67178f2w]
+End
+
+Definition candle_sha256_initial_def:
+  candle_sha256_initial :
+    word32 # word32 # word32 # word32 #
+    word32 # word32 # word32 # word32 =
+    (0x6a09e667w, 0xbb67ae85w, 0x3c6ef372w, 0xa54ff53aw,
+     0x510e527fw, 0x9b05688cw, 0x1f83d9abw, 0x5be0cd19w)
+End
+
+Definition candle_sha256_round_def:
+  candle_sha256_round (a,b,c,d,e,f,g,h) k w =
+    let t1 = h + candle_sha256_bigsigma1 e +
+                 candle_sha256_ch e f g + k + w in
+    let t2 = candle_sha256_bigsigma0 a + candle_sha256_maj a b c in
+      (t1 + t2,a,b,c,d + t1,e,f,g)
+End
+
+Definition candle_sha256_rounds_def:
+  (candle_sha256_rounds [] ws state = state) ∧
+  (candle_sha256_rounds ks [] state = state) ∧
+  (candle_sha256_rounds (k::ks) (w::ws) state =
+     candle_sha256_rounds ks ws (candle_sha256_round state k w))
+End
+
+Definition candle_sha256_compress_def:
+  candle_sha256_compress (h0,h1,h2,h3,h4,h5,h6,h7) block =
+    let schedule = candle_sha256_extend_schedule 48
+                     (candle_sha256_pack_words (TAKE 64 block)) in
+    let (a,b,c,d,e,f,g,h) =
+      candle_sha256_rounds candle_sha256_constants schedule
+        (h0,h1,h2,h3,h4,h5,h6,h7) in
+      (h0+a,h1+b,h2+c,h3+d,h4+e,h5+f,h6+g,h7+h)
+End
+
+Definition candle_sha256_blocks_def:
+  (candle_sha256_blocks 0 bytes state = state) ∧
+  (candle_sha256_blocks (SUC n) bytes state =
+     candle_sha256_blocks n (DROP 64 bytes)
+       (candle_sha256_compress state bytes))
+End
+
+Definition candle_sha256_length_suffix_def:
+  candle_sha256_length_suffix bytes =
+    let n = 8 * LENGTH bytes in
+      [CHR ((n DIV 72057594037927936) MOD 256);
+       CHR ((n DIV 281474976710656) MOD 256);
+       CHR ((n DIV 1099511627776) MOD 256);
+       CHR ((n DIV 4294967296) MOD 256);
+       CHR ((n DIV 16777216) MOD 256);
+       CHR ((n DIV 65536) MOD 256);
+       CHR ((n DIV 256) MOD 256);
+       CHR (n MOD 256)]
+End
+
+Definition candle_sha256_pad_def:
+  candle_sha256_pad bytes =
+    let r = (LENGTH bytes + 1) MOD 64 in
+    let zeros = if r ≤ 56 then 56 - r else 120 - r in
+      bytes ++ [CHR 128] ++ REPLICATE zeros (CHR 0) ++
+      candle_sha256_length_suffix bytes
+End
+
+Definition candle_sha256_digest_def:
+  candle_sha256_digest bytes =
+    let padded = candle_sha256_pad bytes in
+      candle_sha256_blocks (LENGTH padded DIV 64) padded
+        candle_sha256_initial
+End
+
+Definition candle_sha256_hex_digit_def:
+  candle_sha256_hex_digit n =
+    let d = n MOD 16 in if d < 10 then CHR (48 + d) else CHR (87 + d)
+End
+
+Definition candle_sha256_word_hex_def:
+  candle_sha256_word_hex (w:word32) =
+    [candle_sha256_hex_digit (w2n (w >>> 28));
+     candle_sha256_hex_digit (w2n (w >>> 24));
+     candle_sha256_hex_digit (w2n (w >>> 20));
+     candle_sha256_hex_digit (w2n (w >>> 16));
+     candle_sha256_hex_digit (w2n (w >>> 12));
+     candle_sha256_hex_digit (w2n (w >>> 8));
+     candle_sha256_hex_digit (w2n (w >>> 4));
+     candle_sha256_hex_digit (w2n w)]
+End
+
+Definition candle_sha256_hex_def:
+  candle_sha256_hex bytes =
+    let (h0,h1,h2,h3,h4,h5,h6,h7) = candle_sha256_digest bytes in
+      implode (candle_sha256_word_hex h0 ++ candle_sha256_word_hex h1 ++
+               candle_sha256_word_hex h2 ++ candle_sha256_word_hex h3 ++
+               candle_sha256_word_hex h4 ++ candle_sha256_word_hex h5 ++
+               candle_sha256_word_hex h6 ++ candle_sha256_word_hex h7)
+End
+
+(* This is the byte/list contract consumed by the wire-protocol proof. *)
+Theorem candle_sha256_hex_implements_digest:
+  candle_sha256_hex bytes =
+    let (h0,h1,h2,h3,h4,h5,h6,h7) = candle_sha256_digest bytes in
+      implode (FLAT (MAP candle_sha256_word_hex
+        [h0;h1;h2;h3;h4;h5;h6;h7]))
+Proof
+  simp [candle_sha256_hex_def]
+QED
+
+Theorem candle_sha256_known_answers:
+  candle_sha256_hex [] =
+    «e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855» ∧
+  candle_sha256_hex (explode «abc») =
+    «ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad»
+Proof
+  EVAL_TAC
+QED
+
+val res = translate candle_sha256_ch_def;
+val res = translate candle_sha256_maj_def;
+val res = translate candle_sha256_bigsigma0_def;
+val res = translate candle_sha256_bigsigma1_def;
+val res = translate candle_sha256_smallsigma0_def;
+val res = translate candle_sha256_smallsigma1_def;
+val res = translate candle_sha256_nth_def;
+val res = translate candle_sha256_schedule_word_def;
+val res = translate candle_sha256_extend_schedule_def;
+val res = translate candle_sha256_pack_word_def;
+val res = translate candle_sha256_pack_words_def;
+val res = translate candle_sha256_constants_def;
+val res = translate candle_sha256_initial_def;
+val res = translate candle_sha256_round_def;
+val res = translate candle_sha256_rounds_def;
+val res = translate candle_sha256_compress_def;
+val res = translate candle_sha256_blocks_def;
+val res = translate candle_sha256_length_suffix_def;
+val res = translate candle_sha256_pad_def;
+val res = translate candle_sha256_digest_def;
+val res = translate candle_sha256_hex_digit_def;
+val res = translate candle_sha256_word_hex_def;
+val res = translate candle_sha256_hex_def;
+
 Definition select_parse_def:
   select_parse cl =
   if MEMBER «--candle» cl
