@@ -35,7 +35,7 @@ class CandleBootSourceTraceTests(unittest.TestCase):
             exact_trace_source,
             f'let nonce = "{nonce}";;',
             "configureSourceTrace nonce [",
-            '  ("/tree/text/../src/a.ml","/tree/src/a.ml",',
+            f'  ("{"3" * 64}","/tree/text/../src/a.ml","/tree/src/a.ml",',
             '   "flyspeck:src/a.ml","a.ml",',
             f'   "{"1" * 32}","{"2" * 64}",',
             f'   "/tree/src/a.ml","{"2" * 64}","-")',
@@ -74,7 +74,7 @@ class CandleBootSourceTraceTests(unittest.TestCase):
         self.assertEqual(result.stdout.splitlines(), [
             (
                 f"CANDLE_FLYSPECK_SOURCE_TRACE_V1\t{nonce}\tREQUEST\t0\t-"
-                f"\tneeds\tflyspeck:src/a.ml\ta.ml\t{'1' * 32}"
+                f"\tneeds\t{'3' * 64}\tflyspeck:src/a.ml\ta.ml\t{'1' * 32}"
                 f"\t{'2' * 64}\t{'2' * 64}\t-\tfresh-cache"
             ),
             f"CANDLE_FLYSPECK_SOURCE_TRACE_V1\t{nonce}\tOUTCOME\t0\tcache-skip",

@@ -646,7 +646,8 @@ let canonicalSourcePath original =
    Hash strings are bindings, not hashes computed by this runtime. *)
 type sourceTraceBinding =
   SourceTraceBinding of
-    string * string * string * string * string * string * string * string * string
+    string * string * string * string * string * string * string * string * string *
+    string
 ;;
 
 type sourceTraceRequest =
@@ -690,31 +691,34 @@ let configureSourceTrace nonce mappings =
       if not (sourceTraceHex 32 nonce) then
         failwith "malformed Candle source trace nonce"
       else
-        let rec check seen remaining =
+        let rec check seen_paths seen_ids remaining =
           match remaining with
           | [] -> ()
-          | (resolved,canonical,key,basename,md5,sha256,selected,
+          | (binding_id,resolved,canonical,key,basename,md5,sha256,selected,
              selected_sha256,normalization)::rest ->
-              if List.exists (fun path -> path = resolved) seen then
+              if List.exists (fun path -> path = resolved) seen_paths then
                 failwith "duplicate Candle source trace path"
+              else if List.exists (fun id -> id = binding_id) seen_ids then
+                failwith "duplicate Candle source trace binding identity"
               else if not (isFile resolved) || not (isFile canonical) ||
                       not (isFile selected) then
                 failwith "missing Candle source trace path"
-              else if not (sourceTraceSafeField key) ||
+              else if not (sourceTraceHex 64 binding_id) ||
+                      not (sourceTraceSafeField key) ||
                       not (sourceTraceSafeField basename) ||
                       not (sourceTraceSafeField normalization) ||
                       not (sourceTraceHex 32 md5) ||
                       not (sourceTraceHex 64 sha256) ||
                       not (sourceTraceHex 64 selected_sha256) then
                 failwith "malformed Candle source trace binding"
-              else check (resolved::seen) rest in
-        check [] mappings;
+              else check (resolved::seen_paths) (binding_id::seen_ids) rest in
+        check [] [] mappings;
         sourceTraceBindings :=
           List.map
-            (fun (resolved,canonical,key,basename,md5,sha256,selected,
+            (fun (binding_id,resolved,canonical,key,basename,md5,sha256,selected,
                   selected_sha256,normalization) ->
                SourceTraceBinding
-                 (resolved,canonical,key,basename,md5,sha256,selected,
+                 (binding_id,resolved,canonical,key,basename,md5,sha256,selected,
                   selected_sha256,normalization))
             mappings;
         sourceTraceNonce := Some nonce
@@ -751,7 +755,7 @@ let beginSourceTraceRequest parent kind resolved canonical selected prior_cache 
         match remaining with
         | [] -> failwith ("unauthenticated Candle source trace path: " ^ resolved)
         | SourceTraceBinding
-            (expected_resolved,expected_canonical,key,basename,md5,sha256,
+            (binding_id,expected_resolved,expected_canonical,key,basename,md5,sha256,
              expected_selected,selected_sha256,normalization)::rest ->
             if expected_resolved <> resolved then find rest
             else if expected_canonical <> canonical ||
@@ -765,10 +769,10 @@ let beginSourceTraceRequest parent kind resolved canonical selected prior_cache 
               sourceTraceNextRequest := request + 1;
               print ("CANDLE_FLYSPECK_SOURCE_TRACE_V1\t" ^ nonce ^
                      "\tREQUEST\t" ^ string_of_int request ^ "\t" ^
-                     parent_text ^ "\t" ^ kind ^ "\t" ^ key ^ "\t" ^
-                     basename ^ "\t" ^ md5 ^ "\t" ^ sha256 ^ "\t" ^
-                     selected_sha256 ^ "\t" ^ normalization ^ "\t" ^
-                     prior_text ^ "\n");
+                     parent_text ^ "\t" ^ kind ^ "\t" ^ binding_id ^ "\t" ^
+                     key ^ "\t" ^ basename ^ "\t" ^ md5 ^ "\t" ^
+                     sha256 ^ "\t" ^ selected_sha256 ^ "\t" ^
+                     normalization ^ "\t" ^ prior_text ^ "\n");
               Some (SourceTraceRequest request) in
       find !sourceTraceBindings
 ;;
