@@ -579,6 +579,61 @@ Definition parse_ocaml_syntax_def:
                    (err ^ «\nParsing failed at » ^ locs_to_string input (SOME l))
 End
 
+(*
+  This protocol is deliberately recognized by exact argument-list shape.  In
+  particular, these predicates must not be replaced by a MEM-style flag test:
+  the diagnostic controller treats every other command line as an ordinary
+  compiler invocation.
+*)
+Definition candle_parser_diagnostic_capability_arg_def:
+  candle_parser_diagnostic_capability_arg =
+    «--candle-parser-diagnostic-capability-v1»
+End
+
+Definition candle_parser_diagnostic_run_arg_def:
+  candle_parser_diagnostic_run_arg = «--candle-parser-diagnostic-v1»
+End
+
+Definition candle_parser_diagnostic_lower_hex_def:
+  candle_parser_diagnostic_lower_hex c ⇔ MEM c "0123456789abcdef"
+End
+
+Definition candle_parser_diagnostic_nonce_def:
+  candle_parser_diagnostic_nonce s ⇔
+    strlen s = 64 ∧ EVERY candle_parser_diagnostic_lower_hex (explode s)
+End
+
+Definition candle_parser_diagnostic_capability_args_def:
+  candle_parser_diagnostic_capability_args cl ⇔
+    cl = [candle_parser_diagnostic_capability_arg]
+End
+
+Definition candle_parser_diagnostic_run_args_def:
+  candle_parser_diagnostic_run_args cl =
+    case cl of
+    | [arg; nonce] =>
+        if arg = candle_parser_diagnostic_run_arg ∧
+           candle_parser_diagnostic_nonce nonce
+        then SOME nonce
+        else NONE
+    | _ => NONE
+End
+
+Definition has_candle_parser_diagnostic_mode_def:
+  has_candle_parser_diagnostic_mode cl ⇔
+    candle_parser_diagnostic_capability_args cl ∨
+    IS_SOME (candle_parser_diagnostic_run_args cl)
+End
+
+val res = translate candle_parser_diagnostic_capability_arg_def;
+val res = translate candle_parser_diagnostic_run_arg_def;
+val res = translate candle_parser_diagnostic_lower_hex_def;
+val res = translate candle_parser_diagnostic_nonce_def;
+val res = translate candle_parser_diagnostic_capability_args_def;
+val res = translate candle_parser_diagnostic_run_args_def;
+val _ = (next_ml_names := ["compiler_has_candle_parser_diagnostic_mode"]);
+val res = translate has_candle_parser_diagnostic_mode_def;
+
 Definition select_parse_def:
   select_parse cl =
   if MEMBER «--candle» cl
