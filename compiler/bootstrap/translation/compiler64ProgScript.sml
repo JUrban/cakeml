@@ -1355,6 +1355,55 @@ Proof
   \\ fs [dec_sides]
 QED
 
+Theorem semantics_compiler64_prog_parser_ok_exact:
+  candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
+  stdin_content fs = SOME inp ∧
+  caml_parser$run inp = INR res ∧
+  wfcl cl ∧ wfFS fs ∧ STD_streams fs ⇒
+  ∃io_events.
+    semantics_dec_list
+      (init_state
+        (basis_ffi ext cl fs) with
+         eval_state := SOME (EvalDecs
+           (eval_state_var with env_id_counter := (0,0,1))))
+      init_env compiler64_prog (Terminate Success io_events) ∧
+    extract_fs ext (cl,fs) io_events =
+      SOME (add_stdout (fastForwardFD fs 0)
+        (candle_parser_diagnostic_result_prefix ^ nonce ^ «\tOK\n»))
+Proof
+  strip_tac
+  \\ irule semantics_compiler64_prog_parser_ok
+  \\ simp [candle_parser_diagnostic_reply_def]
+QED
+
+Theorem semantics_compiler64_prog_parser_error_exact:
+  candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
+  stdin_content fs = SOME inp ∧
+  caml_parser$run inp = INL (l,err) ∧
+  wfcl cl ∧ wfFS fs ∧ STD_streams fs ⇒
+  ∃io_events.
+    semantics_dec_list
+      (init_state
+        (basis_ffi ext cl fs) with
+         eval_state := SOME (EvalDecs
+           (eval_state_var with env_id_counter := (0,0,1))))
+      init_env compiler64_prog
+      (Terminate
+        (FFI_outcome
+          (Final_event (ExtCall «exit») [] [65w] FFI_diverged))
+        io_events) ∧
+    extract_fs ext (cl,fs) io_events =
+      SOME (add_stderr
+        (add_stdout (fastForwardFD fs 0)
+          (candle_parser_diagnostic_result_prefix ^ nonce ^
+           «\tPARSE_ERROR\n»))
+        (candle_parser_diagnostic_error_text (implode inp) l err))
+Proof
+  strip_tac
+  \\ irule semantics_compiler64_prog_parser_error
+  \\ simp [candle_parser_diagnostic_reply_def]
+QED
+
 Theorem semantics_compiler64_prog:
   ¬has_candle_parser_diagnostic_mode (TL cl) ∧
   ¬has_repl_flag (TL cl) ∧ IS_SOME (stdin_content fs) ∧ wfcl cl ∧ wfFS fs ∧
