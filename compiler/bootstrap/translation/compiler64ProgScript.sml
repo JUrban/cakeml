@@ -1132,6 +1132,65 @@ Proof
   \\ asm_exists_tac \\ simp [] \\ xsimpl
 QED
 
+Theorem main_candle_parser_diagnostic_capability_whole_prog_spec:
+  candle_parser_diagnostic_capability_args (TL cl) ⇒
+  whole_prog_spec main_v cl fs NONE
+    ((=) (add_stdout fs candle_parser_diagnostic_capability_line))
+Proof
+  strip_tac
+  \\ simp [basis_ffiTheory.whole_prog_spec_def]
+  \\ qmatch_goalsub_abbrev_tac `fs1 = _ with numchars := _`
+  \\ qexists_tac `fs1`
+  \\ reverse conj_tac >-
+   rw [Abbr`fs1`,GSYM add_stdo_with_numchars,with_same_numchars]
+  \\ simp [SEP_CLAUSES]
+  \\ match_mp_tac (MP_CANON (MATCH_MP app_wgframe
+       (UNDISCH main_candle_parser_diagnostic_capability_spec)))
+  \\ xsimpl
+QED
+
+Theorem main_candle_parser_diagnostic_ok_whole_prog_spec:
+  candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
+  stdin_content fs = SOME inp ∧
+  candle_parser_diagnostic_reply nonce (implode inp) = (stdout,NONE) ⇒
+  whole_prog_spec main_v cl fs NONE
+    ((=) (add_stdout (fastForwardFD fs 0) stdout))
+Proof
+  strip_tac
+  \\ simp [basis_ffiTheory.whole_prog_spec_def]
+  \\ qmatch_goalsub_abbrev_tac `fs1 = _ with numchars := _`
+  \\ qexists_tac `fs1`
+  \\ reverse conj_tac >-
+   rw [Abbr`fs1`,GSYM fastForwardFD_with_numchars,
+       GSYM add_stdo_with_numchars,with_same_numchars]
+  \\ simp [SEP_CLAUSES]
+  \\ match_mp_tac (MP_CANON (MATCH_MP app_wgframe
+       (UNDISCH main_candle_parser_diagnostic_ok_spec)))
+  \\ xsimpl
+QED
+
+Theorem main_candle_parser_diagnostic_error_whole_prog_spec:
+  candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
+  stdin_content fs = SOME inp ∧
+  candle_parser_diagnostic_reply nonce (implode inp) =
+    (stdout,SOME stderr) ⇒
+  whole_prog_ffidiv_spec main_v cl fs
+    (λname c bytes fs'.
+       name = «exit» ∧ c = [] ∧ bytes = [65w] ∧
+       fs' = add_stderr
+               (add_stdout (fastForwardFD fs 0) stdout) stderr)
+Proof
+  strip_tac
+  \\ rw [basis_ffiTheory.whole_prog_ffidiv_spec_def]
+  \\ qmatch_goalsub_abbrev_tac `fs1 = _ with numchars := _`
+  \\ qexists_tac `fs1`
+  \\ simp [Abbr`fs1`,GSYM fastForwardFD_with_numchars,
+           GSYM add_stdo_with_numchars,with_same_numchars]
+  \\ match_mp_tac (MP_CANON (MATCH_MP app_wgframe
+       (UNDISCH main_candle_parser_diagnostic_error_spec)))
+  \\ xsimpl
+QED
+
 Theorem main_whole_prog_spec:
   ¬has_candle_parser_diagnostic_mode (TL cl) ∧
   ¬has_repl_flag (TL cl) ∧ IS_SOME (stdin_content fs) ⇒
@@ -1166,6 +1225,135 @@ QED
 
 val sem_thm = prove_sem_thm "main" "compiler64_prog" main_whole_prog_spec;
 val compiler64_prog_def = fetch "-" "compiler64_prog_def";
+
+(* Reuse the one compiler64_prog definition for the three diagnostic modes.
+   This is prove_sem_thm without its new_definition step. *)
+local
+  val basis_ffi_term =
+    basis_ffiTheory.whole_prog_spec_IMP
+    |> concl |> rator |> rand |> rand
+    |> rator |> rator |> rator |> rand |> rand
+
+  fun prove_existing_main_semantics spec = let
+    val decls_lemma =
+      ml_translatorLib.get_ml_prog_state ()
+      |> ml_progLib.get_thm
+      |> REWRITE_RULE [ml_progTheory.ML_code_def,
+                       ml_progTheory.ML_code_env_def]
+    val spec = spec |> UNDISCH_ALL
+    val th1 = CONJ spec
+      (decls_lemma |> GEN_ALL |> ISPEC basis_ffi_term |> SPEC_ALL)
+    val th2 =
+      (MATCH_MP basis_ffiTheory.whole_prog_spec_IMP th1
+       handle HOL_ERR _ =>
+       MATCH_MP basis_ffiTheory.whole_prog_spec_SOME_IMP th1
+       handle HOL_ERR _ =>
+       MATCH_MP basis_ffiTheory.whole_prog_spec_IMP' th1
+       handle HOL_ERR _ =>
+       MATCH_MP basis_ffiTheory.whole_prog_spec2_IMP th1
+       handle HOL_ERR _ =>
+       MATCH_MP basis_ffiTheory.whole_prog_spec_ffidiv_IMP th1)
+    val remove_snocs_conv =
+      PURE_REWRITE_CONV [listTheory.SNOC_APPEND] THENC
+      PURE_REWRITE_CONV [GSYM listTheory.APPEND_ASSOC] THENC
+      PURE_REWRITE_CONV [listTheory.APPEND]
+    val th3 = SPEC (mlstringSyntax.mk_mlstring "main") th2
+      |> CONV_RULE (RAND_CONV remove_snocs_conv)
+      |> CONV_RULE (RAND_CONV (K (SYM compiler64_prog_def)))
+      |> CONV_RULE (REWR_CONV LET_THM THENC BETA_CONV)
+    val th4 = let
+      val goal = th3 |> concl |> dest_imp |> fst
+      val lookup = dest_eq goal |> fst |> nsLookup_conv
+      in MP th3 (prove (goal,REWRITE_TAC [lookup])) end
+    val th5 = let
+      val goal = th4 |> concl |> dest_imp |> fst
+      in MP th4 (prove (goal,EVAL_TAC)) end
+    val th6 = let
+      val goal = th5 |> concl |> dest_imp |> fst
+      val proof = prove
+        (goal,
+         EVAL_TAC
+         \\ REWRITE_TAC [semanticPrimitivesTheory.store_v_11,
+                          APPEND,CONS_11,basis_ffiTheory.basis_refs_eqs]
+         \\ simp_tac std_ss []
+         \\ EVAL_TAC)
+      in MP th5 proof end
+    in
+      th6 |> DISCH_ALL
+          |> SIMP_RULE bool_ss [GSYM CONJ_ASSOC,AND_IMP_INTRO]
+    end
+in
+  val parser_capability_sem_thm = prove_existing_main_semantics
+    main_candle_parser_diagnostic_capability_whole_prog_spec
+  val parser_ok_sem_thm = prove_existing_main_semantics
+    main_candle_parser_diagnostic_ok_whole_prog_spec
+  val parser_error_sem_thm = prove_existing_main_semantics
+    main_candle_parser_diagnostic_error_whole_prog_spec
+end
+
+Theorem semantics_compiler64_prog_parser_capability:
+  candle_parser_diagnostic_capability_args (TL cl) ∧
+  wfcl cl ∧ wfFS fs ∧ STD_streams fs ⇒
+  ∃io_events.
+    semantics_dec_list
+      (init_state
+        (basis_ffi ext cl fs) with
+         eval_state := SOME (EvalDecs
+           (eval_state_var with env_id_counter := (0,0,1))))
+      init_env compiler64_prog (Terminate Success io_events) ∧
+    extract_fs ext (cl,fs) io_events =
+      SOME (add_stdout fs candle_parser_diagnostic_capability_line)
+Proof
+  strip_tac
+  \\ irule parser_capability_sem_thm
+  \\ fs [dec_sides]
+QED
+
+Theorem semantics_compiler64_prog_parser_ok:
+  candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
+  stdin_content fs = SOME inp ∧
+  candle_parser_diagnostic_reply nonce (implode inp) = (stdout,NONE) ∧
+  wfcl cl ∧ wfFS fs ∧ STD_streams fs ⇒
+  ∃io_events.
+    semantics_dec_list
+      (init_state
+        (basis_ffi ext cl fs) with
+         eval_state := SOME (EvalDecs
+           (eval_state_var with env_id_counter := (0,0,1))))
+      init_env compiler64_prog (Terminate Success io_events) ∧
+    extract_fs ext (cl,fs) io_events =
+      SOME (add_stdout (fastForwardFD fs 0) stdout)
+Proof
+  strip_tac
+  \\ irule parser_ok_sem_thm
+  \\ fs [dec_sides]
+QED
+
+Theorem semantics_compiler64_prog_parser_error:
+  candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
+  stdin_content fs = SOME inp ∧
+  candle_parser_diagnostic_reply nonce (implode inp) =
+    (stdout,SOME stderr) ∧
+  wfcl cl ∧ wfFS fs ∧ STD_streams fs ⇒
+  ∃io_events.
+    semantics_dec_list
+      (init_state
+        (basis_ffi ext cl fs) with
+         eval_state := SOME (EvalDecs
+           (eval_state_var with env_id_counter := (0,0,1))))
+      init_env compiler64_prog
+      (Terminate
+        (FFI_outcome
+          (Final_event (ExtCall «exit») [] [65w] FFI_diverged))
+        io_events) ∧
+    extract_fs ext (cl,fs) io_events =
+      SOME (add_stderr
+        (add_stdout (fastForwardFD fs 0) stdout) stderr)
+Proof
+  strip_tac
+  \\ irule parser_error_sem_thm
+  \\ fs [dec_sides]
+QED
 
 Theorem semantics_compiler64_prog:
   ¬has_candle_parser_diagnostic_mode (TL cl) ∧
