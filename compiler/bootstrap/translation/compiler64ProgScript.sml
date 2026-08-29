@@ -872,6 +872,73 @@ val res = translate candle_sha256_hex_digit_def;
 val res = translate candle_sha256_word_hex_def;
 val res = translate candle_sha256_hex_def;
 
+Datatype:
+  candle_parser_diagnostic_reply =
+    CandleParserDiagnosticOk mlstring
+  | CandleParserDiagnosticError mlstring mlstring
+End
+
+val _ = register_type “:candle_parser_diagnostic_reply”;
+
+Definition candle_parser_diagnostic_capability_line_def:
+  candle_parser_diagnostic_capability_line =
+    «CANDLE_CAMLPARSER_DIAGNOSTIC_CAPABILITY_V1\tcaml_parser$run\tstdin-exact-bytes\tparser-only\tno-inference\tno-evaluation\n»
+End
+
+Definition candle_parser_diagnostic_result_prefix_def:
+  candle_parser_diagnostic_result_prefix =
+    «CANDLE_CAMLPARSER_DIAGNOSTIC_V1\t»
+End
+
+Definition candle_parser_diagnostic_error_text_def:
+  candle_parser_diagnostic_error_text input l err =
+    err ^ «\nParsing failed at » ^ locs_to_string input (SOME l)
+End
+
+Definition candle_parser_diagnostic_reply_def:
+  candle_parser_diagnostic_reply nonce input =
+    case caml_parser$run (explode input) of
+    | INR res =>
+        CandleParserDiagnosticOk
+          (candle_parser_diagnostic_result_prefix ^ nonce ^ «\tOK\n»)
+    | INL (l,err) =>
+        let stderr = candle_parser_diagnostic_error_text input l err in
+          CandleParserDiagnosticError
+            (candle_parser_diagnostic_result_prefix ^ nonce ^
+             «\tPARSE_ERROR\n»)
+            stderr
+End
+
+Theorem candle_parser_diagnostic_reply_calls_parser_directly:
+  candle_parser_diagnostic_reply nonce input =
+    case caml_parser$run (explode input) of
+    | INR res =>
+        CandleParserDiagnosticOk
+          (candle_parser_diagnostic_result_prefix ^ nonce ^ «\tOK\n»)
+    | INL (l,err) =>
+        let stderr = candle_parser_diagnostic_error_text input l err in
+          CandleParserDiagnosticError
+            (candle_parser_diagnostic_result_prefix ^ nonce ^
+             «\tPARSE_ERROR\n»)
+            stderr
+Proof
+  simp [candle_parser_diagnostic_reply_def]
+QED
+
+Definition candle_parser_diagnostic_success_fs_def:
+  candle_parser_diagnostic_success_fs nonce input fs =
+    case candle_parser_diagnostic_reply nonce input of
+    | CandleParserDiagnosticOk stdout =>
+        add_stdout (fastForwardFD fs 0) stdout
+    | CandleParserDiagnosticError stdout stderr =>
+        add_stderr (add_stdout (fastForwardFD fs 0) stdout) stderr
+End
+
+val res = translate candle_parser_diagnostic_capability_line_def;
+val res = translate candle_parser_diagnostic_result_prefix_def;
+val res = translate candle_parser_diagnostic_error_text_def;
+val res = translate candle_parser_diagnostic_reply_def;
+
 Definition select_parse_def:
   select_parse cl =
   if MEMBER «--candle» cl
@@ -930,7 +997,20 @@ Quote add_cakeml:
   let
     val cl = CommandLine.arguments ()
   in
-    if compiler_has_repl_flag cl then
+    if compiler64prog_candle_parser_diagnostic_capability_args cl then
+      print compiler64prog_candle_parser_diagnostic_capability_line
+    else case compiler64prog_candle_parser_diagnostic_run_args cl of
+      Some nonce =>
+        let
+          val input = TextIO.inputAll (TextIO.openStdIn ())
+        in
+          case compiler64prog_candle_parser_diagnostic_reply nonce input of
+            CandleParserDiagnosticOk stdout => print stdout
+          | CandleParserDiagnosticError stdout stderr =>
+              (print stdout; TextIO.output TextIO.stdErr stderr;
+               Runtime.exit 65)
+        end
+    | None => if compiler_has_repl_flag cl then
       run_interactive_repl cl
     else if compiler_has_help_flag cl then
       print compiler_help_string
