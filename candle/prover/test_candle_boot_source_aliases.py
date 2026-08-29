@@ -21,7 +21,7 @@ class CandleBootSourceAliasTests(unittest.TestCase):
             "  ref (None: ((string * (string * string)) list) option);;"
         )
         end = source.index(
-            "let normalizationOverlay = ref", start,
+            "type sourceTraceBinding =", start,
         )
         exact_resolver_source = source[start:end]
         fixture = "\n".join((
@@ -79,7 +79,7 @@ class CandleBootSourceAliasTests(unittest.TestCase):
             "          let selected = selectNormalizedSource canonical in",
             source,
         )
-        self.assertIn("match loader canonical selected with", source)
+        self.assertIn("let status = loader canonical selected in", source)
         self.assertIn(
             "List.exists (fun x -> x = original) (!loadedFiles)", source,
         )

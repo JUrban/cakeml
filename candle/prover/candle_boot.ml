@@ -640,6 +640,176 @@ let canonicalSourcePath original =
       | Some canonical -> canonical
 ;;
 
+(* Loader-owned, one-shot evidence for the exact source image selected by a
+   direct run.  The host authenticates and supplies the complete table; boot
+   code checks the resolved/canonical/selected paths before emitting a request.
+   Hash strings are bindings, not hashes computed by this runtime. *)
+type sourceTraceBinding =
+  SourceTraceBinding of
+    string * string * string * string * string * string * string * string * string
+;;
+
+type sourceTraceRequest =
+  SourceTraceRequest of int
+;;
+
+let sourceTraceNonce = ref (None: string option);;
+let sourceTraceBindings = ref ([]: sourceTraceBinding list);;
+let sourceTraceNextRequest = ref 0;;
+let sourceTraceCompletedRequest = ref 0;;
+let sourceTraceFinishRequested = ref false;;
+let sourceTraceFinished = ref false;;
+let sourceTraceFailed = ref false;;
+
+let rec sourceTraceAll predicate chars =
+  match chars with
+  | [] -> true
+  | c::rest -> predicate c && sourceTraceAll predicate rest
+;;
+
+let sourceTraceLowerHex c =
+  (Char.(<=) '0' c && Char.(<=) c '9') ||
+  (Char.(<=) 'a' c && Char.(<=) c 'f')
+;;
+
+let sourceTraceHex size value =
+  String.size value = size &&
+  sourceTraceAll sourceTraceLowerHex (String.explode value)
+;;
+
+let sourceTraceSafeField value =
+  value <> "" &&
+  sourceTraceAll (fun c -> c <> '\t' && c <> '\n' && c <> '\r')
+    (String.explode value)
+;;
+
+let configureSourceTrace nonce mappings =
+  match !sourceTraceNonce with
+  | Some _ -> failwith "Candle source trace already configured"
+  | None ->
+      if not (sourceTraceHex 32 nonce) then
+        failwith "malformed Candle source trace nonce"
+      else
+        let rec check seen remaining =
+          match remaining with
+          | [] -> ()
+          | (resolved,canonical,key,basename,md5,sha256,selected,
+             selected_sha256,normalization)::rest ->
+              if List.exists (fun path -> path = resolved) seen then
+                failwith "duplicate Candle source trace path"
+              else if not (isFile resolved) || not (isFile canonical) ||
+                      not (isFile selected) then
+                failwith "missing Candle source trace path"
+              else if not (sourceTraceSafeField key) ||
+                      not (sourceTraceSafeField basename) ||
+                      not (sourceTraceSafeField normalization) ||
+                      not (sourceTraceHex 32 md5) ||
+                      not (sourceTraceHex 64 sha256) ||
+                      not (sourceTraceHex 64 selected_sha256) then
+                failwith "malformed Candle source trace binding"
+              else check (resolved::seen) rest in
+        check [] mappings;
+        sourceTraceBindings :=
+          List.map
+            (fun (resolved,canonical,key,basename,md5,sha256,selected,
+                  selected_sha256,normalization) ->
+               SourceTraceBinding
+                 (resolved,canonical,key,basename,md5,sha256,selected,
+                  selected_sha256,normalization))
+            mappings;
+        sourceTraceNonce := Some nonce
+;;
+
+let requestSourceTraceFinish nonce =
+  match !sourceTraceNonce with
+  | None -> failwith "Candle source trace is not configured"
+  | Some expected ->
+      if nonce <> expected then failwith "Candle source trace nonce mismatch"
+      else if !sourceTraceFailed then failwith "Candle source trace has failed"
+      else if !sourceTraceFinishRequested || !sourceTraceFinished then
+        failwith "Candle source trace finish already requested"
+      else sourceTraceFinishRequested := true
+;;
+
+let failSourceTrace category =
+  match !sourceTraceNonce with
+  | None -> ()
+  | Some nonce ->
+      if not (!sourceTraceFailed) && not (!sourceTraceFinished) then
+        begin
+          sourceTraceFailed := true;
+          print ("CANDLE_FLYSPECK_SOURCE_TRACE_V1\t" ^ nonce ^
+                 "\tFAILURE\t" ^ category ^ "\n")
+        end
+;;
+
+let beginSourceTraceRequest parent kind resolved canonical selected prior_cache =
+  match !sourceTraceNonce with
+  | None -> None
+  | Some nonce ->
+      let rec find remaining =
+        match remaining with
+        | [] -> failwith ("unauthenticated Candle source trace path: " ^ resolved)
+        | SourceTraceBinding
+            (expected_resolved,expected_canonical,key,basename,md5,sha256,
+             expected_selected,selected_sha256,normalization)::rest ->
+            if expected_resolved <> resolved then find rest
+            else if expected_canonical <> canonical ||
+                    expected_selected <> selected then
+              failwith "Candle source trace path selection mismatch"
+            else
+              let request = !sourceTraceNextRequest in
+              let parent_text =
+                match parent with None -> "-" | Some id -> string_of_int id in
+              let prior_text = if prior_cache then "prior-cache" else "fresh-cache" in
+              sourceTraceNextRequest := request + 1;
+              print ("CANDLE_FLYSPECK_SOURCE_TRACE_V1\t" ^ nonce ^
+                     "\tREQUEST\t" ^ string_of_int request ^ "\t" ^
+                     parent_text ^ "\t" ^ kind ^ "\t" ^ key ^ "\t" ^
+                     basename ^ "\t" ^ md5 ^ "\t" ^ sha256 ^ "\t" ^
+                     selected_sha256 ^ "\t" ^ normalization ^ "\t" ^
+                     prior_text ^ "\n");
+              Some (SourceTraceRequest request) in
+      find !sourceTraceBindings
+;;
+
+let completeSourceTraceRequest request outcome =
+  match request,!sourceTraceNonce with
+  | None,_ -> ()
+  | Some (SourceTraceRequest id),Some nonce ->
+      if !sourceTraceFailed || !sourceTraceFinished then
+        failwith "Candle source trace request completed after terminal state"
+      else
+        begin
+          sourceTraceCompletedRequest := !sourceTraceCompletedRequest + 1;
+          print ("CANDLE_FLYSPECK_SOURCE_TRACE_V1\t" ^ nonce ^
+                 "\tOUTCOME\t" ^ string_of_int id ^ "\t" ^ outcome ^ "\n")
+        end
+  | Some _,None -> failwith "Candle source trace request lost its session"
+;;
+
+let finishSourceTraceIfReady load_stack_empty =
+  match !sourceTraceNonce with
+  | None -> ()
+  | Some nonce ->
+      if !sourceTraceFinishRequested then
+        if !sourceTraceFailed then
+          failwith "Candle source trace failed before terminal"
+        else if !sourceTraceFinished then
+          failwith "duplicate Candle source trace terminal"
+        else if not load_stack_empty || !pendingLoadedSourceIds <> [] then
+          failwith "Candle source trace finished with pending loads"
+        else if !sourceTraceNextRequest <> !sourceTraceCompletedRequest then
+          failwith "Candle source trace has incomplete requests"
+        else
+          begin
+            sourceTraceFinished := true;
+            print ("CANDLE_FLYSPECK_SOURCE_TRACE_V1\t" ^ nonce ^
+                   "\tTERMINAL\t" ^
+                   string_of_int (!sourceTraceCompletedRequest) ^ "\n")
+          end
+;;
+
 (* Source overlays are inactive during boot and can be installed exactly once
    after an outer manifest has authenticated both sides.  Resolution first
    selects an existing original source on [loadPath], then substitutes only an
@@ -680,6 +850,12 @@ let selectNormalizedSource original =
 
 exception Repl_error;;
 
+type sourceLoadStatus =
+  | SourceLoaded of string list
+  | SourceCacheSkip
+  | SourceReadFailure
+;;
+
 (* Candle links these OCaml-library compatibility modules statically.  This
    fixed-name selector is deliberately distinct from the source-file loader:
    a [.cma] is never opened or evaluated as source, and every other library
@@ -717,16 +893,22 @@ let reject_flyspeck_loadt message =
 
 let () =
   let prompt = ref (!prompt2) in
-  let pushLoad, popLoad, clearLoadStack =
-    let stack = ref ([]: (string * bool) list) in
-    let pushLoad fname flyspeck_action =
-      stack := (fname,flyspeck_action) :: !stack in
+  let pushLoad, popLoad, clearLoadStack, currentTraceParent, loadStackEmpty =
+    let stack =
+      ref ([]: (string * bool * sourceTraceRequest option) list) in
+    let pushLoad fname flyspeck_action trace_request =
+      stack := (fname,flyspeck_action,trace_request) :: !stack in
     let popLoad () =
       match !stack with
-      | fname :: rest as res -> stack := rest; Some (fname, rest)
+      | item :: rest -> stack := rest; Some (item, rest)
       | _ -> None in
     let clearLoadStack () = stack := [] in
-    pushLoad, popLoad, clearLoadStack in
+    let currentTraceParent () =
+      match !stack with
+      | (_,_,Some (SourceTraceRequest id))::_ -> Some id
+      | _ -> None in
+    let loadStackEmpty () = List.null (!stack) in
+    pushLoad, popLoad, clearLoadStack, currentTraceParent, loadStackEmpty in
   let peekChar, nextChar =
     let lookahead = ref (None: char option) in
     let peek () =
@@ -752,45 +934,54 @@ let () =
     let loadMsg s = print ("- Loading " ^ s ^ "\n") in
     let load_use original selected =
       loadMsg selected;
-      Text_io.inputLinesFile '\n' selected in
+      match Text_io.inputLinesFile '\n' selected with
+      | None -> SourceReadFailure
+      | Some lines -> SourceLoaded lines in
     let load original selected =
       loadMsg selected;
       match Text_io.inputLinesFile '\n' selected with
-      | None -> None
+      | None -> SourceReadFailure
       | Some lns ->
           begin
             if not (List.exists (fun x -> x = original) (!loadedFiles)) then
               loadedFiles := original :: !loadedFiles
           end;
-          Some lns in
+          SourceLoaded lns in
     let load1 original selected =
       if List.exists (fun x -> x = original) (!loadedFiles) then
         begin
           print ("- Already loaded: " ^ original ^ "\n");
-          None
+          SourceCacheSkip
         end
       else
         load original selected in
-    let loadOnPath pragma fname =
+    let loadOnPath kind pragma fname =
       let paths = List.map (fun p -> Filename.concat p fname) (!loadPath) in
       match List.find isFile paths with
       | None ->
           print ("- No such file: " ^ fname ^ "\n");
           Repl.nextString := "";
+          failSourceTrace "resolve";
           failwith ("No such file : " ^ fname)
       | Some original ->
           let canonical = canonicalSourcePath original in
           let selected = selectNormalizedSource canonical in
+          let prior_cache =
+            List.exists (fun x -> x = canonical) (!loadedFiles) in
+          let trace_request =
+            beginSourceTraceRequest (currentTraceParent ()) kind original
+              canonical selected prior_cache in
           let loader = match pragma with
                        | Lexer.D_load -> load
                        | Lexer.D_need -> load1
                        | Lexer.D_use -> load_use in
-          (match loader canonical selected with
-          | None -> false,[],canonical
-          | Some ls -> true,ls,canonical) in
+          let status = loader canonical selected in
+          begin match status with
+          | SourceReadFailure -> failSourceTrace "read"
+          | _ -> ()
+          end;
+          status,canonical,trace_request in
     loadOnPath in
-  let load pragma fname =
-    let _,lines,_ = loadWithStatus pragma fname in lines in
   (* Instantiate lexer *)
   let scan1 = Lexer.scan nextChar peekChar in
   (* Enqueue input here *)
@@ -854,7 +1045,9 @@ let () =
      inside [begin ... end] remains parser input and therefore fails closed. *)
   let rec scan level contexts phrase_start =
     try match next () with
-        | None -> None
+        | None ->
+            finishSourceTraceIfReady (loadStackEmpty ());
+            None
         (* Static-library selection is accepted only as a complete standalone
            top-level phrase.  In particular, seeing [#load] at the start of a
            line is not sufficient if expression tokens precede it in the
@@ -900,19 +1093,25 @@ let () =
                   begin
                     match next_nonspace () with
                     | Some Lexer.T_semis ->
-                        let selected,lines,original =
-                          loadWithStatus Lexer.D_need fname in
-                        if not selected then scan level contexts true else
-                          begin
+                        let status,original,trace_request =
+                          loadWithStatus "#flyspeck_needs" Lexer.D_need fname in
+                        begin match status with
+                        | SourceCacheSkip ->
+                            completeSourceTraceRequest
+                              trace_request "cache-skip";
+                            scan level contexts true
+                        | SourceReadFailure ->
+                            failwith "Candle Flyspeck needs source read failed"
+                        | SourceLoaded lines ->
                             pushPendingLoadedSourceId (sourceIdentity original);
-                            pushLoad fname true;
+                            pushLoad fname true trace_request;
                             userInput := false;
                             scan_lines
                               (append_lines lines
                                 ["\nCakeml.commitPendingLoadedSourceId false;;\n";
                                  "State_manager.neutralize_state ();;\n"]);
                             scan level contexts true
-                          end
+                        end
                     | None ->
                         reject_flyspeck_needs
                           "#flyspeck_needs \"string\" must end with double semicolon [;;]"
@@ -945,20 +1144,22 @@ let () =
                   begin
                     match next_nonspace () with
                     | Some Lexer.T_semis ->
-                        let selected,lines,original =
-                          loadWithStatus Lexer.D_load fname in
-                        if not selected then
-                          failwith "Candle Flyspeck loadt source read failed"
-                        else
-                          begin
+                        let status,original,trace_request =
+                          loadWithStatus "#flyspeck_loadt" Lexer.D_load fname in
+                        begin match status with
+                        | SourceReadFailure ->
+                            failwith "Candle Flyspeck loadt source read failed"
+                        | SourceCacheSkip ->
+                            failwith "Candle Flyspeck loadt was cache-skipped"
+                        | SourceLoaded lines ->
                             pushPendingLoadedSourceId (sourceIdentity original);
-                            pushLoad fname true;
+                            pushLoad fname true trace_request;
                             userInput := false;
                             scan_lines
                               (append_lines lines
                                 ["\nCakeml.commitPendingLoadedSourceId true;;\n"]);
                             scan level contexts true
-                          end
+                        end
                     | None ->
                         reject_flyspeck_loadt
                           "#flyspeck_loadt \"string\" must end with double semicolon [;;]"
@@ -995,14 +1196,22 @@ let () =
                     match next_nonspace () with
                     (* OK directive, perform load: *)
                     | Some (Lexer.T_semis) ->
-                        let lines = load dir fname in
-                        if List.null lines then scan level contexts true else
-                          begin
-                            pushLoad fname false;
+                        let status,_,trace_request =
+                          loadWithStatus
+                            (Lexer.string_of_token None tok) dir fname in
+                        begin match status with
+                        | SourceCacheSkip ->
+                            completeSourceTraceRequest
+                              trace_request "cache-skip";
+                            scan level contexts true
+                        | SourceReadFailure ->
+                            failwith "Candle source directive read failed"
+                        | SourceLoaded lines ->
+                            pushLoad fname false trace_request;
                             userInput := false;
                             scan_lines lines;
                             scan level contexts true
-                          end
+                        end
                     (* Malformed *)
                     | _ ->
                         failwith
@@ -1031,7 +1240,8 @@ let () =
             Some (Buffer.flush output_buffer)
         | Some (Lexer.T_done) ->
             (match popLoad () with
-             | Some ((fname,flyspeck_action), rest) -> (
+             | Some ((fname,flyspeck_action,trace_request), rest) -> (
+               completeSourceTraceRequest trace_request "evaluated";
                if flyspeck_action then
                  print ("- Flyspeck source action complete: " ^ fname ^ "\n")
                else print ("- Finished loading " ^ fname ^ "\n");
@@ -1088,6 +1298,7 @@ let () =
               String.concat
                 (List.map (Lexer.string_of_token (Some (!unquote))) ts)
     with Repl_error ->
+      failSourceTrace "repl";
       if not (!userInput) then print (!prompt1);
       Buffer.flush input_buffer;
       Buffer.flush output_buffer;
