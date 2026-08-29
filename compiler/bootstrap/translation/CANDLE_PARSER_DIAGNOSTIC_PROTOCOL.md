@@ -65,6 +65,30 @@ files.  A runtime-computed digest would duplicate that calculation without
 adding evidence that `caml_parser$run` was called; that assurance comes from
 the translated function and its HOL specification.
 
+## Proof boundary
+
+`compiler64ProgScript.sml` provides separate characteristic-formula,
+whole-program, and source-semantics theorems for the capability, parse-success,
+and parse-error modes.  The error theorem exposes the exact final FFI event
+`ExtCall "exit" [] [65w] FFI_diverged`; the x64 bootstrap's linked
+`basis_ffi.c` is the tracked symlink to `basis/basis_ffi.c`, whose `ffiexit`
+passes that byte directly to C `exit`.  It does not use `cml_exit`, so the
+optional nonzero-exit diagnostic in `cml_exit` does not append to this mode's
+stderr.  The exact C source and link inputs remain part of linked provenance.
+
+The existing theorem `semantics_compiler64_prog` intentionally excludes both
+diagnostic modes, so its downstream `cake_compiled_thm` in
+`x64BootstrapProofScript.sml` remains an ordinary-compiler theorem.  The three
+new mode-specific source-semantics theorems are sufficient inputs for the same
+generic `compile_correct_eval` composition used there: each supplies a
+non-`Fail` singleton source behavior, while `compiler64_compiled` supplies the
+compiled-program relation.  A verified-machine-code diagnostic claim still
+requires replaying the x64 bootstrap proof with parallel mode-specific
+instantiations of that composition (including the final-FFI outcome for exit
+65).  Until those downstream theorems build, the present claim stops at the
+source program's verified STDIO/COMMANDLINE/final-event semantics; it must not
+be described as a verified property of a linked `cake` binary.
+
 No parser pilot may run merely from this source change.  The new CakeML commit
 must still be proof-built, pinned by the Candle manifest, bootstrapped, linked,
 and accepted by the exact capability handshake under linked provenance.
