@@ -603,6 +603,43 @@ let sourceIdentity original =
       | Some fileid -> fileid
 ;;
 
+(* A manifest may authenticate more than one lexical spelling of the same
+   source (for example [text_formalization/../jHOLLight/x.ml]).  Resolve those
+   spellings to one authenticated path before both identity lookup and the
+   physical loader-cache decision.  This keeps aliases from turning one
+   logical source into multiple physical loads. *)
+let sourceAliases = ref (None: ((string * string) list) option);;
+
+let configureSourceAliases mappings =
+  match !sourceAliases with
+  | Some _ -> failwith "Candle source aliases already configured"
+  | None ->
+      let rec check seen remaining =
+        match remaining with
+        | [] -> ()
+        | (alias,canonical)::rest ->
+            if List.exists (fun path -> path = alias) seen then
+              failwith "duplicate Candle source alias"
+            else if alias = canonical then
+              failwith "reflexive Candle source alias"
+            else if not (isFile alias) then
+              failwith ("missing Candle source alias: " ^ alias)
+            else
+              let _ = sourceIdentity canonical in
+              check (alias::seen) rest in
+      check [] mappings;
+      sourceAliases := Some mappings
+;;
+
+let canonicalSourcePath original =
+  match !sourceAliases with
+  | None -> original
+  | Some mappings ->
+      match Alist.lookup mappings original with
+      | None -> original
+      | Some canonical -> canonical
+;;
+
 (* Source overlays are inactive during boot and can be installed exactly once
    after an outer manifest has authenticated both sides.  Resolution first
    selects an existing original source on [loadPath], then substitutes only an
@@ -713,27 +750,27 @@ let () =
   let loadWithStatus =
     let loadedFiles = (ref [] : string list ref) in
     let loadMsg s = print ("- Loading " ^ s ^ "\n") in
-    let load_use fname =
-      loadMsg fname;
-      Text_io.inputLinesFile '\n' fname in
-    let load fname =
-      loadMsg fname;
-      match Text_io.inputLinesFile '\n' fname with
+    let load_use original selected =
+      loadMsg selected;
+      Text_io.inputLinesFile '\n' selected in
+    let load original selected =
+      loadMsg selected;
+      match Text_io.inputLinesFile '\n' selected with
       | None -> None
       | Some lns ->
           begin
-            if not (List.exists (fun x -> x = fname) (!loadedFiles)) then
-              loadedFiles := fname :: !loadedFiles
+            if not (List.exists (fun x -> x = original) (!loadedFiles)) then
+              loadedFiles := original :: !loadedFiles
           end;
           Some lns in
-    let load1 fname =
-      if List.exists (fun x -> x = fname) (!loadedFiles) then
+    let load1 original selected =
+      if List.exists (fun x -> x = original) (!loadedFiles) then
         begin
-          print ("- Already loaded: " ^ fname ^ "\n");
+          print ("- Already loaded: " ^ original ^ "\n");
           None
         end
       else
-        load fname in
+        load original selected in
     let loadOnPath pragma fname =
       let paths = List.map (fun p -> Filename.concat p fname) (!loadPath) in
       match List.find isFile paths with
@@ -742,14 +779,15 @@ let () =
           Repl.nextString := "";
           failwith ("No such file : " ^ fname)
       | Some original ->
-          let selected = selectNormalizedSource original in
+          let canonical = canonicalSourcePath original in
+          let selected = selectNormalizedSource canonical in
           let loader = match pragma with
                        | Lexer.D_load -> load
                        | Lexer.D_need -> load1
                        | Lexer.D_use -> load_use in
-          (match loader selected with
-          | None -> false,[],original
-          | Some ls -> true,ls,original) in
+          (match loader canonical selected with
+          | None -> false,[],canonical
+          | Some ls -> true,ls,canonical) in
     loadOnPath in
   let load pragma fname =
     let _,lines,_ = loadWithStatus pragma fname in lines in
