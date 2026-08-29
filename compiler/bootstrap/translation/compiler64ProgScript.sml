@@ -625,6 +625,45 @@ Definition has_candle_parser_diagnostic_mode_def:
     IS_SOME (candle_parser_diagnostic_run_args cl)
 End
 
+Theorem candle_parser_diagnostic_modes_disjoint:
+  candle_parser_diagnostic_capability_args cl ⇒
+  candle_parser_diagnostic_run_args cl = NONE
+Proof
+  rw [candle_parser_diagnostic_capability_args_def,
+      candle_parser_diagnostic_run_args_def,
+      candle_parser_diagnostic_capability_arg_def,
+      candle_parser_diagnostic_run_arg_def]
+QED
+
+Theorem candle_parser_diagnostic_run_args_shape:
+  candle_parser_diagnostic_run_args cl = SOME nonce ⇒
+  cl = [candle_parser_diagnostic_run_arg; nonce] ∧
+  candle_parser_diagnostic_nonce nonce ∧
+  ¬candle_parser_diagnostic_capability_args cl
+Proof
+  Cases_on `cl` \\ fs [candle_parser_diagnostic_run_args_def]
+  \\ Cases_on `t` \\ fs [candle_parser_diagnostic_run_args_def]
+  \\ Cases_on `t'` \\ fs [candle_parser_diagnostic_run_args_def]
+  \\ rw [] \\ fs [candle_parser_diagnostic_capability_args_def,
+                    candle_parser_diagnostic_capability_arg_def,
+                    candle_parser_diagnostic_run_arg_def]
+QED
+
+Theorem candle_parser_diagnostic_argument_known_answers:
+  candle_parser_diagnostic_capability_args
+    [«--candle-parser-diagnostic-capability-v1»] ∧
+  candle_parser_diagnostic_run_args
+    [«--candle-parser-diagnostic-v1»;
+     «0000000000000000000000000000000000000000000000000000000000000000»] =
+    SOME «0000000000000000000000000000000000000000000000000000000000000000» ∧
+  candle_parser_diagnostic_run_args
+    [«--candle-parser-diagnostic-v1»;
+     «000000000000000000000000000000000000000000000000000000000000000A»] =
+    NONE
+Proof
+  EVAL_TAC
+QED
+
 val res = translate candle_parser_diagnostic_capability_arg_def;
 val res = translate candle_parser_diagnostic_run_arg_def;
 val res = translate candle_parser_diagnostic_lower_hex_def;
@@ -633,14 +672,6 @@ val res = translate candle_parser_diagnostic_capability_args_def;
 val res = translate candle_parser_diagnostic_run_args_def;
 val _ = (next_ml_names := ["compiler_has_candle_parser_diagnostic_mode"]);
 val res = translate has_candle_parser_diagnostic_mode_def;
-
-Datatype:
-  candle_parser_diagnostic_reply =
-    CandleParserDiagnosticOk mlstring
-  | CandleParserDiagnosticError mlstring mlstring
-End
-
-val _ = register_type “:candle_parser_diagnostic_reply”;
 
 Definition candle_parser_diagnostic_capability_line_def:
   candle_parser_diagnostic_capability_line =
@@ -661,28 +692,28 @@ Definition candle_parser_diagnostic_reply_def:
   candle_parser_diagnostic_reply nonce input =
     case caml_parser$run (explode input) of
     | INR res =>
-        CandleParserDiagnosticOk
-          (candle_parser_diagnostic_result_prefix ^ nonce ^ «\tOK\n»)
+        (candle_parser_diagnostic_result_prefix ^ nonce ^ «\tOK\n»,
+         NONE)
     | INL (l,err) =>
         let stderr = candle_parser_diagnostic_error_text input l err in
-          CandleParserDiagnosticError
+          (
             (candle_parser_diagnostic_result_prefix ^ nonce ^
-             «\tPARSE_ERROR\n»)
-            stderr
+             «\tPARSE_ERROR\n»),
+           SOME stderr)
 End
 
 Theorem candle_parser_diagnostic_reply_calls_parser_directly:
   candle_parser_diagnostic_reply nonce input =
     case caml_parser$run (explode input) of
     | INR res =>
-        CandleParserDiagnosticOk
-          (candle_parser_diagnostic_result_prefix ^ nonce ^ «\tOK\n»)
+        (candle_parser_diagnostic_result_prefix ^ nonce ^ «\tOK\n»,
+         NONE)
     | INL (l,err) =>
         let stderr = candle_parser_diagnostic_error_text input l err in
-          CandleParserDiagnosticError
+          (
             (candle_parser_diagnostic_result_prefix ^ nonce ^
-             «\tPARSE_ERROR\n»)
-            stderr
+             «\tPARSE_ERROR\n»),
+           SOME stderr)
 Proof
   simp [candle_parser_diagnostic_reply_def]
 QED
@@ -690,9 +721,9 @@ QED
 Definition candle_parser_diagnostic_success_fs_def:
   candle_parser_diagnostic_success_fs nonce input fs =
     case candle_parser_diagnostic_reply nonce input of
-    | CandleParserDiagnosticOk stdout =>
+    | (stdout,NONE) =>
         add_stdout (fastForwardFD fs 0) stdout
-    | CandleParserDiagnosticError stdout stderr =>
+    | (stdout,SOME stderr) =>
         add_stderr (add_stdout (fastForwardFD fs 0) stdout) stderr
 End
 
@@ -754,6 +785,112 @@ val res = translate (has_repl_flag_def |> REWRITE_RULE [MEMBER_INTRO]);
 val res = translate (has_pancake_flag_def |> SIMP_RULE (srw_ss()) [MEMBER_INTRO])
 
 Quote add_cakeml:
+  fun run_candle_parser_diagnostic nonce =
+    let
+      val input = TextIO.inputAll (TextIO.openStdIn ())
+    in
+      case compiler64prog_candle_parser_diagnostic_reply nonce input of
+        (stdout,None) => print stdout
+      | (stdout,Some stderr) =>
+          (print stdout; TextIO.output TextIO.stdErr stderr;
+           Runtime.exit 65)
+    end
+End
+
+val run_candle_parser_diagnostic_v_def =
+  fetch "-" "run_candle_parser_diagnostic_v_def";
+
+Theorem run_candle_parser_diagnostic_ok_spec:
+  STRING_TYPE nonce nv ∧
+  stdin_content fs = SOME inp ∧
+  candle_parser_diagnostic_reply nonce (implode inp) = (stdout,NONE) ⇒
+  app (p:'ffi ffi_proj) run_candle_parser_diagnostic_v [nv]
+    (STDIO fs)
+    (POSTv uv. &UNIT_TYPE () uv *
+               STDIO (add_stdout (fastForwardFD fs 0) stdout))
+Proof
+  rpt strip_tac
+  \\ xcf_with_def run_candle_parser_diagnostic_v_def
+  \\ reverse (Cases_on `STD_streams fs`) >- (fs [STDIO_def] \\ xpull)
+  \\ reverse (Cases_on `∃text pos. stdin fs text pos`)
+  >-
+   (fs [STDIO_def,IOFS_def] \\ xpull \\ fs [stdin_def]
+    \\ `F` suffices_by fs []
+    \\ fs [wfFS_def,STD_streams_def,MEM_MAP,Once EXISTS_PROD,PULL_EXISTS]
+    \\ fs [EXISTS_PROD]
+    \\ metis_tac [ALOOKUP_FAILS,ALOOKUP_MEM,NOT_SOME_NONE,SOME_11,
+                    PAIR_EQ,option_CASES])
+  \\ rename [‘stdin fs text pos’]
+  \\ `text = inp ∧ pos = 0` by
+    (gvs [stdin_content_def,stdin_def,get_file_content_def])
+  \\ rw []
+  \\ xlet_auto_spec (SOME openStdIn_spec_str) >- xsimpl
+  \\ xlet ‘POSTv v. &STRING_TYPE (implode inp) v *
+                    STDIO (fastForwardFD fs 0)’
+  >-
+   (xapp
+    \\ qexistsl [‘inp’,‘fs’,‘0’]
+    \\ xsimpl)
+  \\ xlet_auto >- xsimpl
+  \\ fs [ml_translatorTheory.PAIR_TYPE_def,
+          std_preludeTheory.OPTION_TYPE_def]
+  \\ xmatch
+  \\ xapp \\ xsimpl
+QED
+
+Theorem run_candle_parser_diagnostic_error_spec:
+  STRING_TYPE nonce nv ∧
+  stdin_content fs = SOME inp ∧
+  candle_parser_diagnostic_reply nonce (implode inp) =
+    (stdout,SOME stderr) ⇒
+  app (p:'ffi ffi_proj) run_candle_parser_diagnostic_v [nv]
+    (STDIO fs * RUNTIME)
+    (POSTf name. λc bytes.
+       STDIO (add_stderr
+                (add_stdout (fastForwardFD fs 0) stdout) stderr) *
+       RUNTIME *
+       &(name = «exit» ∧ c = [] ∧ bytes = [65w]))
+Proof
+  rpt strip_tac
+  \\ xcf_with_def run_candle_parser_diagnostic_v_def
+  \\ reverse (Cases_on `STD_streams fs`) >- (fs [STDIO_def] \\ xpull)
+  \\ reverse (Cases_on `∃text pos. stdin fs text pos`)
+  >-
+   (fs [STDIO_def,IOFS_def] \\ xpull \\ fs [stdin_def]
+    \\ `F` suffices_by fs []
+    \\ fs [wfFS_def,STD_streams_def,MEM_MAP,Once EXISTS_PROD,PULL_EXISTS]
+    \\ fs [EXISTS_PROD]
+    \\ metis_tac [ALOOKUP_FAILS,ALOOKUP_MEM,NOT_SOME_NONE,SOME_11,
+                    PAIR_EQ,option_CASES])
+  \\ rename [‘stdin fs text pos’]
+  \\ `text = inp ∧ pos = 0` by
+    (gvs [stdin_content_def,stdin_def,get_file_content_def])
+  \\ rw []
+  \\ xlet_auto_spec (SOME openStdIn_spec_str) >- xsimpl
+  \\ xlet ‘POSTv v. &STRING_TYPE (implode inp) v *
+                    STDIO (fastForwardFD fs 0) * RUNTIME’
+  >-
+   (xapp
+    \\ qexistsl [‘RUNTIME’,‘inp’,‘fs’,‘0’]
+    \\ xsimpl)
+  \\ xlet_auto >- xsimpl
+  \\ fs [ml_translatorTheory.PAIR_TYPE_def,
+          std_preludeTheory.OPTION_TYPE_def]
+  \\ xmatch
+  \\ xlet ‘POSTv uv. &UNIT_TYPE () uv *
+               STDIO (add_stdout (fastForwardFD fs 0) stdout) * RUNTIME’
+  >- (xapp \\ xsimpl)
+  \\ xlet ‘POSTv uv. &UNIT_TYPE () uv *
+               STDIO (add_stderr
+                 (add_stdout (fastForwardFD fs 0) stdout) stderr) * RUNTIME’
+  >-
+   (xapp_spec output_stderr_spec
+    \\ xsimpl)
+  \\ xapp_spec Runtime_exit_spec
+  \\ xsimpl \\ EVAL_TAC
+QED
+
+Quote add_cakeml:
   fun main u =
   let
     val cl = CommandLine.arguments ()
@@ -762,15 +899,7 @@ Quote add_cakeml:
       print compiler64prog_candle_parser_diagnostic_capability_line
     else case compiler64prog_candle_parser_diagnostic_run_args cl of
       Some nonce =>
-        let
-          val input = TextIO.inputAll (TextIO.openStdIn ())
-        in
-          case compiler64prog_candle_parser_diagnostic_reply nonce input of
-            CandleParserDiagnosticOk stdout => print stdout
-          | CandleParserDiagnosticError stdout stderr =>
-              (print stdout; TextIO.output TextIO.stdErr stderr;
-               Runtime.exit 65)
-        end
+        run_candle_parser_diagnostic nonce
     | None => if compiler_has_repl_flag cl then
       run_interactive_repl cl
     else if compiler_has_help_flag cl then
@@ -790,7 +919,80 @@ End
 
 val main_v_def = fetch "-" "main_v_def";
 
+Theorem main_candle_parser_diagnostic_capability_spec:
+  candle_parser_diagnostic_capability_args (TL cl) ⇒
+  app (p:'ffi ffi_proj) main_v [Conv NONE []]
+    (STDIO fs * COMMANDLINE cl)
+    (POSTv uv. &UNIT_TYPE () uv *
+               STDIO (add_stdout fs
+                 candle_parser_diagnostic_capability_line) *
+               COMMANDLINE cl)
+Proof
+  strip_tac
+  \\ xcf_with_def main_v_def
+  \\ xlet_auto >- (xcon \\ xsimpl)
+  \\ xlet_auto >- xsimpl
+  \\ xif
+  >-
+   (xapp
+    \\ qexists_tac `candle_parser_diagnostic_capability_line`
+    \\ fs [fetch "-"
+      "compiler64prog_candle_parser_diagnostic_capability_line_v_thm"]
+    \\ xsimpl)
+  \\ fs []
+QED
+
+Theorem main_candle_parser_diagnostic_ok_spec:
+  candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
+  stdin_content fs = SOME inp ∧
+  candle_parser_diagnostic_reply nonce (implode inp) = (stdout,NONE) ⇒
+  app (p:'ffi ffi_proj) main_v [Conv NONE []]
+    (STDIO fs * COMMANDLINE cl)
+    (POSTv uv. &UNIT_TYPE () uv *
+               STDIO (add_stdout (fastForwardFD fs 0) stdout) *
+               COMMANDLINE cl)
+Proof
+  rpt strip_tac
+  \\ imp_res_tac candle_parser_diagnostic_run_args_shape
+  \\ xcf_with_def main_v_def
+  \\ xlet_auto >- (xcon \\ xsimpl)
+  \\ xlet_auto >- xsimpl
+  \\ xif >- fs []
+  \\ xlet_auto >- xsimpl
+  \\ fs [std_preludeTheory.OPTION_TYPE_def]
+  \\ xmatch
+  \\ xapp_spec run_candle_parser_diagnostic_ok_spec
+  \\ xsimpl
+QED
+
+Theorem main_candle_parser_diagnostic_error_spec:
+  candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
+  stdin_content fs = SOME inp ∧
+  candle_parser_diagnostic_reply nonce (implode inp) =
+    (stdout,SOME stderr) ⇒
+  app (p:'ffi ffi_proj) main_v [Conv NONE []]
+    (STDIO fs * COMMANDLINE cl * RUNTIME)
+    (POSTf name. λc bytes.
+       STDIO (add_stderr
+                (add_stdout (fastForwardFD fs 0) stdout) stderr) *
+       COMMANDLINE cl * RUNTIME *
+       &(name = «exit» ∧ c = [] ∧ bytes = [65w]))
+Proof
+  rpt strip_tac
+  \\ imp_res_tac candle_parser_diagnostic_run_args_shape
+  \\ xcf_with_def main_v_def
+  \\ xlet_auto >- (xcon \\ xsimpl)
+  \\ xlet_auto >- xsimpl
+  \\ xif >- fs []
+  \\ xlet_auto >- xsimpl
+  \\ fs [std_preludeTheory.OPTION_TYPE_def]
+  \\ xmatch
+  \\ xapp_spec run_candle_parser_diagnostic_error_spec
+  \\ xsimpl
+QED
+
 Theorem main_spec:
+  ¬has_candle_parser_diagnostic_mode (TL cl) ∧
   ¬has_repl_flag (TL cl) ∧ IS_SOME (stdin_content fs) ⇒
   app (p:'ffi ffi_proj) main_v
       [Conv NONE []] (STDIO fs * COMMANDLINE cl)
@@ -800,8 +1002,17 @@ Theorem main_spec:
        * COMMANDLINE cl)
 Proof
   rpt strip_tac
+  \\ `¬candle_parser_diagnostic_capability_args (TL cl) ∧
+      candle_parser_diagnostic_run_args (TL cl) = NONE` by
+    (Cases_on `candle_parser_diagnostic_run_args (TL cl)` \\ fs
+       [has_candle_parser_diagnostic_mode_def])
   \\ xcf_with_def main_v_def
   \\ xlet_auto >- (xcon \\ xsimpl)
+  \\ xlet_auto >- xsimpl
+  \\ xif >- fs []
+  \\ xlet_auto >- xsimpl
+  \\ fs [std_preludeTheory.OPTION_TYPE_def]
+  \\ xmatch
   \\ xlet_auto >- xsimpl
   \\ reverse(Cases_on`STD_streams fs`) >- (fs[STDIO_def] \\ xpull)
   (* TODO: it would be nice if this followed more directly.
@@ -922,6 +1133,7 @@ Proof
 QED
 
 Theorem main_whole_prog_spec:
+  ¬has_candle_parser_diagnostic_mode (TL cl) ∧
   ¬has_repl_flag (TL cl) ∧ IS_SOME (stdin_content fs) ⇒
   whole_prog_spec main_v cl fs NONE
                   ((=) (full_compile_64 (TL cl) (get_stdin fs) fs))
@@ -956,6 +1168,7 @@ val sem_thm = prove_sem_thm "main" "compiler64_prog" main_whole_prog_spec;
 val compiler64_prog_def = fetch "-" "compiler64_prog_def";
 
 Theorem semantics_compiler64_prog:
+  ¬has_candle_parser_diagnostic_mode (TL cl) ∧
   ¬has_repl_flag (TL cl) ∧ IS_SOME (stdin_content fs) ∧ wfcl cl ∧ wfFS fs ∧
   STD_streams fs ⇒
   ∃io_events.
