@@ -540,9 +540,25 @@ module Cakeml = struct
 let loadPath = ref [Filename.currentDir];;
 (* Logical HOL Light identities for manifest-driven Flyspeck source actions.
    Keep these separate from any normalization output path: source-visible
-   bookkeeping is defined by the manifest-selected original file. *)
+   bookkeeping is defined by the manifest-selected original file.  Source
+   actions can nest, so pending identities form a LIFO stack parallel to the
+   loader stack rather than a single overwriteable slot. *)
 let loadedSourceIds = ref ([]: (string * string) list);;
-let pendingLoadedSourceId = ref (None: (string * string) option);;
+let pendingLoadedSourceIds = ref ([]: (string * string) list);;
+
+let pushPendingLoadedSourceId fileid =
+  pendingLoadedSourceIds := fileid :: !pendingLoadedSourceIds
+;;
+
+let commitPendingLoadedSourceId append_duplicate =
+  match !pendingLoadedSourceIds with
+  | [] -> failwith "missing pending Flyspeck source identity"
+  | fileid::rest ->
+      if append_duplicate ||
+         not (List.exists (fun x -> x = fileid) !loadedSourceIds) then
+        loadedSourceIds := fileid :: !loadedSourceIds;
+      pendingLoadedSourceIds := rest
+;;
 let stdIn = Text_io.openStdIn ();;
 let (input1 : (unit -> char option) ref) =
   ref (fun () -> Text_io.input1 stdIn);;
@@ -850,18 +866,12 @@ let () =
                           loadWithStatus Lexer.D_need fname in
                         if not selected then scan level contexts true else
                           begin
-                            pendingLoadedSourceId := Some (sourceIdentity original);
+                            pushPendingLoadedSourceId (sourceIdentity original);
                             pushLoad fname true;
                             userInput := false;
                             scan_lines
                               (append_lines lines
-                                ["\n(match !Cakeml.pendingLoadedSourceId with\n";
-                                 " | None -> failwith \"missing Flyspeck source identity\"\n";
-                                 " | Some fileid ->\n";
-                                 "     if not (List.exists (fun x -> x = fileid)\n";
-                                 "                          !Cakeml.loadedSourceIds) then\n";
-                                 "       Cakeml.loadedSourceIds := fileid :: !Cakeml.loadedSourceIds;\n";
-                                 "     Cakeml.pendingLoadedSourceId := None);;\n";
+                                ["\nCakeml.commitPendingLoadedSourceId false;;\n";
                                  "State_manager.neutralize_state ();;\n"]);
                             scan level contexts true
                           end
@@ -903,16 +913,12 @@ let () =
                           failwith "Candle Flyspeck loadt source read failed"
                         else
                           begin
-                            pendingLoadedSourceId := Some (sourceIdentity original);
+                            pushPendingLoadedSourceId (sourceIdentity original);
                             pushLoad fname true;
                             userInput := false;
                             scan_lines
                               (append_lines lines
-                                ["\n(match !Cakeml.pendingLoadedSourceId with\n";
-                                 " | None -> failwith \"missing Flyspeck loadt source identity\"\n";
-                                 " | Some fileid ->\n";
-                                 "     Cakeml.loadedSourceIds := fileid :: !Cakeml.loadedSourceIds;\n";
-                                 "     Cakeml.pendingLoadedSourceId := None);;\n"]);
+                                ["\nCakeml.commitPendingLoadedSourceId true;;\n"]);
                             scan level contexts true
                           end
                     | None ->
@@ -1048,7 +1054,7 @@ let () =
       Buffer.flush input_buffer;
       Buffer.flush output_buffer;
       clearLoadStack ();
-      pendingLoadedSourceId := None;
+      pendingLoadedSourceIds := [];
       Repl.nextString := "";
       userInput := true in
   Repl.readNextString := (fun () ->
