@@ -836,7 +836,9 @@ Proof
           std_preludeTheory.OPTION_TYPE_def]
   \\ xmatch
   \\ xapp_spec print_spec
-  \\ qexists_tac `reply_out`
+  \\ xsimpl
+  \\ qexists_tac `emp`
+  \\ qexists_tac `fastForwardFD fs 0`
   \\ xsimpl
 QED
 
@@ -883,7 +885,9 @@ Proof
                STDIO (add_stdout (fastForwardFD fs 0) reply_out) * RUNTIME’
   >-
    (xapp_spec print_spec
-    \\ qexists_tac `reply_out`
+    \\ xsimpl
+    \\ qexists_tac `RUNTIME`
+    \\ qexists_tac `fastForwardFD fs 0`
     \\ xsimpl)
   \\ xlet ‘POSTv uv. &UNIT_TYPE () uv *
                STDIO (add_stderr
