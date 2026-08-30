@@ -34,6 +34,59 @@ def definition_block(text: str, definition: str) -> str:
     return text[start:end]
 
 
+CAPABILITY_MAIN_PREFIX = r"""  \\ xcf_with_def main_v_def
+  \\ (xlet_auto >- (xcon \\ xsimpl))
+  \\ (xlet_auto >- xsimpl)
+  \\ (xlet_auto >- xsimpl)
+  \\ xif
+  \\ qexists_tac `T`
+  \\ fs []
+  \\ xapp_spec print_spec
+  \\ qexistsl
+       [‘COMMANDLINE cl’,
+        ‘candle_parser_diagnostic_capability_line’,
+        ‘fs’]
+  \\ fs [fetch "-"
+    "compiler64prog_candle_parser_diagnostic_capability_line_v_thm"]
+  \\ xsimpl"""
+
+
+CAPABILITY_FALSE_MAIN_PREFIX = r"""  \\ xcf_with_def main_v_def
+  \\ (xlet_auto >- (xcon \\ xsimpl))
+  \\ (xlet_auto >- xsimpl)
+  \\ (xlet_auto >- xsimpl)
+  \\ (xif >- gvs [])"""
+
+
+DIAGNOSTIC_FALSE_MAIN_PREFIX = CAPABILITY_FALSE_MAIN_PREFIX + r"""
+  \\ (xlet_auto >- xsimpl)"""
+
+
+OK_MAIN_SUFFIX = r"""  \\ xapp_spec run_candle_parser_diagnostic_ok_spec
+  \\ qexistsl [‘COMMANDLINE cl’,‘reply_out’,‘fs’,‘inp’,‘nonce’]
+  \\ fs []
+  \\ xsimpl"""
+
+
+ERROR_MAIN_SUFFIX = r"""  \\ xapp_spec run_candle_parser_diagnostic_error_spec
+  \\ qexistsl [‘COMMANDLINE cl’,‘reply_out’,‘reply_err’,‘fs’]
+  \\ fs []
+  \\ conj_tac >- (qexists_tac ‘nonce’ \\ fs [])
+  \\ xsimpl"""
+
+
+def capability_main_proof_shape(block: str) -> bool:
+    return (
+        CAPABILITY_MAIN_PREFIX in block
+        and block.count("xapp_spec print_spec") == 1
+        and re.search(r"(?m)^\s*\\\\ xapp(?:\s|$)", block) is None
+    )
+
+
+def diagnostic_run_main_proof_shape(block: str, suffix: str) -> bool:
+    return DIAGNOSTIC_FALSE_MAIN_PREFIX in block and suffix in block
+
+
 class ParserDiagnosticX64ProofTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -135,6 +188,100 @@ class ParserDiagnosticX64ProofTest(unittest.TestCase):
         self.assertIn(
             "xapp_spec RuntimeProofTheory.Runtime_exit_spec", error
         )
+
+    def test_capability_main_proof_evaluates_and_binds_exact_frame(self) -> None:
+        capability = theorem_block(
+            self.compiler64,
+            "main_candle_parser_diagnostic_capability_spec:",
+        )
+        self.assertTrue(capability_main_proof_shape(capability))
+
+        hostile_mutations = (
+            (
+                "  \\\\ (xlet_auto >- xsimpl)\n"
+                "  \\\\ (xlet_auto >- xsimpl)\n"
+                "  \\\\ xif",
+                "  \\\\ (xlet_auto >- xsimpl)\n  \\\\ xif",
+            ),
+            ("qexists_tac `T`", "qexists_tac `F`"),
+            ("[‘COMMANDLINE cl’,", "[‘emp’,"),
+            (
+                "‘candle_parser_diagnostic_capability_line’,",
+                "‘compiler_help_string’,",
+            ),
+            ("        ‘fs’]", "        ‘fastForwardFD fs 0’]"),
+            (
+                "[‘COMMANDLINE cl’,\n"
+                "        ‘candle_parser_diagnostic_capability_line’,\n"
+                "        ‘fs’]",
+                "[‘fs’,\n"
+                "        ‘candle_parser_diagnostic_capability_line’,\n"
+                "        ‘COMMANDLINE cl’]",
+            ),
+            ("xapp_spec print_spec", "xapp"),
+            (
+                "compiler64prog_candle_parser_diagnostic_capability_line_v_thm",
+                "compiler_help_string_v_thm",
+            ),
+        )
+        for old, new in hostile_mutations:
+            with self.subTest(mutation=new):
+                mutant = capability.replace(old, new, 1)
+                self.assertNotEqual(mutant, capability)
+                self.assertFalse(capability_main_proof_shape(mutant))
+
+    def test_run_main_proofs_evaluate_capability_and_bind_frames(self) -> None:
+        ok = theorem_block(
+            self.compiler64, "main_candle_parser_diagnostic_ok_spec:"
+        )
+        error = theorem_block(
+            self.compiler64, "main_candle_parser_diagnostic_error_spec:"
+        )
+        self.assertTrue(diagnostic_run_main_proof_shape(ok, OK_MAIN_SUFFIX))
+        self.assertTrue(
+            diagnostic_run_main_proof_shape(error, ERROR_MAIN_SUFFIX)
+        )
+
+        ordinary = theorem_block(self.compiler64, "main_spec:")
+        self.assertIn(CAPABILITY_FALSE_MAIN_PREFIX, ordinary)
+
+        ordinary_mutant = ordinary.replace(
+            CAPABILITY_FALSE_MAIN_PREFIX,
+            CAPABILITY_FALSE_MAIN_PREFIX.replace(
+                "  \\\\ (xlet_auto >- xsimpl)\n"
+                "  \\\\ (xlet_auto >- xsimpl)\n"
+                "  \\\\ (xif >- gvs [])",
+                "  \\\\ (xlet_auto >- xsimpl)\n"
+                "  \\\\ (xif >- gvs [])",
+                1,
+            ),
+            1,
+        )
+        self.assertNotEqual(ordinary_mutant, ordinary)
+        self.assertNotIn(CAPABILITY_FALSE_MAIN_PREFIX, ordinary_mutant)
+
+        hostile_mutations = (
+            (ok, OK_MAIN_SUFFIX, "[‘COMMANDLINE cl’,", "[‘emp’,"),
+            (ok, OK_MAIN_SUFFIX, "‘reply_out’,‘fs’", "‘reply_err’,‘fs’"),
+            (ok, OK_MAIN_SUFFIX, "‘fs’,‘inp’,‘nonce’", "‘fs’,‘nonce’,‘inp’"),
+            (ok, OK_MAIN_SUFFIX, "xapp_spec", "xapp"),
+            (error, ERROR_MAIN_SUFFIX, "‘reply_out’,‘reply_err’", "‘reply_err’,‘reply_out’"),
+            (error, ERROR_MAIN_SUFFIX, "‘reply_err’,‘fs’", "‘reply_err’,‘fastForwardFD fs 0’"),
+            (error, ERROR_MAIN_SUFFIX, "xapp_spec", "xapp"),
+            (
+                error,
+                ERROR_MAIN_SUFFIX,
+                "conj_tac >- (qexists_tac ‘nonce’ \\\\ fs [])",
+                "conj_tac >- (qexists_tac ‘inp’ \\\\ fs [])",
+            ),
+        )
+        for block, suffix, old, new in hostile_mutations:
+            with self.subTest(mutation=new):
+                mutant = block.replace(old, new, 1)
+                self.assertNotEqual(mutant, block)
+                self.assertFalse(
+                    diagnostic_run_main_proof_shape(mutant, suffix)
+                )
 
     def test_each_diagnostic_mode_has_a_distinct_compiled_theorem(self) -> None:
         for mode in ("capability", "ok", "error"):

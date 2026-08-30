@@ -939,16 +939,20 @@ Theorem main_candle_parser_diagnostic_capability_spec:
 Proof
   strip_tac
   \\ xcf_with_def main_v_def
-  \\ xlet_auto >- (xcon \\ xsimpl)
-  \\ xlet_auto >- xsimpl
+  \\ (xlet_auto >- (xcon \\ xsimpl))
+  \\ (xlet_auto >- xsimpl)
+  \\ (xlet_auto >- xsimpl)
   \\ xif
-  >-
-   (xapp
-    \\ qexists_tac `candle_parser_diagnostic_capability_line`
-    \\ fs [fetch "-"
-      "compiler64prog_candle_parser_diagnostic_capability_line_v_thm"]
-    \\ xsimpl)
+  \\ qexists_tac `T`
   \\ fs []
+  \\ xapp_spec print_spec
+  \\ qexistsl
+       [‘COMMANDLINE cl’,
+        ‘candle_parser_diagnostic_capability_line’,
+        ‘fs’]
+  \\ fs [fetch "-"
+    "compiler64prog_candle_parser_diagnostic_capability_line_v_thm"]
+  \\ xsimpl
 QED
 
 Theorem main_candle_parser_diagnostic_ok_spec:
@@ -964,13 +968,16 @@ Proof
   rpt strip_tac
   \\ imp_res_tac candle_parser_diagnostic_run_args_shape
   \\ xcf_with_def main_v_def
-  \\ xlet_auto >- (xcon \\ xsimpl)
-  \\ xlet_auto >- xsimpl
-  \\ xif >- fs []
-  \\ xlet_auto >- xsimpl
+  \\ (xlet_auto >- (xcon \\ xsimpl))
+  \\ (xlet_auto >- xsimpl)
+  \\ (xlet_auto >- xsimpl)
+  \\ (xif >- gvs [])
+  \\ (xlet_auto >- xsimpl)
   \\ fs [std_preludeTheory.OPTION_TYPE_def]
   \\ xmatch
   \\ xapp_spec run_candle_parser_diagnostic_ok_spec
+  \\ qexistsl [‘COMMANDLINE cl’,‘reply_out’,‘fs’,‘inp’,‘nonce’]
+  \\ fs []
   \\ xsimpl
 QED
 
@@ -990,13 +997,17 @@ Proof
   rpt strip_tac
   \\ imp_res_tac candle_parser_diagnostic_run_args_shape
   \\ xcf_with_def main_v_def
-  \\ xlet_auto >- (xcon \\ xsimpl)
-  \\ xlet_auto >- xsimpl
-  \\ xif >- fs []
-  \\ xlet_auto >- xsimpl
+  \\ (xlet_auto >- (xcon \\ xsimpl))
+  \\ (xlet_auto >- xsimpl)
+  \\ (xlet_auto >- xsimpl)
+  \\ (xif >- gvs [])
+  \\ (xlet_auto >- xsimpl)
   \\ fs [std_preludeTheory.OPTION_TYPE_def]
   \\ xmatch
   \\ xapp_spec run_candle_parser_diagnostic_error_spec
+  \\ qexistsl [‘COMMANDLINE cl’,‘reply_out’,‘reply_err’,‘fs’]
+  \\ fs []
+  \\ conj_tac >- (qexists_tac ‘nonce’ \\ fs [])
   \\ xsimpl
 QED
 
@@ -1016,9 +1027,10 @@ Proof
     (Cases_on `candle_parser_diagnostic_run_args (TL cl)` \\ fs
        [has_candle_parser_diagnostic_mode_def])
   \\ xcf_with_def main_v_def
-  \\ xlet_auto >- (xcon \\ xsimpl)
-  \\ xlet_auto >- xsimpl
-  \\ xif >- fs []
+  \\ (xlet_auto >- (xcon \\ xsimpl))
+  \\ (xlet_auto >- xsimpl)
+  \\ (xlet_auto >- xsimpl)
+  \\ (xif >- gvs [])
   \\ xlet_auto >- xsimpl
   \\ fs [std_preludeTheory.OPTION_TYPE_def]
   \\ xmatch
