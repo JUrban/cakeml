@@ -1205,9 +1205,10 @@ Theorem main_candle_parser_diagnostic_error_whole_prog_spec:
 Proof
   strip_tac
   \\ rw [basis_ffiTheory.whole_prog_ffidiv_spec_def]
-  \\ qmatch_goalsub_abbrev_tac `fs1 = _ with numchars := _`
-  \\ qexists_tac `fs1`
-  \\ simp [Abbr`fs1`,GSYM fastForwardFD_with_numchars,
+  \\ qexists_tac
+       `add_stderr
+          (add_stdout (fastForwardFD fs 0) reply_out) reply_err`
+  \\ simp [GSYM fastForwardFD_with_numchars,
            GSYM add_stdo_with_numchars,with_same_numchars]
   \\ match_mp_tac (MP_CANON (MATCH_MP app_wgframe
        (UNDISCH main_candle_parser_diagnostic_error_spec)))
