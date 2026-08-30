@@ -58,7 +58,7 @@ Proof
     gvs [CaseEq "match_result", v_ok_def, SF SFY_ss])
 QED
 
-Theorem env_ok_open_dec_env[local]:
+Theorem env_ok_open_dec_env:
   env_ok ctxt env ∧
   open_dec_env path env = SOME opened ⇒
   env_ok ctxt opened
