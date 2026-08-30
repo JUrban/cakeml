@@ -695,11 +695,11 @@ Definition candle_parser_diagnostic_reply_def:
         (candle_parser_diagnostic_result_prefix ^ nonce ^ «\tOK\n»,
          NONE)
     | INL (l,err) =>
-        let stderr = candle_parser_diagnostic_error_text input l err in
+        let reply_err = candle_parser_diagnostic_error_text input l err in
           (
             (candle_parser_diagnostic_result_prefix ^ nonce ^
              «\tPARSE_ERROR\n»),
-           SOME stderr)
+           SOME reply_err)
 End
 
 Theorem candle_parser_diagnostic_reply_calls_parser_directly:
@@ -709,11 +709,11 @@ Theorem candle_parser_diagnostic_reply_calls_parser_directly:
         (candle_parser_diagnostic_result_prefix ^ nonce ^ «\tOK\n»,
          NONE)
     | INL (l,err) =>
-        let stderr = candle_parser_diagnostic_error_text input l err in
+        let reply_err = candle_parser_diagnostic_error_text input l err in
           (
             (candle_parser_diagnostic_result_prefix ^ nonce ^
              «\tPARSE_ERROR\n»),
-           SOME stderr)
+           SOME reply_err)
 Proof
   simp [candle_parser_diagnostic_reply_def]
 QED
@@ -721,10 +721,10 @@ QED
 Definition candle_parser_diagnostic_success_fs_def:
   candle_parser_diagnostic_success_fs nonce input fs =
     case candle_parser_diagnostic_reply nonce input of
-    | (stdout,NONE) =>
-        add_stdout (fastForwardFD fs 0) stdout
-    | (stdout,SOME stderr) =>
-        add_stderr (add_stdout (fastForwardFD fs 0) stdout) stderr
+    | (reply_out,NONE) =>
+        add_stdout (fastForwardFD fs 0) reply_out
+    | (reply_out,SOME reply_err) =>
+        add_stderr (add_stdout (fastForwardFD fs 0) reply_out) reply_err
 End
 
 val res = translate candle_parser_diagnostic_capability_line_def;
@@ -803,11 +803,11 @@ val run_candle_parser_diagnostic_v_def =
 Theorem run_candle_parser_diagnostic_ok_spec:
   STRING_TYPE nonce nv ∧
   stdin_content fs = SOME inp ∧
-  candle_parser_diagnostic_reply nonce (implode inp) = (stdout,NONE) ⇒
+  candle_parser_diagnostic_reply nonce (implode inp) = (reply_out,NONE) ⇒
   app (p:'ffi ffi_proj) run_candle_parser_diagnostic_v [nv]
     (STDIO fs)
     (POSTv uv. &UNIT_TYPE () uv *
-               STDIO (add_stdout (fastForwardFD fs 0) stdout))
+               STDIO (add_stdout (fastForwardFD fs 0) reply_out))
 Proof
   rpt strip_tac
   \\ xcf_with_def run_candle_parser_diagnostic_v_def
@@ -842,12 +842,12 @@ Theorem run_candle_parser_diagnostic_error_spec:
   STRING_TYPE nonce nv ∧
   stdin_content fs = SOME inp ∧
   candle_parser_diagnostic_reply nonce (implode inp) =
-    (stdout,SOME stderr) ⇒
+    (reply_out,SOME reply_err) ⇒
   app (p:'ffi ffi_proj) run_candle_parser_diagnostic_v [nv]
     (STDIO fs * RUNTIME)
     (POSTf name. λc bytes.
        STDIO (add_stderr
-                (add_stdout (fastForwardFD fs 0) stdout) stderr) *
+                (add_stdout (fastForwardFD fs 0) reply_out) reply_err) *
        RUNTIME *
        &(name = «exit» ∧ c = [] ∧ bytes = [65w]))
 Proof
@@ -878,11 +878,11 @@ Proof
           std_preludeTheory.OPTION_TYPE_def]
   \\ xmatch
   \\ xlet ‘POSTv uv. &UNIT_TYPE () uv *
-               STDIO (add_stdout (fastForwardFD fs 0) stdout) * RUNTIME’
+               STDIO (add_stdout (fastForwardFD fs 0) reply_out) * RUNTIME’
   >- (xapp \\ xsimpl)
   \\ xlet ‘POSTv uv. &UNIT_TYPE () uv *
                STDIO (add_stderr
-                 (add_stdout (fastForwardFD fs 0) stdout) stderr) * RUNTIME’
+                 (add_stdout (fastForwardFD fs 0) reply_out) reply_err) * RUNTIME’
   >-
    (xapp_spec output_stderr_spec
     \\ xsimpl)
@@ -945,11 +945,11 @@ QED
 Theorem main_candle_parser_diagnostic_ok_spec:
   candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
   stdin_content fs = SOME inp ∧
-  candle_parser_diagnostic_reply nonce (implode inp) = (stdout,NONE) ⇒
+  candle_parser_diagnostic_reply nonce (implode inp) = (reply_out,NONE) ⇒
   app (p:'ffi ffi_proj) main_v [Conv NONE []]
     (STDIO fs * COMMANDLINE cl)
     (POSTv uv. &UNIT_TYPE () uv *
-               STDIO (add_stdout (fastForwardFD fs 0) stdout) *
+               STDIO (add_stdout (fastForwardFD fs 0) reply_out) *
                COMMANDLINE cl)
 Proof
   rpt strip_tac
@@ -969,12 +969,12 @@ Theorem main_candle_parser_diagnostic_error_spec:
   candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
   stdin_content fs = SOME inp ∧
   candle_parser_diagnostic_reply nonce (implode inp) =
-    (stdout,SOME stderr) ⇒
+    (reply_out,SOME reply_err) ⇒
   app (p:'ffi ffi_proj) main_v [Conv NONE []]
     (STDIO fs * COMMANDLINE cl * RUNTIME)
     (POSTf name. λc bytes.
        STDIO (add_stderr
-                (add_stdout (fastForwardFD fs 0) stdout) stderr) *
+                (add_stdout (fastForwardFD fs 0) reply_out) reply_err) *
        COMMANDLINE cl * RUNTIME *
        &(name = «exit» ∧ c = [] ∧ bytes = [65w]))
 Proof
@@ -1152,9 +1152,9 @@ QED
 Theorem main_candle_parser_diagnostic_ok_whole_prog_spec:
   candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
   stdin_content fs = SOME inp ∧
-  candle_parser_diagnostic_reply nonce (implode inp) = (stdout,NONE) ⇒
+  candle_parser_diagnostic_reply nonce (implode inp) = (reply_out,NONE) ⇒
   whole_prog_spec main_v cl fs NONE
-    ((=) (add_stdout (fastForwardFD fs 0) stdout))
+    ((=) (add_stdout (fastForwardFD fs 0) reply_out))
 Proof
   strip_tac
   \\ simp [basis_ffiTheory.whole_prog_spec_def]
@@ -1173,12 +1173,12 @@ Theorem main_candle_parser_diagnostic_error_whole_prog_spec:
   candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
   stdin_content fs = SOME inp ∧
   candle_parser_diagnostic_reply nonce (implode inp) =
-    (stdout,SOME stderr) ⇒
+    (reply_out,SOME reply_err) ⇒
   whole_prog_ffidiv_spec main_v cl fs
     (λname c bytes fs'.
        name = «exit» ∧ c = [] ∧ bytes = [65w] ∧
        fs' = add_stderr
-               (add_stdout (fastForwardFD fs 0) stdout) stderr)
+               (add_stdout (fastForwardFD fs 0) reply_out) reply_err)
 Proof
   strip_tac
   \\ rw [basis_ffiTheory.whole_prog_ffidiv_spec_def]
@@ -1312,7 +1312,7 @@ QED
 Theorem semantics_compiler64_prog_parser_ok:
   candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
   stdin_content fs = SOME inp ∧
-  candle_parser_diagnostic_reply nonce (implode inp) = (stdout,NONE) ∧
+  candle_parser_diagnostic_reply nonce (implode inp) = (reply_out,NONE) ∧
   wfcl cl ∧ wfFS fs ∧ STD_streams fs ⇒
   ∃io_events.
     semantics_dec_list
@@ -1322,7 +1322,7 @@ Theorem semantics_compiler64_prog_parser_ok:
            (eval_state_var with env_id_counter := (0,0,1))))
       init_env compiler64_prog (Terminate Success io_events) ∧
     extract_fs ext (cl,fs) io_events =
-      SOME (add_stdout (fastForwardFD fs 0) stdout)
+      SOME (add_stdout (fastForwardFD fs 0) reply_out)
 Proof
   strip_tac
   \\ irule parser_ok_sem_thm
@@ -1333,7 +1333,7 @@ Theorem semantics_compiler64_prog_parser_error:
   candle_parser_diagnostic_run_args (TL cl) = SOME nonce ∧
   stdin_content fs = SOME inp ∧
   candle_parser_diagnostic_reply nonce (implode inp) =
-    (stdout,SOME stderr) ∧
+    (reply_out,SOME reply_err) ∧
   wfcl cl ∧ wfFS fs ∧ STD_streams fs ⇒
   ∃io_events.
     semantics_dec_list
@@ -1348,7 +1348,7 @@ Theorem semantics_compiler64_prog_parser_error:
         io_events) ∧
     extract_fs ext (cl,fs) io_events =
       SOME (add_stderr
-        (add_stdout (fastForwardFD fs 0) stdout) stderr)
+        (add_stdout (fastForwardFD fs 0) reply_out) reply_err)
 Proof
   strip_tac
   \\ irule parser_error_sem_thm

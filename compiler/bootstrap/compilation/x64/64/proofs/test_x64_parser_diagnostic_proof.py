@@ -8,6 +8,7 @@ They supplement, rather than replace, a Holmake replay of the theory closure.
 """
 
 from pathlib import Path
+import re
 import unittest
 
 
@@ -23,6 +24,13 @@ def theorem_block(text: str, theorem: str) -> str:
     start_marker = f"Theorem {theorem}"
     start = text.index(start_marker)
     end = text.index("\nQED", start) + len("\nQED")
+    return text[start:end]
+
+
+def definition_block(text: str, definition: str) -> str:
+    start_marker = f"Definition {definition}"
+    start = text.index(start_marker)
+    end = text.index("\nEnd", start) + len("\nEnd")
     return text[start:end]
 
 
@@ -60,6 +68,34 @@ class ParserDiagnosticX64ProofTest(unittest.TestCase):
         self.assertIn("caml_parser$run inp = INR res", ok)
         self.assertIn("candle_parser_diagnostic_result_prefix ^ nonce ^", ok)
         self.assertIn("«\\tOK\\n»", ok)
+
+    def test_hol_reply_variables_do_not_capture_stdio_overloads(self) -> None:
+        blocks = [
+            definition_block(
+                self.compiler64, "candle_parser_diagnostic_reply_def:"
+            ),
+            definition_block(
+                self.compiler64, "candle_parser_diagnostic_success_fs_def:"
+            ),
+        ]
+        for theorem in (
+            "candle_parser_diagnostic_reply_calls_parser_directly:",
+            "run_candle_parser_diagnostic_ok_spec:",
+            "run_candle_parser_diagnostic_error_spec:",
+            "main_candle_parser_diagnostic_ok_spec:",
+            "main_candle_parser_diagnostic_error_spec:",
+            "main_candle_parser_diagnostic_ok_whole_prog_spec:",
+            "main_candle_parser_diagnostic_error_whole_prog_spec:",
+            "semantics_compiler64_prog_parser_ok:",
+            "semantics_compiler64_prog_parser_error:",
+        ):
+            blocks.append(theorem_block(self.compiler64, theorem))
+        overloaded_name = re.compile(
+            r"(?<![A-Za-z0-9_])(?:stdout|stderr)(?![A-Za-z0-9_])"
+        )
+        for block in blocks:
+            with self.subTest(block=block.splitlines()[0]):
+                self.assertIsNone(overloaded_name.search(block))
 
     def test_each_diagnostic_mode_has_a_distinct_compiled_theorem(self) -> None:
         for mode in ("capability", "ok", "error"):
