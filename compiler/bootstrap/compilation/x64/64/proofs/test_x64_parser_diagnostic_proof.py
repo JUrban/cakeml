@@ -97,20 +97,44 @@ class ParserDiagnosticX64ProofTest(unittest.TestCase):
             with self.subTest(block=block.splitlines()[0]):
                 self.assertIsNone(overloaded_name.search(block))
 
-    def test_print_specs_bind_the_semantic_reply_explicitly(self) -> None:
-        explicit_reply_print = re.compile(
-            r"xapp_spec print_spec\n\s*\\\\ qexists_tac `reply_out`\n"
-            r"\s*\\\\ xsimpl"
+    def test_stdio_proofs_bind_frames_and_semantic_replies(self) -> None:
+        ok = theorem_block(
+            self.compiler64, "run_candle_parser_diagnostic_ok_spec:"
         )
-        for theorem in (
-            "run_candle_parser_diagnostic_ok_spec:",
-            "run_candle_parser_diagnostic_error_spec:",
-        ):
-            block = theorem_block(self.compiler64, theorem)
-            with self.subTest(theorem=theorem):
-                self.assertEqual(block.count("xapp_spec print_spec"), 1)
-                self.assertEqual(block.count("qexists_tac `reply_out`"), 1)
-                self.assertEqual(len(explicit_reply_print.findall(block)), 1)
+        error = theorem_block(
+            self.compiler64, "run_candle_parser_diagnostic_error_spec:"
+        )
+        for block in (ok, error):
+            with self.subTest(theorem=block.splitlines()[0]):
+                self.assertIn(
+                    "qpat_x_assum `∃text pos. stdin fs text pos` "
+                    "strip_assume_tac",
+                    block,
+                )
+                self.assertIn(
+                    "xlet_auto_spec (SOME openStdIn_spec_str) >- "
+                    "(xcon \\\\ xsimpl)",
+                    block,
+                )
+                self.assertEqual(
+                    block.count("xlet_auto_spec (SOME openStdIn_spec_str)"),
+                    2,
+                )
+
+        self.assertIn("qexistsl [‘emp’,‘inp’,‘fs’,‘0’]", ok)
+        self.assertEqual(ok.count("xapp_spec print_spec"), 1)
+        self.assertIn(
+            "qexistsl [‘RUNTIME’,‘reply_out’,‘fastForwardFD fs 0’]",
+            error,
+        )
+        self.assertIn(
+            "[‘RUNTIME’,‘reply_err’,\n"
+            "          ‘add_stdout (fastForwardFD fs 0) reply_out’]",
+            error,
+        )
+        self.assertIn(
+            "xapp_spec RuntimeProofTheory.Runtime_exit_spec", error
+        )
 
     def test_each_diagnostic_mode_has_a_distinct_compiled_theorem(self) -> None:
         for mode in ("capability", "ok", "error"):

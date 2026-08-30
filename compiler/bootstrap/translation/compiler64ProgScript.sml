@@ -820,25 +820,23 @@ Proof
     \\ fs [EXISTS_PROD]
     \\ metis_tac [ALOOKUP_FAILS,ALOOKUP_MEM,NOT_SOME_NONE,SOME_11,
                     PAIR_EQ,option_CASES])
-  \\ rename [‘stdin fs text pos’]
+  \\ qpat_x_assum `∃text pos. stdin fs text pos` strip_assume_tac
   \\ `text = inp ∧ pos = 0` by
     (gvs [stdin_content_def,stdin_def,get_file_content_def])
   \\ rw []
+  \\ xlet_auto_spec (SOME openStdIn_spec_str) >- (xcon \\ xsimpl)
   \\ xlet_auto_spec (SOME openStdIn_spec_str) >- xsimpl
   \\ xlet ‘POSTv v. &STRING_TYPE (implode inp) v *
                     STDIO (fastForwardFD fs 0)’
   >-
    (xapp
-    \\ qexistsl [‘inp’,‘fs’,‘0’]
+    \\ qexistsl [‘emp’,‘inp’,‘fs’,‘0’]
     \\ xsimpl)
   \\ xlet_auto >- xsimpl
   \\ fs [ml_translatorTheory.PAIR_TYPE_def,
           std_preludeTheory.OPTION_TYPE_def]
   \\ xmatch
   \\ xapp_spec print_spec
-  \\ xsimpl
-  \\ qexists_tac `emp`
-  \\ qexists_tac `fastForwardFD fs 0`
   \\ xsimpl
 QED
 
@@ -866,10 +864,11 @@ Proof
     \\ fs [EXISTS_PROD]
     \\ metis_tac [ALOOKUP_FAILS,ALOOKUP_MEM,NOT_SOME_NONE,SOME_11,
                     PAIR_EQ,option_CASES])
-  \\ rename [‘stdin fs text pos’]
+  \\ qpat_x_assum `∃text pos. stdin fs text pos` strip_assume_tac
   \\ `text = inp ∧ pos = 0` by
     (gvs [stdin_content_def,stdin_def,get_file_content_def])
   \\ rw []
+  \\ xlet_auto_spec (SOME openStdIn_spec_str) >- (xcon \\ xsimpl)
   \\ xlet_auto_spec (SOME openStdIn_spec_str) >- xsimpl
   \\ xlet ‘POSTv v. &STRING_TYPE (implode inp) v *
                     STDIO (fastForwardFD fs 0) * RUNTIME’
@@ -885,17 +884,18 @@ Proof
                STDIO (add_stdout (fastForwardFD fs 0) reply_out) * RUNTIME’
   >-
    (xapp_spec print_spec
-    \\ xsimpl
-    \\ qexists_tac `RUNTIME`
-    \\ qexists_tac `fastForwardFD fs 0`
+    \\ qexistsl [‘RUNTIME’,‘reply_out’,‘fastForwardFD fs 0’]
     \\ xsimpl)
   \\ xlet ‘POSTv uv. &UNIT_TYPE () uv *
                STDIO (add_stderr
                  (add_stdout (fastForwardFD fs 0) reply_out) reply_err) * RUNTIME’
   >-
    (xapp_spec output_stderr_spec
+    \\ qexistsl
+         [‘RUNTIME’,‘reply_err’,
+          ‘add_stdout (fastForwardFD fs 0) reply_out’]
     \\ xsimpl)
-  \\ xapp_spec Runtime_exit_spec
+  \\ xapp_spec RuntimeProofTheory.Runtime_exit_spec
   \\ xsimpl \\ EVAL_TAC
 QED
 
