@@ -976,6 +976,7 @@ Proof
   \\ fs [std_preludeTheory.OPTION_TYPE_def]
   \\ xmatch
   \\ xapp_spec run_candle_parser_diagnostic_ok_spec
+  \\ xsimpl
   \\ qexistsl [‘COMMANDLINE cl’,‘reply_out’,‘fs’,‘inp’,‘nonce’]
   \\ fs []
   \\ xsimpl
