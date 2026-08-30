@@ -1276,7 +1276,9 @@ local
        handle HOL_ERR _ =>
        MATCH_MP basis_ffiTheory.whole_prog_spec2_IMP th1
        handle HOL_ERR _ =>
-       MATCH_MP basis_ffiTheory.whole_prog_spec_ffidiv_IMP th1)
+       MATCH_MP basis_ffiTheory.whole_prog_spec_ffidiv_IMP th1
+       handle HOL_ERR _ =>
+       MATCH_MP basis_ffiTheory.whole_prog_spec_ffidiv_IMP' th1)
     val remove_snocs_conv =
       PURE_REWRITE_CONV [listTheory.SNOC_APPEND] THENC
       PURE_REWRITE_CONV [GSYM listTheory.APPEND_ASSOC] THENC

@@ -40,7 +40,9 @@ fun prove_sem_thm name code_const_name spec = let
              handle HOL_ERR _ =>
              MATCH_MP basis_ffiTheory.whole_prog_spec2_IMP th1
              handle HOL_ERR _ =>
-             MATCH_MP basis_ffiTheory.whole_prog_spec_ffidiv_IMP th1)
+             MATCH_MP basis_ffiTheory.whole_prog_spec_ffidiv_IMP th1
+             handle HOL_ERR _ =>
+             MATCH_MP basis_ffiTheory.whole_prog_spec_ffidiv_IMP' th1)
   val t = simple_timer t
   val _ = print_pad ("prove_sem_thm: removing snocs from code")
   val remove_snocs_conv =

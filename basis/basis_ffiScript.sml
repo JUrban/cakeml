@@ -1170,6 +1170,41 @@ Proof
   \\ pop_assum $ irule_at Any
 QED
 
+Theorem whole_prog_spec_ffidiv_IMP':
+  whole_prog_ffidiv_spec main_v cl fs Q ∧
+  Decls init_env (init_state (basis_ffi ext cl fs) with eval_state := es)
+        decs res_env res_st
+  ⇒
+  ∀main_name.
+    let all_decs = SNOC (Dlet unknown_loc (Pcon NONE [])
+                     (App Opapp [Var (Short main_name); Con NONE []])) decs in
+    nsLookup res_env.v (Short main_name) = SOME main_v
+    ⇒
+    res_st.ffi = basis_ffi ext cl fs
+    ⇒
+    is_refs_basis res_st.refs
+    ⇒
+    wfcl cl ∧ wfFS fs ∧ STD_streams fs ⇒
+    ∃io_events fs' n c b.
+      semantics_dec_list
+        (init_state (basis_ffi ext cl fs) with eval_state := es) init_env
+        all_decs
+        (Terminate
+           (FFI_outcome (Final_event (ExtCall n) c b FFI_diverged))
+           io_events) ∧
+      extract_fs ext (cl,fs) io_events = SOME fs' ∧ Q n c b fs'
+Proof
+  simp [] \\ rpt strip_tac
+  \\ irule whole_prog_spec_semantics_prog_ffidiv
+  \\ gvs [ml_progTheory.lookup_var_def]
+  \\ last_x_assum $ irule_at Any
+  \\ pop_assum $ assume_tac o GSYM \\ fs []
+  \\ last_x_assum $ irule_at Any \\ fs []
+  \\ drule_all IMP_STDIO_RUNTIME \\ strip_tac
+  \\ pop_assum $ irule_at Any
+  \\ pop_assum $ irule_at Any
+QED
+
 Theorem whole_prog_spec_ffidiv_IMP:
   whole_prog_ffidiv_spec main_v cl fs Q ∧
   Decls init_env (init_state (basis_ffi ext cl fs)) decs res_env res_st
