@@ -97,6 +97,21 @@ class ParserDiagnosticX64ProofTest(unittest.TestCase):
             with self.subTest(block=block.splitlines()[0]):
                 self.assertIsNone(overloaded_name.search(block))
 
+    def test_print_specs_bind_the_semantic_reply_explicitly(self) -> None:
+        explicit_reply_print = re.compile(
+            r"xapp_spec print_spec\n\s*\\\\ qexists_tac `reply_out`\n"
+            r"\s*\\\\ xsimpl"
+        )
+        for theorem in (
+            "run_candle_parser_diagnostic_ok_spec:",
+            "run_candle_parser_diagnostic_error_spec:",
+        ):
+            block = theorem_block(self.compiler64, theorem)
+            with self.subTest(theorem=theorem):
+                self.assertEqual(block.count("xapp_spec print_spec"), 1)
+                self.assertEqual(block.count("qexists_tac `reply_out`"), 1)
+                self.assertEqual(len(explicit_reply_print.findall(block)), 1)
+
     def test_each_diagnostic_mode_has_a_distinct_compiled_theorem(self) -> None:
         for mode in ("capability", "ok", "error"):
             with self.subTest(mode=mode):

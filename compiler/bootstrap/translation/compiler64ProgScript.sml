@@ -835,7 +835,9 @@ Proof
   \\ fs [ml_translatorTheory.PAIR_TYPE_def,
           std_preludeTheory.OPTION_TYPE_def]
   \\ xmatch
-  \\ xapp \\ xsimpl
+  \\ xapp_spec print_spec
+  \\ qexists_tac `reply_out`
+  \\ xsimpl
 QED
 
 Theorem run_candle_parser_diagnostic_error_spec:
@@ -879,7 +881,10 @@ Proof
   \\ xmatch
   \\ xlet ‘POSTv uv. &UNIT_TYPE () uv *
                STDIO (add_stdout (fastForwardFD fs 0) reply_out) * RUNTIME’
-  >- (xapp \\ xsimpl)
+  >-
+   (xapp_spec print_spec
+    \\ qexists_tac `reply_out`
+    \\ xsimpl)
   \\ xlet ‘POSTv uv. &UNIT_TYPE () uv *
                STDIO (add_stderr
                  (add_stdout (fastForwardFD fs 0) reply_out) reply_err) * RUNTIME’
