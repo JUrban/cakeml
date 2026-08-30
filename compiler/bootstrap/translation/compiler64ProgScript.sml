@@ -1031,11 +1031,12 @@ Proof
   \\ (xlet_auto >- (xcon \\ xsimpl))
   \\ (xlet_auto >- xsimpl)
   \\ (xlet_auto >- xsimpl)
-  \\ (xif >- gvs [])
+  \\ xif
+  \\ qexists_tac `F`
+  \\ fs []
   \\ xlet_auto >- xsimpl
   \\ fs [std_preludeTheory.OPTION_TYPE_def]
   \\ xmatch
-  \\ xlet_auto >- xsimpl
   \\ reverse(Cases_on`STD_streams fs`) >- (fs[STDIO_def] \\ xpull)
   (* TODO: it would be nice if this followed more directly.
            either (or both):
