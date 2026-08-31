@@ -447,6 +447,7 @@ Proof
   >~ [`Dtabbrev`] >- suspend "decs_Dtabbrev"
   >~ [`Denv`] >- suspend "decs_Denv"
   >~ [`Dexn`] >- suspend "decs_Dexn"
+  >~ [`Dopen`] >- suspend "decs_Dopen"
   >~ [`Dmod`] >- suspend "decs_Dmod"
   >~ [`Dlocal`] >- suspend "decs_Dlocal"
   \\ simp []
@@ -2531,6 +2532,49 @@ Resume evaluate_update[decs_Dexn]:
   \\ simp [SUBMAP_FUNION_ID]
   \\ gs [env_rel_def, ctor_rel_def, stamp_rel_cases, flookup_thm,
          FUNION_DEF, state_rel_def, FUN_FMAP_DEF]
+QED
+
+Theorem nsAll2_const_nsOpen[local]:
+  nsAll2 (λid. R) env env1 ⇒
+  OPTREL (nsAll2 (λid. R)) (nsOpen path env) (nsOpen path env1)
+Proof
+  strip_tac
+  \\ Cases_on `nsOpen path env`
+  \\ Cases_on `nsOpen path env1`
+  \\ gs []
+  \\ imp_res_tac nsAll2_after_nsOpen
+  \\ imp_res_tac nsAll2_before_nsOpen
+  \\ gs []
+QED
+
+Theorem env_rel_open_dec_env[local]:
+  ∀path fr ft fe env env1.
+    env_rel fr ft fe env env1 ⇒
+    OPTREL (env_rel fr ft fe)
+      (open_dec_env path env) (open_dec_env path env1)
+Proof
+  rpt strip_tac
+  \\ `OPTREL (nsAll2 (λid. v_rel fr ft fe))
+        (nsOpen path env.v) (nsOpen path env1.v)`
+       by (irule nsAll2_const_nsOpen \\ gs [env_rel_def])
+  \\ `OPTREL (nsAll2 (λid. ($= ### stamp_rel ft fe)))
+        (nsOpen path env.c) (nsOpen path env1.c)`
+       by (irule nsAll2_const_nsOpen \\ gs [env_rel_def, ctor_rel_def])
+  \\ fs [open_dec_env_def]
+  \\ rpt (CASE_TAC \\ gvs [env_rel_def, ctor_rel_def])
+QED
+
+Resume evaluate_update[decs_Dopen]:
+  rpt strip_tac
+  \\ drule env_rel_open_dec_env
+  \\ disch_then (qspec_then `path` assume_tac)
+  \\ Cases_on `open_dec_env path env`
+  \\ Cases_on `open_dec_env path env1`
+  \\ gvs [optionTheory.OPTREL_def, evaluate_decs_def]
+  \\ qexists_tac `fr`
+  \\ qexists_tac `ft`
+  \\ qexists_tac `fe`
+  \\ gs []
 QED
 
 Resume evaluate_update[decs_Dmod]:
