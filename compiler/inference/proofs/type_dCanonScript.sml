@@ -42,17 +42,18 @@ Theorem tenv_equiv_open_tenv:
 Proof
   strip_tac >>
   imp_res_tac open_tenv_success_components >>
+  fs [tenv_equiv_def] >>
   `∃v2. nsOpen path tenv2.v = SOME v2 ∧
         nsAll2 (λi v1 v2. v1 = v2) opened1.v v2`
-    by metis_tac [tenv_equiv_def, nsAll2_after_nsOpen] >>
+    by (imp_res_tac nsAll2_after_nsOpen >> fs []) >>
   pop_assum strip_assume_tac >>
   `∃c2. nsOpen path tenv2.c = SOME c2 ∧
         nsAll2 (λi v1 v2. v1 = v2) opened1.c c2`
-    by metis_tac [tenv_equiv_def, nsAll2_after_nsOpen] >>
+    by (imp_res_tac nsAll2_after_nsOpen >> fs []) >>
   pop_assum strip_assume_tac >>
   `∃t2. nsOpen path tenv2.t = SOME t2 ∧
         nsAll2 (λi v1 v2. v1 = v2) opened1.t t2`
-    by metis_tac [tenv_equiv_def, nsAll2_after_nsOpen] >>
+    by (imp_res_tac nsAll2_after_nsOpen >> fs []) >>
   pop_assum strip_assume_tac >>
   qexists_tac `<|v := v2; c := c2; t := t2|>` >>
   rw [open_tenv_def, tenv_equiv_def]
@@ -184,7 +185,10 @@ Proof
   rw [open_tenv_def] >>
   every_case_tac >>
   gvs [set_tids_tenv_def] >>
-  metis_tac [nsAll_after_nsOpen]
+  imp_res_tac nsAll_after_nsOpen >>
+  fs [nsAll_def, FORALL_PROD] >>
+  rpt conj_tac >>
+  fs []
 QED
 
 Definition type_pe_determ_canon_def:
@@ -1779,6 +1783,7 @@ Proof
          remap_tenv_def, tenv_equiv_def,
          type_name_subst_tenv_equiv, EVERY_MEM]
     \\ fs[good_remap_def, prim_type_nums_def])
+  >- suspend "Dopen"
   >- ( (* Dmod *)
     first_x_assum drule>>
     rpt (disch_then drule) >> rw[]>>
@@ -1829,19 +1834,6 @@ Proof
     fs [BIJ_extend_bij, prim_tids_def,prim_type_nums_def,
         remap_tenv_extend_dec_tenv, extend_bij_compose]
   )
-  >- ( (* Dopen *)
-    `set_tids_tenv tids tenv'`
-      by metis_tac [set_tids_tenv_open_tenv] >>
-    `open_tenv path (remap_tenv f tenv) = SOME (remap_tenv f tenv')`
-      by metis_tac [remap_tenv_open_tenv] >>
-    `∃mapped_open.
-       open_tenv path mapped_tenv = SOME mapped_open ∧
-       tenv_equiv (remap_tenv f tenv') mapped_open`
-      by metis_tac [tenv_equiv_open_tenv] >>
-    pop_assum strip_assume_tac >>
-    qexists_tac `I` >>
-    qexists_tac `mapped_open` >>
-    simp [Once type_d_canon_cases, prim_tids_def, prim_type_nums_def])
   >- simp[set_tids_tenv_def,Once type_d_canon_cases,remap_tenv_def, prim_tids_def]
   >> (*type_ds *)
   last_x_assum drule>> fs[]>>
@@ -1900,6 +1892,20 @@ Proof
   \\ fs[ts_tid_rename_eq_f, extend_bij_def, SUBSET_DEF, IN_DISJOINT,
         MAP_EQ_f, EVERY_MEM]
   \\ metis_tac[]
+QED
+
+Resume type_d_type_d_canon[Dopen]:
+  `set_tids_tenv tids tenv'`
+    by metis_tac [set_tids_tenv_open_tenv] >>
+  `open_tenv path (remap_tenv f tenv) = SOME (remap_tenv f tenv')`
+    by metis_tac [remap_tenv_open_tenv] >>
+  `∃mapped_open.
+     open_tenv path mapped_tenv = SOME mapped_open ∧
+     tenv_equiv (remap_tenv f tenv') mapped_open`
+    by metis_tac [tenv_equiv_open_tenv] >>
+  pop_assum strip_assume_tac >>
+  qexists_tac `mapped_open` >>
+  simp [Once type_d_canon_cases, prim_tids_def, prim_type_nums_def]
 QED
 
 (* n.b. proof almost entirely copied from type_d_tenv_ok_helper *)
