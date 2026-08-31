@@ -93,20 +93,22 @@ QED
 
 Theorem firstSet_nDecl[simp]:
   firstSet cmlG [NT (mkNT nDecl)] =
-  {ValT; FunT; DatatypeT;ExceptionT;TypeT;LocalT;StructureT}
+  {ValT; FunT; DatatypeT;ExceptionT;TypeT;LocalT;OpenT;StructureT}
 Proof
   simp[Once firstSet_NT, cmlG_FDOM, cmlG_applied,
-       INSERT_UNION_EQ]
+       INSERT_UNION_EQ] >>
+  dsimp[Once EXTENSION] >> gen_tac >> eq_tac >> rw[] >> simp[]
 QED
 
 Theorem firstSet_nDecls[simp]:
   firstSet cmlG [NN nDecls] =
-  {ValT; DatatypeT; FunT; SemicolonT; ExceptionT; TypeT; LocalT;StructureT}
+  {ValT; DatatypeT; FunT; SemicolonT; ExceptionT; TypeT; LocalT;OpenT;StructureT}
 Proof
   simp[firstSetML_eqn, Once firstSetML_def, cmlG_applied, cmlG_FDOM] >>
   simp[Once firstSetML_def, cmlG_applied, cmlG_FDOM] >>
   ONCE_REWRITE_TAC [firstSetML_def] >>
-  simp[cmlG_applied, cmlG_FDOM, INSERT_UNION_EQ, INSERT_COMM]
+  simp[cmlG_applied, cmlG_FDOM, INSERT_UNION_EQ, INSERT_COMM] >>
+  dsimp[Once EXTENSION] >> gen_tac >> eq_tac >> rw[] >> simp[]
 QED
 
 Theorem IMAGE_GSPEC1[local]:
@@ -505,23 +507,24 @@ QED
 Theorem firstSet_nTopLevelDecs[simp]:
   firstSet cmlG [NN nTopLevelDecs] =
   {ValT; FunT; SemicolonT; DatatypeT; StructureT; ExceptionT; TypeT;
-   LocalT} ∪
+   LocalT; OpenT} ∪
            firstSet cmlG [NT (mkNT nE)]
 Proof
   simp[Once firstSet_NT, cmlG_applied, cmlG_FDOM] >>
   ONCE_REWRITE_TAC [firstSet_NT] >> simp[cmlG_applied, cmlG_FDOM] >>
   simp[INSERT_UNION_EQ, INSERT_COMM] >>
-  simp[EXTENSION, EQ_IMP_THM] >> rpt strip_tac >> rveq >> simp[]
+  dsimp[Once EXTENSION] >> gen_tac >> eq_tac >> rw[] >> simp[]
 QED
 
 Theorem firstSet_nNonETopLevelDecs[simp]:
   firstSet cmlG [NN nNonETopLevelDecs] =
   {ValT; FunT; SemicolonT; DatatypeT; StructureT; ExceptionT; TypeT;
-   LocalT}
+   LocalT; OpenT}
 Proof
   simp[Once firstSet_NT, cmlG_FDOM, cmlG_applied] >>
   simp[Once firstSet_NT, cmlG_FDOM, cmlG_applied] >>
-  simp[INSERT_COMM, INSERT_UNION_EQ]
+  simp[INSERT_COMM, INSERT_UNION_EQ] >>
+  dsimp[Once EXTENSION] >> gen_tac >> eq_tac >> rw[] >> simp[]
 QED
 
 Theorem firstSet_nEseq[simp]:
