@@ -2547,7 +2547,7 @@ Proof
   \\ gs []
 QED
 
-Theorem env_rel_open_dec_env[local]:
+Theorem env_rel_open_dec_env:
   ∀path fr ft fe env env1.
     env_rel fr ft fe env env1 ⇒
     OPTREL (env_rel fr ft fe)
