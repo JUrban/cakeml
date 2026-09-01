@@ -1189,6 +1189,79 @@ Proof
   \\ Cases_on ‘res_cl = Rerr (Rabort Rtimeout_error)’
   >- (rw [] \\ fs [combine_dec_result_def])
   \\ fs []
+  (* The REPL theorem assumes a command line containing --repl or --candle.
+     Therefore the two parser-diagnostic dispatches that precede the REPL
+     dispatch in main both take their ordinary false/None branches. *)
+  \\ ‘¬candle_parser_diagnostic_capability_args (TL cl)’ by
+   (spose_not_then strip_assume_tac
+    \\ fs [candle_parser_diagnostic_capability_args_def,
+           candle_parser_diagnostic_capability_arg_def,has_repl_flag_def])
+  \\ ‘candle_parser_diagnostic_run_args (TL cl) = NONE’ by
+   (Cases_on ‘candle_parser_diagnostic_run_args (TL cl)’ \\ fs []
+    \\ drule candle_parser_diagnostic_run_args_shape \\ strip_tac
+    \\ qpat_x_assum ‘has_repl_flag (TL cl)’ mp_tac
+    \\ asm_rewrite_tac []
+    \\ fs [has_repl_flag_def,candle_parser_diagnostic_run_arg_def,
+           candle_parser_diagnostic_nonce_def]
+    \\ CCONTR_TAC \\ fs []
+    \\ rveq \\ fs [mlstringTheory.strlen_def])
+  (* call compiler64prog_candle_parser_diagnostic_capability_args *)
+  \\ simp [Once evaluate_def,evaluate_Var,evaluate_Con,evaluate_list,
+           namespaceTheory.nsOptBind_def,evaluate_Lit]
+  \\ simp [Once evaluate_def,evaluate_Var,evaluate_Con,evaluate_list,
+           namespaceTheory.nsOptBind_def,evaluate_Lit]
+  \\ CONV_TAC (DEPTH_CONV ml_progLib.nsLookup_conv) \\ simp []
+  \\ assume_tac compiler64prog_candle_parser_diagnostic_capability_args_v_thm
+  \\ drule_all (Arrow_IMP |> INST_TYPE [“:'ffi”|->ffi_inst])
+  \\ disch_then (qspec_then
+       ‘dec_clock (s_cl with eval_state := SOME ev)’ strip_assume_tac)
+  \\ fs []
+  \\ IF_CASES_TAC >- (rw [] \\ fs [combine_dec_result_def])
+  \\ fs []
+  \\ Cases_on ‘res' = Rerr (Rabort Rtimeout_error)’
+  >- (rw [] \\ fs [combine_dec_result_def])
+  \\ gvs [BOOL_def]
+  (* false branch of the capability dispatch *)
+  \\ simp [Once evaluate_def,evaluate_Var,evaluate_Con,evaluate_list,
+           namespaceTheory.nsOptBind_def,evaluate_Lit,do_if_def]
+  (* call compiler64prog_candle_parser_diagnostic_run_args *)
+  \\ simp [Once evaluate_def,evaluate_Var,evaluate_Con,evaluate_list,
+           namespaceTheory.nsOptBind_def,evaluate_Lit]
+  \\ simp [Once evaluate_def,evaluate_Var,evaluate_Con,evaluate_list,
+           namespaceTheory.nsOptBind_def,evaluate_Lit]
+  \\ CONV_TAC (DEPTH_CONV ml_progLib.nsLookup_conv) \\ simp []
+  \\ assume_tac compiler64prog_candle_parser_diagnostic_run_args_v_thm
+  \\ drule_all (Arrow_IMP |> INST_TYPE [“:'ffi”|->ffi_inst])
+  \\ disch_then (qspec_then
+       ‘dec_clock
+          (s_cl with
+           <|clock := s_cl.clock − (ck + 1); refs := s_cl.refs ++ junk;
+             eval_state := SOME ev|>)’ strip_assume_tac)
+  \\ fs []
+  \\ rename [‘do_opapp
+       [compiler64prog_candle_parser_diagnostic_run_args_v; cl_v] =
+       SOME (diag_run_env,diag_run_exp)’]
+  \\ rename [‘evaluate _ diag_run_env [diag_run_exp] =
+       (diag_run_state,diag_run_res)’]
+  \\ IF_CASES_TAC THENL
+   [fs [dec_clock_def,combine_dec_result_def] \\ rw [] \\ simp [],
+    ALL_TAC]
+  \\ fs [dec_clock_def]
+  \\ Cases_on ‘diag_run_res = Rerr (Rabort Rtimeout_error)’ THENL
+   [fs [dec_clock_def,combine_dec_result_def] \\ rw [] \\ simp [],
+    ALL_TAC]
+  \\ fs [dec_clock_def]
+  \\ gvs [std_preludeTheory.OPTION_TYPE_def]
+  (* None branch of the diagnostic-run dispatch *)
+  \\ simp [Once evaluate_def,can_pmatch_all_def,pmatch_def,evaluate_Var]
+  \\ CONV_TAC (DEPTH_CONV ml_progLib.nsLookup_conv)
+  \\ simp [semanticPrimitivesTheory.same_ctor_def]
+  \\ simp [Once evaluate_def,astTheory.pat_bindings_def,pmatch_def]
+  \\ CONV_TAC (DEPTH_CONV ml_progLib.nsLookup_conv)
+  \\ simp [semanticPrimitivesTheory.same_ctor_def]
+  \\ simp [evaluate_match_def,astTheory.pat_bindings_def,pmatch_def]
+  \\ CONV_TAC (DEPTH_CONV ml_progLib.nsLookup_conv)
+  \\ simp [semanticPrimitivesTheory.same_ctor_def]
   (* call compiler_has_repl_flag *)
   \\ simp [Once evaluate_def,evaluate_Var,evaluate_Con,evaluate_list,
            namespaceTheory.nsOptBind_def,evaluate_Lit]
@@ -1197,12 +1270,38 @@ Proof
   \\ CONV_TAC (DEPTH_CONV ml_progLib.nsLookup_conv) \\ simp []
   \\ assume_tac compiler64prog_has_repl_flag_v_thm
   \\ drule_all (Arrow_IMP |> INST_TYPE [“:'ffi”|->ffi_inst])
-  \\ disch_then (qspec_then ‘(dec_clock (s_cl with eval_state := SOME ev))’ strip_assume_tac)
+  \\ disch_then (qspec_then
+       ‘dec_clock
+          (dec_clock
+             (s_cl with
+              <|clock := s_cl.clock − (ck + 1); refs := s_cl.refs ++ junk;
+                eval_state := SOME ev|>) with
+           <|clock :=
+               (dec_clock
+                  (s_cl with
+                   <|clock := s_cl.clock − (ck + 1);
+                     refs := s_cl.refs ++ junk;
+                     eval_state := SOME ev|>)).clock − ck';
+             refs :=
+               (dec_clock
+                  (s_cl with
+                   <|clock := s_cl.clock − (ck + 1);
+                     refs := s_cl.refs ++ junk;
+                     eval_state := SOME ev|>)).refs ++ junk'|>)’
+       strip_assume_tac)
   \\ fs []
-  \\ IF_CASES_TAC >- (rw[] \\ fs [combine_dec_result_def])
-  \\ fs []
-  \\ Cases_on ‘res' = Rerr (Rabort Rtimeout_error)’
-  >- (rw [] \\ fs [combine_dec_result_def])
+  \\ rename [‘do_opapp [compiler64prog_has_repl_flag_v; cl_v] =
+       SOME (has_repl_env,has_repl_exp)’]
+  \\ rename [‘evaluate _ has_repl_env [has_repl_exp] =
+       (has_repl_state,has_repl_res)’]
+  \\ IF_CASES_TAC THENL
+   [fs [dec_clock_def,combine_dec_result_def] \\ rw [] \\ simp [],
+    ALL_TAC]
+  \\ fs [dec_clock_def]
+  \\ Cases_on ‘has_repl_res = Rerr (Rabort Rtimeout_error)’ THENL
+   [fs [dec_clock_def,combine_dec_result_def] \\ rw [] \\ simp [],
+    ALL_TAC]
+  \\ fs [dec_clock_def]
   \\ gvs []
   (* if *)
   \\ gvs [BOOL_def]
@@ -1223,8 +1322,11 @@ Proof
            namespaceTheory.nsOptBind_def,evaluate_Lit]
   \\ CONV_TAC (DEPTH_CONV ml_progLib.nsLookup_conv) \\ simp [dec_clock_def]
   (* charsFrom *)
-  \\ rename [‘do_opapp [REPL_charsFrom_v; _]’]
-  \\ first_x_assum (qspecl_then [‘ck’,‘junk’] strip_assume_tac)
+  \\ rename
+       [‘do_opapp [REPL_charsFrom_v; Litv (StrLit «config_enc_str.txt»)]’]
+  \\ first_x_assum
+       (qspecl_then [‘ck + (ck' + ck'') + 2’,
+                     ‘junk ++ junk' ++ junk''’] strip_assume_tac)
   \\ simp []
   \\ IF_CASES_TAC >- (fs [] \\ rw [] \\ fs [combine_dec_result_def])
   \\ drule (evaluatePropsTheory.eval_no_eval_simulation |> CONJUNCTS |> hd)
