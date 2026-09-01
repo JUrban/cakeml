@@ -1349,13 +1349,20 @@ Proof
     fs[]
   )
   >- ( (* Dopen *)
-    `∃inferred_open. open_ienv path ienv = SOME inferred_open`
-      by metis_tac [env_rel_open_ienv_exists] >>
+    `∃inferred_open. open_ienv l0 ienv = SOME inferred_open`
+      by (irule env_rel_open_ienv_exists >>
+          qexists_tac `tenv` >>
+          qexists_tac `tenv'` >>
+          fs []) >>
     pop_assum strip_assume_tac >>
     qexists_tac `inferred_open` >>
     qexists_tac `st1` >>
     rw [infer_d_def, infer_open_success] >>
-    metis_tac [env_rel_open])
+    irule env_rel_open >>
+    qexists_tac `ienv` >>
+    qexists_tac `l0` >>
+    qexists_tac `tenv` >>
+    fs [])
   >-
     rw[infer_d_def,success_eqns]
   >>
