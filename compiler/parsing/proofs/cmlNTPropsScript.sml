@@ -543,6 +543,7 @@ Theorem NOTIN_firstSet_nE[simp]:
   SemicolonT ∉ firstSet cmlG (NT (mkNT nE) :: rest) ∧
   RparT ∉ firstSet cmlG (NN nE :: rest) ∧
   RbrackT ∉ firstSet cmlG (NN nE :: rest) ∧
+  OpenT ∉ firstSet cmlG (NN nE :: rest) ∧
   TypeT ∉ firstSet cmlG (NN nE :: rest)
 Proof
   simp[firstSet_nE, firstSet_nFQV] >>
@@ -735,6 +736,7 @@ Theorem NOTIN_firstSet_nV[simp]:
   DatatypeT ∉ firstSet cmlG [NN nV] ∧
   TypeT ∉ firstSet cmlG [NN nV] ∧
   SemicolonT ∉ firstSet cmlG [NN nV] ∧ ColonT ∉ firstSet cmlG [NN nV] ∧
+  OpenT ∉ firstSet cmlG [NN nV] ∧
   StructureT ∉ firstSet cmlG [NN nV] ∧ WordT w ∉ firstSet cmlG [NN nV] ∧
   SymbolT «::» ∉ firstSet cmlG [NN nV] ∧
   HandleT ∉ firstSet cmlG [NN nV]
@@ -766,6 +768,7 @@ Theorem NOTIN_firstSet_nFQV[simp]:
   LocalT ∉ firstSet cmlG [NN nFQV] ∧
   LparT ∉ firstSet cmlG [NN nFQV] ∧
   OfT ∉ firstSet cmlG [NN nFQV] ∧
+  OpenT ∉ firstSet cmlG [NN nFQV] ∧
   OpT ∉ firstSet cmlG [NN nFQV] ∧
   RaiseT ∉ firstSet cmlG [NN nFQV] ∧
   RbrackT ∉ firstSet cmlG [NN nFQV] ∧
@@ -807,6 +810,7 @@ Theorem NOTIN_firstSet_nConstructorName[simp]:
   LocalT ∉ firstSet cmlG [NN nConstructorName] ∧
   LparT ∉ firstSet cmlG [NN nConstructorName] ∧
   OfT ∉ firstSet cmlG [NN nConstructorName] ∧
+  OpenT ∉ firstSet cmlG [NN nConstructorName] ∧
   OpT ∉ firstSet cmlG [NN nConstructorName] ∧
   RaiseT ∉ firstSet cmlG [NN nConstructorName] ∧
   RbrackT ∉ firstSet cmlG [NN nConstructorName] ∧
