@@ -1908,6 +1908,8 @@ Resume type_d_type_d_canon[Dopen]:
   simp [Once type_d_canon_cases, prim_tids_def, prim_type_nums_def]
 QED
 
+Finalise type_d_type_d_canon;
+
 (* n.b. proof almost entirely copied from type_d_tenv_ok_helper *)
 Theorem type_d_canon_tenv_ok:
   (∀check tenv d tdecs tenv'.
