@@ -1819,18 +1819,32 @@ val _ = parsetest0 “nStart” “ptree_Start”
    “[Dlet L (Pv «f») (Fun «» (Mat (V«») [(Pc «Some» [], Fun «x» (V «y»))]))]”)
   ;
 
-(* This should fail: we require parenthesis around ambiguous patterns here: *)
-val _ = expectFailure "FAILED" (fn () =>
-  parsetest0 “nExpr” “ptree_Expr nExpr”
+(* A comma makes an unparenthesized tuple argument unambiguous. *)
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   "fun x,y -> z"
-  NONE);
+  (SOME “Fun «» (Mat (V «»)
+                     [(Pcon NONE [Pvar «x»; Pvar «y»], V «z»)])”);
 
-
-(* This should fail: we require parenthesis around ambiguous patterns here: *)
-val _ = expectFailure "REMAINING INPUT" (fn () =>
-  parsetest0 “nStart” “ptree_Start”
+val _ = parsetest0 “nStart” “ptree_Start”
   "let f x,y = z"
-  NONE);
+  (SOME “[Dlet L (Pv «f»)
+            (Fun «» (Mat (V «»)
+                         [(Pcon NONE [Pvar «x»; Pvar «y»], V «z»)]))]”);
+
+(* The tuple is one argument, and may itself be followed by curried args. *)
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "fun x y,z -> x"
+  (SOME “Fun «x»
+          (Fun «» (Mat (V «»)
+                       [(Pcon NONE [Pvar «y»; Pvar «z»], V «x»)]))”);
+
+(* Exact nested tuple shape used by Flyspeck's process_table_typed_term. *)
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "fun (_,b,_),(u,v) -> b"
+  (SOME “Fun «» (Mat (V «»)
+           [(Pcon NONE
+               [Pcon NONE [Pany; Pvar «b»; Pany];
+                Pcon NONE [Pvar «u»; Pvar «v»]], V «b»)])”);
 
 (* This is OK though: *)
 val _ =

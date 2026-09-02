@@ -151,6 +151,7 @@ QED
 val _ = update_precondition ptree_PPattern_side;
 
 val r = preprocess ptree_Pattern_PMATCH |> translate;
+val r = preprocess ptree_TupleArgument_def |> translate;
 
 (* This takes a long time.
  *)

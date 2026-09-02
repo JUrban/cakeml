@@ -1249,6 +1249,20 @@ Definition ptree_Pattern_def:
     od
 End
 
+(* [nPatterns] always consumes a base pattern before it recurses, which keeps
+ * its PEG well-foundedness proof simple.  A following [nPOps] node is the
+ * comma-prefixed tuple tail; prepend the base to rebuild the ordinary [nPOps]
+ * tree understood by the pattern converter. *)
+Definition ptree_TupleArgument_def:
+  ptree_TupleArgument first (Lf (_, locs)) =
+    fail (locs, «Expected tuple-pattern tail non-terminal») ∧
+  ptree_TupleArgument first (Nd (nterm, locs) args) =
+    if nterm = INL nPOps then
+      ptree_Pattern (Nd (INL nPOps, locs) (first::args))
+    else
+      fail (locs, «Expected tuple-pattern tail non-terminal»)
+End
+
 Definition ptree_Patterns_def:
   ptree_Patterns (Lf (_, locs)) =
     fail (locs, «Expected pattern list non-terminal») ∧
@@ -1257,8 +1271,15 @@ Definition ptree_Patterns_def:
       case args of
         [pat] => fmap (λp. [p]) $ ptree_Pattern pat
       | [pat; rest] =>
+          fmap (λp. [p]) (ptree_TupleArgument pat rest) ++
+          (do
+             p <- ptree_Pattern pat;
+             ps <- ptree_Patterns rest;
+             return (p::ps)
+           od)
+      | [pat; tuple_tail; rest] =>
           do
-            p <- ptree_Pattern pat;
+            p <- ptree_TupleArgument pat tuple_tail;
             ps <- ptree_Patterns rest;
             return (p::ps)
           od
