@@ -1685,6 +1685,12 @@ val _ = parsetest0 “nStart” “ptree_Start”
                                          V «»])]]”)
   ;
 
+val _ = parsetest0 “nStart” “ptree_Start”
+  "let rec (f : t) = e ;;"
+  (SOME “[Dletrec L [(«f»,«», App Opapp [Tannot (V «e») (Atapp [] (Short «t»));
+                                         V «»])]]”)
+  ;
+
 (* This is a bit strange: OCaml (apparently) supports mixing recursive functions
  * with values, and its parser would generate code that binds g to 3 (as if we
  * would've used a let) but unfortunately our hack must create functions always:

@@ -749,11 +749,16 @@ Definition camlPEG_def[nocompute]:
             (bindNT nPatternMatches));
       (* -- Let bindings --------------------------------------------------- *)
       (INL nLetRecBinding,
-       seql [pnt nValueName;
-             try (pnt nPatterns);
-             try (seql [tokeq ColonT; pnt nType] I);
-             tokeq EqualT; pnt nExpr]
-            (bindNT nLetRecBinding));
+       choicel [
+         seql [tokeq LparT; pnt nValueName; tokeq ColonT; pnt nType;
+               tokeq RparT; tokeq EqualT; pnt nExpr]
+              (bindNT nLetRecBinding);
+         seql [pnt nValueName;
+               try (pnt nPatterns);
+               try (seql [tokeq ColonT; pnt nType] I);
+               tokeq EqualT; pnt nExpr]
+              (bindNT nLetRecBinding)
+       ]);
       (INL nLetRecBindings,
        seql [pnt nLetRecBinding; try (seql [tokeq AndT; pnt nLetRecBindings] I)]
             (bindNT nLetRecBindings));

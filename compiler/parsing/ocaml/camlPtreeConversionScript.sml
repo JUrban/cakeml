@@ -2138,7 +2138,18 @@ Definition ptree_Expr_def:
   (ptree_LetRecBinding (Nd (nterm, locs) args) =
     if nterm = INL nLetRecBinding then
       case args of
-        [id; pats; colon; type; eq; expr] =>
+        [lpar; id; colon; type; rpar; eq; expr] =>
+          do
+            expect_tok lpar LparT;
+            expect_tok colon ColonT;
+            expect_tok rpar RparT;
+            expect_tok eq EqualT;
+            nm <- ptree_ValueName id;
+            ty <- ptree_Type type;
+            bd <- ptree_Expr nExpr expr;
+            return (nm, [], Tannot bd ty)
+          od
+      | [id; pats; colon; type; eq; expr] =>
           do
             expect_tok colon ColonT;
             expect_tok eq EqualT;
