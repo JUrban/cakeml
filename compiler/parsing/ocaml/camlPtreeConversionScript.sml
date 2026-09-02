@@ -1620,6 +1620,19 @@ Definition ptree_Expr_def:
             expect_tok rpar EndT;
             ptree_Expr nExpr expr
           od
+      | [lpar;expr;semi;rpar] =>
+          do
+            expect_tok lpar LparT;
+            expect_tok semi SemiT;
+            expect_tok rpar RparT;
+            ptree_Expr nExpr expr
+          od ++
+          do
+            expect_tok lpar BeginT;
+            expect_tok semi SemiT;
+            expect_tok rpar EndT;
+            ptree_Expr nExpr expr
+          od
       | [lpar;expr;colon;typ;rpar] =>
           do
             expect_tok lpar LparT;
@@ -2068,6 +2081,16 @@ Definition ptree_Expr_def:
             b <- ptree_Expr nExpr body;
             return (build_funapp (Var (Short «while»)) [x; b])
           od
+      | [while; expr; dot; body; semi; donet] =>
+          do
+            expect_tok while WhileT;
+            expect_tok dot DoT;
+            expect_tok semi SemiT;
+            expect_tok donet DoneT;
+            x <- ptree_Expr nExpr expr;
+            b <- ptree_Expr nExpr body;
+            return (build_funapp (Var (Short «while»)) [x; b])
+          od
       | _ => fail (locs, «Impossible: nEWhile»)
     else if nterm = INL nEFor then
       case args of
@@ -2076,6 +2099,25 @@ Definition ptree_Expr_def:
             expect_tok for ForT;
             expect_tok eq EqualT;
             expect_tok dot DoT;
+            lf <- destLf updown;
+            tk <- option $ destTOK lf;
+            (if tk = ToT ∨ tk = DowntoT then return () else
+              fail (locs, «Expected 'to' or 'downto'»));
+            id <- ptree_ValueName ident;
+            u <- ptree_Expr nExpr ubd;
+            l <- ptree_Expr nExpr lbd;
+            b <- ptree_Expr nExpr body;
+            return (build_funapp (Var (Short «for»))
+                                 [Con (SOME (bool2id (tk = ToT))) [];
+                                  Var (Short id); u; l; b])
+          od
+      | [for; ident; eq; ubd; updown; lbd; dot; body; semi; donet] =>
+          do
+            expect_tok for ForT;
+            expect_tok eq EqualT;
+            expect_tok dot DoT;
+            expect_tok semi SemiT;
+            expect_tok donet DoneT;
             lf <- destLf updown;
             tk <- option $ destTOK lf;
             (if tk = ToT ∨ tk = DowntoT then return () else

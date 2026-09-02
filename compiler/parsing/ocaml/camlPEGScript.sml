@@ -565,9 +565,11 @@ Definition camlPEG_def[nocompute]:
          seql [tokeq LparT; tokeq RparT] (bindNT nEBase); (* unit *)
          seql [tokeq BeginT; tokeq EndT] (bindNT nEBase); (* unit *)
          seql [tokeq LparT; pnt nExpr;
-               try (seql [tokeq ColonT; pnt nType] I);
+               choicel [seql [tokeq ColonT; pnt nType] I;
+                        try (tokeq SemiT)];
                tokeq RparT] (bindNT nEBase);
-         seql [tokeq BeginT; pnt nExpr; tokeq EndT] (bindNT nEBase)
+         seql [tokeq BeginT; pnt nExpr; try (tokeq SemiT); tokeq EndT]
+              (bindNT nEBase)
        ]);
       (* -- Expr15 --------------------------------------------------------- *)
       (INL nPrefixOp,
@@ -640,12 +642,13 @@ Definition camlPEG_def[nocompute]:
        seql [tokeq TryT; pnt nExpr; tokeq WithT; pnt nPatternMatch]
             (bindNT nETry));
       (INL nEWhile,
-       seql [tokeq WhileT; pnt nExpr; tokeq DoT; pnt nExpr; tokeq DoneT]
+       seql [tokeq WhileT; pnt nExpr; tokeq DoT; pnt nExpr;
+             try (tokeq SemiT); tokeq DoneT]
             (bindNT nEWhile));
       (INL nEFor,
        seql [tokeq ForT; pnt nValueName; tokeq EqualT; pnt nExpr;
              choicel [tokeq ToT; tokeq DowntoT]; pnt nExpr;
-             tokeq DoT; pnt nExpr; tokeq DoneT]
+             tokeq DoT; pnt nExpr; try (tokeq SemiT); tokeq DoneT]
             (bindNT nEFor));
       (* -- Expr12 --------------------------------------------------------- *)
       (INL nENeg,

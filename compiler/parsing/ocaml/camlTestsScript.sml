@@ -1003,6 +1003,42 @@ val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   (SOME “C «Some» [Con NONE []]”)
   ;
 
+(* OCaml accepts a trailing sequence semicolon immediately before an
+ * expression delimiter.  HOL Light uses this form in tactic arguments and
+ * imperative loops, so consume it only in those delimiter contexts. *)
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "(x;)"
+  (SOME “V «x»”)
+  ;
+
+val _ = expectAnyFailure
+  (fn () => parsetest “nExpr” “ptree_Expr nExpr” "(x : int;)")
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "begin x; end"
+  (SOME “V «x»”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "prove(x,TAC;)"
+  (SOME “App Opapp [V «prove»; Con NONE [V «x»; V «TAC»]]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "while p do step (); done"
+  (SOME “vbinop (Short «while») (V «p»)
+            (App Opapp [V «step»; Con NONE []])”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "for i = 0 to 2 do step i; done"
+  (SOME $ eval “build_funapp (V «for»)
+            [C «True» []; V «i»; Lit (IntLit 0); Lit (IntLit 2);
+             App Opapp [V «step»; V «i»]]”)
+  ;
+
 val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   " match x with\
   \ | [] -> 3\
