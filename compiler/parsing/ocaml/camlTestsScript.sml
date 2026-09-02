@@ -525,6 +525,42 @@ val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   NONE
   ;
 
+(* OCaml structural records derive a stable hidden constructor from the sorted
+ * field set and use the field-label namespace for access and update helpers. *)
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "x.foo"
+  (SOME $ eval “App Opapp [V (mk_struct_record_proj_name «foo»); V «x»]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "vd.val_type.desc"
+  (SOME $ eval “App Opapp [V (mk_struct_record_proj_name «desc»);
+                    App Opapp [V (mk_struct_record_proj_name «val_type»);
+                               V «vd»]]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "{x with foo = bar;}"
+  (SOME $ eval “App Opapp [App Opapp [
+                    V (mk_struct_record_update_name «foo»); V «x»]; V «bar»]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "{foo = 5; bar = true}"
+  (SOME $ eval
+    “App Opapp [App Opapp [
+       V (mk_record_constr_name
+            (mk_struct_record_type_name [«bar»;«foo»]) [«bar»;«foo»]);
+       C «True» []]; Lit (IntLit 5)]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "x.foo <- y"
+  (SOME $ eval “App Opapp [App Opapp [
+                    V (mk_struct_record_set_name «foo»); V «x»]; V «y»]”)
+  ;
+
 (* declaration *)
 
 val _ = parsetest0 “nStart” “ptree_Start”
@@ -552,6 +588,33 @@ val _ = parsetest0 “nStart” “ptree_Start”
              (Mat (V «»)
                 [(Pc «Foo» [Pcon NONE [Pv «bar»; Pv «foo»]],
                   Fun «foo» (C «Foo» [Con NONE [V «bar»; V «foo»]]))]))]”)
+  ;
+
+val _ = parsetest0 “nStart” “ptree_Start”
+  "type rec1 = {foo: int; mutable bar: bool};;"
+  (SOME $ eval “
+    let cname = mk_struct_record_type_name [«bar»;«foo»] in
+    let cpat = Pc cname [Pcon NONE [Pv «bar»; Pv «foo»]] in
+      [Dtype L1 [([],«rec1»,[(cname,[Attup [
+          Atapp [Atapp [] (Short «bool»)] (Short «ref»);
+          Atapp [] (Short «int»)]])])];
+       Dlet L2 (Pv (mk_record_constr_name cname [«bar»;«foo»]))
+          (Fun «bar» (Fun «foo»
+             (C cname [Con NONE [App Opref [V «bar»]; V «foo»]])));
+       Dlet L3 (Pv (mk_struct_record_proj_name «bar»))
+          (Fun «» (Mat (V «») [(cpat,App Opderef [V «bar»])]));
+       Dlet L4 (Pv (mk_struct_record_proj_name «foo»))
+          (Fun «» (Mat (V «») [(cpat,V «foo»)]));
+       Dlet L5 (Pv (mk_struct_record_update_name «bar»))
+          (Fun «» (Mat (V «») [(cpat,Fun «bar»
+             (C cname [Con NONE [App Opref [V «bar»]; V «foo»]]))]));
+       Dlet L6 (Pv (mk_struct_record_update_name «foo»))
+          (Fun «» (Mat (V «») [(cpat,Fun «foo»
+             (C cname [Con NONE [App Opref [App Opderef [V «bar»]];
+                                  V «foo»]]))]));
+       Dlet L7 (Pv (mk_struct_record_set_name «bar»))
+          (Fun «» (Mat (V «») [(cpat,Fun « v»
+             (App Opassign [V «bar»; V « v»]))]))]”)
   ;
 
 (* 2024-06-06: pattern matching *)

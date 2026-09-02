@@ -1338,6 +1338,74 @@ Definition mk_record_constr_name_def:
             MAP (λfn. «(» ^ fn ^ «)») fields ++ [«}»])
 End
 
+Definition mk_struct_record_type_name_def:
+  mk_struct_record_type_name fields =
+    concat ([«{struct_record_type»] ++
+            MAP (λfn. «(» ^ fn ^ «)») fields ++ [«}»])
+End
+
+Definition mk_struct_record_update_name_def:
+  mk_struct_record_update_name field =
+    concat [«{struct_record_update(» ^ field ^ «)}»]
+End
+
+Definition mk_struct_record_proj_name_def:
+  mk_struct_record_proj_name field =
+    concat [«{struct_record_projection(» ^ field ^ «)}»]
+End
+
+Definition mk_struct_record_set_name_def:
+  mk_struct_record_set_name field =
+    concat [«{struct_record_assignment(» ^ field ^ «)}»]
+End
+
+Definition build_struct_record_upd_def:
+  build_struct_record_upd b (f,x) =
+    App Opapp [App Opapp [Var (Short (mk_struct_record_update_name f)); b]; x]
+End
+
+Definition build_struct_record_proj_def:
+  build_struct_record_proj f x =
+    App Opapp [Var (Short (mk_struct_record_proj_name f)); x]
+End
+
+Definition build_struct_record_set_def:
+  build_struct_record_set f x y =
+    App Opapp [App Opapp [Var (Short (mk_struct_record_set_name f)); x]; y]
+End
+
+(* Fold a possibly chained sequence of structural or constructor-qualified
+ * field projections from left to right.  OCaml sources routinely use chains
+ * such as [x.outer.inner]. *)
+Definition ptree_RecordProjections_def:
+  ptree_RecordProjections x [] = return x ∧
+  ptree_RecordProjections x (dot::arg::rest) =
+    do
+      expect_tok dot DotT;
+      n <- nterm_of arg;
+      if n = INL nFieldName then
+        do
+          f <- ptree_FieldName arg;
+          ptree_RecordProjections (build_struct_record_proj f x) rest
+        od
+      else if n = INL nConstr then
+        case rest of
+        | dot2::fn::more =>
+            do
+              expect_tok dot2 DotT;
+              f <- ptree_FieldName fn;
+              cns <- ptree_Constr arg;
+              ns <- path_to_ns unknown_loc cns;
+              ptree_RecordProjections (build_record_proj ns f x) more
+            od
+        | _ => fail (unknown_loc, «Incomplete qualified record projection»)
+      else
+        fail (unknown_loc, «Impossible: record projection»)
+    od ∧
+  ptree_RecordProjections x _ =
+    fail (unknown_loc, «Incomplete record projection»)
+End
+
 Definition build_record_cons_id_def:
   build_record_cons_id fns [] =
     fail (unknown_loc, «build_record_cons_id: empty path») ∧
@@ -1357,6 +1425,12 @@ Definition build_record_cons_def:
         id <- build_record_cons_id names path;
         return $ build_funapp (Var id) exprs
       od
+End
+
+Definition build_struct_record_cons_def:
+  build_struct_record_cons upds =
+    let names = MAP FST (sort (λ(f,_) (g,_). mlstring_lt f g) upds) in
+      build_record_cons [mk_struct_record_type_name names] upds
 End
 
 (* Pattern match on a record: first pattern match on the constructor (with
@@ -1647,6 +1721,8 @@ Definition ptree_Expr_def:
             n <- nterm_of arg;
             if n = INL nERecUpdate then
               ptree_Expr nERecUpdate arg
+            else if n = INL nEStructRecUpdate then
+              ptree_Expr nEStructRecUpdate arg
             else if n = INL nLiteral then
               fmap (λid. Con (SOME id) []) (ptree_Bool arg) ++
               fmap Lit (ptree_Literal arg) ++
@@ -1701,6 +1777,28 @@ Definition ptree_Expr_def:
             return $ FOLDL (build_record_upd ns) e us
           od
       | _ => fail (locs, «Impossible: nERecUpdate»)
+    else if nterm = INL nEStructRecUpdate then
+      case args of
+        [lb; x; witht; upds; semi; rb] =>
+          do
+            expect_tok lb LbraceT;
+            expect_tok witht WithT;
+            expect_tok semi SemiT;
+            expect_tok rb RbraceT;
+            e <- ptree_Expr nExpr x;
+            us <- ptree_Updates upds;
+            return $ FOLDL build_struct_record_upd e us
+          od
+      | [lb; x; witht; upds; rb] =>
+          do
+            expect_tok lb LbraceT;
+            expect_tok witht WithT;
+            expect_tok rb RbraceT;
+            e <- ptree_Expr nExpr x;
+            us <- ptree_Updates upds;
+            return $ FOLDL build_struct_record_upd e us
+          od
+      | _ => fail (locs, «Impossible: nEStructRecUpdate»)
     else if nterm = INL nEIndex then
       case args of
         [arg] => ptree_Expr nEPrefix arg
@@ -1719,16 +1817,10 @@ Definition ptree_Expr_def:
       | _ => fail (locs, «Impossible: nEIndex»)
     else if nterm = INL nERecProj then
       case args of
-        [arg] => ptree_Expr nEIndex arg
-      | [arg; dot1; cons; dot2; fn] =>
+        arg::rest =>
           do
-            expect_tok dot1 DotT;
-            expect_tok dot2 DotT;
             x <- ptree_Expr nEIndex arg;
-            f <- ptree_FieldName fn;
-            cns <- ptree_Constr cons;
-            ns <- path_to_ns locs cns;
-            return $ build_record_proj ns f x
+            ptree_RecordProjections x rest
           od
       | _ => fail (locs, «Impossible: nERecProj»)
     else if nterm = INL nERecCons then
@@ -1751,6 +1843,24 @@ Definition ptree_Expr_def:
             build_record_cons path us
           od
       | _ => fail (locs, «Impossible: nERecCons»)
+    else if nterm = INL nEStructRecCons then
+      case args of
+        [lb; upds; semi; rb] =>
+          do
+            expect_tok lb LbraceT;
+            expect_tok semi SemiT;
+            expect_tok rb RbraceT;
+            us <- ptree_Updates upds;
+            build_struct_record_cons us
+          od
+      | [lb; upds; rb] =>
+          do
+            expect_tok lb LbraceT;
+            expect_tok rb RbraceT;
+            us <- ptree_Updates upds;
+            build_struct_record_cons us
+          od
+      | _ => fail (locs, «Impossible: nEStructRecCons»)
     else if nterm = INL nEAssert then
       case args of
         [assr; expr] =>
@@ -1798,12 +1908,16 @@ Definition ptree_Expr_def:
               ptree_Expr nELazy arg
             else if n = INL nEAssert then
               ptree_Expr nEAssert arg
+            else if n = INL nERecUpdate then
+              ptree_Expr nERecUpdate arg
             else if n = INL nEConstr then
               ptree_Expr nEConstr arg
             else if n = INL nEFunapp then
               ptree_Expr nEFunapp arg
             else if n = INL nERecCons then
               ptree_Expr nERecCons arg
+            else if n = INL nEStructRecCons then
+              ptree_Expr nEStructRecCons arg
             else if n = INL nERecProj then
               ptree_Expr nERecProj arg
             else
@@ -1951,6 +2065,15 @@ Definition ptree_Expr_def:
     else if nterm = INL nEAssign then
       case args of
         [exp] => ptree_Expr nEProd exp
+      | [recv; dot; fn; larrow; rhs] =>
+          do
+            expect_tok dot DotT;
+            expect_tok larrow LarrowT;
+            x <- ptree_Expr nEIndex recv;
+            f <- ptree_FieldName fn;
+            y <- ptree_Expr nEAssign rhs;
+            return $ build_struct_record_set f x y
+          od
       | [lhs; opn; rhs] =>
           do
             x <- ptree_Expr nEProd lhs;
@@ -2449,7 +2572,15 @@ Definition ptree_FieldDec_def:
             expect_tok colon ColonT;
             f <- ptree_FieldName fn;
             t <- ptree_Type ty;
-            return (f, t)
+            return (f, F, t)
+          od
+      | [mutable; fn; colon; ty] =>
+          do
+            expect_tok mutable MutableT;
+            expect_tok colon ColonT;
+            f <- ptree_FieldName fn;
+            t <- ptree_Type ty;
+            return (f, T, t)
           od
       | _ => fail (locs, «Impossible: nFieldDec»)
     else
@@ -2476,7 +2607,7 @@ Definition ptree_FieldDecs_def:
 End
 
 (*
- * Record definitions return a list of (field_name,type) pairs.
+ * Record definitions return a list of (field_name,mutable,type) triples.
  *)
 
 Definition ptree_Record_def:
@@ -2682,6 +2813,13 @@ Definition ptree_TypeInfo_def:
               fmap INL (ptree_Type arg)
             else if n = INL nTypeRepr then
               fmap INR (ptree_TypeRepr arg)
+            else if n = INL nRecord then
+              do
+                fds <- ptree_Record arg;
+                names <<- sort (λl r. mlstring_lt l r)
+                              (MAP (λ(f,m,t). f) fds);
+                return $ INR [INR (mk_struct_record_type_name names, fds)]
+              od
             else
               fail (locs, «Impossible: nTypeInfo»)
           od
@@ -2807,29 +2945,77 @@ End
  *      datatype, too.
  *)
 
+Definition record_field_names_def:
+  record_field_names = MAP (λ(f,m,t). f)
+End
+
+Definition build_record_value_def:
+  build_record_value cname vars =
+    Con (SOME (Short cname))
+        (case vars of
+         | _::_::_ => [Con NONE vars]
+         | _ => vars)
+End
+
+Definition build_record_initial_field_def:
+  build_record_initial_field (f,m,t) =
+    if m then App Opref [Var (Short f)] else Var (Short f)
+End
+
+Definition build_record_copy_field_def:
+  build_record_copy_field target (f,m,t) =
+    if m then
+      App Opref [if f = target then Var (Short f)
+                 else App Opderef [Var (Short f)]]
+    else
+      Var (Short f)
+End
+
+Definition record_helper_proj_name_def:
+  record_helper_proj_name structural cname field =
+    if structural then mk_struct_record_proj_name field
+    else mk_record_proj_name field cname
+End
+
+Definition record_helper_update_name_def:
+  record_helper_update_name structural cname field =
+    if structural then mk_struct_record_update_name field
+    else mk_record_update_name field cname
+End
+
 Definition build_rec_funs_def:
   build_rec_funs (locs, cname, fds) =
-    let vars = MAP (Var o Short) fds in
-    let rhs = Con (SOME (Short cname))
-                  (case vars of
-                   | _::_::_ => [Con NONE vars]
-                   | _ => vars) in
-    let constr = Dlet locs (Pvar (mk_record_constr_name cname fds))
-                      (FOLDR (λf x. Fun f x) rhs fds) in
-    let pvars = MAP Pvar fds in
+    let names = record_field_names fds in
+    let structural = (cname = mk_struct_record_type_name names) in
+    let rhs = build_record_value cname (MAP build_record_initial_field fds) in
+    let constr = Dlet locs (Pvar (mk_record_constr_name cname names))
+                      (FOLDR (λf x. Fun f x) rhs names) in
+    let pvars = MAP (Pvar o FST) fds in
     let pat = Pcon (SOME (Short cname))
                    (case pvars of
                     | _::_::_ => [Pcon NONE pvars]
                     | _ => pvars) in
-    let projs = MAP (λf.
-                  Dlet locs (Pvar (mk_record_proj_name f cname))
+    let projs = MAP (λ(f,m,t).
+                  Dlet locs
+                    (Pvar (record_helper_proj_name structural cname f))
                     (Fun «» (Mat (Var (Short «»))
-                        [(pat, Var (Short f))]))) fds in
-    let upds = MAP (λf.
-                  Dlet locs (Pvar (mk_record_update_name f cname))
+                        [(pat, if m then App Opderef [Var (Short f)]
+                               else Var (Short f))]))) fds in
+    let upds = MAP (λ(f,m,t).
+                  Dlet locs
+                    (Pvar (record_helper_update_name structural cname f))
                     (Fun «» (Mat (Var (Short «»))
-                        [(pat, Fun f rhs)]))) fds in
-      constr :: projs ++ upds
+                        [(pat, Fun f
+                          (build_record_value cname
+                            (MAP (build_record_copy_field f) fds)))]))) fds in
+    let sets = FLAT $ MAP (λ(f,m,t).
+                  if structural ∧ m then
+                    [Dlet locs (Pvar (mk_struct_record_set_name f))
+                      (Fun «» (Mat (Var (Short «»))
+                        [(pat, Fun « v»
+                          (App Opassign [Var (Short f); Var (Short « v»)]))]))]
+                  else []) fds in
+      constr :: projs ++ upds ++ sets
 End
 
 (* This function attempts to make sense of different type declarations. It has
@@ -2868,7 +3054,7 @@ Definition sort_records_def:
      MAP (λtdef.
        case tdef of
        | INL (cn,tys) => INL (cn,tys)
-       | INR (cn,fds) => INR (cn,sort (λ(l,_) (r,_). mlstring_lt l r) fds)) tds)
+       | INR (cn,fds) => INR (cn,sort (λ(l,_,_) (r,_,_). mlstring_lt l r) fds)) tds)
 End
 
 Definition MAP_OUTR_def:
@@ -2879,7 +3065,7 @@ End
 
 Definition extract_record_defns_def:
   extract_record_defns (locs,tvs,tn,tds) =
-    MAP_OUTR (λ(cn,fds). (locs,cn,MAP FST fds)) tds
+    MAP_OUTR (λ(cn,fds). (locs,cn,fds)) tds
 End
 
 (* Flattens records into regular datatype constructors. Multi-argument
@@ -2891,7 +3077,10 @@ Definition strip_record_fields_def:
   strip_record_fields (locs,tvs,cn,trs) =
     (locs,tvs,cn,MAP (λtr. case tr of
                            | INL (n,tys) => (n, ctor_tup tys)
-                           | INR (n,fds) => (n, ctor_tup (MAP SND fds))) trs)
+                           | INR (n,fds) =>
+                               (n, ctor_tup (MAP (λ(f,m,t).
+                                  if m then Atapp [t] (Short «ref») else t)
+                                  fds))) trs)
 End
 
 Definition ptree_TypeDefinition_def:
@@ -2923,7 +3112,7 @@ Definition ptree_TypeDefinition_def:
               do
                 defs <<- MAP sort_records datas;
                 recs <<- FLAT $ MAP extract_record_defns defs;
-                if ¬EVERY (ALL_DISTINCT o SND o SND) recs then
+                if ¬EVERY (ALL_DISTINCT o record_field_names o SND o SND) recs then
                   fail (locs, «record field names must be distinct»)
                 else return ();
                 recfuns <<- FLAT $ MAP build_rec_funs recs;

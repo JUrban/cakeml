@@ -117,6 +117,7 @@ QED
 val _ = update_precondition ptree_literal_side;
 
 val r = preprocess ptree_FieldName_def |> translate;
+val r = preprocess ptree_RecordProjections_def |> translate;
 
 val r = translate (DefnBase.one_line_ify NONE precparserTheory.precparse_def)
 

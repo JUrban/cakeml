@@ -227,6 +227,7 @@ Datatype:
     | nEApp | nEConstr | nEFunapp | nEAssert | nELazy
     | nEPrefix | nEIndex | nENeg | nEShift | nEMult
     | nERecProj | nERecUpdate | nERecCons
+    | nEStructRecUpdate | nEStructRecCons
     | nEAdd | nECons | nECat | nERel
     | nEAnd | nEOr | nEProd | nEAssign | nEIf | nESeq
     | nEMatch | nETry | nEFun | nEFunction | nELet | nELetRec
@@ -471,7 +472,7 @@ Definition camlPEG_def[nocompute]:
                      (bindNT nTypeParams)]);
       (INL nTypeInfo,
        seql [tokeq EqualT;
-             choicel [pnt nType; pnt nTypeRepr]]
+             choicel [pnt nRecord; pnt nType; pnt nTypeRepr]]
             (bindNT nTypeInfo));
       (INL nTypeRepr,
        seql [try (tokeq BarT); pnt nConstrDecl; try (pnt nTypeReprs)]
@@ -490,7 +491,7 @@ Definition camlPEG_def[nocompute]:
        seql [pnt nFieldDec; try (seql [tokeq SemiT; pnt nFieldDecs] I)]
             (bindNT nFieldDecs));
       (INL nFieldDec,
-       seql [pnt nFieldName; tokeq ColonT; pnt nType]
+       seql [try (tokeq MutableT); pnt nFieldName; tokeq ColonT; pnt nType]
             (bindNT nFieldDec));
       (INL nConstrArgs,
        seql [pnt nTConstr; rpt (seql [tokeq StarT; pnt nTConstr] I) FLAT]
@@ -554,12 +555,17 @@ Definition camlPEG_def[nocompute]:
        seql [pnt nConstr; tokeq LbraceT; pnt nExpr; tokeq WithT; pnt nUpdates;
              try (tokeq SemiT); tokeq RbraceT]
             (bindNT nERecUpdate));
+      (INL nEStructRecUpdate,
+       seql [tokeq LbraceT; pnt nExpr; tokeq WithT; pnt nUpdates;
+             try (tokeq SemiT); tokeq RbraceT]
+            (bindNT nEStructRecUpdate));
       (INL nEBase,
        choicel [
          pegf (pnt nLiteral) (bindNT nEBase);
          pegf (pnt nValuePath) (bindNT nEBase);
          (* N.B. nERecUpdate goes before nConstr, because they coincide *)
          pegf (pnt nERecUpdate) (bindNT nEBase);
+         pegf (pnt nEStructRecUpdate) (bindNT nEBase);
          pegf (pnt nConstr) (bindNT nEBase);
          pegf (pnt nEList) (bindNT nEBase);
          seql [tokeq LparT; tokeq RparT] (bindNT nEBase); (* unit *)
@@ -590,7 +596,9 @@ Definition camlPEG_def[nocompute]:
       (* -- Expr14.5 ------------------------------------------------------- *)
       (INL nERecProj,
        seql [pnt nEIndex;
-             try (seql [tokeq DotT; pnt nConstr; tokeq DotT; pnt nFieldName] I)]
+             rpt (choicel [
+               seql [tokeq DotT; pnt nConstr; tokeq DotT; pnt nFieldName] I;
+               seql [tokeq DotT; pnt nFieldName] I]) FLAT]
             (bindNT nERecProj));
       (* -- Expr14 --------------------------------------------------------- *)
       (INL nEAssert,
@@ -603,6 +611,9 @@ Definition camlPEG_def[nocompute]:
        seql [pnt nConstr;
              tokeq LbraceT; pnt nUpdates; try (tokeq SemiT); tokeq RbraceT]
             (bindNT nERecCons));
+      (INL nEStructRecCons,
+       seql [tokeq LbraceT; pnt nUpdates; try (tokeq SemiT); tokeq RbraceT]
+            (bindNT nEStructRecCons));
       (INL nEFunapp,
        seql [pnt nERecProj; rpt (pnt nERecProj) FLAT]
             (λl. case l of
@@ -610,7 +621,12 @@ Definition camlPEG_def[nocompute]:
                  | h::t => [FOLDL (λa b. mkNd (INL nEFunapp) [a; b])
                                   (mkNd (INL nEFunapp) [h]) t]));
       (INL nEApp,
-       pegf (choicel (MAP pnt [nELazy; nEAssert; nERecCons; nEConstr; nEFunapp;
+       (* A bare structural record update is also a valid argument to a
+          constructor.  Prefer the complete legacy qualified update before
+          considering constructor application, so [C {x with f = y}] keeps
+          its original record-update meaning. *)
+       pegf (choicel (MAP pnt [nELazy; nEAssert; nERecUpdate; nERecCons;
+                               nEStructRecCons; nEConstr; nEFunapp;
                                nERecProj]))
             (bindNT nEApp));
       (* -- Expr13 --------------------------------------------------------- *)
@@ -722,8 +738,11 @@ Definition camlPEG_def[nocompute]:
        pegf (choicel [tokeq UpdateT; tokeq LarrowT])
             (bindNT nAssignOp));
       (INL nEAssign,
-       seql [pnt nEProd; try (seql [pnt nAssignOp; pnt nEAssign] I)]
-            (bindNT nEAssign));
+       choicel [
+         seql [pnt nEIndex; tokeq DotT; pnt nFieldName; tokeq LarrowT;
+               pnt nEAssign] (bindNT nEAssign);
+         seql [pnt nEProd; try (seql [pnt nAssignOp; pnt nEAssign] I)]
+              (bindNT nEAssign)]);
       (* -- Expr1 ---------------------------------------------------------- *)
       (INL nEIf,
        pegf (choicel [seql [tokeq IfT; pnt nExpr; tokeq ThenT; pnt nEIf;
@@ -1030,7 +1049,8 @@ val npeg0_rwts =
         “nHolInfixOp”, “nCatOp”, “nPrefixOp”, “nAssignOp”, “nValueName”,
         “nOperatorName”, “nConstrName”, “nTypeConstrName”, “nModuleName”,
         “nValuePath”, “nConstr”, “nTypeConstr”, “nModulePath”, “nFieldName”,
-        “nUpdate”, “nUpdates”, “nERecUpdate”, “nERecCons”, “nLiteral”,
+        “nUpdate”, “nUpdates”, “nERecUpdate”, “nEStructRecUpdate”, “nERecCons”,
+        “nEStructRecCons”, “nLiteral”,
         “nIdent”, “nEList”, “nEConstr”, “nEBase”, “nEPrefix”, “nArrIdx”,
         “nStrIdx”, “nEIndex”, “nERecProj”, “nELazy”, “nEAssert”, “nEFunapp”,
         “nEApp”, “nLetBinding”, “nPAny”, “nPList”, “nPPar”, “nPatLiteral”,
@@ -1070,7 +1090,8 @@ val topo_nts =
         “nHolInfixOp”, “nCatOp”, “nPrefixOp”, “nAssignOp”, “nValueName”,
         “nOperatorName”, “nConstrName”, “nTypeConstrName”, “nModuleName”,
         “nModulePath”, “nValuePath”, “nConstr”, “nTypeConstr”, “nFieldName”,
-        “nLiteral”, “nIdent”, “nEList”, “nEConstr”, “nERecUpdate”, “nERecCons”,
+        “nLiteral”, “nIdent”, “nEList”, “nEConstr”, “nERecUpdate”,
+        “nEStructRecUpdate”, “nERecCons”, “nEStructRecCons”,
         “nEBase”, “nEPrefix”, “nEIndex”, “nERecProj”, “nELazy”, “nEAssert”,
         “nEFunapp”, “nEApp”, “nPAny”, “nPList”, “nPPar”, “nPatLiteral”,
         “nPBase”, “nPRecFields”, “nPCons”, “nPAs”, “nPOps”, “nPattern”,
