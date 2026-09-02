@@ -383,6 +383,7 @@ Definition camlPEG_def[nocompute]:
                       pnt nTypeDefinition;
                       pnt nExcDefinition;
                       pnt nOpen;
+                      pnt nIncludeMod;
                       pnt nModuleTypeDef;
                       pnt nModuleDef;
                       (* CakeML code pragmas: *)

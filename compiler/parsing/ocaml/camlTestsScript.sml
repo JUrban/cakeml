@@ -1437,6 +1437,15 @@ val _ = parsetest0 “nDefinition” “ptree_Definition”
   (SOME “[Dopen L [«TextIO»]]”)
   ;
 
+(* CakeML's Dopen returns the opened declaration environment.  Inside a Dmod
+ * this has the declaration-export behaviour required by the path-only OCaml
+ * include form, in addition to making the names available to later items. *)
+
+val _ = parsetest0 “nDefinition” “ptree_Definition”
+  "include Flyspeck_eval"
+  (SOME “[Dopen L [«Flyspeck_eval»]]”)
+  ;
+
 (* -------------------------------------------------------------------------
  * Candle compatibility layer.
  *

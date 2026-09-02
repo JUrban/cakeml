@@ -3275,6 +3275,15 @@ Definition ptree_Definition_def:
             return [Dopen locs path]
           od
       | _ => fail (locs, «Impossible: nOpen»)
+    else if nterm = INL nIncludeMod then
+      case args of
+        [includet; modpath] =>
+          do
+            expect_tok includet IncludeT;
+            path <- ptree_ModulePath modpath;
+            return [Dopen locs path]
+          od
+      | _ => fail (locs, «Impossible: nIncludeMod»)
     else if nterm = INL nModuleTypeDef then
       case args of
         [modt; typet; name; eqt; typ] =>
