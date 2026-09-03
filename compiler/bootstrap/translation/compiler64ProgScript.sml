@@ -744,11 +744,18 @@ val _ = (next_ml_names := ["select_parse"]);
 val r = translate select_parse_def;
 
 Definition init_next_string_def:
-  init_next_string cl = if MEM «--candle» cl then «candle» else «»
+  init_next_string cl = if MEMBER «--candle» cl then «candle» else «»
 End
 
 val _ = (next_ml_names := ["init_next_string"]);
-val res = translate (init_next_string_def |> REWRITE_RULE [MEMBER_INTRO]);
+val res = translate init_next_string_def;
+
+Theorem init_next_string_known_answers:
+  init_next_string [«--candle»] = «candle» ∧
+  init_next_string [«--repl»] = «»
+Proof
+  EVAL_TAC
+QED
 
 Quote add_cakeml:
 fun start_repl (cl,s1) =
