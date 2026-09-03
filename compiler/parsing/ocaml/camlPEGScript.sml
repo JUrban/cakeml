@@ -693,7 +693,13 @@ Definition camlPEG_def[nocompute]:
                       tokSymP (validAddOp ∘ explode)])
             (bindNT nAddOp));
       (INL nEAdd,
-       peg_linfix (INL nEAdd) (pnt nEMult) (pnt nAddOp));
+       seql [pnt nEMult;
+             rpt (seql [pnt nAddOp; pnt nEMult] I) FLAT;
+             try (seql [pnt nAddOp; pnt nEIf] I)]
+            (λl. case l of
+                   [] => []
+                 | h::t => [mk_linfix (INL nEAdd)
+                               (mkNd (INL nEAdd) [h]) t]));
       (* -- Expr8 ---------------------------------------------------------- *)
       (INL nECons,
        seql [pnt nEAdd; try (seql [tokeq ColonsT; pnt nECons] I)]
@@ -732,7 +738,8 @@ Definition camlPEG_def[nocompute]:
       (* -- Expr3 ---------------------------------------------------------- *)
       (INL nEProd,
        seql [pnt nEHolInfix;
-             rpt (seql [tokeq CommaT; pnt nEHolInfix] I) FLAT]
+             rpt (seql [tokeq CommaT;
+                         choicel [pnt nEHolInfix; pnt nEIf]] I) FLAT]
             (bindNT nEProd));
       (* -- Expr2: assignments --------------------------------------------- *)
       (INL nAssignOp,

@@ -2006,7 +2006,11 @@ Definition ptree_Expr_def:
       | [lhs; opn; rhs] =>
           do
             x <- ptree_Expr nEAdd lhs;
-            y <- ptree_Expr nEMult rhs;
+            n <- nterm_of rhs;
+            y <- if n = INL nEIf then
+                   ptree_Expr nEIf rhs
+                 else
+                   ptree_Expr nEMult rhs;
             op <- ptree_Op opn;
             return (build_binop op x y)
           od
@@ -2510,7 +2514,11 @@ Definition ptree_Expr_def:
       ptree_ExprCommas xs
     od ++
     do
-      y <- ptree_Expr nEHolInfix x;
+      n <- nterm_of x;
+      y <- if n = INL nEIf then
+             ptree_Expr nEIf x
+           else
+             ptree_Expr nEHolInfix x;
       ys <- ptree_ExprCommas xs;
       return (y::ys)
     od) ∧

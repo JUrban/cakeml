@@ -1257,6 +1257,16 @@ val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   ;
 
 val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "a + if p then b else c"
+  (SOME “vbinop (Short «+») (V «a») (If (V «p») (V «b») (V «c»))”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "(a, if p then b else c)"
+  (SOME “Con NONE [V «a»; If (V «p») (V «b») (V «c»)]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   "3 < x = true"
   (SOME “vbinop (Short «=»)
                 (vbinop (Short «<») (Lit (IntLit 3)) (V «x»))
