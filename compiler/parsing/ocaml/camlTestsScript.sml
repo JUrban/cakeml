@@ -556,6 +556,16 @@ val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   ;
 
 val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "add {foo = 5; bar = true}"
+  (SOME $ eval
+    “App Opapp [V «add»;
+       App Opapp [App Opapp [
+         V (mk_record_constr_name
+              (mk_struct_record_type_name [«bar»;«foo»]) [«bar»;«foo»]);
+         C «True» []]; Lit (IntLit 5)]]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   "x.foo <- y"
   (SOME $ eval “App Opapp [App Opapp [
                     V (mk_struct_record_set_name «foo»); V «x»]; V «y»]”)
@@ -1090,6 +1100,13 @@ val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   ;
 
 val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "let _ = a (); b (); in c"
+  (SOME “Let NONE (Let NONE (App Opapp [V «a»; Con NONE []])
+                           (App Opapp [V «b»; Con NONE []]))
+                  (V «c»)”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   "while p do step (); done"
   (SOME “vbinop (Short «while») (V «p»)
             (App Opapp [V «step»; Con NONE []])”)
@@ -1227,6 +1244,16 @@ val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   (SOME “vbinop (Short «=»)
                 (C «::» [Lit (IntLit 3); V «t»])
                 (V «l»)”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "x::!xs"
+  (SOME “C «::» [V «x»; App Opapp [V «!»; V «xs»]]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "a @ if p then b else c"
+  (SOME “vbinop (Short «@») (V «a») (If (V «p») (V «b») (V «c»))”)
   ;
 
 val _ = parsetest0 “nExpr” “ptree_Expr nExpr”

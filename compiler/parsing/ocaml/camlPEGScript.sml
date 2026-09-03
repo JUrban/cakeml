@@ -615,7 +615,8 @@ Definition camlPEG_def[nocompute]:
        seql [tokeq LbraceT; pnt nUpdates; try (tokeq SemiT); tokeq RbraceT]
             (bindNT nEStructRecCons));
       (INL nEFunapp,
-       seql [pnt nERecProj; rpt (pnt nERecProj) FLAT]
+       seql [pnt nERecProj;
+             rpt (choicel [pnt nEStructRecCons; pnt nERecProj]) FLAT]
             (λl. case l of
                    [] => []
                  | h::t => [FOLDL (λa b. mkNd (INL nEFunapp) [a; b])
@@ -702,7 +703,7 @@ Definition camlPEG_def[nocompute]:
        pegf (tokSymP (validCatOp ∘ explode))
             (bindNT nCatOp));
       (INL nECat,
-       seql [pnt nECons; try (seql [pnt nCatOp; pnt nECat] I)]
+       seql [pnt nECons; try (seql [pnt nCatOp; pnt nEIf] I)]
             (bindNT nECat));
       (* -- Expr6 ---------------------------------------------------------- *)
       (INL nRelOp,
@@ -751,7 +752,9 @@ Definition camlPEG_def[nocompute]:
             (bindNT nEIf));
       (* -- Expr: ---------------------------------------------------------- *)
       (INL nESeq,
-       seql [pnt nEIf; try (seql [tokeq SemiT; pnt nExpr] I)]
+       seql [pnt nEIf;
+             choicel [seql [tokeq SemiT; pnt nExpr] I;
+                      try (tokeq SemiT)]]
             (bindNT nESeq));
       (INL nExpr,
        pegf (choicel [pnt nESeq])

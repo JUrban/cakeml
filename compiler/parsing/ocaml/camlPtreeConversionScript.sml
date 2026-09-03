@@ -1916,7 +1916,11 @@ Definition ptree_Expr_def:
       | [fexp; aexp] =>
           do
             f <- ptree_Expr nEFunapp fexp;
-            x <- ptree_Expr nERecProj aexp;
+            n <- nterm_of aexp;
+            x <- if n = INL nEStructRecCons then
+                   ptree_Expr nEStructRecCons aexp
+                 else
+                   ptree_Expr nERecProj aexp;
             return (build_funapp f [x])
           od
       | _ => fail (locs, «Impossible: nEFunapp»)
@@ -2024,7 +2028,7 @@ Definition ptree_Expr_def:
       | [lhs; opn; rhs] =>
           do
             x <- ptree_Expr nECons lhs;
-            y <- ptree_Expr nECat rhs;
+            y <- ptree_Expr nEIf rhs;
             op <- ptree_Op opn;
             return (build_binop op x y)
           od
@@ -2133,6 +2137,11 @@ Definition ptree_Expr_def:
             x1 <- ptree_Expr nEIf x;
             y1 <- ptree_Expr nExpr y;
             return (Let NONE x1 y1)
+          od
+      | [x; semi] =>
+          do
+            expect_tok semi SemiT;
+            ptree_Expr nEIf x
           od
       | [x] => ptree_Expr nEIf x
       | _ => fail (locs,«Impossible: nESeq»)

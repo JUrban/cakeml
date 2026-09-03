@@ -618,6 +618,10 @@ Definition next_sym_def:
       case skip_comment (TL cs) 0 (next_loc 2 loc) of
       | NONE => SOME (ErrorS, Locs loc (next_loc 2 loc), "")
       | SOME (rest, loc') => next_sym rest loc'
+    else if isPREFIX [#":"; #":"] (c::cs) then
+      (* [::] is a reserved constructor token in OCaml, even when a prefix
+       * operator follows without whitespace, as in Flyspeck's [x::!xs]. *)
+      SOME (OtherS [#":"; #":"], Locs loc (next_loc 1 loc), TL cs)
     else if isDelim c then
       SOME (OtherS [c], Locs loc loc, cs)
     else if isSym c then
@@ -890,6 +894,14 @@ Definition next_token_def:
       NONE => NONE
     | SOME (sym, locs, rest) => SOME (sym2token sym, locs, rest)
 End
+
+Theorem next_token_tight_cons_deref:
+  next_token "::!xs" loc =
+    SOME (ColonsT, Locs loc (next_loc 1 loc), "!xs")
+Proof
+  simp [next_token_def, next_sym_def, sym2token_def, get_token_def,
+        isSpace_def, isDigit_def]
+QED
 
 Theorem next_token_thm:
   next_token inp loc = SOME (sym, locs, rest) ⇒
