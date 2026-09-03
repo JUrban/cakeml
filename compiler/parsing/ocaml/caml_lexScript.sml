@@ -345,13 +345,32 @@ Definition scan_strlit_def:
         scan_strlit (#"\n"::acc) cs (next_line loc)
     | #"\\"::_ =>
         (case scan_escseq cs loc of
-           NONE => SOME (ErrorS, Locs loc loc, cs)
+           NONE =>
+             (case cs of
+                #"\\"::c::rest =>
+                  if c ≠ #"\n" ∧ c ≠ #"x" ∧ c ≠ #"o" ∧ ¬isDigit c then
+                    (* OCaml warning 14 retains both bytes for an unknown
+                     * string escape.  Malformed numeric escapes and line
+                     * continuations remain errors here. *)
+                    scan_strlit (c::#"\\"::acc) rest (next_loc 2 loc)
+                  else
+                    SOME (ErrorS, Locs loc loc, cs)
+              | _ => SOME (ErrorS, Locs loc loc, cs))
          | SOME (c, cs', loc') => scan_strlit (c::acc) cs' loc')
     | c::cs => scan_strlit (c::acc) cs (next_loc 1 loc)
 Termination
   wf_rel_tac ‘measure (LENGTH o FST o SND)’ \\ rw []
   \\ drule_then assume_tac scan_escseq_thm \\ gs []
 End
+
+Theorem scan_strlit_unknown_escape:
+  scan_strlit [] [#"\\"; #"_"; #"\""] loc =
+    SOME (StringS [#"\\"; #"_"],
+          Locs (next_loc 2 loc) (next_loc 2 loc), [])
+Proof
+  simp [Once scan_strlit_def, scan_escseq_def, isDigit_def]
+  \\ simp [Once scan_strlit_def]
+QED
 
 Theorem scan_strlit_thm:
   ∀acc cs loc sym locs ds.

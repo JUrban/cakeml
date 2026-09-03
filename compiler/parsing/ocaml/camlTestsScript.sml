@@ -1323,6 +1323,12 @@ val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   "print \"hello\nworld\""
   (SOME “App Opapp [V «print»; Lit (StrLit «hello\nworld»)]”)
 
+(* OCaml warning 14 preserves both bytes of an otherwise unknown escape in a
+ * string literal.  Flyspeck uses this for LaTeX fragments such as \_ . *)
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "\"\\_\""
+  (SOME “Lit (StrLit (implode [CHR 92; CHR 95]))”)
+
 (* -------------------------------------------------------------------------
  * Declarations
  * ------------------------------------------------------------------------- *)
