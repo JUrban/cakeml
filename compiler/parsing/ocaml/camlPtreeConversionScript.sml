@@ -877,6 +877,18 @@ Definition nterm_of_def:
   nterm_of (Nd (nterm, _) args) = return nterm
 End
 
+(* Keep lookahead over an expression parsetree out of the large mutually
+ * recursive converter.  In particular, making each lookahead an additional
+ * branch of ptree_Expr causes the translator to duplicate the remaining
+ * symbolic conversion paths. *)
+Definition select_expr_nterm_def:
+  select_expr_nterm special fallback ptree =
+    do
+      n <- nterm_of ptree;
+      return (if n = INL special then special else fallback)
+    od
+End
+
 (* This code was adapted from the following parser code in the pure repository:
  * github.com/CakeML/pure/blob/master/compiler/parsing/cst_to_astScript.sml
  *)
@@ -1916,11 +1928,8 @@ Definition ptree_Expr_def:
       | [fexp; aexp] =>
           do
             f <- ptree_Expr nEFunapp fexp;
-            n <- nterm_of aexp;
-            x <- if n = INL nEStructRecCons then
-                   ptree_Expr nEStructRecCons aexp
-                 else
-                   ptree_Expr nERecProj aexp;
+            next <- select_expr_nterm nEStructRecCons nERecProj aexp;
+            x <- ptree_Expr next aexp;
             return (build_funapp f [x])
           od
       | _ => fail (locs, «Impossible: nEFunapp»)
@@ -2006,11 +2015,8 @@ Definition ptree_Expr_def:
       | [lhs; opn; rhs] =>
           do
             x <- ptree_Expr nEAdd lhs;
-            n <- nterm_of rhs;
-            y <- if n = INL nEIf then
-                   ptree_Expr nEIf rhs
-                 else
-                   ptree_Expr nEMult rhs;
+            next <- select_expr_nterm nEIf nEMult rhs;
+            y <- ptree_Expr next rhs;
             op <- ptree_Op opn;
             return (build_binop op x y)
           od
@@ -2514,11 +2520,8 @@ Definition ptree_Expr_def:
       ptree_ExprCommas xs
     od ++
     do
-      n <- nterm_of x;
-      y <- if n = INL nEIf then
-             ptree_Expr nEIf x
-           else
-             ptree_Expr nEHolInfix x;
+      next <- select_expr_nterm nEIf nEHolInfix x;
+      y <- ptree_Expr next x;
       ys <- ptree_ExprCommas xs;
       return (y::ys)
     od) ∧
