@@ -645,13 +645,13 @@ let canonicalSourcePath original =
    code checks the resolved/canonical/selected paths before emitting a request.
    Hash strings are bindings, not hashes computed by this runtime. *)
 type sourceTraceBinding =
-  SourceTraceBinding of
+  Source_trace_binding of
     string * string * string * string * string * string * string * string * string *
     string
 ;;
 
 type sourceTraceRequest =
-  SourceTraceRequest of int
+  Source_trace_request of int
 ;;
 
 let sourceTraceNonce = ref (None: string option);;
@@ -717,7 +717,7 @@ let configureSourceTrace nonce mappings =
           List.map
             (fun (binding_id,resolved,canonical,key,basename,md5,sha256,selected,
                   selected_sha256,normalization) ->
-               SourceTraceBinding
+               Source_trace_binding
                  (binding_id,resolved,canonical,key,basename,md5,sha256,selected,
                   selected_sha256,normalization))
             mappings;
@@ -754,7 +754,7 @@ let beginSourceTraceRequest parent kind resolved canonical selected prior_cache 
       let rec find remaining =
         match remaining with
         | [] -> failwith ("unauthenticated Candle source trace path: " ^ resolved)
-        | SourceTraceBinding
+        | Source_trace_binding
             (binding_id,expected_resolved,expected_canonical,key,basename,md5,sha256,
              expected_selected,selected_sha256,normalization)::rest ->
             if expected_resolved <> resolved then find rest
@@ -773,14 +773,14 @@ let beginSourceTraceRequest parent kind resolved canonical selected prior_cache 
                      key ^ "\t" ^ basename ^ "\t" ^ md5 ^ "\t" ^
                      sha256 ^ "\t" ^ selected_sha256 ^ "\t" ^
                      normalization ^ "\t" ^ prior_text ^ "\n");
-              Some (SourceTraceRequest request) in
+              Some (Source_trace_request request) in
       find !sourceTraceBindings
 ;;
 
 let completeSourceTraceRequest request outcome =
   match request,!sourceTraceNonce with
   | None,_ -> ()
-  | Some (SourceTraceRequest id),Some nonce ->
+  | Some (Source_trace_request id),Some nonce ->
       if !sourceTraceFailed || !sourceTraceFinished then
         failwith "Candle source trace request completed after terminal state"
       else
@@ -855,9 +855,9 @@ let selectNormalizedSource original =
 exception Repl_error;;
 
 type sourceLoadStatus =
-  | SourceLoaded of string list
-  | SourceCacheSkip
-  | SourceReadFailure
+  | Source_loaded of string list
+  | Source_cache_skip
+  | Source_read_failure
 ;;
 
 (* Candle links these OCaml-library compatibility modules statically.  This
@@ -909,7 +909,7 @@ let () =
     let clearLoadStack () = stack := [] in
     let currentTraceParent () =
       match !stack with
-      | (_,_,Some (SourceTraceRequest id))::_ -> Some id
+      | (_,_,Some (Source_trace_request id))::_ -> Some id
       | _ -> None in
     let loadStackEmpty () = List.null (!stack) in
     pushLoad, popLoad, clearLoadStack, currentTraceParent, loadStackEmpty in
@@ -939,23 +939,23 @@ let () =
     let load_use original selected =
       loadMsg selected;
       match Text_io.inputLinesFile '\n' selected with
-      | None -> SourceReadFailure
-      | Some lines -> SourceLoaded lines in
+      | None -> Source_read_failure
+      | Some lines -> Source_loaded lines in
     let load original selected =
       loadMsg selected;
       match Text_io.inputLinesFile '\n' selected with
-      | None -> SourceReadFailure
+      | None -> Source_read_failure
       | Some lns ->
           begin
             if not (List.exists (fun x -> x = original) (!loadedFiles)) then
               loadedFiles := original :: !loadedFiles
           end;
-          SourceLoaded lns in
+          Source_loaded lns in
     let load1 original selected =
       if List.exists (fun x -> x = original) (!loadedFiles) then
         begin
           print ("- Already loaded: " ^ original ^ "\n");
-          SourceCacheSkip
+          Source_cache_skip
         end
       else
         load original selected in
@@ -981,7 +981,7 @@ let () =
                        | Lexer.D_use -> load_use in
           let status = loader canonical selected in
           begin match status with
-          | SourceReadFailure -> failSourceTrace "read"
+          | Source_read_failure -> failSourceTrace "read"
           | _ -> ()
           end;
           status,canonical,trace_request in
@@ -1100,13 +1100,13 @@ let () =
                         let status,original,trace_request =
                           loadWithStatus "#flyspeck_needs" Lexer.D_need fname in
                         begin match status with
-                        | SourceCacheSkip ->
+                        | Source_cache_skip ->
                             completeSourceTraceRequest
                               trace_request "cache-skip";
                             scan level contexts true
-                        | SourceReadFailure ->
+                        | Source_read_failure ->
                             failwith "Candle Flyspeck needs source read failed"
-                        | SourceLoaded lines ->
+                        | Source_loaded lines ->
                             pushPendingLoadedSourceId (sourceIdentity original);
                             pushLoad fname true trace_request;
                             userInput := false;
@@ -1151,11 +1151,11 @@ let () =
                         let status,original,trace_request =
                           loadWithStatus "#flyspeck_loadt" Lexer.D_load fname in
                         begin match status with
-                        | SourceReadFailure ->
+                        | Source_read_failure ->
                             failwith "Candle Flyspeck loadt source read failed"
-                        | SourceCacheSkip ->
+                        | Source_cache_skip ->
                             failwith "Candle Flyspeck loadt was cache-skipped"
-                        | SourceLoaded lines ->
+                        | Source_loaded lines ->
                             pushPendingLoadedSourceId (sourceIdentity original);
                             pushLoad fname true trace_request;
                             userInput := false;
@@ -1204,13 +1204,13 @@ let () =
                           loadWithStatus
                             (Lexer.string_of_token None tok) dir fname in
                         begin match status with
-                        | SourceCacheSkip ->
+                        | Source_cache_skip ->
                             completeSourceTraceRequest
                               trace_request "cache-skip";
                             scan level contexts true
-                        | SourceReadFailure ->
+                        | Source_read_failure ->
                             failwith "Candle source directive read failed"
-                        | SourceLoaded lines ->
+                        | Source_loaded lines ->
                             pushLoad fname false trace_request;
                             userInput := false;
                             scan_lines lines;
