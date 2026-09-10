@@ -1200,20 +1200,50 @@ let () =
                     match next_nonspace () with
                     (* OK directive, perform load: *)
                     | Some (Lexer.T_semis) ->
-                        let status,_,trace_request =
+                        let status,original,trace_request =
                           loadWithStatus
                             (Lexer.string_of_token None tok) dir fname in
+                        (* Once a manifest identity table is installed, an
+                           ordinary [needs] is the same logical HOL Light load
+                           that [loaded_files] is meant to record.  Keep its
+                           identity pending until the loaded source has
+                           evaluated successfully.  Other directives retain
+                           their traditional non-ledger behavior. *)
+                        let ordinary_identity =
+                          match tok,!sourceIdentities with
+                          | Lexer.T_needs,Some _ ->
+                              Some (sourceIdentity original)
+                          | _ -> None in
                         begin match status with
                         | Source_cache_skip ->
+                            begin match ordinary_identity with
+                            | Some fileid ->
+                                if not (List.exists
+                                          (fun x -> x = fileid)
+                                          !loadedSourceIds) then
+                                  failwith
+                                    "Candle ordinary needs cache skip is missing its logical identity"
+                            | None -> ()
+                            end;
                             completeSourceTraceRequest
                               trace_request "cache-skip";
                             scan level contexts true
                         | Source_read_failure ->
                             failwith "Candle source directive read failed"
                         | Source_loaded lines ->
+                            begin match ordinary_identity with
+                            | Some fileid ->
+                                pushPendingLoadedSourceId fileid
+                            | None -> ()
+                            end;
                             pushLoad fname false trace_request;
                             userInput := false;
-                            scan_lines lines;
+                            scan_lines
+                              (match ordinary_identity with
+                               | None -> lines
+                               | Some _ ->
+                                   append_lines lines
+                                     ["\nCakeml.commitPendingLoadedSourceId false;;\n"]);
                             scan level contexts true
                         end
                     (* Malformed *)

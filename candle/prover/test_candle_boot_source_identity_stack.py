@@ -30,8 +30,18 @@ class CandleBootSourceIdentityStackTests(unittest.TestCase):
             ),
             2,
         )
+        self.assertIn(
+            "| Lexer.T_needs,Some _ ->\n"
+            "                              Some (sourceIdentity original)",
+            source,
+        )
+        self.assertIn(
+            '"Candle ordinary needs cache skip is missing its logical identity"',
+            source,
+        )
+        self.assertIn("pushPendingLoadedSourceId fileid", source)
         self.assertEqual(
-            source.count("Cakeml.commitPendingLoadedSourceId false;;"), 1,
+            source.count("Cakeml.commitPendingLoadedSourceId false;;"), 2,
         )
         self.assertEqual(
             source.count("Cakeml.commitPendingLoadedSourceId true;;"), 1,
