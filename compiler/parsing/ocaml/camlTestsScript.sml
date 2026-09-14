@@ -1579,13 +1579,30 @@ val _ = parsetest0 “nDefinition” “ptree_Definition”
   (SOME “[Dopen L [«TextIO»]]”)
   ;
 
-(* CakeML's Dopen returns the opened declaration environment.  Inside a Dmod
- * this has the declaration-export behaviour required by the path-only OCaml
- * include form, in addition to making the names available to later items. *)
+(* A bare open is scoped over the remaining module items and therefore does
+ * not become part of the module's exported declaration environment. *)
+
+val _ = parsetest0 “nDefinition” “ptree_Definition”
+  "module B = struct open A let y = x end"
+  (SOME “[Dmod «B»
+            [Dlocal [Dopen L1 [«A»]]
+                    [Dlet L2 (Pvar «y») (V «x»)]]]”)
+  ;
+
+(* CakeML's Dopen returns the opened declaration environment.  The empty
+ * local wrapper distinguishes OCaml include from a bare open while retaining
+ * include's declaration-export behaviour. *)
 
 val _ = parsetest0 “nDefinition” “ptree_Definition”
   "include Flyspeck_eval"
-  (SOME “[Dopen L [«Flyspeck_eval»]]”)
+  (SOME “[Dlocal [] [Dopen L [«Flyspeck_eval»]]]”)
+  ;
+
+val _ = parsetest0 “nDefinition” “ptree_Definition”
+  "module B = struct include A let y = x end"
+  (SOME “[Dmod «B»
+            [Dlocal [] [Dopen L1 [«A»]];
+             Dlet L2 (Pvar «y») (V «x»)]]”)
   ;
 
 (* -------------------------------------------------------------------------

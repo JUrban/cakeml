@@ -3500,6 +3500,19 @@ End
 Overload cmlpegexec[local] =
   ``λn t. peg_exec cmlPEG$cmlPEG (cmlPEG$pnt n) t [] NONE [] done failed``;
 
+(* OCaml [open] is lexical: inside a module it affects the declarations that
+ * follow, but names imported only by the open are not module members.  The
+ * CakeML [Dopen] result is deliberately environment-producing (and is also
+ * used to implement OCaml [include]), so use [Dlocal] to delimit bare opens
+ * in module bodies.  Includes are represented below by [Dlocal [] [Dopen]]
+ * and therefore remain exporting declarations. *)
+Definition scope_module_opens_def:
+  scope_module_opens [] = [] ∧
+  scope_module_opens (Dopen locs path::ds) =
+    [Dlocal [Dopen locs path] (scope_module_opens ds)] ∧
+  scope_module_opens (d::ds) = d::scope_module_opens ds
+End
+
 Definition ptree_Definition_def:
   (ptree_Definition (Lf (_, locs)) =
     fail (locs, «Expected a top-level definition non-terminal»)) ∧
@@ -3564,7 +3577,7 @@ Definition ptree_Definition_def:
           do
             expect_tok includet IncludeT;
             path <- ptree_ModulePath modpath;
-            return [Dopen locs path]
+            return [Dlocal [] [Dopen locs path]]
           od
       | _ => fail (locs, «Impossible: nIncludeMod»)
     else if nterm = INL nModuleTypeDef then
@@ -3591,7 +3604,7 @@ Definition ptree_Definition_def:
               INL name =>
                 fail (locs, «Structure assignment is not supported (yet?)»)
             | INR decs =>
-                return [Dmod nm decs]
+                return [Dmod nm (scope_module_opens decs)]
           od
       | [modt; modid; colon; modty; eq; mexpr] =>
           do
@@ -3605,7 +3618,7 @@ Definition ptree_Definition_def:
               INL name =>
                 fail (locs, «Structure assignment is not supported (yet?)»)
             | INR decs =>
-                return [Dmod nm decs]
+                return [Dmod nm (scope_module_opens decs)]
           od
       | _ => fail (locs, «Impossible: nModuleDef»)
     else
