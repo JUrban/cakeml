@@ -224,6 +224,7 @@ val r = translate strip_record_fields_def;
 val r = preprocess ptree_TypeDefinition_def |> translate;
 
 val r = preprocess ptree_ModuleType_def |> translate;
+val r = translate scope_module_opens_def;
 val r = preprocess ptree_Definition_def |> translate;
 
 Theorem destresult_side[local]:
