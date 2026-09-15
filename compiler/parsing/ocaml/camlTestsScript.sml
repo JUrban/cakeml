@@ -1114,9 +1114,44 @@ val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
 
 val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
   "for i = 0 to 2 do step i; done"
-  (SOME $ eval “build_funapp (V «for»)
-            [C «True» []; V «i»; Lit (IntLit 0); Lit (IntLit 2);
-             App Opapp [V «step»; V «i»]]”)
+  (SOME
+    “Let (SOME « for first») (Lit (IntLit 0))
+       (Let (SOME « for last») (Lit (IntLit 2))
+         (Letrec
+           [(« for loop»,«i»,
+             If (App (Test (Compare Gt) IntT)
+                     [V «i»; V « for last»])
+                (Con NONE [])
+                (Let NONE (Tannot (App Opapp [V «step»; V «i»]) (Attup []))
+                  (If (App (Test Equal IntT)
+                           [V «i»; V « for last»])
+                      (Con NONE [])
+                      (App Opapp
+                        [V « for loop»;
+                         App (Arith Add IntT)
+                           [V «i»; Lit (IntLit 1)]]))))]
+           (App Opapp [V « for loop»; V « for first»])))”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "for j = 2 downto 0 do step j done"
+  (SOME
+    “Let (SOME « for first») (Lit (IntLit 2))
+       (Let (SOME « for last») (Lit (IntLit 0))
+         (Letrec
+           [(« for loop»,«j»,
+             If (App (Test (Compare Lt) IntT)
+                     [V «j»; V « for last»])
+                (Con NONE [])
+                (Let NONE (Tannot (App Opapp [V «step»; V «j»]) (Attup []))
+                  (If (App (Test Equal IntT)
+                           [V «j»; V « for last»])
+                      (Con NONE [])
+                      (App Opapp
+                        [V « for loop»;
+                         App (Arith Sub IntT)
+                           [V «j»; Lit (IntLit 1)]]))))]
+           (App Opapp [V « for loop»; V « for first»])))”)
   ;
 
 val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
@@ -1557,6 +1592,18 @@ val _ = parsetest0 “nDefinition” “ptree_Definition”
 val _ = parsetest0 “nDefinition” “ptree_Definition”
   "module Mod : Ssig = struct end"
   (SOME “[Dmod «Mod» ([]:dec list)]”)
+  ;
+
+(* Anonymous OCaml structure expressions are effects, not synthetic [it]
+ * exports.  Distinct result types can therefore occur consecutively inside a
+ * module without being unified through an invented member. *)
+
+val _ = parsetest0 “nDefinition” “ptree_Definition”
+  "module Effects = struct side_effect ();; 7;; true;; end"
+  (SOME “[Dmod «Effects»
+            [Dlet L1 Pany (App Opapp [V «side_effect»; Con NONE []]);
+             Dlet L2 Pany (Lit (IntLit 7));
+             Dlet L3 Pany (C «True» [])]]”)
   ;
 
 val _ = parsetest0 “nDefinition” “ptree_Definition”

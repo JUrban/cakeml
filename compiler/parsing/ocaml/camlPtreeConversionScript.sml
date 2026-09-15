@@ -1335,6 +1335,40 @@ Definition build_funapp_def:
       | _ => App Opapp [a; b]) f xs
 End
 
+(* OCaml [for] loops bind their index, evaluate both bounds exactly once, and
+ * use the built-in integer order/arithmetic rather than source-level operator
+ * bindings.  The final-bound test before the recursive step is important at
+ * the integer endpoints: the last iteration must not try to increment
+ * [max_int] or decrement [min_int].  Names beginning with a space cannot be
+ * written by the source lexer and therefore cannot capture source variables.
+ *)
+
+Definition build_for_def:
+  build_for ascending id first last body =
+    let first_name = « for first» in
+    let last_name = « for last» in
+    let loop_name = « for loop» in
+    let current = Var (Short id) in
+    let final = Var (Short last_name) in
+    let past =
+      App (Test (Compare (if ascending then Gt else Lt)) IntT)
+          [current; final] in
+    let at_final = App (Test Equal IntT) [current; final] in
+    let next =
+      App (Arith (if ascending then Add else Sub) IntT)
+          [current; Lit (IntLit 1)] in
+    let recur = App Opapp [Var (Short loop_name); next] in
+    let step =
+      Let NONE (Tannot body (Attup []))
+        (If at_final (Con NONE []) recur) in
+      Let (SOME first_name) first
+        (Let (SOME last_name) last
+          (Letrec
+            [(loop_name,id,If past (Con NONE []) step)]
+            (App Opapp
+              [Var (Short loop_name); Var (Short first_name)])))
+End
+
 (* Functions for records.
  * TODO Make it so that the names include the constructor function, so that we
  *      can have the same record field name defined for different record types.
@@ -2270,9 +2304,7 @@ Definition ptree_Expr_def:
             u <- ptree_Expr nExpr ubd;
             l <- ptree_Expr nExpr lbd;
             b <- ptree_Expr nExpr body;
-            return (build_funapp (Var (Short «for»))
-                                 [Con (SOME (bool2id (tk = ToT))) [];
-                                  Var (Short id); u; l; b])
+            return (build_for (tk = ToT) id u l b)
           od
       | [for; ident; eq; ubd; updown; lbd; dot; body; semi; donet] =>
           do
@@ -2289,9 +2321,7 @@ Definition ptree_Expr_def:
             u <- ptree_Expr nExpr ubd;
             l <- ptree_Expr nExpr lbd;
             b <- ptree_Expr nExpr body;
-            return (build_funapp (Var (Short «for»))
-                                 [Con (SOME (bool2id (tk = ToT))) [];
-                                  Var (Short id); u; l; b])
+            return (build_for (tk = ToT) id u l b)
           od
       | _ => fail (locs, «Impossible: nEFor»)
     else
@@ -3206,14 +3236,15 @@ Definition ptree_Semis_def:
       fail (locs, «Expected a semicolons-list non-terminal»)
 End
 
-(* Turns "expr;;" into "let it = expr;;". (The results of evaluating the
- * expression must end up somewhere and its strange to put in a variable with
- * no name.
+(* OCaml structure expressions execute for their effects and do not add a
+ * synthetic member to the surrounding module.  In particular, consecutive
+ * expressions of different result types must not become repeated monomorphic
+ * [it] members.  A wildcard declaration is CakeML's discarded-result form.
  *)
 
 Definition ptree_ExprDec_def:
   ptree_ExprDec locs pt =
-    fmap (λx. [Dlet locs (Pvar «it») x])
+    fmap (λx. [Dlet locs Pany x])
          (ptree_Expr nExpr pt)
 End
 
