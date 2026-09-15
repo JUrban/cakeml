@@ -571,6 +571,49 @@ val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
                     V (mk_struct_record_set_name «foo»); V «x»]; V «y»]”)
   ;
 
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "a.(i) <- x"
+  (SOME
+    “App Opapp
+       [App Opapp
+          [App Opapp [Var (Long «Array» (Short «set»)); V «a»]; V «i»];
+        V «x»]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "a.(i).(j) <- x"
+  (SOME
+    “App Opapp
+       [App Opapp
+          [App Opapp
+             [Var (Long «Array» (Short «set»));
+              App Opapp
+                [App Opapp
+                   [Var (Long «Array» (Short «get»)); V «a»];
+                 V «i»]];
+           V «j»];
+        V «x»]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "s.[i] <- c"
+  (SOME
+    “App Opapp
+       [App Opapp
+          [App Opapp [Var (Long «String» (Short «set»)); V «s»]; V «i»];
+        V «c»]”)
+  ;
+
+val _ = parsetest0 “nExpr” “ptree_Expr nExpr”
+  "r := x"
+  (SOME “App Opapp [App Opapp [V «:=»; V «r»]; V «x»]”)
+  ;
+
+(* Native OCaml rejects a function call followed by [<-]; only the lexical
+ * indexed-target forms above may lower to setters. *)
+val _ = expectFailure "REMAINING INPUT"
+  (fn () => parsetest “nExpr” “ptree_Expr nExpr” "Array.get a i <- x");
+
 (* declaration *)
 
 val _ = parsetest0 “nStart” “ptree_Start”

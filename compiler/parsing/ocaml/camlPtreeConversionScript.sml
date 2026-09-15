@@ -1335,6 +1335,28 @@ Definition build_funapp_def:
       | _ => App Opapp [a; b]) f xs
 End
 
+Definition build_index_get_def:
+  build_index_get receiver index =
+    case index of
+      INL str_index =>
+        build_funapp (Var (Long «String» (Short «get»)))
+          [receiver; str_index]
+    | INR array_index =>
+        build_funapp (Var (Long «Array» (Short «get»)))
+          [receiver; array_index]
+End
+
+Definition build_index_set_def:
+  build_index_set receiver index value =
+    case index of
+      INL str_index =>
+        build_funapp (Var (Long «String» (Short «set»)))
+          [receiver; str_index; value]
+    | INR array_index =>
+        build_funapp (Var (Long «Array» (Short «set»)))
+          [receiver; array_index; value]
+End
+
 (* OCaml [for] loops bind their index, evaluate both bounds exactly once, and
  * use the built-in integer order/arithmetic rather than source-level operator
  * bindings.  The final-bound test before the recursive step is important at
@@ -2142,6 +2164,35 @@ Definition ptree_Expr_def:
             f <- ptree_FieldName fn;
             y <- ptree_Expr nEAssign rhs;
             return $ build_struct_record_set f x y
+          od
+      | [recv; target; larrow; rhs] =>
+          do
+            expect_tok larrow LarrowT;
+            x <- ptree_Expr nEPrefix recv;
+            case target of
+              Lf (_, target_locs) =>
+                fail (target_locs, «Expected an indexed assignment target»)
+            | Nd (target_nterm, target_locs) indices =>
+                if target_nterm = INL nEIndex then
+                  case indices of
+                    [idx] =>
+                      do
+                        index <- ptree_Index idx;
+                        y <- ptree_Expr nEAssign rhs;
+                        return $ build_index_set x index y
+                      od
+                  | [first_idx; last_idx] =>
+                      do
+                        first_index <- ptree_Index first_idx;
+                        last_index <- ptree_Index last_idx;
+                        y <- ptree_Expr nEAssign rhs;
+                        return $ build_index_set
+                          (build_index_get x first_index) last_index y
+                      od
+                  | _ => fail (target_locs,
+                               «Impossible: indexed assignment target»)
+                else
+                  fail (target_locs, «Expected an indexed assignment target»)
           od
       | [lhs; opn; rhs] =>
           do

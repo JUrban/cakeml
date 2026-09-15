@@ -743,12 +743,17 @@ Definition camlPEG_def[nocompute]:
             (bindNT nEProd));
       (* -- Expr2: assignments --------------------------------------------- *)
       (INL nAssignOp,
-       pegf (choicel [tokeq UpdateT; tokeq LarrowT])
+       pegf (tokeq UpdateT)
             (bindNT nAssignOp));
       (INL nEAssign,
        choicel [
          seql [pnt nEIndex; tokeq DotT; pnt nFieldName; tokeq LarrowT;
                pnt nEAssign] (bindNT nEAssign);
+         seql [pnt nEPrefix;
+               seql [choicel [pnt nStrIdx; pnt nArrIdx];
+                     try (choicel [pnt nStrIdx; pnt nArrIdx])]
+                    (bindNT nEIndex);
+               tokeq LarrowT; pnt nEAssign] (bindNT nEAssign);
          seql [pnt nEProd; try (seql [pnt nAssignOp; pnt nEAssign] I)]
               (bindNT nEAssign)]);
       (* -- Expr1 ---------------------------------------------------------- *)
