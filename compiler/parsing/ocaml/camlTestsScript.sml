@@ -1649,6 +1649,41 @@ val _ = parsetest0 “nDefinition” “ptree_Definition”
              Dlet L3 Pany (C «True» [])]]”)
   ;
 
+(* A bare effect between named module bindings must remain a distinct module
+ * item.  In particular, its trailing [;;] must not consume or regroup the
+ * following [let].  The explicit [let _ =] spelling is the AST-equivalent
+ * control. *)
+
+val _ = parsetest0 “nDefinition” “ptree_Definition”
+  "module Bare_loop = struct \
+  \  let x = 0;; \
+  \  for i = 0 to 2 do side_effect i done;; \
+  \  let result = x;; \
+  \end"
+  (SOME $ eval
+    “[Dmod «Bare_loop»
+       [Dlet L1 (Pvar «x») (Lit (IntLit 0));
+        Dlet L2 Pany
+          (build_for T «i» (Lit (IntLit 0)) (Lit (IntLit 2))
+             (App Opapp [V «side_effect»; V «i»]));
+        Dlet L3 (Pvar «result») (V «x»)]]”)
+  ;
+
+val _ = parsetest0 “nDefinition” “ptree_Definition”
+  "module Wrapped_loop = struct \
+  \  let x = 0;; \
+  \  let _ = for i = 0 to 2 do side_effect i done;; \
+  \  let result = x;; \
+  \end"
+  (SOME $ eval
+    “[Dmod «Wrapped_loop»
+       [Dlet L1 (Pvar «x») (Lit (IntLit 0));
+        Dlet L2 Pany
+          (build_for T «i» (Lit (IntLit 0)) (Lit (IntLit 2))
+             (App Opapp [V «side_effect»; V «i»]));
+        Dlet L3 (Pvar «result») (V «x»)]]”)
+  ;
+
 val _ = parsetest0 “nDefinition” “ptree_Definition”
   "module type sign = sig end"
   (SOME “[]:dec list”)

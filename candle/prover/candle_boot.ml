@@ -1043,10 +1043,10 @@ let () =
     | Some _ -> discard_phrase () in
   (* [contexts] records the end-delimited lexical constructs surrounding the
      current token: [true] is a module [struct]/[sig], [false] is [begin].
-     OCaml permits [;;] between structure/signature items, but the CakeML PEG
-     accepts those items without the optional separator.  Erase a separator
-     only when the innermost construct is a structure/signature; a [;;]
-     inside [begin ... end] remains parser input and therefore fails closed. *)
+     Preserve [;;] inside every such construct.  In particular, an optional
+     separator between module items can be required to keep a bare effect from
+     being regrouped with the following declaration.  Only a level-zero [;;]
+     is a REPL phrase boundary. *)
   let rec scan level contexts phrase_start =
     try match next () with
         | None ->
@@ -1287,11 +1287,8 @@ let () =
                consumed [;;], which is necessarily a fresh phrase boundary. *)
             scan level contexts true
         | Some Lexer.T_semis when level > 0 ->
-            (match contexts with
-             | true::_ -> scan level contexts false
-             | _ ->
-                 Buffer.push_back output_buffer Lexer.T_semis;
-                 scan level contexts false)
+            Buffer.push_back output_buffer Lexer.T_semis;
+            scan level contexts false
         | Some tok ->
             Buffer.push_back output_buffer tok;
             match tok with
