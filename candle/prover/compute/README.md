@@ -52,6 +52,13 @@ Canonical signed-magnitude endpoints and CakeML translations for exact
 total ceiling correction, canonical zero, result signs, and floor/ceiling
 magnitudes while retaining the explicit option-valued overflow boundary.
 
+[compute_boundedSignedAddScript.sml](compute_boundedSignedAddScript.sml) and
+[compute_boundedSignedAddProgScript.sml](compute_boundedSignedAddProgScript.sml):
+Checked two-word comparison, subtraction with borrow, and canonical signed
+accumulation.  The proofs connect every successful subtraction to exact
+natural-number difference, preserve explicit same-sign overflow, and ensure
+that every produced signed endpoint is normalized before CakeML translation.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
