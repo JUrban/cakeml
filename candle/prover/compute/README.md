@@ -68,6 +68,18 @@ high limb, and canonicalizes negative zero.  Signed comparison and min/max
 are proved equal to mathematical integer order even for noncanonical input
 encodings.  All hot-path endpoint operations translate to CakeML.
 
+[compute_boundedIntervalScript.sml](compute_boundedIntervalScript.sml) and
+[compute_boundedIntervalProgScript.sml](compute_boundedIntervalProgScript.sml):
+Executable sign-classified interval multiplication over stored signed
+endpoints.  All nine sign combinations use the proved directed `2^40`
+Word64 product and explicit one-word narrowing; the mixed/mixed case computes
+the two necessary lower and upper candidates.  A checked wrapper rejects
+invalid input intervals, while the hot unchecked operation is reserved for
+states covered by validity-preservation proofs.  Closed exact sign-class and
+overflow tests pass.  The general interval-containment/preservation theorem
+is still a DEVELOPMENT obligation before this operation can support a release
+claim.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):

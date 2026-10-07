@@ -9,6 +9,9 @@ val _ = translation_extends "compute_boundedSignedAddProg";
 
 val bounded_signed64_make_v =
   translate compute_boundedSignedEndpointTheory.bounded_signed64_make_def;
+val bounded_signed64_normalized_v =
+  translate
+    compute_boundedSignedEndpointTheory.bounded_signed64_normalized_def;
 val bounded_signed64_widen128_v =
   translate
     compute_boundedSignedEndpointTheory.bounded_signed64_widen128_def;
