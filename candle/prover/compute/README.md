@@ -73,6 +73,18 @@ proved Word64 product/shift operation and is compiled to verified x64.  This
 is a DEVELOPMENT data-flow slice, not yet the complete nonlinear checker or a
 source-correspondence theorem.
 
+[generate_case16594_input_data.py](generate_case16594_input_data.py),
+[compute_boundedCase16594InputDataScript.sml](compute_boundedCase16594InputDataScript.sml),
+and
+[compute_boundedCase16594InputProgScript.sml](compute_boundedCase16594InputProgScript.sml):
+Complete reusable input boundary for the same 875 cells.  Each record contains
+the six directed box intervals and the ten box and ten center square-root
+certificate intervals, for 45,500 pinned-source `word64` endpoints in total.
+HOL checks the record count and a closed digest; the translator exposes the
+typed cell constant without translating the proof-only polymorphic digest
+helper.  The generator and this data remain DEVELOPMENT / NON-RELEASE pending
+the general source-correspondence theorem.
+
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.
 
