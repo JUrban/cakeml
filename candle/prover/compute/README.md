@@ -8,6 +8,11 @@ implementation.  The first executable primitives are checked two- and
 three-limb Word64 additions, proved equal to their exact option-valued
 contracts.
 
+[compute_boundedProgScript.sml](compute_boundedProgScript.sml):
+Verified CakeML translations of the Word64-only carry primitive and the
+checked two- and three-limb additions.  The executable carry path deliberately
+contains no conversion through unbounded naturals.
+
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.
 

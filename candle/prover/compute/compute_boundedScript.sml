@@ -33,6 +33,12 @@ Proof
   simp [bounded_word_base_def]
 QED
 
+Theorem bounded_word_base_eq:
+  bounded_word_base = 18446744073709551616
+Proof
+  simp [bounded_word_base_def]
+QED
+
 Theorem bounded128_limit_eq:
   bounded128_limit = 2 ** 128
 Proof
@@ -183,7 +189,6 @@ Proof
   rw [bounded128_of_num_def]
   >> gvs [bounded128_to_num_def]
   >> simp [bounded_word_base_def, w2n_n2w]
-  >> once_rewrite_tac [ADD_COMM]
   >> irule bounded_two_digit_reconstruct
   >> fs [bounded128_limit_def, bounded_word_base_def]
 QED
@@ -194,11 +199,13 @@ Theorem bounded192_of_num_some:
 Proof
   rw [bounded192_of_num_def]
   >> gvs [bounded192_to_num_def]
-  >> simp [bounded_word_base_def, w2n_n2w]
+  >> simp [w2n_n2w, GSYM bounded_word_base_def]
+  >> rewrite_tac [GSYM bounded_word_base_eq]
   >> once_rewrite_tac [bounded_three_digit_reorder]
   >> rewrite_tac [EXP_2]
   >> irule bounded_three_digit_reconstruct
-  >> fs [bounded192_limit_def, bounded_word_base_def]
+  >> fs [bounded192_limit_def]
+  >> simp [bounded_word_base_positive]
 QED
 
 (*
@@ -346,14 +353,76 @@ QED
    unsigned magnitude primitive and keep sign handling outside the carry
    chain. *)
 
+Definition bounded_word64_add_carry_def:
+  bounded_word64_add_carry (left:word64) (right:word64) carry_in =
+    let partial = left + right in
+    let partial_carry = word_lo partial left in
+    if carry_in then
+      let result = partial + 1w in
+      (result, partial_carry ∨ result = 0w)
+    else
+      (partial, partial_carry)
+End
+
+Theorem bounded_add_mod_carry:
+  0 < base ∧ left < base ∧ right < base ⇒
+  ((left + right) MOD base < left ⇔ base ≤ left + right)
+Proof
+  strip_tac
+  >> Cases_on ‘left + right < base’
+  >- (simp [LESS_MOD] >> intLib.ARITH_TAC)
+  >> ‘(left + right) MOD base = left + right - base’ by
+       (irule MOD_UNIQUE
+        >> qexists_tac ‘1’
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> simp []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_add_mod_carry_in:
+  0 < base ∧ left < base ∧ right < base ⇒
+  ((left + right) MOD base < left ∨
+   (left + (right + 1)) MOD base = 0 ⇔
+   base ≤ left + (right + 1))
+Proof
+  strip_tac
+  >> ‘((left + right) MOD base < left ⇔ base ≤ left + right)’ by
+       metis_tac [bounded_add_mod_carry]
+  >> rw []
+  >> Cases_on ‘base ≤ left + right’
+  >- simp []
+  >> Cases_on ‘base ≤ left + (right + 1)’
+  >- (‘left + (right + 1) = base’ by intLib.ARITH_TAC
+      >> simp [])
+  >> ‘left + (right + 1) < base’ by intLib.ARITH_TAC
+  >> simp [LESS_MOD]
+QED
+
+Theorem bounded_word64_add_carry_correct:
+  bounded_word64_add_carry left right carry_in =
+    (FST (add_with_carry (left, right, carry_in)),
+     FST (SND (add_with_carry (left, right, carry_in))))
+Proof
+  Cases_on ‘carry_in’
+  >> Cases_on ‘left’
+  >> Cases_on ‘right’
+  >> simp [bounded_word64_add_carry_def, add_with_carry_def,
+           word_add_n2w, WORD_LO, dimword_64, NOT_LESS]
+  >- (irule bounded_add_mod_carry_in
+      >> simp [dimword_64])
+  >> irule bounded_add_mod_carry
+  >> simp [dimword_64]
+QED
+
 Definition bounded128_add_words_def:
   bounded128_add_words
       (Bounded128 left_high left_low)
       (Bounded128 right_high right_low) =
-    let low_sum = add_with_carry (left_low, right_low, F) in
-    let high_sum = add_with_carry
-      (left_high, right_high, FST (SND low_sum)) in
-    if FST (SND high_sum) then NONE
+    let low_sum = bounded_word64_add_carry left_low right_low F in
+    let high_sum = bounded_word64_add_carry
+      left_high right_high (SND low_sum) in
+    if SND high_sum then NONE
     else SOME (Bounded128 (FST high_sum) (FST low_sum))
 End
 
@@ -368,7 +437,7 @@ Proof
   >> qspec_then ‘c0'’ assume_tac w2n_lt
   >> rw [bounded128_add_words_def, bounded128_add_def,
          bounded128_of_num_def, bounded128_to_num_def,
-         add_with_carry_def]
+         bounded_word64_add_carry_correct, add_with_carry_def]
   >> fs [bounded_word_base_def, bounded128_limit_def, dimword_64]
   >> intLib.ARITH_TAC
 QED
@@ -378,8 +447,7 @@ Theorem bounded128_add_words_no_carry_test:
     (Bounded128 0w 7w) (Bounded128 0w 9w) =
   SOME (Bounded128 0w 16w)
 Proof
-  simp [bounded128_add_words_def, add_with_carry_def, dimword_64,
-        w2n_minus1]
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
 QED
 
 Theorem bounded128_add_words_low_carry_test:
@@ -387,28 +455,26 @@ Theorem bounded128_add_words_low_carry_test:
     (Bounded128 0w (-1w)) (Bounded128 0w 1w) =
   SOME (Bounded128 1w 0w)
 Proof
-  simp [bounded128_add_words_def, add_with_carry_def, dimword_64,
-        w2n_minus1]
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
 QED
 
 Theorem bounded128_add_words_overflow_test:
   bounded128_add_words
     (Bounded128 (-1w) (-1w)) (Bounded128 0w 1w) = NONE
 Proof
-  simp [bounded128_add_words_def, add_with_carry_def, dimword_64,
-        w2n_minus1]
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
 QED
 
 Definition bounded192_add_words_def:
   bounded192_add_words
       (Bounded192 left_high left_middle left_low)
       (Bounded192 right_high right_middle right_low) =
-    let low_sum = add_with_carry (left_low, right_low, F) in
-    let middle_sum = add_with_carry
-      (left_middle, right_middle, FST (SND low_sum)) in
-    let high_sum = add_with_carry
-      (left_high, right_high, FST (SND middle_sum)) in
-    if FST (SND high_sum) then NONE
+    let low_sum = bounded_word64_add_carry left_low right_low F in
+    let middle_sum = bounded_word64_add_carry
+      left_middle right_middle (SND low_sum) in
+    let high_sum = bounded_word64_add_carry
+      left_high right_high (SND middle_sum) in
+    if SND high_sum then NONE
     else SOME
       (Bounded192 (FST high_sum) (FST middle_sum) (FST low_sum))
 End
@@ -426,7 +492,7 @@ Proof
   >> qspec_then ‘c1'’ assume_tac w2n_lt
   >> rw [bounded192_add_words_def, bounded192_add_def,
          bounded192_of_num_def, bounded192_to_num_def,
-         add_with_carry_def]
+         bounded_word64_add_carry_correct, add_with_carry_def]
   >> fs [bounded_word_base_def, bounded192_limit_def, dimword_64]
   >> intLib.ARITH_TAC
 QED
@@ -436,16 +502,14 @@ Theorem bounded192_add_words_carry_chain_test:
     (Bounded192 0w (-1w) (-1w)) (Bounded192 0w 0w 1w) =
   SOME (Bounded192 1w 0w 0w)
 Proof
-  simp [bounded192_add_words_def, add_with_carry_def, dimword_64,
-        w2n_minus1]
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
 QED
 
 Theorem bounded192_add_words_overflow_test:
   bounded192_add_words
     (Bounded192 (-1w) (-1w) (-1w)) (Bounded192 0w 0w 1w) = NONE
 Proof
-  simp [bounded192_add_words_def, add_with_carry_def, dimword_64,
-        w2n_minus1]
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
 QED
 
 val _ = export_theory ();
