@@ -45,6 +45,13 @@ Closed result-checking program and verified x64 compilation for the real hot
 endpoint boundary: a full Word64 product followed by the case16594 dyadic
 `2^40` floor shift back into a two-word endpoint.
 
+[compute_boundedSignedScript.sml](compute_boundedSignedScript.sml) and
+[compute_boundedSignedProgScript.sml](compute_boundedSignedProgScript.sml):
+Canonical signed-magnitude endpoints and CakeML translations for exact
+`2^40` directed products.  The theory proves the low-bit remainder test,
+total ceiling correction, canonical zero, result signs, and floor/ceiling
+magnitudes while retaining the explicit option-valued overflow boundary.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
