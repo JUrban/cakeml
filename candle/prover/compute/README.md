@@ -92,6 +92,20 @@ typed cell constant without translating the proof-only polymorphic digest
 helper.  The generator and this data remain DEVELOPMENT / NON-RELEASE pending
 the general source-correspondence theorem.
 
+[generate_case16594_program_data.py](generate_case16594_program_data.py),
+[compute_boundedCase16594ProgramDataScript.sml](compute_boundedCase16594ProgramDataScript.sml),
+and
+[compute_boundedCase16594ProgramProgScript.sml](compute_boundedCase16594ProgramProgScript.sml):
+Pinned typed import of the complete 167-instruction analytic source program.
+The generator checks the exact cval hash, nested polynomial postfix stacks,
+outer analytic stack, ten square-root placeholders, and all constructor
+tags.  HOL rechecks the 167-to-one stack transition and exact specialization
+program identities (including same-length alias rejections), and CakeML
+translates both the data and the total validators.  The six
+delta-family roles remain DEVELOPMENT annotations until their exact rational
+source-normalization correspondence is proved generally; no runtime dispatch
+may authorize a role from its list position or instruction length alone.
+
 [compute_boundedDeltaGradient0Script.sml](compute_boundedDeltaGradient0Script.sml),
 [compute_boundedDeltaGradient0ProgScript.sml](compute_boundedDeltaGradient0ProgScript.sml),
 and
