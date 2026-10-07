@@ -16,6 +16,10 @@ val bounded_word64_add_carry_v =
   translate compute_boundedTheory.bounded_word64_add_carry_def;
 val bounded128_add_words_v =
   translate compute_boundedTheory.bounded128_add_words_def;
+val bounded128_add_words_repeat_v =
+  translate compute_boundedTheory.bounded128_add_words_repeat_def;
+val bounded128_repeat_control_v =
+  translate compute_boundedTheory.bounded128_repeat_control_def;
 val bounded192_add_words_v =
   translate compute_boundedTheory.bounded192_add_words_def;
 

@@ -442,6 +442,75 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Definition bounded128_add_repeat_def:
+  bounded128_add_repeat 0 increment value = SOME value ∧
+  bounded128_add_repeat (SUC count) increment value =
+    case bounded128_add value increment of
+    | NONE => NONE
+    | SOME next => bounded128_add_repeat count increment next
+End
+
+Definition bounded128_add_words_repeat_def:
+  bounded128_add_words_repeat 0 increment value = SOME value ∧
+  bounded128_add_words_repeat (SUC count) increment value =
+    case bounded128_add_words value increment of
+    | NONE => NONE
+    | SOME next => bounded128_add_words_repeat count increment next
+End
+
+Theorem bounded128_add_words_repeat_refines:
+  ∀n increment value.
+    bounded128_add_words_repeat n increment value =
+      bounded128_add_repeat n increment value
+Proof
+  Induct
+  >> simp [bounded128_add_words_repeat_def, bounded128_add_repeat_def,
+           bounded128_add_words_refines]
+  >> Cases_on ‘bounded128_add value increment’
+  >> simp []
+QED
+
+Definition bounded128_repeat_control_def:
+  bounded128_repeat_control 0 value = SOME value ∧
+  bounded128_repeat_control (SUC n) (Bounded128 high low) =
+    let low_copy = (low, F) in
+    let high_copy = (high, SND low_copy) in
+    if SND high_copy then NONE
+    else bounded128_repeat_control n
+      (Bounded128 (FST high_copy) (FST low_copy))
+End
+
+Definition bounded128_add_words_benchmark_def:
+  bounded128_add_words_benchmark =
+    bounded128_add_words_repeat 10000000
+      (Bounded128 0w 1w) (Bounded128 0w 0w)
+End
+
+Definition bounded128_repeat_control_benchmark_def:
+  bounded128_repeat_control_benchmark =
+    bounded128_repeat_control 10000000 (Bounded128 0w 0w)
+End
+
+Definition bounded128_add_words_benchmark_ok_def:
+  bounded128_add_words_benchmark_ok ⇔
+    bounded128_add_words_benchmark =
+      SOME (Bounded128 0w 10000000w)
+End
+
+Definition bounded128_repeat_control_benchmark_ok_def:
+  bounded128_repeat_control_benchmark_ok ⇔
+    bounded128_repeat_control_benchmark =
+      SOME (Bounded128 0w 0w)
+End
+
+Theorem bounded128_add_words_repeat_small_test:
+  bounded128_add_words_repeat 3
+    (Bounded128 0w 7w) (Bounded128 0w 5w) =
+  SOME (Bounded128 0w 26w)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
 Theorem bounded128_add_words_no_carry_test:
   bounded128_add_words
     (Bounded128 0w 7w) (Bounded128 0w 9w) =

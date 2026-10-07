@@ -13,6 +13,15 @@ Verified CakeML translations of the Word64-only carry primitive and the
 checked two- and three-limb additions.  The executable carry path deliberately
 contains no conversion through unbounded naturals.
 
+[compute_boundedAddBenchmarkProgScript.sml](compute_boundedAddBenchmarkProgScript.sml)
+and
+[compute_boundedControlBenchmarkProgScript.sml](compute_boundedControlBenchmarkProgScript.sml):
+Closed result-checking programs for a ten-million-iteration checked-add
+workload and its matched recursion/constructor control.
+
+[compute_boundedBenchmarkCompileScript.sml](compute_boundedBenchmarkCompileScript.sml):
+Verified x64 compilation of the closed bounded-add benchmark pair.
+
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.
 
