@@ -38,6 +38,13 @@ and
 Closed result-checking program and verified x64 compilation for ten million
 applications of the proved 22-bit-radix full-word multiplication primitive.
 
+[compute_boundedMulShift40BenchmarkProgScript.sml](compute_boundedMulShift40BenchmarkProgScript.sml)
+and
+[compute_boundedMulShift40BenchmarkCompileScript.sml](compute_boundedMulShift40BenchmarkCompileScript.sml):
+Closed result-checking program and verified x64 compilation for the real hot
+endpoint boundary: a full Word64 product followed by the case16594 dyadic
+`2^40` floor shift back into a two-word endpoint.
+
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.
 

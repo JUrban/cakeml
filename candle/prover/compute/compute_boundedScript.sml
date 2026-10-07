@@ -763,6 +763,126 @@ Proof
   >> simp []
 QED
 
+(* Case16594 stores interval endpoints in one word and immediately divides
+   their full product by the dyadic 2^40 scale.  Keep that hot path in words;
+   the mathematical refinement theorem is the next bounded proof obligation. *)
+
+Definition bounded_word64_mul_shift_floor40_def:
+  bounded_word64_mul_shift_floor40 (left:word64) (right:word64) =
+    let product = bounded_word64_mul_full_chunks22 left right in
+    let high = FST product in
+    let low = SND product in
+    Bounded128 (high >>> 40) ((low >>> 40) + (high << 24))
+End
+
+Theorem bounded_word64_shift_pair40_correct:
+  w2n (((low:word64) >>> 40) + ((high:word64) << 24)) +
+    bounded_word_base * w2n (high >>> 40) =
+  (w2n low + bounded_word_base * w2n high) DIV 1099511627776
+Proof
+  Cases_on `high`
+  >> Cases_on `low`
+  >> fs [dimword_64]
+  >> `((n2w n'):word64) >>> 40 =
+      n2w (n' DIV 1099511627776)` by
+       (mp_tac
+          (Q.SPECL [`n'`, `40`]
+             (n2w_DIV |> INST_TYPE [alpha |-> ``:64``]))
+        >> simp [dimword_64])
+  >> asm_rewrite_tac []
+  >> simp [bounded_word_base_eq, w2n_lsr, word_lsl_n2w,
+           word_add_n2w, w2n_n2w, dimword_64]
+  >> qabbrev_tac `q = n DIV 1099511627776`
+  >> qabbrev_tac `r = n MOD 1099511627776`
+  >> qabbrev_tac `q' = n' DIV 1099511627776`
+  >> qabbrev_tac `r' = n' MOD 1099511627776`
+  >> `r < 1099511627776` by (qunabbrev_tac `r` >> simp [])
+  >> `r' < 1099511627776` by (qunabbrev_tac `r'` >> simp [])
+  >> `q < 16777216` by
+       (qunabbrev_tac `q` >> simp [DIV_LT_X])
+  >> `q' < 16777216` by
+       (qunabbrev_tac `q'` >> simp [DIV_LT_X])
+  >> `r + 1099511627776 * q = n` by
+       (qunabbrev_tac `r`
+        >> qunabbrev_tac `q`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> `r' + 1099511627776 * q' = n'` by
+       (qunabbrev_tac `r'`
+        >> qunabbrev_tac `q'`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> `16777216 * n + q' =
+      q * 18446744073709551616 + (16777216 * r + q')` by
+       intLib.ARITH_TAC
+  >> `16777216 * r + q' < 18446744073709551616` by
+       intLib.ARITH_TAC
+  >> `(16777216 * n + q') MOD 18446744073709551616 =
+      16777216 * r + q'` by
+       (qpat_x_assum
+          `16777216 * n + q' =
+           q * 18446744073709551616 + (16777216 * r + q')`
+          (fn th => once_rewrite_tac [th])
+        >> irule MOD_UNIQUE
+        >> qexists_tac `q`
+        >> simp [])
+  >> `18446744073709551616 * n + n' =
+      (18446744073709551616 * q + 16777216 * r + q') *
+        1099511627776 + r'` by
+       intLib.ARITH_TAC
+  >> `(18446744073709551616 * n + n') DIV 1099511627776 =
+      18446744073709551616 * q + 16777216 * r + q'` by
+       (qpat_x_assum
+          `18446744073709551616 * n + n' =
+           (18446744073709551616 * q + 16777216 * r + q') *
+             1099511627776 + r'`
+          (fn th => once_rewrite_tac [th])
+        >> irule DIV_UNIQUE
+        >> qexists_tac `r'`
+        >> simp [])
+  >> asm_rewrite_tac []
+  >> CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+QED
+
+Theorem bounded_word64_mul_shift_floor40_correct:
+  bounded128_to_num (bounded_word64_mul_shift_floor40 left right) =
+    (w2n left * w2n right) DIV 1099511627776
+Proof
+  rw [bounded_word64_mul_shift_floor40_def, bounded128_to_num_def]
+  >> once_rewrite_tac [WORD_ADD_COMM]
+  >> rw [bounded_word64_shift_pair40_correct]
+  >> mp_tac bounded_word64_mul_full_chunks22_correct
+  >> simp [LET_THM]
+QED
+
+Theorem bounded_word64_mul_shift_floor40_small_test:
+  bounded_word64_mul_shift_floor40
+    4503599627370453w 1099511627689w =
+    Bounded128 0w 4503599627014101w
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Definition bounded_word64_mul_shift_floor40_repeat_def:
+  bounded_word64_mul_shift_floor40_repeat 0 left right digest = digest ∧
+  bounded_word64_mul_shift_floor40_repeat (SUC n) left right digest =
+    case bounded_word64_mul_shift_floor40 left right of
+      Bounded128 high low =>
+        bounded_word64_mul_shift_floor40_repeat n left right
+          (word_xor digest (word_xor high low))
+End
+
+Definition bounded_word64_mul_shift_floor40_benchmark_def:
+  bounded_word64_mul_shift_floor40_benchmark =
+    bounded_word64_mul_shift_floor40_repeat 10000001
+      4503599627370453w 1099511627689w 0w
+End
+
+Definition bounded_word64_mul_shift_floor40_benchmark_ok_def:
+  bounded_word64_mul_shift_floor40_benchmark_ok ⇔
+    bounded_word64_mul_shift_floor40_benchmark = 4503599627014101w
+End
+
 Definition bounded_word64_mul_full_repeat_def:
   bounded_word64_mul_full_repeat 0 left right digest = digest ∧
   bounded_word64_mul_full_repeat (SUC n) left right digest =

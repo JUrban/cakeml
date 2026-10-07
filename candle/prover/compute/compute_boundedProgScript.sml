@@ -18,6 +18,10 @@ val bounded_word64_mul_full_num_v =
   translate compute_boundedTheory.bounded_word64_mul_full_num_def;
 val bounded_word64_mul_full_chunks22_v =
   translate compute_boundedTheory.bounded_word64_mul_full_chunks22_def;
+val bounded_word64_mul_shift_floor40_v =
+  translate compute_boundedTheory.bounded_word64_mul_shift_floor40_def;
+val bounded_word64_mul_shift_floor40_repeat_v =
+  translate compute_boundedTheory.bounded_word64_mul_shift_floor40_repeat_def;
 val bounded_word64_mul_full_repeat_v =
   translate compute_boundedTheory.bounded_word64_mul_full_repeat_def;
 val bounded_word64_mul_chunks22_repeat_v =
