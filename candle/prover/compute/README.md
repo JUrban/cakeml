@@ -45,6 +45,14 @@ Closed result-checking program and verified x64 compilation for the real hot
 endpoint boundary: a full Word64 product followed by the case16594 dyadic
 `2^40` floor shift back into a two-word endpoint.
 
+[compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
+and
+[compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
+Closed result-checking program and verified x64 compilation for the genuine
+authenticated case16594 operation counts: sign classification, full-word
+products, checked 128/192 additions, directed shifts, narrowing branches, and
+explicit overflow rejection.
+
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.
 

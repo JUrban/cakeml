@@ -415,6 +415,31 @@ Proof
   >> simp [dimword_64]
 QED
 
+Theorem bounded_word64_add_carry_value:
+  let result = bounded_word64_add_carry left right carry_in in
+  w2n (FST result) + bounded_word_base *
+    (if SND result then 1 else 0) =
+  w2n left + w2n right + (if carry_in then 1 else 0)
+Proof
+  rw [bounded_word64_add_carry_correct, add_with_carry_def,
+      bounded_word_base_def]
+  >> qspec_then `left` assume_tac w2n_lt
+  >> qspec_then `right` assume_tac w2n_lt
+  >> fs [w2n_n2w, dimword_64]
+  >> qmatch_abbrev_tac
+       `sum MOD 18446744073709551616 + 18446744073709551616 = sum`
+  >> `sum < 2 * 18446744073709551616` by
+       (qunabbrev_tac `sum` >> intLib.ARITH_TAC)
+  >> `sum MOD 18446744073709551616 =
+      sum - 18446744073709551616` by
+       (irule MOD_UNIQUE
+        >> qexists_tac `1`
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> asm_rewrite_tac []
+  >> intLib.ARITH_TAC
+QED
+
 (* CakeML's verified source Word64 interface currently has no multiplication
    primitive.  This deliberately narrow hybrid converts only two limbs,
    performs one exact product, and immediately splits the result back into
@@ -855,6 +880,21 @@ Proof
   >> simp [LET_THM]
 QED
 
+Definition bounded128_shift_floor40_words_def:
+  bounded128_shift_floor40_words (Bounded128 high low) =
+    Bounded128 (high >>> 40) ((low >>> 40) + (high << 24))
+End
+
+Theorem bounded128_shift_floor40_words_correct:
+  bounded128_to_num (bounded128_shift_floor40_words value) =
+    bounded128_to_num value DIV 1099511627776
+Proof
+  Cases_on `value`
+  >> rw [bounded128_shift_floor40_words_def, bounded128_to_num_def]
+  >> once_rewrite_tac [WORD_ADD_COMM]
+  >> rw [bounded_word64_shift_pair40_correct]
+QED
+
 Theorem bounded_word64_mul_shift_floor40_small_test:
   bounded_word64_mul_shift_floor40
     4503599627370453w 1099511627689w =
@@ -1110,5 +1150,150 @@ Theorem bounded192_add_words_overflow_test:
 Proof
   EVAL_TAC >> wordsLib.WORD_EVAL_TAC
 QED
+
+(*
+  Closed operation-count trace for the authenticated case16594 delta-pair
+  candidate.  Wide 128-by-64 products are conservatively charged as two
+  proved full-word products plus a checked carry composition.  This is a
+  performance gate, not yet the nonlinear checker or its decode theorem.
+*)
+
+Definition bounded128_shift_floor40_repeat_def:
+  bounded128_shift_floor40_repeat 0 value digest = digest ∧
+  bounded128_shift_floor40_repeat (SUC count) value digest =
+    case bounded128_shift_floor40_words value of
+      Bounded128 high low =>
+        bounded128_shift_floor40_repeat count value
+          (word_xor digest (word_xor high low))
+End
+
+Definition bounded192_add_words_repeat_def:
+  bounded192_add_words_repeat 0 increment value = SOME value ∧
+  bounded192_add_words_repeat (SUC count) increment value =
+    case bounded192_add_words value increment of
+    | NONE => NONE
+    | SOME next => bounded192_add_words_repeat count increment next
+End
+
+Definition bounded_sign_class_dispatch_def:
+  bounded_sign_class_dispatch
+      left_nonnegative left_nonpositive
+      right_nonnegative right_nonpositive =
+    if left_nonnegative then
+      if right_nonnegative then 1w
+      else if right_nonpositive then 2w else 3w
+    else if left_nonpositive then
+      if right_nonnegative then 4w
+      else if right_nonpositive then 5w else 6w
+    else if right_nonnegative then 7w
+    else if right_nonpositive then 8w else 9w:word64
+End
+
+Definition bounded_sign_class_repeat_def:
+  bounded_sign_class_repeat 0
+      left_nonnegative left_nonpositive
+      right_nonnegative right_nonpositive digest = digest ∧
+  bounded_sign_class_repeat (SUC count)
+      left_nonnegative left_nonpositive
+      right_nonnegative right_nonpositive digest =
+    bounded_sign_class_repeat count
+      left_nonnegative left_nonpositive
+      right_nonnegative right_nonpositive
+      (word_xor digest
+        (bounded_sign_class_dispatch
+          left_nonnegative left_nonpositive
+          right_nonnegative right_nonpositive))
+End
+
+Definition bounded_boolean_branch_repeat_def:
+  bounded_boolean_branch_repeat 0 condition
+      (when_true:word64) (when_false:word64) (digest:word64) =
+    digest ∧
+  bounded_boolean_branch_repeat (SUC count)
+      condition (when_true:word64) (when_false:word64) (digest:word64) =
+    let selected = if condition then when_true else when_false in
+    bounded_boolean_branch_repeat count condition when_true when_false
+      (word_xor digest selected)
+End
+
+Definition bounded_narrow_trace_repeat_def:
+  bounded_narrow_trace_repeat 0 value digest = digest ∧
+  bounded_narrow_trace_repeat (SUC count)
+      (Bounded192 high middle low) digest =
+    if high = 0w then
+      bounded_narrow_trace_repeat count
+        (Bounded192 high middle low)
+        (word_xor digest (word_xor middle low))
+    else
+      bounded_narrow_trace_repeat count
+        (Bounded192 high middle low) (word_xor digest high)
+End
+
+Definition bounded_case16594_sign_trace_def:
+  bounded_case16594_sign_trace =
+    let product_digest = bounded_word64_mul_chunks22_repeat 34093928
+      18446744073709551557w 1099511627689w 0w in
+    let add128 = bounded128_add_words_repeat 33004687
+      (Bounded128 0w 1w) (Bounded128 0w 0w) in
+    let add192 = bounded192_add_words_repeat 1464750
+      (Bounded192 0w 0w 1w) (Bounded192 0w 0w 0w) in
+    let shift_digest = bounded128_shift_floor40_repeat 11663750
+      (Bounded128 1099511627689w 18446744073709551557w) 0w in
+    let sign1 = bounded_sign_class_repeat 5802731 T F T F 0w in
+    let sign2 = bounded_sign_class_repeat 220661 T F F T sign1 in
+    let sign3 = bounded_sign_class_repeat 460661 T F F F sign2 in
+    let sign4 = bounded_sign_class_repeat 966686 F T T F sign3 in
+    let sign5 = bounded_sign_class_repeat 132807 F T F T sign4 in
+    let sign6 = bounded_sign_class_repeat 266639 F T F F sign5 in
+    let sign7 = bounded_sign_class_repeat 209505 F F T F sign6 in
+    let sign8 = bounded_sign_class_repeat 65346 F F F T sign7 in
+    let sign_digest = bounded_sign_class_repeat 43089 F F F F sign8 in
+    let negative_branch = bounded_boolean_branch_repeat
+      1433809 T 1w 2w 0w in
+    let positive_branch = bounded_boolean_branch_repeat
+      10229941 F 1w 2w negative_branch in
+    let remainder_branch = bounded_boolean_branch_repeat
+      3259937 T 4w 8w positive_branch in
+    let rounding_digest = bounded_boolean_branch_repeat
+      8403813 F 4w 8w remainder_branch in
+    let narrow_digest = bounded_narrow_trace_repeat 325500
+      (Bounded192 0w 268435455w 18054883627128327837w) 0w in
+    (product_digest, add128, add192, shift_digest, sign_digest,
+     rounding_digest, narrow_digest)
+End
+
+Definition bounded_case16594_sign_trace_result_ok_def:
+  bounded_case16594_sign_trace_result_ok (u:unit) =
+    (
+    bounded_case16594_sign_trace =
+      ((0w:word64),
+       SOME (Bounded128 (0w:word64) (33004687w:word64)),
+       SOME (Bounded192 (0w:word64) (0w:word64) (1464750w:word64)),
+       (0w:word64), (13w:word64), (15w:word64), (0w:word64)))
+End
+
+Definition bounded_case16594_sign_trace_overflow128_ok_def:
+  bounded_case16594_sign_trace_overflow128_ok (u:unit) =
+    (bounded128_add_words
+      (Bounded128 18446744073709551615w 18446744073709551615w)
+      (Bounded128 0w 1w) = NONE
+    )
+End
+
+Definition bounded_case16594_sign_trace_overflow192_ok_def:
+  bounded_case16594_sign_trace_overflow192_ok (u:unit) =
+    (bounded192_add_words
+      (Bounded192 18446744073709551615w
+        18446744073709551615w 18446744073709551615w)
+      (Bounded192 0w 0w 1w) = NONE)
+End
+
+
+Definition bounded_case16594_sign_trace_ok_def:
+  bounded_case16594_sign_trace_ok (u:unit) =
+    (bounded_case16594_sign_trace_result_ok () ∧
+     bounded_case16594_sign_trace_overflow128_ok () ∧
+     bounded_case16594_sign_trace_overflow192_ok ())
+End
 
 val _ = export_theory ();
