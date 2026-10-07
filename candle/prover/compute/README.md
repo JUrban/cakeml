@@ -4,8 +4,9 @@ A verified Candle compute primitive.
 Lossless checked 128- and 192-bit limb boundaries for experimental bounded
 compute execution, with total option-valued add, multiply-to-wide, and
 narrowing/directed-dyadic-shift contracts for a future word-level
-implementation.  The first executable primitive is a checked two-limb
-Word64 addition, proved equal to the exact option-valued contract.
+implementation.  The first executable primitives are checked two- and
+three-limb Word64 additions, proved equal to their exact option-valued
+contracts.
 
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.

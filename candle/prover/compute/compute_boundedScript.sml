@@ -399,4 +399,53 @@ Proof
         w2n_minus1]
 QED
 
+Definition bounded192_add_words_def:
+  bounded192_add_words
+      (Bounded192 left_high left_middle left_low)
+      (Bounded192 right_high right_middle right_low) =
+    let low_sum = add_with_carry (left_low, right_low, F) in
+    let middle_sum = add_with_carry
+      (left_middle, right_middle, FST (SND low_sum)) in
+    let high_sum = add_with_carry
+      (left_high, right_high, FST (SND middle_sum)) in
+    if FST (SND high_sum) then NONE
+    else SOME
+      (Bounded192 (FST high_sum) (FST middle_sum) (FST low_sum))
+End
+
+Theorem bounded192_add_words_refines:
+  bounded192_add_words left right = bounded192_add left right
+Proof
+  Cases_on ‘left’
+  >> Cases_on ‘right’
+  >> qspec_then ‘c’ assume_tac w2n_lt
+  >> qspec_then ‘c0’ assume_tac w2n_lt
+  >> qspec_then ‘c1’ assume_tac w2n_lt
+  >> qspec_then ‘c'’ assume_tac w2n_lt
+  >> qspec_then ‘c0'’ assume_tac w2n_lt
+  >> qspec_then ‘c1'’ assume_tac w2n_lt
+  >> rw [bounded192_add_words_def, bounded192_add_def,
+         bounded192_of_num_def, bounded192_to_num_def,
+         add_with_carry_def]
+  >> fs [bounded_word_base_def, bounded192_limit_def, dimword_64]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded192_add_words_carry_chain_test:
+  bounded192_add_words
+    (Bounded192 0w (-1w) (-1w)) (Bounded192 0w 0w 1w) =
+  SOME (Bounded192 1w 0w 0w)
+Proof
+  simp [bounded192_add_words_def, add_with_carry_def, dimword_64,
+        w2n_minus1]
+QED
+
+Theorem bounded192_add_words_overflow_test:
+  bounded192_add_words
+    (Bounded192 (-1w) (-1w) (-1w)) (Bounded192 0w 0w 1w) = NONE
+Proof
+  simp [bounded192_add_words_def, add_with_carry_def, dimword_64,
+        w2n_minus1]
+QED
+
 val _ = export_theory ();
