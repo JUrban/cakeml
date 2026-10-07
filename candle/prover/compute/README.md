@@ -59,6 +59,15 @@ accumulation.  The proofs connect every successful subtraction to exact
 natural-number difference, preserve explicit same-sign overflow, and ensure
 that every produced signed endpoint is normalized before CakeML translation.
 
+[compute_boundedSignedEndpointScript.sml](compute_boundedSignedEndpointScript.sml)
+and
+[compute_boundedSignedEndpointProgScript.sml](compute_boundedSignedEndpointProgScript.sml):
+The proved boundary between wide intermediate values and one-word stored
+signed endpoints.  Narrowing succeeds exactly below `2^64`, rejects a nonzero
+high limb, and canonicalizes negative zero.  Signed comparison and min/max
+are proved equal to mathematical integer order even for noncanonical input
+encodings.  All hot-path endpoint operations translate to CakeML.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
