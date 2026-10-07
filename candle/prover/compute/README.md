@@ -92,6 +92,25 @@ typed cell constant without translating the proof-only polymorphic digest
 helper.  The generator and this data remain DEVELOPMENT / NON-RELEASE pending
 the general source-correspondence theorem.
 
+[compute_boundedDeltaGradient0Script.sml](compute_boundedDeltaGradient0Script.sml),
+[compute_boundedDeltaGradient0ProgScript.sml](compute_boundedDeltaGradient0ProgScript.sml),
+and
+[compute_boundedDeltaGradient0CompileScript.sml](compute_boundedDeltaGradient0CompileScript.sml):
+First complete actual-data delta-family instruction.  It evaluates component
+zero of `grad(delta)` on every authenticated box using ten directed interval
+products and checked canonical signed accumulation, checks the complete
+875-result digest, and produces a verified x64 executable.  This remains a
+DEVELOPMENT instruction boundary rather than the complete Taylor verdict or
+the eventual source-to-formula soundness theorem.
+
+[compute_boundedDeltaGradient0BenchmarkProgScript.sml](compute_boundedDeltaGradient0BenchmarkProgScript.sml)
+and
+[compute_boundedDeltaGradient0BenchmarkCompileScript.sml](compute_boundedDeltaGradient0BenchmarkCompileScript.sml):
+Closed in-process benchmark that repeats the entire 875-cell instruction one
+thousand times and checks the count/digest after every iteration.  This
+separates recurring verified word execution from process and constant-loading
+cost without weakening the fail-closed result boundary.
+
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.
 
