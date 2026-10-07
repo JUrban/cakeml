@@ -111,6 +111,15 @@ thousand times and checks the count/digest after every iteration.  This
 separates recurring verified word execution from process and constant-loading
 cost without weakening the fail-closed result boundary.
 
+[compute_boundedDeltaGradient0FlatScript.sml](compute_boundedDeltaGradient0FlatScript.sml),
+[compute_boundedDeltaGradient0FlatBenchmarkProgScript.sml](compute_boundedDeltaGradient0FlatBenchmarkProgScript.sml),
+and
+[compute_boundedDeltaGradient0FlatBenchmarkCompileScript.sml](compute_boundedDeltaGradient0FlatBenchmarkCompileScript.sml):
+Allocation discriminator that removes transient product/signed-sum lists from
+the hot path.  General HOL theorems prove the flat box, batch, and acceptance
+predicate extensionally equal to the original total instruction before its
+closed thousand-batch benchmark is translated and compiled.
+
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.
 
