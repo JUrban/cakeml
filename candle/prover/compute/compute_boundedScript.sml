@@ -342,4 +342,61 @@ Proof
   >> imp_res_tac bounded128_of_num_some
 QED
 
+(* First executable word operation.  The signed interval layer will use this
+   unsigned magnitude primitive and keep sign handling outside the carry
+   chain. *)
+
+Definition bounded128_add_words_def:
+  bounded128_add_words
+      (Bounded128 left_high left_low)
+      (Bounded128 right_high right_low) =
+    let low_sum = add_with_carry (left_low, right_low, F) in
+    let high_sum = add_with_carry
+      (left_high, right_high, FST (SND low_sum)) in
+    if FST (SND high_sum) then NONE
+    else SOME (Bounded128 (FST high_sum) (FST low_sum))
+End
+
+Theorem bounded128_add_words_refines:
+  bounded128_add_words left right = bounded128_add left right
+Proof
+  Cases_on ‘left’
+  >> Cases_on ‘right’
+  >> qspec_then ‘c’ assume_tac w2n_lt
+  >> qspec_then ‘c0’ assume_tac w2n_lt
+  >> qspec_then ‘c'’ assume_tac w2n_lt
+  >> qspec_then ‘c0'’ assume_tac w2n_lt
+  >> rw [bounded128_add_words_def, bounded128_add_def,
+         bounded128_of_num_def, bounded128_to_num_def,
+         add_with_carry_def]
+  >> fs [bounded_word_base_def, bounded128_limit_def, dimword_64]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded128_add_words_no_carry_test:
+  bounded128_add_words
+    (Bounded128 0w 7w) (Bounded128 0w 9w) =
+  SOME (Bounded128 0w 16w)
+Proof
+  simp [bounded128_add_words_def, add_with_carry_def, dimword_64,
+        w2n_minus1]
+QED
+
+Theorem bounded128_add_words_low_carry_test:
+  bounded128_add_words
+    (Bounded128 0w (-1w)) (Bounded128 0w 1w) =
+  SOME (Bounded128 1w 0w)
+Proof
+  simp [bounded128_add_words_def, add_with_carry_def, dimword_64,
+        w2n_minus1]
+QED
+
+Theorem bounded128_add_words_overflow_test:
+  bounded128_add_words
+    (Bounded128 (-1w) (-1w)) (Bounded128 0w 1w) = NONE
+Proof
+  simp [bounded128_add_words_def, add_with_carry_def, dimword_64,
+        w2n_minus1]
+QED
+
 val _ = export_theory ();
