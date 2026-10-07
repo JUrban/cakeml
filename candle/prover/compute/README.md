@@ -68,6 +68,16 @@ high limb, and canonicalizes negative zero.  Signed comparison and min/max
 are proved equal to mathematical integer order even for noncanonical input
 encodings.  All hot-path endpoint operations translate to CakeML.
 
+[compute_boundedSignedEndpointAddScript.sml](compute_boundedSignedEndpointAddScript.sml)
+and
+[compute_boundedSignedEndpointAddProgScript.sml](compute_boundedSignedEndpointAddProgScript.sml):
+Exact stored signed-endpoint negation and checked addition.  Addition widens
+through the existing signed 128-bit accumulator and explicitly narrows back to
+one word; every successful result is canonical and denotes the exact integer
+sum, while overflow remains `NONE`.  Mixed signs, cancellation, negative-zero
+normalization, and overflow have closed executable tests, and both operations
+translate to CakeML.
+
 [compute_boundedIntervalScript.sml](compute_boundedIntervalScript.sml) and
 [compute_boundedIntervalProgScript.sml](compute_boundedIntervalProgScript.sml):
 Executable sign-classified interval multiplication over stored signed
@@ -79,6 +89,14 @@ states covered by validity-preservation proofs.  Closed exact sign-class and
 overflow tests pass.  The general interval-containment/preservation theorem
 is still a DEVELOPMENT obligation before this operation can support a release
 claim.
+
+[compute_boundedIntervalAddScript.sml](compute_boundedIntervalAddScript.sml)
+and
+[compute_boundedIntervalAddProgScript.sml](compute_boundedIntervalAddProgScript.sml):
+Exact fixed-scale interval negation and checked addition.  General theorems
+prove endpoint values, normalization, validity preservation, and fail-closed
+invalid-input/overflow behavior.  These are the last basic linear operations
+needed to assemble the genuine-box evaluator; both translate to CakeML.
 
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
