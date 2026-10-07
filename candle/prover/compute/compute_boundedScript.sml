@@ -201,4 +201,99 @@ Proof
   >> fs [bounded192_limit_def, bounded_word_base_def]
 QED
 
+(*
+  Logical contracts for the first checked arithmetic operations.  These use
+  the conversion boundary above and deliberately do not claim fast execution;
+  a word-level implementation must refine these total option-valued functions.
+*)
+
+Definition bounded128_add_def:
+  bounded128_add left right =
+    bounded128_of_num
+      (bounded128_to_num left + bounded128_to_num right)
+End
+
+Definition bounded192_add_def:
+  bounded192_add left right =
+    bounded192_of_num
+      (bounded192_to_num left + bounded192_to_num right)
+End
+
+Definition bounded128_mul_to_192_def:
+  bounded128_mul_to_192 left right =
+    bounded192_of_num
+      (bounded128_to_num left * bounded128_to_num right)
+End
+
+Definition bounded192_narrow_128_def:
+  bounded192_narrow_128 value =
+    bounded128_of_num (bounded192_to_num value)
+End
+
+Theorem bounded128_add_none:
+  bounded128_add left right = NONE ⇔
+  bounded128_limit ≤
+    bounded128_to_num left + bounded128_to_num right
+Proof
+  simp [bounded128_add_def, bounded128_of_num_none]
+QED
+
+Theorem bounded192_add_none:
+  bounded192_add left right = NONE ⇔
+  bounded192_limit ≤
+    bounded192_to_num left + bounded192_to_num right
+Proof
+  simp [bounded192_add_def, bounded192_of_num_none]
+QED
+
+Theorem bounded128_mul_to_192_none:
+  bounded128_mul_to_192 left right = NONE ⇔
+  bounded192_limit ≤
+    bounded128_to_num left * bounded128_to_num right
+Proof
+  simp [bounded128_mul_to_192_def, bounded192_of_num_none]
+QED
+
+Theorem bounded192_narrow_128_none:
+  bounded192_narrow_128 value = NONE ⇔
+  bounded128_limit ≤ bounded192_to_num value
+Proof
+  simp [bounded192_narrow_128_def, bounded128_of_num_none]
+QED
+
+Theorem bounded128_add_some:
+  bounded128_add left right = SOME result ⇒
+  bounded128_to_num result =
+    bounded128_to_num left + bounded128_to_num right
+Proof
+  rw [bounded128_add_def]
+  >> imp_res_tac bounded128_of_num_some
+QED
+
+Theorem bounded192_add_some:
+  bounded192_add left right = SOME result ⇒
+  bounded192_to_num result =
+    bounded192_to_num left + bounded192_to_num right
+Proof
+  rw [bounded192_add_def]
+  >> imp_res_tac bounded192_of_num_some
+QED
+
+Theorem bounded128_mul_to_192_some:
+  bounded128_mul_to_192 left right = SOME result ⇒
+  bounded192_to_num result =
+    bounded128_to_num left * bounded128_to_num right
+Proof
+  rw [bounded128_mul_to_192_def]
+  >> imp_res_tac bounded192_of_num_some
+QED
+
+Theorem bounded192_narrow_128_some:
+  bounded192_narrow_128 value = SOME result ⇒
+  bounded128_to_num result = bounded192_to_num value
+Proof
+  rw [bounded192_narrow_128_def]
+  >> imp_res_tac bounded128_of_num_some
+QED
+
 val _ = export_theory ();
