@@ -53,6 +53,19 @@ authenticated case16594 operation counts: sign classification, full-word
 products, checked 128/192 additions, directed shifts, narrowing branches, and
 explicit overflow rejection.
 
+[generate_case16594_actual_data.py](generate_case16594_actual_data.py),
+[compute_boundedCase16594ActualDataScript.sml](compute_boundedCase16594ActualDataScript.sml),
+[compute_boundedCase16594ActualProgScript.sml](compute_boundedCase16594ActualProgScript.sml),
+and
+[compute_boundedCase16594ActualCompileScript.sml](compute_boundedCase16594ActualCompileScript.sml):
+First actual-data boundary for that trace.  The generator accepts only the
+pinned 875-row case16594 export and emits exact `2^40` encodings of one genuine
+lower-coordinate product per cell.  HOL checks the data length and complete
+product digest; the translated closed program executes every pair through the
+proved Word64 product/shift operation and is compiled to verified x64.  This
+is a DEVELOPMENT data-flow slice, not yet the complete nonlinear checker or a
+source-correspondence theorem.
+
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.
 

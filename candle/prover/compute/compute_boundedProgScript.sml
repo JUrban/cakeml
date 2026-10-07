@@ -22,6 +22,8 @@ val bounded_word64_mul_shift_floor40_v =
   translate compute_boundedTheory.bounded_word64_mul_shift_floor40_def;
 val bounded_word64_mul_shift_floor40_repeat_v =
   translate compute_boundedTheory.bounded_word64_mul_shift_floor40_repeat_def;
+val bounded_word64_mul_shift_floor40_pairs_v =
+  translate compute_boundedTheory.bounded_word64_mul_shift_floor40_pairs_def;
 val bounded128_shift_floor40_words_v =
   translate compute_boundedTheory.bounded128_shift_floor40_words_def;
 val bounded128_shift_floor40_repeat_v =

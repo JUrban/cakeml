@@ -912,6 +912,29 @@ Definition bounded_word64_mul_shift_floor40_repeat_def:
           (word_xor digest (word_xor high low))
 End
 
+(* First actual-data boundary: consume distinct authenticated endpoint pairs
+   rather than replaying one synthetic operand pair.  The generated
+   case16594 fixture instantiates this fold with one genuine coordinate
+   product from each of the 875 certificate cells. *)
+
+Definition bounded_word64_mul_shift_floor40_pairs_def:
+  bounded_word64_mul_shift_floor40_pairs [] digest = digest ∧
+  bounded_word64_mul_shift_floor40_pairs (pair::rest) digest =
+    case bounded_word64_mul_shift_floor40 (FST pair) (SND pair) of
+      Bounded128 high low =>
+        bounded_word64_mul_shift_floor40_pairs rest
+          (word_xor digest (word_xor high low))
+End
+
+Theorem bounded_word64_mul_shift_floor40_pairs_small_test:
+  bounded_word64_mul_shift_floor40_pairs
+    [(4503599627370453w,1099511627689w);
+     (1099511627776w,1099511627776w)] 0w =
+    4502500115386325w
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
 Definition bounded_word64_mul_shift_floor40_benchmark_def:
   bounded_word64_mul_shift_floor40_benchmark =
     bounded_word64_mul_shift_floor40_repeat 10000001
