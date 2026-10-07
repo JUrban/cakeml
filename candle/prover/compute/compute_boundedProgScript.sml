@@ -14,6 +14,16 @@ val _ = register_type ``:bounded192``;
 
 val bounded_word64_add_carry_v =
   translate compute_boundedTheory.bounded_word64_add_carry_def;
+val bounded_word64_mul_full_num_v =
+  translate compute_boundedTheory.bounded_word64_mul_full_num_def;
+val bounded_word64_mul_full_chunks22_v =
+  translate compute_boundedTheory.bounded_word64_mul_full_chunks22_def;
+val bounded_word64_mul_full_repeat_v =
+  translate compute_boundedTheory.bounded_word64_mul_full_repeat_def;
+val bounded_word64_mul_chunks22_repeat_v =
+  translate compute_boundedTheory.bounded_word64_mul_chunks22_repeat_def;
+val bounded_word64_mul_repeat_control_v =
+  translate compute_boundedTheory.bounded_word64_mul_repeat_control_def;
 val bounded128_add_words_v =
   translate compute_boundedTheory.bounded128_add_words_def;
 val bounded128_add_words_repeat_v =

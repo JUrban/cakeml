@@ -415,6 +415,416 @@ Proof
   >> simp [dimword_64]
 QED
 
+(* CakeML's verified source Word64 interface currently has no multiplication
+   primitive.  This deliberately narrow hybrid converts only two limbs,
+   performs one exact product, and immediately splits the result back into
+   Word64 limbs. *)
+
+Definition bounded_word64_mul_full_num_def:
+  bounded_word64_mul_full_num (left:word64) (right:word64) =
+    let product = w2n left * w2n right in
+    ((n2w (product DIV 18446744073709551616)):word64,
+     (n2w product):word64)
+End
+
+Theorem bounded_product_lt_square:
+  left < base ∧ right < base ⇒ left * right < base * base
+Proof
+  strip_tac
+  >> Cases_on ‘right = 0’
+  >- simp []
+  >> ‘0 < right’ by simp []
+  >> ‘left * right < base * right’ by simp [LT_MULT_RCANCEL]
+  >> ‘base * right < base * base’ by simp [LT_MULT_LCANCEL]
+  >> metis_tac [LESS_TRANS]
+QED
+
+Theorem bounded_word64_mul_full_num_correct:
+  let result = bounded_word64_mul_full_num left right in
+  w2n (SND result) + bounded_word_base * w2n (FST result) =
+    w2n left * w2n right
+Proof
+  simp [bounded_word64_mul_full_num_def, w2n_n2w,
+        GSYM bounded_word_base_eq]
+  >> once_rewrite_tac [ADD_COMM]
+  >> irule bounded_two_digit_reconstruct
+  >> simp [bounded_word_base_positive]
+  >> rewrite_tac [EXP_2]
+  >> irule bounded_product_lt_square
+  >> simp [bounded_word_base_def]
+  >> metis_tac [w2n_lt, dimword_64]
+QED
+
+(* Small-natural convolution.  The 22-bit radix keeps all nine chunk products
+   and normalized carry columns below the tagged-small-natural boundary. *)
+
+Definition bounded_word64_mul_full_chunks22_def:
+  bounded_word64_mul_full_chunks22 (left:word64) (right:word64) =
+    let mask = 4194303w:word64 in
+    let left0 = w2n (word_and left mask) in
+    let left1 = w2n (word_and (left >>> 22) mask) in
+    let left2 = w2n (left >>> 44) in
+    let right0 = w2n (word_and right mask) in
+    let right1 = w2n (word_and (right >>> 22) mask) in
+    let right2 = w2n (right >>> 44) in
+    let column0 = left0 * right0 in
+    let digit0 = column0 MOD 4194304 in
+    let column1 = left0 * right1 + left1 * right0 +
+      column0 DIV 4194304 in
+    let digit1 = column1 MOD 4194304 in
+    let column2 = left0 * right2 + left1 * right1 + left2 * right0 +
+      column1 DIV 4194304 in
+    let digit2 = column2 MOD 4194304 in
+    let column3 = left1 * right2 + left2 * right1 +
+      column2 DIV 4194304 in
+    let digit3 = column3 MOD 4194304 in
+    let column4 = left2 * right2 + column3 DIV 4194304 in
+    let digit4 = column4 MOD 4194304 in
+    let digit5 = column4 DIV 4194304 in
+    let low = ((n2w digit0):word64) +
+      (((n2w digit1):word64) << 22) +
+      (((n2w digit2):word64) << 44) in
+    let high = (((n2w digit2):word64) >>> 20) +
+      (((n2w digit3):word64) << 2) +
+      (((n2w digit4):word64) << 24) +
+      (((n2w digit5):word64) << 46) in
+    (high, low)
+End
+
+Theorem bounded_word64_mul_full_chunks22_small_test:
+  bounded_word64_mul_full_chunks22 4503599627370453w 1099511627689w =
+    (268435455w, 18054883627128327837w)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded_word64_mask22:
+  (word:word64) && 4194303w = n2w (w2n word MOD 4194304)
+Proof
+  once_rewrite_tac [WORD_AND_COMM]
+  >> mp_tac
+       (Q.SPECL [`22`, `w2n (word:word64)`]
+          (WORD_AND_EXP_SUB1 |> INST_TYPE [alpha |-> ``:64``]))
+  >> simp [n2w_w2n]
+QED
+
+Theorem bounded_word64_extract_low22:
+  n < 18446744073709551616 ⇒
+  w2n (((n2w n):word64) && 4194303w) = n MOD 4194304
+Proof
+  strip_tac
+  >> simp [bounded_word64_mask22, w2n_n2w, dimword_64]
+  >> ‘n MOD 4194304 < 18446744073709551616’ by intLib.ARITH_TAC
+  >> simp []
+QED
+
+Theorem bounded_word64_extract_middle22:
+  n < 18446744073709551616 ⇒
+  w2n ((((n2w n):word64) >>> 22) && 4194303w) =
+    (n DIV 4194304) MOD 4194304
+Proof
+  strip_tac
+  >> simp [bounded_word64_mask22, w2n_lsr, w2n_n2w, dimword_64]
+  >> ‘(n DIV 4194304) MOD 4194304 < 18446744073709551616’ by
+       intLib.ARITH_TAC
+  >> simp []
+QED
+
+Theorem bounded_word64_extract_high20:
+  n < 18446744073709551616 ⇒
+  w2n (((n2w n):word64) >>> 44) = n DIV 17592186044416
+Proof
+  simp [w2n_lsr, w2n_n2w, dimword_64]
+QED
+
+Theorem bounded_radix22_div_second:
+  (n DIV 4194304) MOD 4194304 +
+    4194304 * (n DIV 17592186044416) = n DIV 4194304
+Proof
+  ‘n DIV 4194304 DIV 4194304 = n DIV 17592186044416’ by
+    (mp_tac (Q.SPECL [`4194304`, `4194304`] DIV_DIV_DIV_MULT)
+     >> simp [])
+  >> qpat_x_assum
+       ‘n DIV 4194304 DIV 4194304 = n DIV 17592186044416’
+       (fn th => rewrite_tac [GSYM th])
+  >> irule bounded_division_reconstruct
+  >> simp []
+QED
+
+Theorem bounded_radix22_div_first:
+  n MOD 4194304 + 4194304 * (n DIV 4194304) = n
+Proof
+  irule bounded_division_reconstruct
+  >> simp []
+QED
+
+Theorem bounded_radix22_reconstruct:
+  n MOD 4194304 + 4194304 * ((n DIV 4194304) MOD 4194304) +
+    17592186044416 * (n DIV 17592186044416) = n
+Proof
+  mp_tac bounded_radix22_div_second
+  >> mp_tac bounded_radix22_div_first
+  >> CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+QED
+
+Theorem bounded_radix22_convolution:
+  d0 + 4194304 * q1 = a0 * b0 ∧
+  d1 + 4194304 * q2 = a0 * b1 + a1 * b0 + q1 ∧
+  d2 + 4194304 * q3 = a0 * b2 + a1 * b1 + a2 * b0 + q2 ∧
+  d3 + 4194304 * q4 = a1 * b2 + a2 * b1 + q3 ∧
+  d4 + 4194304 * d5 = a2 * b2 + q4 ⇒
+  d0 + 4194304 * d1 + 17592186044416 * d2 +
+    73786976294838206464 * d3 +
+    309485009821345068724781056 * d4 +
+    1298074214633706907132624082305024 * d5 =
+  (a0 + 4194304 * a1 + 17592186044416 * a2) *
+  (b0 + 4194304 * b1 + 17592186044416 * b2)
+Proof
+  CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+QED
+
+Theorem bounded_word64_lsr20_n2w:
+  d2 < 4194304 ⇒
+  ((n2w d2):word64) >>> 20 = n2w (d2 DIV 1048576)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.SPECL [`d2`, `20`]
+          (n2w_DIV |> INST_TYPE [alpha |-> ``:64``]))
+  >> simp [dimword_64]
+QED
+
+Theorem bounded_word64_chunks22_join:
+  d0 < 4194304 ⇒
+  d1 < 4194304 ⇒
+  d2 < 4194304 ⇒
+  d3 < 4194304 ⇒
+  d4 < 4194304 ⇒
+  d0 + 4194304 * d1 + 17592186044416 * d2 +
+    73786976294838206464 * d3 +
+    309485009821345068724781056 * d4 +
+    1298074214633706907132624082305024 * d5 <
+    18446744073709551616 * 18446744073709551616 ⇒
+  w2n (((n2w d0):word64) + (((n2w d1):word64) << 22) +
+    (((n2w d2):word64) << 44)) +
+  18446744073709551616 *
+    w2n ((((n2w d2):word64) >>> 20) +
+      (((n2w d3):word64) << 2) +
+      (((n2w d4):word64) << 24) +
+      (((n2w d5):word64) << 46)) =
+  d0 + 4194304 * d1 + 17592186044416 * d2 +
+    73786976294838206464 * d3 +
+    309485009821345068724781056 * d4 +
+    1298074214633706907132624082305024 * d5
+Proof
+  rpt strip_tac
+  >> qabbrev_tac `r = d2 MOD 1048576`
+  >> qabbrev_tac `q = d2 DIV 1048576`
+  >> ‘r < 1048576’ by (qunabbrev_tac `r` >> simp [])
+  >> ‘r + 1048576 * q = d2’ by
+       (qunabbrev_tac `r`
+        >> qunabbrev_tac `q`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d0 + 4194304 * d1 + 17592186044416 * r <
+       18446744073709551616’ by intLib.ARITH_TAC
+  >> ‘r + 1048576 * q = d2 ⇒
+       d0 + 4194304 * d1 + 17592186044416 * d2 =
+       q * 18446744073709551616 +
+         (d0 + 4194304 * d1 + 17592186044416 * r)’ by
+       CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+  >> ‘(d0 + 4194304 * d1 + 17592186044416 * d2) MOD
+       18446744073709551616 =
+       d0 + 4194304 * d1 + 17592186044416 * r’ by
+       (irule MOD_UNIQUE >> qexists_tac `q` >> simp [])
+  >> ‘r + 1048576 * q = d2 ⇒
+       d0 + 4194304 * d1 + 17592186044416 * d2 +
+         73786976294838206464 * d3 +
+         309485009821345068724781056 * d4 +
+         1298074214633706907132624082305024 * d5 =
+       (d0 + 4194304 * d1 + 17592186044416 * r) +
+         18446744073709551616 *
+           (q + 4 * d3 + 16777216 * d4 + 70368744177664 * d5)’ by
+       CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+  >> ‘q + 4 * d3 + 16777216 * d4 + 70368744177664 * d5 <
+       18446744073709551616’ by intLib.ARITH_TAC
+  >> ‘((n2w d2):word64) >>> 20 = n2w q’ by
+       (qunabbrev_tac `q` >> metis_tac [bounded_word64_lsr20_n2w])
+  >> simp [word_lsl_n2w, word_add_n2w, w2n_n2w, dimword_64]
+QED
+
+Theorem bounded_word64_mul_full_chunks22_correct:
+  let result = bounded_word64_mul_full_chunks22 left right in
+  w2n (SND result) + bounded_word_base * w2n (FST result) =
+    w2n left * w2n right
+Proof
+  Cases_on ‘left’
+  >> Cases_on ‘right’
+  >> fs [dimword_64]
+  >> simp_tac std_ss [bounded_word64_mul_full_chunks22_def, LET_THM]
+  >> asm_simp_tac std_ss
+       [bounded_word64_extract_low22, bounded_word64_extract_middle22,
+        bounded_word64_extract_high20, bounded_word_base_eq,
+        w2n_n2w, dimword_64]
+  >> qabbrev_tac `a0 = n MOD 4194304`
+  >> qabbrev_tac `a1 = (n DIV 4194304) MOD 4194304`
+  >> qabbrev_tac `a2 = n DIV 17592186044416`
+  >> qabbrev_tac `b0 = n' MOD 4194304`
+  >> qabbrev_tac `b1 = (n' DIV 4194304) MOD 4194304`
+  >> qabbrev_tac `b2 = n' DIV 17592186044416`
+  >> qabbrev_tac `c0 = a0 * b0`
+  >> qabbrev_tac `d0 = c0 MOD 4194304`
+  >> qabbrev_tac `q1 = c0 DIV 4194304`
+  >> qabbrev_tac `c1 = a0 * b1 + a1 * b0 + q1`
+  >> qabbrev_tac `d1 = c1 MOD 4194304`
+  >> qabbrev_tac `q2 = c1 DIV 4194304`
+  >> qabbrev_tac `c2 = a0 * b2 + a1 * b1 + a2 * b0 + q2`
+  >> qabbrev_tac `d2 = c2 MOD 4194304`
+  >> qabbrev_tac `q3 = c2 DIV 4194304`
+  >> qabbrev_tac `c3 = a1 * b2 + a2 * b1 + q3`
+  >> qabbrev_tac `d3 = c3 MOD 4194304`
+  >> qabbrev_tac `q4 = c3 DIV 4194304`
+  >> qabbrev_tac `c4 = a2 * b2 + q4`
+  >> qabbrev_tac `d4 = c4 MOD 4194304`
+  >> qabbrev_tac `d5 = c4 DIV 4194304`
+  >> ‘a0 + 4194304 * a1 + 17592186044416 * a2 = n’ by
+       (qunabbrev_tac `a0`
+        >> qunabbrev_tac `a1`
+        >> qunabbrev_tac `a2`
+        >> simp [bounded_radix22_reconstruct])
+  >> ‘b0 + 4194304 * b1 + 17592186044416 * b2 = n'’ by
+       (qunabbrev_tac `b0`
+        >> qunabbrev_tac `b1`
+        >> qunabbrev_tac `b2`
+        >> simp [bounded_radix22_reconstruct])
+  >> ‘d0 + 4194304 * q1 = a0 * b0’ by
+       (qunabbrev_tac `d0`
+        >> qunabbrev_tac `q1`
+        >> qunabbrev_tac `c0`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d1 + 4194304 * q2 = a0 * b1 + a1 * b0 + q1’ by
+       (qunabbrev_tac `d1`
+        >> qunabbrev_tac `q2`
+        >> qunabbrev_tac `c1`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d2 + 4194304 * q3 = a0 * b2 + a1 * b1 + a2 * b0 + q2’ by
+       (qunabbrev_tac `d2`
+        >> qunabbrev_tac `q3`
+        >> qunabbrev_tac `c2`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d3 + 4194304 * q4 = a1 * b2 + a2 * b1 + q3’ by
+       (qunabbrev_tac `d3`
+        >> qunabbrev_tac `q4`
+        >> qunabbrev_tac `c3`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d4 + 4194304 * d5 = a2 * b2 + q4’ by
+       (qunabbrev_tac `d4`
+        >> qunabbrev_tac `d5`
+        >> qunabbrev_tac `c4`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d0 + 4194304 * d1 + 17592186044416 * d2 +
+       73786976294838206464 * d3 +
+       309485009821345068724781056 * d4 +
+       1298074214633706907132624082305024 * d5 =
+       (a0 + 4194304 * a1 + 17592186044416 * a2) *
+       (b0 + 4194304 * b1 + 17592186044416 * b2)’ by
+       (match_mp_tac bounded_radix22_convolution
+        >> asm_rewrite_tac [])
+  >> ‘d0 + 4194304 * d1 + 17592186044416 * d2 +
+       73786976294838206464 * d3 +
+       309485009821345068724781056 * d4 +
+       1298074214633706907132624082305024 * d5 = n * n'’ by
+       asm_rewrite_tac []
+  >> ‘d0 < 4194304’ by simp [Abbr `d0`]
+  >> ‘d1 < 4194304’ by simp [Abbr `d1`]
+  >> ‘d2 < 4194304’ by simp [Abbr `d2`]
+  >> ‘d3 < 4194304’ by simp [Abbr `d3`]
+  >> ‘d4 < 4194304’ by simp [Abbr `d4`]
+  >> ‘d0 + 4194304 * d1 + 17592186044416 * d2 +
+       73786976294838206464 * d3 +
+       309485009821345068724781056 * d4 +
+       1298074214633706907132624082305024 * d5 <
+       18446744073709551616 * 18446744073709551616’ by
+       (asm_rewrite_tac []
+        >> irule bounded_product_lt_square
+        >> simp [])
+  >> qpat_x_assum
+       ‘d0 + 4194304 * d1 + 17592186044416 * d2 +
+        73786976294838206464 * d3 +
+        309485009821345068724781056 * d4 +
+        1298074214633706907132624082305024 * d5 = n * n'’
+       (fn th => once_rewrite_tac [GSYM th])
+  >> irule bounded_word64_chunks22_join
+  >> simp []
+QED
+
+Definition bounded_word64_mul_full_repeat_def:
+  bounded_word64_mul_full_repeat 0 left right digest = digest ∧
+  bounded_word64_mul_full_repeat (SUC n) left right digest =
+    let product = bounded_word64_mul_full_num left right in
+    bounded_word64_mul_full_repeat n left right
+      (word_xor digest (word_xor (FST product) (SND product)))
+End
+
+Definition bounded_word64_mul_repeat_control_def:
+  bounded_word64_mul_repeat_control 0 (mix:word64) digest = digest ∧
+  bounded_word64_mul_repeat_control (SUC n) mix digest =
+    bounded_word64_mul_repeat_control n mix (word_xor digest mix)
+End
+
+Definition bounded_word64_mul_chunks22_repeat_def:
+  bounded_word64_mul_chunks22_repeat 0 left right digest = digest ∧
+  bounded_word64_mul_chunks22_repeat (SUC n) left right digest =
+    let product = bounded_word64_mul_full_chunks22 left right in
+    bounded_word64_mul_chunks22_repeat n left right
+      (word_xor digest (word_xor (FST product) (SND product)))
+End
+
+Definition bounded_word64_mul_full_benchmark_def:
+  bounded_word64_mul_full_benchmark =
+    bounded_word64_mul_full_repeat 10000001
+      4503599627370453w 1099511627689w 0w
+End
+
+Definition bounded_word64_mul_control_benchmark_def:
+  bounded_word64_mul_control_benchmark =
+    bounded_word64_mul_repeat_control 10000001
+      18054883627396755810w 0w
+End
+
+Definition bounded_word64_mul_chunks22_benchmark_def:
+  bounded_word64_mul_chunks22_benchmark =
+    bounded_word64_mul_chunks22_repeat 10000001
+      4503599627370453w 1099511627689w 0w
+End
+
+Definition bounded_word64_mul_full_benchmark_ok_def:
+  bounded_word64_mul_full_benchmark_ok ⇔
+    bounded_word64_mul_full_benchmark = 18054883627396755810w
+End
+
+Definition bounded_word64_mul_control_ok_def:
+  bounded_word64_mul_control_ok (u:unit) =
+    (bounded_word64_mul_control_benchmark = 18054883627396755810w)
+End
+
+Definition bounded_word64_mul_chunks22_benchmark_ok_def:
+  bounded_word64_mul_chunks22_benchmark_ok ⇔
+    bounded_word64_mul_chunks22_benchmark = 18054883627396755810w
+End
+
+Theorem bounded_word64_mul_full_small_test:
+  bounded_word64_mul_full_num 4503599627370453w 1099511627689w =
+    (268435455w, 18054883627128327837w)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
 Definition bounded128_add_words_def:
   bounded128_add_words
       (Bounded128 left_high left_low)
