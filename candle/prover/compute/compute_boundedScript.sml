@@ -230,6 +230,18 @@ Definition bounded192_narrow_128_def:
     bounded128_of_num (bounded192_to_num value)
 End
 
+Definition bounded192_shift_floor_128_def:
+  bounded192_shift_floor_128 bits value =
+    bounded128_of_num
+      (bounded192_to_num value DIV (2 ** bits))
+End
+
+Definition bounded192_shift_ceil_128_def:
+  bounded192_shift_ceil_128 bits value =
+    bounded128_of_num
+      ((bounded192_to_num value + (2 ** bits - 1)) DIV (2 ** bits))
+End
+
 Theorem bounded128_add_none:
   bounded128_add left right = NONE ⇔
   bounded128_limit ≤
@@ -259,6 +271,22 @@ Theorem bounded192_narrow_128_none:
   bounded128_limit ≤ bounded192_to_num value
 Proof
   simp [bounded192_narrow_128_def, bounded128_of_num_none]
+QED
+
+Theorem bounded192_shift_floor_128_none:
+  bounded192_shift_floor_128 bits value = NONE ⇔
+  bounded128_limit ≤
+    bounded192_to_num value DIV (2 ** bits)
+Proof
+  simp [bounded192_shift_floor_128_def, bounded128_of_num_none]
+QED
+
+Theorem bounded192_shift_ceil_128_none:
+  bounded192_shift_ceil_128 bits value = NONE ⇔
+  bounded128_limit ≤
+    (bounded192_to_num value + (2 ** bits - 1)) DIV (2 ** bits)
+Proof
+  simp [bounded192_shift_ceil_128_def, bounded128_of_num_none]
 QED
 
 Theorem bounded128_add_some:
@@ -293,6 +321,24 @@ Theorem bounded192_narrow_128_some:
   bounded128_to_num result = bounded192_to_num value
 Proof
   rw [bounded192_narrow_128_def]
+  >> imp_res_tac bounded128_of_num_some
+QED
+
+Theorem bounded192_shift_floor_128_some:
+  bounded192_shift_floor_128 bits value = SOME result ⇒
+  bounded128_to_num result =
+    bounded192_to_num value DIV (2 ** bits)
+Proof
+  rw [bounded192_shift_floor_128_def]
+  >> imp_res_tac bounded128_of_num_some
+QED
+
+Theorem bounded192_shift_ceil_128_some:
+  bounded192_shift_ceil_128 bits value = SOME result ⇒
+  bounded128_to_num result =
+    (bounded192_to_num value + (2 ** bits - 1)) DIV (2 ** bits)
+Proof
+  rw [bounded192_shift_ceil_128_def]
   >> imp_res_tac bounded128_of_num_some
 QED
 

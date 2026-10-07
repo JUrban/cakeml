@@ -3,7 +3,8 @@ A verified Candle compute primitive.
 [compute_boundedScript.sml](compute_boundedScript.sml):
 Lossless checked 128- and 192-bit limb boundaries for experimental bounded
 compute execution, with total option-valued add, multiply-to-wide, and
-narrowing contracts for a future word-level implementation.
+narrowing/directed-dyadic-shift contracts for a future word-level
+implementation.
 
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.
