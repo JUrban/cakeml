@@ -227,6 +227,21 @@ Proof
   simp [bounded_analytic64_dag_stack_refines_def]
 QED
 
+Theorem bounded_analytic64_dag_stack_refines_unique:
+  bounded_analytic64_dag_stack_refines identity_stack left_value_stack
+      result_cache /\
+  bounded_analytic64_dag_stack_refines identity_stack right_value_stack
+      result_cache ==>
+  left_value_stack = right_value_stack
+Proof
+  rw [bounded_analytic64_dag_stack_refines_def,LIST_REL_EL_EQN] >>
+  irule LIST_EQ >>
+  gvs [] >>
+  rw [] >>
+  res_tac >>
+  gvs []
+QED
+
 Theorem bounded_analytic64_dag_node_instruction_arity:
   bounded_analytic64_dag_node_instruction node = SOME instruction ==>
   bounded_analytic64_instruction_arity instruction =
@@ -348,6 +363,15 @@ Proof
   simp [bounded_analytic64_dag_schedule_step_def] >>
   every_case_tac >> gvs [] >>
   rpt strip_tac >> rveq >> gvs []
+QED
+
+Theorem bounded_analytic64_dag_schedule_step_lookup:
+  bounded_analytic64_dag_schedule_step nodes source role prepared identity
+      identity_stack = SOME next_identity_stack ==>
+  ?node. oEL identity nodes = SOME node
+Proof
+  simp [bounded_analytic64_dag_schedule_step_def] >>
+  every_case_tac >> gvs []
 QED
 
 Theorem bounded_analytic64_dag_source_node_instruction:
