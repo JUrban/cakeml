@@ -547,6 +547,20 @@ Proof
   metis_tac [bounded_analytic64_dag_node_eval_insert_empty]
 QED
 
+Theorem bounded_analytic64_dag_stack_refines_insert_empty:
+  bounded_analytic64_dag_stack_refines identity_stack value_stack
+      result_cache /\
+  oEL identity result_cache = SOME NONE ==>
+  bounded_analytic64_dag_stack_refines identity_stack value_stack
+      (LUPDATE (SOME result) identity result_cache)
+Proof
+  rw [bounded_analytic64_dag_stack_refines_def] >>
+  qpat_x_assum `LIST_REL _ _ _` mp_tac >>
+  match_mp_tac LIST_REL_mono >>
+  rw [] >>
+  Cases_on `identity = x` >> gvs [oEL_LUPDATE]
+QED
+
 Theorem bounded_analytic64_dag_schedule_rejects_prepared_alias:
   bounded_analytic64_dag_schedule_step
     [BoundedAnalyticDagPiHalf] BoundedAnalyticPiHalf
