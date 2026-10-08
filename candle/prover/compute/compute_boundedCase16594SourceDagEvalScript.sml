@@ -74,10 +74,10 @@ Definition bounded_analytic64_dag_step_def:
           certificates of
         | NONE => NONE
         | SOME (current_certificate,certificate_rest) =>
-          case EL identity result_cache of
-          | SOME cached_result =>
-              if EL identity certificate_cache <> current_certificate then
-                NONE
+          case oEL identity result_cache of
+          | SOME (SOME cached_result) =>
+              if oEL identity certificate_cache <>
+                 SOME current_certificate then NONE
               else
                 (case bounded_analytic64_reuse_stack cached_result
                     (bounded_analytic64_instruction_arity instruction)
@@ -86,7 +86,7 @@ Definition bounded_analytic64_dag_step_def:
                  | SOME next_stack =>
                      SOME (next_stack,certificate_rest,
                            result_cache,certificate_cache))
-          | NONE =>
+          | SOME NONE =>
               (case bounded_analytic64_program_step radii
                   center_environment box_environment instruction
                   (stack,certificates) of
@@ -99,6 +99,7 @@ Definition bounded_analytic64_dag_step_def:
                          LUPDATE (SOME result) identity result_cache,
                          LUPDATE current_certificate identity
                            certificate_cache))
+          | NONE => NONE
 End
 
 Definition bounded_analytic64_dag_run_def:
