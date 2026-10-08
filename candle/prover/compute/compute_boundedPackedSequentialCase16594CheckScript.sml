@@ -77,6 +77,36 @@ Definition bounded_packed_chars_case16594_first_status_def:
           bounded_packed_chars_case16594_cell_status (FST parsed)
 End
 
+(* Keep the externally observed diagnostic in a fixed-width representation.
+   The translated natural-number diagnostic is useful inside HOL, but it is
+   not an ABI boundary: exposing it directly to CakeML confused the runtime
+   representation with the small status code. *)
+Definition bounded_packed_chars_case16594_cell_status8_def:
+  bounded_packed_chars_case16594_cell_status8 cell =
+    if bounded_packed_chars_case16594_eval_cell cell
+    then (4w:word8)
+    else
+      case cell of
+      | ((box_environment,center_environment,radii),certificates) =>
+        case bounded_analytic64_program_eval radii center_environment
+          box_environment bounded_case16594_prepared_program certificates of
+        | NONE => 2w
+        | SOME (BoundedTaylor64 domain_valid center_value center_gradient
+            value_bound gradient_bounds hessian) =>
+          if ¬domain_valid then 3w else 5w
+End
+
+Definition bounded_packed_chars_case16594_first_status8_def:
+  bounded_packed_chars_case16594_first_status8 bytes =
+    case bounded_packed_chars_case16594_header bytes of
+    | NONE => (0w:word8)
+    | SOME rest =>
+      case bounded_packed_chars_case16594_cell rest of
+      | NONE => 1w
+      | SOME parsed =>
+          bounded_packed_chars_case16594_cell_status8 (FST parsed)
+End
+
 Definition bounded_packed_sequential_case16594_complete_check_def:
   bounded_packed_sequential_case16594_complete_check (strlit bytes) ⇔
     bounded_packed_chars_case16594_complete_check bytes
@@ -107,6 +137,12 @@ QED
 
 Theorem bounded_packed_chars_case16594_first_status_truncated:
   bounded_packed_chars_case16594_first_status [] = 0
+Proof
+  EVAL_TAC
+QED
+
+Theorem bounded_packed_chars_case16594_first_status8_truncated:
+  bounded_packed_chars_case16594_first_status8 [] = (0w:word8)
 Proof
   EVAL_TAC
 QED

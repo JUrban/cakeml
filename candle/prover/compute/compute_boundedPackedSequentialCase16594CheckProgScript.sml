@@ -65,6 +65,12 @@ val bounded_packed_chars_case16594_cell_status_v =
 val bounded_packed_chars_case16594_first_status_v =
   translate
     compute_boundedPackedSequentialCase16594CheckTheory.bounded_packed_chars_case16594_first_status_def;
+val bounded_packed_chars_case16594_cell_status8_v =
+  translate
+    compute_boundedPackedSequentialCase16594CheckTheory.bounded_packed_chars_case16594_cell_status8_def;
+val bounded_packed_chars_case16594_first_status8_v =
+  translate
+    compute_boundedPackedSequentialCase16594CheckTheory.bounded_packed_chars_case16594_first_status8_def;
 
 Quote main = cakeml:
   let
@@ -77,13 +83,13 @@ Quote main = cakeml:
         TextIO.print "accepted\n"
       else
         let
-          val status = bounded_packed_chars_case16594_first_status bytes
+          val status = bounded_packed_chars_case16594_first_status8 bytes
         in
-          if status = 0 then TextIO.print "rejected:header\n"
-          else if status = 1 then TextIO.print "rejected:first-parse\n"
-          else if status = 2 then TextIO.print "rejected:first-eval\n"
-          else if status = 3 then TextIO.print "rejected:first-domain\n"
-          else if status = 4 then TextIO.print "rejected:after-first\n"
+          if status = Word8.fromInt 0 then TextIO.print "rejected:header\n"
+          else if status = Word8.fromInt 1 then TextIO.print "rejected:first-parse\n"
+          else if status = Word8.fromInt 2 then TextIO.print "rejected:first-eval\n"
+          else if status = Word8.fromInt 3 then TextIO.print "rejected:first-domain\n"
+          else if status = Word8.fromInt 4 then TextIO.print "rejected:after-first\n"
           else TextIO.print "rejected:first-bound\n"
         end
     end

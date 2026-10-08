@@ -13,7 +13,7 @@
  *****************************************************************************)
 Theory compute_boundedTaylorAtan
 Ancestors
-  compute_boundedTaylorSqrt
+  compute_boundedTaylorSqrt compute_boundedIntervalSquare
 Libs
   bossLib preamble
 
@@ -27,13 +27,13 @@ Definition bounded_taylor64_atan_def:
         center_lower_reciprocal center_upper_reciprocal of
       | NONE => NONE
       | SOME center_result =>
-        case bounded_interval64_mul center_value center_value of
+        case bounded_interval64_square center_value of
         | NONE => NONE
         | SOME center_square =>
           case bounded_interval64_add bounded_atan_one center_square of
           | NONE => NONE
           | SOME center_denominator =>
-            case bounded_interval64_mul value_bound value_bound of
+            case bounded_interval64_square value_bound of
             | NONE => NONE
             | SOME box_square =>
               case bounded_interval64_add bounded_atan_one box_square of
@@ -45,8 +45,7 @@ Definition bounded_taylor64_atan_def:
                     box_denominator box_derivative
                 then NONE
                 else
-                  case bounded_interval64_mul
-                    box_derivative box_derivative of
+                  case bounded_interval64_square box_derivative of
                   | NONE => NONE
                   | SOME box_derivative_square =>
                     case bounded_interval64_add value_bound value_bound of
@@ -89,6 +88,24 @@ Theorem bounded_taylor64_atan_closed_tests:
     bounded_interval64_zero zeros6 zeros21 in
   bounded_taylor64_atan radii NONE NONE one one source = SOME source ∧
   bounded_taylor64_atan radii NONE NONE two one source = NONE
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded_taylor64_atan_genuine_crossing_certificate_test:
+  let source =
+    BoundedInterval64 (BoundedSigned64 T 33939760703w)
+      (BoundedSigned64 F 372457639893w) in
+  let derivative =
+    BoundedInterval64 (BoundedSigned64 F 986329899951w)
+      (BoundedSigned64 F 1099511627776w) in
+  case bounded_interval64_square source of
+  | NONE => F
+  | SOME square =>
+    case bounded_interval64_add bounded_atan_one square of
+    | NONE => F
+    | SOME denominator =>
+        bounded_interval64_inv_certificate denominator derivative
 Proof
   EVAL_TAC >> wordsLib.WORD_EVAL_TAC
 QED

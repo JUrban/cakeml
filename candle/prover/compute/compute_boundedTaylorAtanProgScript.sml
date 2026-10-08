@@ -7,6 +7,11 @@ Ancestors
 
 val _ = translation_extends "compute_boundedTaylorSqrtProg";
 
+val bounded_interval64_square_unchecked_v =
+  translate
+    compute_boundedIntervalSquareTheory.bounded_interval64_square_unchecked_def;
+val bounded_interval64_square_v =
+  translate compute_boundedIntervalSquareTheory.bounded_interval64_square_def;
 val bounded_taylor64_atan_v =
   translate compute_boundedTaylorAtanTheory.bounded_taylor64_atan_def;
 
