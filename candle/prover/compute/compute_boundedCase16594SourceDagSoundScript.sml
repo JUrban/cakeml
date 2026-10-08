@@ -287,6 +287,21 @@ Proof
   rpt strip_tac >> rveq >> gvs [LIST_REL_def]
 QED
 
+Theorem bounded_analytic64_program_step_append:
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction (operand_stack,certificate_prefix) =
+      SOME ([result],[]) ==>
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction
+      (operand_stack ++ rest_stack,
+       certificate_prefix ++ rest_certificates) =
+      SOME (result::rest_stack,rest_certificates)
+Proof
+  Cases_on `instruction` >>
+  simp [compute_boundedAnalyticProgramTheory.bounded_analytic64_program_step_def] >>
+  every_case_tac >> gvs []
+QED
+
 Theorem bounded_analytic64_dag_schedule_step_identity_reuse:
   bounded_analytic64_dag_schedule_step nodes source role prepared identity
       identity_stack = SOME next_identity_stack ==>
