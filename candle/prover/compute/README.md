@@ -169,6 +169,17 @@ reusable numerical preparation outside the hot checker while retaining an
 exact in-Candle acceptance predicate.  Closed positive and adversarial tests
 pass, and the predicate translates to CakeML.
 
+[compute_boundedReciprocalCertificateScript.sml](compute_boundedReciprocalCertificateScript.sml)
+and
+[compute_boundedReciprocalCertificateProgScript.sml](compute_boundedReciprocalCertificateProgScript.sml):
+Exact authentication of externally prepared fixed-scale reciprocal intervals.
+For positive and negative sign-stable inputs, two full-word products and
+comparisons against `2^80` establish the monotone endpoint inequalities;
+zero-crossing, sign-mismatched, invalid, and too-narrow intervals are rejected.
+This deliberately tests a reusable certificate architecture before committing
+to a recurring 128-by-64 long-division implementation.  Closed tests cover
+both signs and adversarial cases, and the predicate translates to CakeML.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
