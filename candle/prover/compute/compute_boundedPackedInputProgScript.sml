@@ -19,6 +19,18 @@ val bounded_packed_signed64_v =
   translate compute_boundedPackedInputTheory.bounded_packed_signed64_def;
 val bounded_packed_interval64_v =
   translate compute_boundedPackedInputTheory.bounded_packed_interval64_def;
+val bounded_packed_interval64_at_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_interval64_at_def;
+val bounded_packed_interval64_zero_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_interval64_zero_def;
+val bounded_packed_signs_valid_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_signs_valid_def;
+val bounded_packed_analytic64_certificate_v =
+  translate
+    compute_boundedPackedInputTheory.bounded_packed_analytic64_certificate_def;
+val bounded_packed_analytic64_certificate_list_v =
+  translate
+    compute_boundedPackedInputTheory.bounded_packed_analytic64_certificate_list_def;
 val bounded_packed_positive_interval64_value_v =
   translate
     compute_boundedPackedInputTheory.bounded_packed_positive_interval64_value_def;
@@ -37,6 +49,8 @@ val bounded_packed_word64_list_v =
   translate compute_boundedPackedInputTheory.bounded_packed_word64_list_def;
 val bounded_packed_case16594_input_v =
   translate compute_boundedPackedInputTheory.bounded_packed_case16594_input_def;
+val bounded_packed_case16594_cell_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_case16594_cell_def;
 val bounded_packed_case16594_header_v =
   translate compute_boundedPackedInputTheory.bounded_packed_case16594_header_def;
 
