@@ -464,6 +464,38 @@ Proof
   rpt strip_tac >> rveq >> gvs [LIST_REL_def]
 QED
 
+Theorem bounded_analytic64_dag_cache_hit_refines_sequential:
+  bounded_analytic64_dag_schedule_step nodes source role instruction identity
+      identity_stack = SOME next_identity_stack /\
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+      nodes result_cache certificate_cache /\
+  bounded_analytic64_dag_stack_refines identity_stack value_stack
+      result_cache /\
+  bounded_analytic64_current_certificate instruction certificates =
+      SOME (current_certificate,rest_certificates) /\
+  oEL identity result_cache = SOME (SOME cached_result) /\
+  oEL identity certificate_cache = SOME current_certificate /\
+  bounded_analytic64_reuse_stack cached_result
+      (bounded_analytic64_instruction_arity instruction) value_stack =
+      SOME next_value_stack ==>
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction (value_stack,certificates) =
+      SOME (next_value_stack,rest_certificates) /\
+  bounded_analytic64_dag_stack_refines next_identity_stack next_value_stack
+      result_cache
+Proof
+  strip_tac >>
+  imp_res_tac bounded_analytic64_dag_schedule_step_lookup >>
+  imp_res_tac bounded_analytic64_dag_schedule_step_decompose >>
+  fs [bounded_analytic64_dag_cache_valid_def] >>
+  res_tac >>
+  imp_res_tac bounded_analytic64_dag_node_eval_step >>
+  imp_res_tac bounded_analytic64_dag_schedule_step_identity_reuse >>
+  imp_res_tac bounded_analytic64_dag_stack_refines_reuse >>
+  metis_tac [bounded_analytic64_dag_stack_refines_cons,
+    bounded_analytic64_dag_stack_refines_unique]
+QED
+
 Theorem bounded_analytic64_dag_schedule_rejects_prepared_alias:
   bounded_analytic64_dag_schedule_step
     [BoundedAnalyticDagPiHalf] BoundedAnalyticPiHalf
