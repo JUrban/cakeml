@@ -317,6 +317,20 @@ Proof
   every_case_tac >> gvs []
 QED
 
+Theorem bounded_analytic64_program_step_unappend:
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction
+      (operand_stack ++ rest_stack,
+       certificate_prefix ++ rest_certificates) =
+      SOME (result::rest_stack,rest_certificates) ==>
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction (operand_stack,certificate_prefix) = SOME ([result],[])
+Proof
+  Cases_on `instruction` >>
+  simp [compute_boundedAnalyticProgramTheory.bounded_analytic64_program_step_def] >>
+  every_case_tac >> gvs []
+QED
+
 Theorem bounded_analytic64_current_certificate_prefix:
   bounded_analytic64_current_certificate instruction certificates =
       SOME (current_certificate,rest_certificates) ==>
@@ -494,6 +508,29 @@ Proof
   imp_res_tac bounded_analytic64_dag_stack_refines_reuse >>
   metis_tac [bounded_analytic64_dag_stack_refines_cons,
     bounded_analytic64_dag_stack_refines_unique]
+QED
+
+(* Conversely, a successful ordinary step can be restricted to the exact
+ * operand prefix authenticated by the DAG node.  This is the cache-miss
+ * bridge: the top result inserted by the executable step is exactly the
+ * result obtained by evaluating the node in isolation. *)
+Theorem bounded_analytic64_dag_node_eval_from_program_step:
+  bounded_analytic64_dag_node_instruction node = SOME instruction /\
+  bounded_analytic64_dag_node_operand_stack node result_cache =
+      SOME operand_stack /\
+  bounded_analytic64_current_certificate instruction certificates =
+      SOME (current_certificate,rest_certificates) /\
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction (operand_stack ++ rest_stack,certificates) =
+      SOME (result::rest_stack,rest_certificates) ==>
+  bounded_analytic64_dag_node_eval radii center_environment box_environment
+      node current_certificate result_cache = SOME result
+Proof
+  strip_tac >>
+  imp_res_tac bounded_analytic64_current_certificate_prefix >>
+  rveq >>
+  imp_res_tac bounded_analytic64_program_step_unappend >>
+  fs [bounded_analytic64_dag_node_eval_def]
 QED
 
 (* Filling a cache slot that was empty cannot change an already successful
