@@ -119,6 +119,15 @@ rejects malformed shapes, while general theorems show that negation and checked
 addition preserve the complete invariant.  This keeps the runtime result
 compact and avoids returning intermediate jets across the theorem boundary.
 
+[compute_boundedWideScript.sml](compute_boundedWideScript.sml) and
+[compute_boundedWideProgScript.sml](compute_boundedWideProgScript.sml):
+Word-only 192-bit comparison/subtraction and 128-by-64 multiplication for the
+Taylor completion path, including borrow-in propagation and explicit overflow
+results.  Closed carry-, borrow-, underflow-, and maximum-product tests pass
+and the operations translate to CakeML.  This is a DEVELOPMENT execution
+boundary: the general refinement of these algorithms to `bounded192_to_num`
+remains mandatory before a release claim.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
