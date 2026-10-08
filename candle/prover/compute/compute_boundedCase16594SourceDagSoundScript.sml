@@ -496,6 +496,57 @@ Proof
     bounded_analytic64_dag_stack_refines_unique]
 QED
 
+(* Filling a cache slot that was empty cannot change an already successful
+ * operand lookup.  In particular, this covers the new node itself without a
+ * separate acyclicity argument: a successful old lookup could not have used
+ * the empty slot. *)
+Theorem bounded_analytic64_dag_node_operand_stack_insert_empty:
+  oEL identity result_cache = SOME NONE /\
+  bounded_analytic64_dag_node_operand_stack node result_cache =
+      SOME operand_stack ==>
+  bounded_analytic64_dag_node_operand_stack node
+      (LUPDATE (SOME result) identity result_cache) = SOME operand_stack
+Proof
+  Cases_on `node` >>
+  gvs [bounded_analytic64_dag_node_operand_stack_def,
+    bounded_analytic64_dag_cache_result_def,oEL_LUPDATE] >>
+  every_case_tac >> gvs []
+QED
+
+Theorem bounded_analytic64_dag_node_eval_insert_empty:
+  oEL identity result_cache = SOME NONE /\
+  bounded_analytic64_dag_node_eval radii center_environment box_environment
+      node cached_certificate result_cache = SOME node_result ==>
+  bounded_analytic64_dag_node_eval radii center_environment box_environment
+      node cached_certificate
+      (LUPDATE (SOME inserted_result) identity result_cache) =
+    SOME node_result
+Proof
+  strip_tac >>
+  fs [bounded_analytic64_dag_node_eval_def] >>
+  every_case_tac >> gvs [] >>
+  imp_res_tac bounded_analytic64_dag_node_operand_stack_insert_empty >>
+  gvs []
+QED
+
+Theorem bounded_analytic64_dag_cache_valid_insert:
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+      nodes result_cache certificate_cache /\
+  oEL identity nodes = SOME node /\
+  oEL identity result_cache = SOME NONE /\
+  oEL identity certificate_cache = SOME old_certificate /\
+  bounded_analytic64_dag_node_eval radii center_environment box_environment
+      node current_certificate result_cache = SOME result ==>
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+      nodes (LUPDATE (SOME result) identity result_cache)
+      (LUPDATE current_certificate identity certificate_cache)
+Proof
+  rw [bounded_analytic64_dag_cache_valid_def,LENGTH_LUPDATE] >>
+  Cases_on `identity = identity'` >>
+  gvs [oEL_LUPDATE] >>
+  metis_tac [bounded_analytic64_dag_node_eval_insert_empty]
+QED
+
 Theorem bounded_analytic64_dag_schedule_rejects_prepared_alias:
   bounded_analytic64_dag_schedule_step
     [BoundedAnalyticDagPiHalf] BoundedAnalyticPiHalf
