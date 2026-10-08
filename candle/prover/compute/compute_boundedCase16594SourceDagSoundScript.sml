@@ -191,6 +191,19 @@ Definition bounded_analytic64_dag_node_eval_def:
             | _ => NONE
 End
 
+Definition bounded_analytic64_dag_cache_valid_def:
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+      nodes result_cache certificate_cache <=>
+    LENGTH result_cache = LENGTH nodes /\
+    LENGTH certificate_cache = LENGTH nodes /\
+    !identity node result cached_certificate.
+      oEL identity nodes = SOME node /\
+      oEL identity result_cache = SOME (SOME result) /\
+      oEL identity certificate_cache = SOME cached_certificate ==>
+      bounded_analytic64_dag_node_eval radii center_environment
+        box_environment node cached_certificate result_cache = SOME result
+End
+
 Theorem bounded_case16594_source_dag_nodes_topological:
   bounded_analytic_dag_nodes_topological_from 0
     bounded_case16594_source_dag_nodes
@@ -242,6 +255,36 @@ Proof
     bounded_analytic64_dag_cache_result_def,
     bounded_analytic_dag_node_children_def] >>
   every_case_tac >> gvs []
+QED
+
+Theorem bounded_analytic64_dag_cache_valid_empty:
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+    nodes (REPLICATE (LENGTH nodes) NONE)
+    (REPLICATE (LENGTH nodes) NONE)
+Proof
+  rw [bounded_analytic64_dag_cache_valid_def,LENGTH_REPLICATE] >>
+  gvs [oEL_THM,EL_REPLICATE]
+QED
+
+Theorem bounded_analytic64_dag_source_node_operands:
+  bounded_analytic_dag_source_node source role identity_stack =
+      SOME (node,rest_identity_stack) /\
+  bounded_analytic64_dag_stack_refines identity_stack value_stack
+      result_cache ==>
+  ?operand_stack rest_value_stack.
+    bounded_analytic64_dag_node_operand_stack node result_cache =
+      SOME operand_stack /\
+    value_stack = operand_stack ++ rest_value_stack /\
+    bounded_analytic64_dag_stack_refines rest_identity_stack
+      rest_value_stack result_cache
+Proof
+  Cases_on `source` >>
+  simp [compute_boundedCase16594SourceDagPlanTheory.bounded_analytic_dag_source_node_def] >>
+  every_case_tac >>
+  gvs [bounded_analytic64_dag_stack_refines_def,
+    bounded_analytic64_dag_node_operand_stack_def,
+    bounded_analytic64_dag_cache_result_def,LIST_REL_def] >>
+  rpt strip_tac >> rveq >> gvs [LIST_REL_def]
 QED
 
 Theorem bounded_analytic64_dag_schedule_step_identity_reuse:
