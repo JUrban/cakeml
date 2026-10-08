@@ -63,14 +63,14 @@ Definition bounded_analytic64_program_step_def:
       | BoundedAnalytic64Neg =>
           (case stack of
            | value::rest =>
-               if bounded_taylor64_well_formed value then
-                 SOME (bounded_taylor64_neg value::rest,certificates)
-               else NONE
+               (case bounded_taylor64_neg_complete radii value of
+                | NONE => NONE
+                | SOME result => SOME (result::rest,certificates))
            | _ => NONE)
       | BoundedAnalytic64Add =>
           (case stack of
            | right::left::rest =>
-               (case bounded_taylor64_add left right of
+               (case bounded_taylor64_add_complete radii left right of
                 | NONE => NONE
                 | SOME result => SOME (result::rest,certificates))
            | _ => NONE)
@@ -157,10 +157,8 @@ Proof
        compute_boundedTaylorInverseTheory.bounded_taylor64_inverse_some
   >> imp_res_tac
        compute_boundedTaylorAtanTheory.bounded_taylor64_atan_some
-  >> imp_res_tac
-       compute_boundedTaylorStateTheory.bounded_taylor64_neg_well_formed
-  >> imp_res_tac
-       compute_boundedTaylorStateTheory.bounded_taylor64_add_well_formed
+  >> imp_res_tac bounded_taylor64_neg_complete_some
+  >> imp_res_tac bounded_taylor64_add_complete_some
   >> imp_res_tac
        compute_boundedTaylorMulTheory.bounded_taylor64_mul_some
   >> imp_res_tac
@@ -171,8 +169,8 @@ Proof
         compute_boundedTaylorSqrtTheory.bounded_taylor64_sqrt_some,
         compute_boundedTaylorInverseTheory.bounded_taylor64_inverse_some,
         compute_boundedTaylorAtanTheory.bounded_taylor64_atan_some,
-        compute_boundedTaylorStateTheory.bounded_taylor64_neg_well_formed,
-        compute_boundedTaylorStateTheory.bounded_taylor64_add_well_formed,
+        bounded_taylor64_neg_complete_some,
+        bounded_taylor64_add_complete_some,
         compute_boundedTaylorMulTheory.bounded_taylor64_mul_some,
         compute_boundedTaylorBaseTheory.bounded_taylor64_constant_some]
 QED
