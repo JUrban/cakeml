@@ -94,6 +94,23 @@ Definition bounded_analytic64_dag_stack_refines_def:
       identity_stack value_stack
 End
 
+(* The source-side stack transition is independent of the numerical result.
+ * Keeping it explicit lets the soundness proof relate a cache hit to the
+ * ordinary sequential step without re-running that step. *)
+Definition bounded_analytic64_identity_reuse_stack_def:
+  bounded_analytic64_identity_reuse_stack identity arity identity_stack =
+    if arity = 0 then SOME (identity::identity_stack)
+    else if arity = 1 then
+      case identity_stack of
+      | operand::rest => SOME (identity::rest)
+      | _ => NONE
+    else if arity = 2 then
+      case identity_stack of
+      | right::left::rest => SOME (identity::rest)
+      | _ => NONE
+    else NONE
+End
+
 Theorem bounded_case16594_source_dag_nodes_topological:
   bounded_analytic_dag_nodes_topological_from 0
     bounded_case16594_source_dag_nodes
@@ -115,6 +132,43 @@ Theorem bounded_analytic64_dag_stack_refines_cons:
       result_cache
 Proof
   simp [bounded_analytic64_dag_stack_refines_def]
+QED
+
+Theorem bounded_analytic64_dag_schedule_step_identity_reuse:
+  bounded_analytic64_dag_schedule_step nodes source role prepared identity
+      identity_stack = SOME next_identity_stack ==>
+  bounded_analytic64_identity_reuse_stack identity
+      (bounded_analytic64_instruction_arity prepared) identity_stack =
+    SOME next_identity_stack
+Proof
+  Cases_on `source` >> Cases_on `role` >>
+  simp [bounded_analytic64_dag_schedule_step_def,
+    compute_boundedCase16594PreparedPlanTheory.bounded_case16594_compile_specialized_instruction_def,
+    compute_boundedCase16594PreparedPlanTheory.bounded_case16594_compile_analytic_instruction_def,
+    compute_boundedCase16594ProgramDataTheory.bounded_analytic_specialization_ok_def,
+    compute_boundedCase16594ProgramDataTheory.bounded_analytic_specialization_program_def,
+    compute_boundedCase16594SourceDagPlanTheory.bounded_analytic_dag_source_node_def,
+    bounded_analytic64_identity_reuse_stack_def,
+    bounded_analytic64_instruction_arity_def] >>
+  every_case_tac >> gvs []
+QED
+
+Theorem bounded_analytic64_dag_stack_refines_reuse:
+  bounded_analytic64_dag_stack_refines identity_stack value_stack
+      result_cache /\
+  oEL identity result_cache = SOME (SOME value) /\
+  bounded_analytic64_identity_reuse_stack identity arity identity_stack =
+      SOME next_identity_stack /\
+  bounded_analytic64_reuse_stack value arity value_stack =
+      SOME next_value_stack ==>
+  bounded_analytic64_dag_stack_refines next_identity_stack next_value_stack
+      result_cache
+Proof
+  simp [bounded_analytic64_dag_stack_refines_def,
+    bounded_analytic64_identity_reuse_stack_def,
+    bounded_analytic64_reuse_stack_def] >>
+  every_case_tac >> gvs [LIST_REL_def] >>
+  rpt strip_tac >> rveq >> gvs [LIST_REL_def]
 QED
 
 Theorem bounded_analytic64_dag_schedule_rejects_prepared_alias:
