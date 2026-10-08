@@ -137,6 +137,18 @@ and all four sign/direction rounding branches have closed tests and translate
 to CakeML.  Their general integer and directed-rounding refinements remain a
 DEVELOPMENT proof obligation alongside the unsigned wide operations.
 
+[compute_boundedTaylorCompleteScript.sml](compute_boundedTaylorCompleteScript.sml)
+and
+[compute_boundedTaylorCompleteProgScript.sml](compute_boundedTaylorCompleteProgScript.sml):
+Checked final-value completion for the compact six-dimensional Taylor state.
+It computes the six-term absolute gradient dot product and the 21-term
+symmetric-Hessian quadratic error directly from stored endpoints, composes the
+signed wide center and error, and returns only one outward-rounded interval.
+Malformed shapes and every overflow path return `NONE`; closed tests cover
+shape rejection, exact completion, and nonzero directed-rounding remainder.
+The operation translates to CakeML but remains DEVELOPMENT pending the wide
+refinements and analytic/source soundness bridge.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
