@@ -302,6 +302,19 @@ Proof
   every_case_tac >> gvs []
 QED
 
+Theorem bounded_analytic64_current_certificate_prefix:
+  bounded_analytic64_current_certificate instruction certificates =
+      SOME (current_certificate,rest_certificates) ==>
+  certificates =
+    (case current_certificate of NONE => [] | SOME value => [value]) ++
+    rest_certificates
+Proof
+  Cases_on `instruction` >> Cases_on `certificates` >>
+  simp [bounded_analytic64_current_certificate_def,
+    bounded_analytic64_instruction_uses_certificate_def] >>
+  rpt strip_tac >> rveq >> simp []
+QED
+
 Theorem bounded_analytic64_dag_schedule_step_identity_reuse:
   bounded_analytic64_dag_schedule_step nodes source role prepared identity
       identity_stack = SOME next_identity_stack ==>
@@ -364,6 +377,49 @@ Theorem bounded_analytic64_dag_schedule_step_node_instruction:
 Proof
   metis_tac [bounded_analytic64_dag_schedule_step_decompose,
     bounded_analytic64_dag_source_node_instruction]
+QED
+
+Theorem bounded_analytic64_dag_node_eval_program_step:
+  bounded_analytic64_dag_node_eval radii center_environment box_environment
+      node current_certificate result_cache = SOME result /\
+  bounded_analytic64_dag_node_instruction node = SOME instruction /\
+  bounded_analytic64_dag_node_operand_stack node result_cache =
+      SOME operand_stack ==>
+  bounded_analytic64_program_step radii center_environment box_environment
+    instruction
+    (operand_stack,
+     case current_certificate of NONE => [] | SOME value => [value]) =
+    SOME ([result],[])
+Proof
+  strip_tac >>
+  fs [bounded_analytic64_dag_node_eval_def] >>
+  every_case_tac >> gvs []
+QED
+
+Theorem bounded_analytic64_dag_node_eval_step:
+  bounded_case16594_compile_specialized_instruction source role =
+      SOME instruction /\
+  bounded_analytic_dag_source_node source role identity_stack =
+      SOME (node,rest_identity_stack) /\
+  bounded_analytic64_dag_stack_refines identity_stack value_stack
+      result_cache /\
+  bounded_analytic64_dag_node_eval radii center_environment box_environment
+      node current_certificate result_cache = SOME result /\
+  bounded_analytic64_current_certificate instruction certificates =
+      SOME (current_certificate,rest_certificates) ==>
+  ?rest_value_stack.
+    bounded_analytic64_program_step radii center_environment box_environment
+      instruction (value_stack,certificates) =
+        SOME (result::rest_value_stack,rest_certificates) /\
+    bounded_analytic64_dag_stack_refines rest_identity_stack
+      rest_value_stack result_cache
+Proof
+  strip_tac >>
+  imp_res_tac bounded_analytic64_dag_source_node_instruction >>
+  imp_res_tac bounded_analytic64_dag_source_node_operands >>
+  imp_res_tac bounded_analytic64_dag_node_eval_program_step >>
+  imp_res_tac bounded_analytic64_current_certificate_prefix >>
+  metis_tac [bounded_analytic64_program_step_append]
 QED
 
 Theorem bounded_analytic64_dag_stack_refines_reuse:
