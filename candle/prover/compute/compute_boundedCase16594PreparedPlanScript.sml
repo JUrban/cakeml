@@ -105,16 +105,44 @@ Definition bounded_case16594_compile_analytic_def:
       | SOME rest => SOME (prepared::rest)
 End
 
+Definition bounded_case16594_compile_specialized_instruction_def:
+  bounded_case16594_compile_specialized_instruction instruction role =
+    if ¬bounded_analytic_specialization_ok instruction role then NONE
+    else
+      case role of
+      | BoundedAnalyticGeneral =>
+          bounded_case16594_compile_analytic_instruction instruction
+      | BoundedNegDeltaDerivative coordinate =>
+          SOME (BoundedAnalytic64NegDeltaDerivative coordinate)
+      | BoundedFourCoordinateDelta coordinate =>
+          SOME (BoundedAnalytic64FourCoordinateDelta coordinate)
+End
+
+Definition bounded_case16594_compile_specialized_def:
+  bounded_case16594_compile_specialized [] [] = SOME [] ∧
+  bounded_case16594_compile_specialized
+      (instruction::instructions) (role::roles) =
+    (case bounded_case16594_compile_specialized_instruction instruction role of
+     | NONE => NONE
+     | SOME prepared =>
+       case bounded_case16594_compile_specialized instructions roles of
+       | NONE => NONE
+       | SOME rest => SOME (prepared::rest)) ∧
+  bounded_case16594_compile_specialized _ _ = NONE
+End
+
 Definition bounded_case16594_prepared_program_def:
   bounded_case16594_prepared_program =
-    case bounded_case16594_compile_analytic bounded_case16594_program of
+    case bounded_case16594_compile_specialized bounded_case16594_program
+      bounded_case16594_specializations of
     | NONE => []
     | SOME program => program
 End
 
 Definition bounded_case16594_prepared_program_ok_def:
   bounded_case16594_prepared_program_ok ⇔
-    bounded_case16594_compile_analytic bounded_case16594_program =
+    bounded_case16594_compile_specialized bounded_case16594_program
+      bounded_case16594_specializations =
       SOME bounded_case16594_prepared_program ∧
     LENGTH bounded_case16594_prepared_program = 167
 End
@@ -131,7 +159,14 @@ Theorem bounded_case16594_prepared_plan_rejects_aliases:
     (BoundedPolyVariable 6) = NONE ∧
   bounded_case16594_compile_analytic
     [BoundedAnalyticPolynomial
-      [BoundedPolyConstant 1 0 1]] = NONE
+      [BoundedPolyConstant 1 0 1]] = NONE ∧
+  bounded_case16594_compile_specialized_instruction
+    (BoundedAnalyticPolynomial (REPLICATE 39 BoundedPolyNeg))
+    (BoundedNegDeltaDerivative 3) = NONE ∧
+  bounded_case16594_compile_specialized
+    [BoundedAnalyticPolynomial
+      (THE (bounded_analytic_specialization_program
+        (BoundedNegDeltaDerivative 3)))] [] = NONE
 Proof
   EVAL_TAC
 QED

@@ -8,13 +8,15 @@
  *****************************************************************************)
 Theory compute_boundedAnalyticProgram
 Ancestors
-  compute_boundedTaylorProgram
+  compute_boundedTaylorProgram compute_boundedDeltaTaylor
 Libs
   bossLib preamble
 
 Datatype:
   bounded_analytic64_instruction =
     BoundedAnalytic64Polynomial (bounded_taylor64_instruction list)
+  | BoundedAnalytic64NegDeltaDerivative num
+  | BoundedAnalytic64FourCoordinateDelta num
   | BoundedAnalytic64Sqrt
   | BoundedAnalytic64Neg
   | BoundedAnalytic64Add
@@ -46,6 +48,16 @@ Definition bounded_analytic64_program_step_def:
       | BoundedAnalytic64Polynomial program =>
           (case bounded_taylor64_program_eval radii center_environment
             box_environment program of
+           | NONE => NONE
+           | SOME result => SOME (result::stack,certificates))
+      | BoundedAnalytic64NegDeltaDerivative coordinate =>
+          (case bounded_delta64_neg_derivative radii center_environment
+            coordinate of
+           | NONE => NONE
+           | SOME result => SOME (result::stack,certificates))
+      | BoundedAnalytic64FourCoordinateDelta coordinate =>
+          (case bounded_delta64_four_coordinate radii center_environment
+            box_environment coordinate of
            | NONE => NONE
            | SOME result => SOME (result::stack,certificates))
       | BoundedAnalytic64Sqrt =>
@@ -151,6 +163,8 @@ Proof
   >> every_case_tac
   >> gvs []
   >> imp_res_tac bounded_taylor64_program_eval_some
+  >> imp_res_tac bounded_delta64_neg_derivative_some
+  >> imp_res_tac bounded_delta64_four_coordinate_some
   >> imp_res_tac
        compute_boundedTaylorSqrtTheory.bounded_taylor64_sqrt_some
   >> imp_res_tac
@@ -166,6 +180,8 @@ Proof
   >> fs [bounded_taylor64_stack_well_formed_def]
   >> metis_tac
        [bounded_taylor64_program_eval_some,
+        bounded_delta64_neg_derivative_some,
+        bounded_delta64_four_coordinate_some,
         compute_boundedTaylorSqrtTheory.bounded_taylor64_sqrt_some,
         compute_boundedTaylorInverseTheory.bounded_taylor64_inverse_some,
         compute_boundedTaylorAtanTheory.bounded_taylor64_atan_some,

@@ -3,9 +3,9 @@ Theory compute_boundedTaylorProgramProg
 Libs
   preamble ml_translatorLib ml_progLib
 Ancestors
-  compute_boundedTaylorBaseProg compute_boundedTaylorProgram
+  compute_boundedDeltaTaylorProg compute_boundedTaylorProgram
 
-val _ = translation_extends "compute_boundedTaylorBaseProg";
+val _ = translation_extends "compute_boundedDeltaTaylorProg";
 
 val _ = register_type ``:bounded_taylor64_instruction``;
 

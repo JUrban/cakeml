@@ -1,0 +1,53 @@
+(* CakeML translation of the compact delta-family Taylor evaluators. *)
+Theory compute_boundedDeltaTaylorProg
+Libs
+  preamble ml_translatorLib ml_progLib
+Ancestors
+  compute_boundedTaylorBaseProg compute_boundedDeltaTaylor
+
+val _ = translation_extends "compute_boundedTaylorBaseProg";
+
+val bounded_interval64_sum_aux_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_interval64_sum_aux_def;
+val bounded_interval64_sum_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_interval64_sum_def;
+val bounded_interval64_scale4_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_interval64_scale4_def;
+val bounded_interval64_list_scale4_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_interval64_list_scale4_def;
+val bounded_interval64_mul3_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_interval64_mul3_def;
+val bounded_interval64_sums_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_interval64_sums_def;
+val bounded_delta64_pair_products_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_delta64_pair_products_def;
+val bounded_delta64_gradient_component_from_products_v =
+  translate
+    compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_component_from_products_def;
+val bounded_delta64_gradient_components_v =
+  translate
+    compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_components_def;
+val bounded_delta64_gradient_from_products_v =
+  translate
+    compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_from_products_def;
+val bounded_delta64_hessian_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_delta64_hessian_def;
+val bounded_delta64_value_six_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_delta64_value_six_def;
+val bounded_delta64_value_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_delta64_value_def;
+val bounded_interval64_list_add_at_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_interval64_list_add_at_def;
+val bounded_delta64_neg_derivative_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_delta64_neg_derivative_def;
+val bounded_delta64_hessian_indices_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_delta64_hessian_indices_def;
+val bounded_delta64_product_hessian_entry_v =
+  translate
+    compute_boundedDeltaTaylorTheory.bounded_delta64_product_hessian_entry_def;
+val bounded_delta64_product_hessian_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_delta64_product_hessian_def;
+val bounded_delta64_four_coordinate_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_delta64_four_coordinate_def;
+
+val _ = export_theory ();
