@@ -149,6 +149,16 @@ shape rejection, exact completion, and nonzero directed-rounding remainder.
 The operation translates to CakeML but remains DEVELOPMENT pending the wide
 refinements and analytic/source soundness bridge.
 
+[compute_boundedTaylorGradientScript.sml](compute_boundedTaylorGradientScript.sml)
+and
+[compute_boundedTaylorGradientProgScript.sml](compute_boundedTaylorGradientProgScript.sml):
+Checked expansion of the 21-entry symmetric Hessian into six transient rows,
+outward completion of all six gradient bounds at the `2^40` scale, and the
+complete compact Taylor-state constructor.  The public result remains compact;
+bad 6/21 shapes and overflow fail closed.  Closed tests cover Hessian-shape
+rejection, a nonzero directed gradient remainder, and complete zero-state
+assembly.  Translation succeeds at the same DEVELOPMENT boundary.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
