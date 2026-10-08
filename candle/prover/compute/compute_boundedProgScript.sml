@@ -5,9 +5,9 @@ Theory compute_boundedProg
 Libs
   preamble ml_translatorLib ml_progLib
 Ancestors
-  Word64Prog compute_bounded
+  basisProg compute_bounded
 
-val _ = translation_extends "Word64Prog";
+val _ = translation_extends "basisProg";
 
 val _ = register_type ``:bounded128``;
 val _ = register_type ``:bounded192``;
