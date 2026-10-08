@@ -1,0 +1,43 @@
+(* CakeML translation of total compact nonlinear-input parser primitives. *)
+Theory compute_boundedPackedInputProg
+Libs
+  preamble ml_translatorLib ml_progLib
+Ancestors
+  compute_boundedAnalyticProgramProg compute_boundedPackedInput
+
+val _ = translation_extends "compute_boundedAnalyticProgramProg";
+
+val bounded_packed_byte_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_byte_def;
+val bounded_packed_word64_aux_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_word64_aux_def;
+val bounded_packed_word64_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_word64_def;
+val bounded_packed_signed64_value_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_signed64_value_def;
+val bounded_packed_signed64_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_signed64_def;
+val bounded_packed_interval64_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_interval64_def;
+val bounded_packed_positive_interval64_value_v =
+  translate
+    compute_boundedPackedInputTheory.bounded_packed_positive_interval64_value_def;
+val bounded_packed_positive_interval64_v =
+  translate
+    compute_boundedPackedInputTheory.bounded_packed_positive_interval64_def;
+val bounded_packed_positive_interval64_list_aux_v =
+  translate
+    compute_boundedPackedInputTheory.bounded_packed_positive_interval64_list_aux_def;
+val bounded_packed_positive_interval64_list_v =
+  translate
+    compute_boundedPackedInputTheory.bounded_packed_positive_interval64_list_def;
+val bounded_packed_word64_list_aux_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_word64_list_aux_def;
+val bounded_packed_word64_list_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_word64_list_def;
+val bounded_packed_case16594_input_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_case16594_input_def;
+val bounded_packed_case16594_header_v =
+  translate compute_boundedPackedInputTheory.bounded_packed_case16594_header_def;
+
+val _ = export_theory ();
