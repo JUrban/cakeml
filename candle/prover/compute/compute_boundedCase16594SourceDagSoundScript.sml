@@ -111,6 +111,86 @@ Definition bounded_analytic64_identity_reuse_stack_def:
     else NONE
 End
 
+Definition bounded_analytic64_dag_node_instruction_def:
+  bounded_analytic64_dag_node_instruction node =
+    case node of
+    | BoundedAnalyticDagPolynomial program role =>
+        bounded_case16594_compile_specialized_instruction
+          (BoundedAnalyticPolynomial program) role
+    | BoundedAnalyticDagSqrt child => SOME BoundedAnalytic64Sqrt
+    | BoundedAnalyticDagNeg child => SOME BoundedAnalytic64Neg
+    | BoundedAnalyticDagAdd left right => SOME BoundedAnalytic64Add
+    | BoundedAnalyticDagMul left right => SOME BoundedAnalytic64Mul
+    | BoundedAnalyticDagSquare child => SOME BoundedAnalytic64Square
+    | BoundedAnalyticDagInverse child => SOME BoundedAnalytic64Inverse
+    | BoundedAnalyticDagAtan child => SOME BoundedAnalytic64Atan
+    | BoundedAnalyticDagPiHalf => SOME BoundedAnalytic64PiHalf
+End
+
+Definition bounded_analytic64_dag_cache_result_def:
+  bounded_analytic64_dag_cache_result identity result_cache =
+    case oEL identity result_cache of
+    | SOME (SOME result) => SOME result
+    | _ => NONE
+End
+
+Definition bounded_analytic64_dag_node_operand_stack_def:
+  bounded_analytic64_dag_node_operand_stack node result_cache =
+    case node of
+    | BoundedAnalyticDagPolynomial program role => SOME []
+    | BoundedAnalyticDagSqrt child =>
+        (case bounded_analytic64_dag_cache_result child result_cache of
+         | SOME value => SOME [value]
+         | NONE => NONE)
+    | BoundedAnalyticDagNeg child =>
+        (case bounded_analytic64_dag_cache_result child result_cache of
+         | SOME value => SOME [value]
+         | NONE => NONE)
+    | BoundedAnalyticDagAdd left right =>
+        (case (bounded_analytic64_dag_cache_result left result_cache,
+               bounded_analytic64_dag_cache_result right result_cache) of
+         | (SOME left_value,SOME right_value) =>
+             SOME [right_value;left_value]
+         | _ => NONE)
+    | BoundedAnalyticDagMul left right =>
+        (case (bounded_analytic64_dag_cache_result left result_cache,
+               bounded_analytic64_dag_cache_result right result_cache) of
+         | (SOME left_value,SOME right_value) =>
+             SOME [right_value;left_value]
+         | _ => NONE)
+    | BoundedAnalyticDagSquare child =>
+        (case bounded_analytic64_dag_cache_result child result_cache of
+         | SOME value => SOME [value]
+         | NONE => NONE)
+    | BoundedAnalyticDagInverse child =>
+        (case bounded_analytic64_dag_cache_result child result_cache of
+         | SOME value => SOME [value]
+         | NONE => NONE)
+    | BoundedAnalyticDagAtan child =>
+        (case bounded_analytic64_dag_cache_result child result_cache of
+         | SOME value => SOME [value]
+         | NONE => NONE)
+    | BoundedAnalyticDagPiHalf => SOME []
+End
+
+Definition bounded_analytic64_dag_node_eval_def:
+  bounded_analytic64_dag_node_eval radii center_environment box_environment
+      node cached_certificate result_cache =
+    case bounded_analytic64_dag_node_instruction node of
+    | NONE => NONE
+    | SOME instruction =>
+        case bounded_analytic64_dag_node_operand_stack node result_cache of
+        | NONE => NONE
+        | SOME operand_stack =>
+            case bounded_analytic64_program_step radii center_environment
+              box_environment instruction
+              (operand_stack,
+               case cached_certificate of NONE => [] | SOME value => [value])
+            of
+            | SOME ([result],[]) => SOME result
+            | _ => NONE
+End
+
 Theorem bounded_case16594_source_dag_nodes_topological:
   bounded_analytic_dag_nodes_topological_from 0
     bounded_case16594_source_dag_nodes
@@ -134,6 +214,36 @@ Proof
   simp [bounded_analytic64_dag_stack_refines_def]
 QED
 
+Theorem bounded_analytic64_dag_node_instruction_arity:
+  bounded_analytic64_dag_node_instruction node = SOME instruction ==>
+  bounded_analytic64_instruction_arity instruction =
+    &(LENGTH (bounded_analytic_dag_node_children node))
+Proof
+  Cases_on `node` >>
+  simp [bounded_analytic64_dag_node_instruction_def,
+    bounded_analytic_dag_node_children_def,
+    compute_boundedCase16594PreparedPlanTheory.bounded_case16594_compile_specialized_instruction_def,
+    compute_boundedCase16594PreparedPlanTheory.bounded_case16594_compile_analytic_instruction_def,
+    compute_boundedCase16594ProgramDataTheory.bounded_analytic_specialization_ok_def,
+    compute_boundedCase16594ProgramDataTheory.bounded_analytic_specialization_program_def,
+    bounded_analytic64_instruction_arity_def] >>
+  every_case_tac >> gvs []
+QED
+
+Theorem bounded_analytic64_dag_node_operand_stack_length:
+  bounded_analytic64_dag_node_instruction node = SOME instruction /\
+  bounded_analytic64_dag_node_operand_stack node result_cache = SOME stack ==>
+  &(LENGTH stack) = bounded_analytic64_instruction_arity instruction
+Proof
+  strip_tac >>
+  imp_res_tac bounded_analytic64_dag_node_instruction_arity >>
+  Cases_on `node` >>
+  gvs [bounded_analytic64_dag_node_operand_stack_def,
+    bounded_analytic64_dag_cache_result_def,
+    bounded_analytic_dag_node_children_def] >>
+  every_case_tac >> gvs []
+QED
+
 Theorem bounded_analytic64_dag_schedule_step_identity_reuse:
   bounded_analytic64_dag_schedule_step nodes source role prepared identity
       identity_stack = SOME next_identity_stack ==>
@@ -151,6 +261,51 @@ Proof
     bounded_analytic64_identity_reuse_stack_def,
     bounded_analytic64_instruction_arity_def] >>
   every_case_tac >> gvs []
+QED
+
+Theorem bounded_analytic64_dag_schedule_step_decompose:
+  bounded_analytic64_dag_schedule_step nodes source role prepared identity
+      identity_stack = SOME next_identity_stack /\
+  oEL identity nodes = SOME node ==>
+  bounded_case16594_compile_specialized_instruction source role =
+      SOME prepared /\
+  ?rest.
+    bounded_analytic_dag_source_node source role identity_stack =
+      SOME (node,rest) /\
+    next_identity_stack = identity::rest
+Proof
+  simp [bounded_analytic64_dag_schedule_step_def] >>
+  every_case_tac >> gvs [] >>
+  rpt strip_tac >> rveq >> gvs []
+QED
+
+Theorem bounded_analytic64_dag_source_node_instruction:
+  bounded_case16594_compile_specialized_instruction source role =
+      SOME prepared /\
+  bounded_analytic_dag_source_node source role identity_stack =
+      SOME (node,rest) ==>
+  bounded_analytic64_dag_node_instruction node = SOME prepared
+Proof
+  Cases_on `source` >> Cases_on `role` >>
+  gvs [bounded_analytic64_dag_node_instruction_def,
+    compute_boundedCase16594PreparedPlanTheory.bounded_case16594_compile_specialized_instruction_def,
+    compute_boundedCase16594PreparedPlanTheory.bounded_case16594_compile_analytic_instruction_def,
+    compute_boundedCase16594ProgramDataTheory.bounded_analytic_specialization_ok_def,
+    compute_boundedCase16594ProgramDataTheory.bounded_analytic_specialization_program_def,
+    compute_boundedCase16594SourceDagPlanTheory.bounded_analytic_dag_source_node_def] >>
+  every_case_tac >> gvs [] >>
+  rpt strip_tac >> rveq >> gvs []
+QED
+
+
+Theorem bounded_analytic64_dag_schedule_step_node_instruction:
+  bounded_analytic64_dag_schedule_step nodes source role prepared identity
+      identity_stack = SOME next_identity_stack /\
+  oEL identity nodes = SOME node ==>
+  bounded_analytic64_dag_node_instruction node = SOME prepared
+Proof
+  metis_tac [bounded_analytic64_dag_schedule_step_decompose,
+    bounded_analytic64_dag_source_node_instruction]
 QED
 
 Theorem bounded_analytic64_dag_stack_refines_reuse:
