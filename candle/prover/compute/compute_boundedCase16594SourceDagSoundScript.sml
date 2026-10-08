@@ -63,6 +63,60 @@ Proof
   EVAL_TAC >> wordsLib.WORD_EVAL_TAC
 QED
 
+Definition bounded_analytic_dag_node_children_def:
+  bounded_analytic_dag_node_children node =
+    case node of
+    | BoundedAnalyticDagPolynomial program role => []
+    | BoundedAnalyticDagSqrt child => [child]
+    | BoundedAnalyticDagNeg child => [child]
+    | BoundedAnalyticDagAdd left right => [left;right]
+    | BoundedAnalyticDagMul left right => [left;right]
+    | BoundedAnalyticDagSquare child => [child]
+    | BoundedAnalyticDagInverse child => [child]
+    | BoundedAnalyticDagAtan child => [child]
+    | BoundedAnalyticDagPiHalf => []
+End
+
+Definition bounded_analytic_dag_nodes_topological_from_def:
+  bounded_analytic_dag_nodes_topological_from index [] = T /\
+  bounded_analytic_dag_nodes_topological_from index (node::nodes) =
+    (EVERY (\child. child < index)
+      (bounded_analytic_dag_node_children node) /\
+     bounded_analytic_dag_nodes_topological_from (SUC index) nodes)
+End
+
+Definition bounded_analytic64_dag_stack_refines_def:
+  bounded_analytic64_dag_stack_refines identity_stack value_stack
+      result_cache <=>
+    LIST_REL
+      (\identity value.
+         oEL identity result_cache = SOME (SOME value))
+      identity_stack value_stack
+End
+
+Theorem bounded_case16594_source_dag_nodes_topological:
+  bounded_analytic_dag_nodes_topological_from 0
+    bounded_case16594_source_dag_nodes
+Proof
+  EVAL_TAC
+QED
+
+Theorem bounded_analytic64_dag_stack_refines_empty:
+  bounded_analytic64_dag_stack_refines [] [] result_cache
+Proof
+  simp [bounded_analytic64_dag_stack_refines_def]
+QED
+
+Theorem bounded_analytic64_dag_stack_refines_cons:
+  bounded_analytic64_dag_stack_refines (identity::identity_stack)
+      (value::value_stack) result_cache <=>
+    oEL identity result_cache = SOME (SOME value) /\
+    bounded_analytic64_dag_stack_refines identity_stack value_stack
+      result_cache
+Proof
+  simp [bounded_analytic64_dag_stack_refines_def]
+QED
+
 Theorem bounded_analytic64_dag_schedule_rejects_prepared_alias:
   bounded_analytic64_dag_schedule_step
     [BoundedAnalyticDagPiHalf] BoundedAnalyticPiHalf
