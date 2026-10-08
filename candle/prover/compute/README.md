@@ -159,6 +159,16 @@ bad 6/21 shapes and overflow fail closed.  Closed tests cover Hessian-shape
 rejection, a nonzero directed gradient remainder, and complete zero-state
 assembly.  Translation succeeds at the same DEVELOPMENT boundary.
 
+[compute_boundedSqrtCertificateScript.sml](compute_boundedSqrtCertificateScript.sml)
+and
+[compute_boundedSqrtCertificateProgScript.sml](compute_boundedSqrtCertificateProgScript.sml):
+Exact fixed-scale authentication of externally prepared square-root intervals.
+Four checked full-word products establish the two enclosure inequalities;
+invalid, negative, or too-narrow certificates are rejected.  This moves
+reusable numerical preparation outside the hot checker while retaining an
+exact in-Candle acceptance predicate.  Closed positive and adversarial tests
+pass, and the predicate translates to CakeML.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
