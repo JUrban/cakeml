@@ -3,9 +3,9 @@ Theory compute_boundedWideProg
 Libs
   preamble ml_translatorLib ml_progLib
 Ancestors
-  compute_boundedSignedAddProg compute_boundedWide
+  compute_boundedSignedEndpointProg compute_boundedWide
 
-val _ = translation_extends "compute_boundedSignedAddProg";
+val _ = translation_extends "compute_boundedSignedEndpointProg";
 
 val bounded192_zero_v =
   translate compute_boundedWideTheory.bounded192_zero_def;

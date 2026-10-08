@@ -128,6 +128,15 @@ and the operations translate to CakeML.  This is a DEVELOPMENT execution
 boundary: the general refinement of these algorithms to `bounded192_to_num`
 remains mandatory before a release claim.
 
+[compute_boundedWideSignedScript.sml](compute_boundedWideSignedScript.sml) and
+[compute_boundedWideSignedProgScript.sml](compute_boundedWideSignedProgScript.sml):
+Canonical signed 192-bit accumulation plus the concrete `2^41` linear,
+`2^81` center, and directed `2^81` result boundaries used by Taylor
+completion.  Cancellation, overflow, limb placement, remainder detection,
+and all four sign/direction rounding branches have closed tests and translate
+to CakeML.  Their general integer and directed-rounding refinements remain a
+DEVELOPMENT proof obligation alongside the unsigned wide operations.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
