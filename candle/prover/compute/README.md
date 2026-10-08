@@ -98,6 +98,27 @@ prove endpoint values, normalization, validity preservation, and fail-closed
 invalid-input/overflow behavior.  These are the last basic linear operations
 needed to assemble the genuine-box evaluator; both translate to CakeML.
 
+[compute_boundedIntervalListScript.sml](compute_boundedIntervalListScript.sml)
+and
+[compute_boundedIntervalListProgScript.sml](compute_boundedIntervalListProgScript.sml):
+Shape-safe vector and compact-matrix building blocks for the complete
+fixed-width jet executor.  Negation, checked pointwise addition, scalar
+multiplication, and pairwise multiplication are total; mismatched shapes and
+arithmetic overflow return `NONE`.  The proved length/validity lemmas establish
+the six-gradient and twenty-one-Hessian representation boundary without tying
+it to one Flyspeck inequality.  The multiplication helpers deliberately remain
+under the general interval-containment obligation noted above.
+
+[compute_boundedTaylorStateScript.sml](compute_boundedTaylorStateScript.sml)
+and
+[compute_boundedTaylorStateProgScript.sml](compute_boundedTaylorStateProgScript.sml):
+The compact six-dimensional Taylor state used by the planned full-batch
+executor: center value and six-gradient, whole-box value and six-gradient, and
+the twenty-one independent symmetric-Hessian entries.  A checked constructor
+rejects malformed shapes, while general theorems show that negation and checked
+addition preserve the complete invariant.  This keeps the runtime result
+compact and avoids returning intermediate jets across the theorem boundary.
+
 [compute_boundedCase16594TraceProgScript.sml](compute_boundedCase16594TraceProgScript.sml)
 and
 [compute_boundedCase16594TraceCompileScript.sml](compute_boundedCase16594TraceCompileScript.sml):
