@@ -514,6 +514,42 @@ Proof
   >> metis_tac []
 QED
 
+Theorem bounded_int_product_bounds_corners:
+  (left_lower:int) ≤ left_value ∧ left_value ≤ left_upper ∧
+  right_lower ≤ right_value ∧ right_value ≤ right_upper ⇒
+  (left_lower * right_lower ≤ left_value * right_value ∨
+   left_lower * right_upper ≤ left_value * right_value ∨
+   left_upper * right_lower ≤ left_value * right_value ∨
+   left_upper * right_upper ≤ left_value * right_value) ∧
+  (left_value * right_value ≤ left_lower * right_lower ∨
+   left_value * right_value ≤ left_lower * right_upper ∨
+   left_value * right_value ≤ left_upper * right_lower ∨
+   left_value * right_value ≤ left_upper * right_upper)
+Proof
+  strip_tac
+  >> Cases_on `0 ≤ left_lower`
+  >- (Cases_on `0 ≤ right_lower`
+      >- metis_tac [bounded_int_product_bounds_nonnegative_nonnegative]
+      >> Cases_on `right_upper ≤ 0`
+      >- metis_tac [bounded_int_product_bounds_nonnegative_nonpositive]
+      >> `right_lower ≤ 0 ∧ 0 ≤ right_upper` by intLib.ARITH_TAC
+      >> metis_tac [bounded_int_product_bounds_nonnegative_mixed])
+  >> Cases_on `left_upper ≤ 0`
+  >- (Cases_on `0 ≤ right_lower`
+      >- metis_tac [bounded_int_product_bounds_nonpositive_nonnegative]
+      >> Cases_on `right_upper ≤ 0`
+      >- metis_tac [bounded_int_product_bounds_nonpositive_nonpositive]
+      >> `right_lower ≤ 0 ∧ 0 ≤ right_upper` by intLib.ARITH_TAC
+      >> metis_tac [bounded_int_product_bounds_nonpositive_mixed])
+  >> `left_lower ≤ 0 ∧ 0 ≤ left_upper` by intLib.ARITH_TAC
+  >> Cases_on `0 ≤ right_lower`
+  >- metis_tac [bounded_int_product_bounds_mixed_nonnegative]
+  >> Cases_on `right_upper ≤ 0`
+  >- metis_tac [bounded_int_product_bounds_mixed_nonpositive]
+  >> `right_lower ≤ 0 ∧ 0 ≤ right_upper` by intLib.ARITH_TAC
+  >> metis_tac [bounded_int_product_bounds_mixed_mixed]
+QED
+
 Theorem bounded_signed_word64_mul_floor40_to_int:
   bounded_signed_word64_mul_floor40
       (BoundedSigned64 left_negative left_word)
@@ -979,6 +1015,292 @@ Proof
   >> Cases_on `result`
   >> fs [bounded_interval64_contains_scaled_int_def]
   >> metis_tac [bounded_interval64_mul_contains_product]
+QED
+
+Theorem bounded_scale40_lower_corner:
+  (&1099511627776:int) * output ≤ left * right ⇒
+  (&1099511627776:int) * &1099511627776 * output ≤
+    ((&1099511627776:int) * left) * right
+Proof
+  strip_tac
+  >> `(&1099511627776:int) *
+        ((&1099511627776:int) * output) ≤
+      (&1099511627776:int) * (left * right)` by
+       (irule bounded_int_mul_left_mono_nonnegative >> simp [])
+  >> fs [integerTheory.INT_MUL_ASSOC]
+QED
+
+Theorem bounded_scale40_upper_corner:
+  left * right ≤ (&1099511627776:int) * output ⇒
+  ((&1099511627776:int) * left) * right ≤
+    (&1099511627776:int) * &1099511627776 * output
+Proof
+  strip_tac
+  >> `(&1099511627776:int) * (left * right) ≤
+      (&1099511627776:int) *
+        ((&1099511627776:int) * output)` by
+       (irule bounded_int_mul_left_mono_nonnegative >> simp [])
+  >> fs [integerTheory.INT_MUL_ASSOC]
+QED
+
+Theorem bounded_scale40_corner:
+  (&1099511627776:int) * lower ≤ left * right ∧
+  left * right ≤ (&1099511627776:int) * upper ⇒
+  (&1099511627776:int) * &1099511627776 * lower ≤
+      ((&1099511627776:int) * left) * right ∧
+  ((&1099511627776:int) * left) * right ≤
+      (&1099511627776:int) * &1099511627776 * upper
+Proof
+  metis_tac [bounded_scale40_lower_corner,
+             bounded_scale40_upper_corner]
+QED
+
+Theorem bounded_int_four_corners_enclose:
+  (lower:int) ≤ corner1 ∧ corner1 ≤ upper ∧
+  lower ≤ corner2 ∧ corner2 ≤ upper ∧
+  lower ≤ corner3 ∧ corner3 ≤ upper ∧
+  lower ≤ corner4 ∧ corner4 ≤ upper ∧
+  (corner1 ≤ value ∨ corner2 ≤ value ∨
+   corner3 ≤ value ∨ corner4 ≤ value) ∧
+  (value ≤ corner1 ∨ value ≤ corner2 ∨
+   value ≤ corner3 ∨ value ≤ corner4) ⇒
+  lower ≤ value ∧ value ≤ upper
+Proof
+  metis_tac [integerTheory.INT_LE_TRANS]
+QED
+
+Theorem bounded_interval64_mul_contains_left_scaled_product:
+  bounded_interval64_contains_scaled_int left
+      (&1099511627776:int) left_value ∧
+  bounded_interval64_contains_int right right_value ∧
+  bounded_interval64_mul left right = SOME result ⇒
+  bounded_interval64_contains_scaled_int result
+    ((&1099511627776:int) * &1099511627776)
+    (left_value * right_value)
+Proof
+  strip_tac
+  >> Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `result`
+  >> rename1
+       `bounded_interval64_mul
+          (BoundedInterval64 left_lower left_upper)
+          (BoundedInterval64 right_lower right_upper) =
+        SOME (BoundedInterval64 output_lower output_upper)`
+  >> `bounded_interval64_valid
+        (BoundedInterval64 left_lower left_upper) ∧
+      bounded_interval64_valid
+        (BoundedInterval64 right_lower right_upper)` by
+       fs [bounded_interval64_mul_def]
+  >> `bounded_signed64_to_int left_lower ≤
+        bounded_signed64_to_int left_upper ∧
+      bounded_signed64_to_int right_lower ≤
+        bounded_signed64_to_int right_upper` by
+       fs [bounded_interval64_valid_def,
+           bounded_signed64_le_correct]
+  >> `bounded_interval64_contains_int
+        (BoundedInterval64 left_lower left_upper)
+          (bounded_signed64_to_int left_lower) ∧
+      bounded_interval64_contains_int
+        (BoundedInterval64 left_lower left_upper)
+          (bounded_signed64_to_int left_upper) ∧
+      bounded_interval64_contains_int
+        (BoundedInterval64 right_lower right_upper)
+          (bounded_signed64_to_int right_lower) ∧
+      bounded_interval64_contains_int
+        (BoundedInterval64 right_lower right_upper)
+          (bounded_signed64_to_int right_upper)` by
+       simp [bounded_interval64_contains_int_def]
+  >> `(&1099511627776:int) *
+        bounded_signed64_to_int output_lower ≤
+        bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower ∧
+      bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower ≤
+        (&1099511627776:int) *
+          bounded_signed64_to_int output_upper` by
+       (mp_tac
+          (Q.INST
+            [`left` |-> `BoundedInterval64 left_lower left_upper`,
+             `left_value` |-> `bounded_signed64_to_int left_lower`,
+             `right` |-> `BoundedInterval64 right_lower right_upper`,
+             `right_value` |-> `bounded_signed64_to_int right_lower`,
+             `lower` |-> `output_lower`,
+             `upper` |-> `output_upper`]
+            bounded_interval64_mul_contains_product)
+        >> simp [])
+  >> `(&1099511627776:int) *
+        bounded_signed64_to_int output_lower ≤
+        bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper ∧
+      bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper ≤
+        (&1099511627776:int) *
+          bounded_signed64_to_int output_upper` by
+       (mp_tac
+          (Q.INST
+            [`left` |-> `BoundedInterval64 left_lower left_upper`,
+             `left_value` |-> `bounded_signed64_to_int left_lower`,
+             `right` |-> `BoundedInterval64 right_lower right_upper`,
+             `right_value` |-> `bounded_signed64_to_int right_upper`,
+             `lower` |-> `output_lower`,
+             `upper` |-> `output_upper`]
+            bounded_interval64_mul_contains_product)
+        >> simp [])
+  >> `(&1099511627776:int) *
+        bounded_signed64_to_int output_lower ≤
+        bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower ∧
+      bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower ≤
+        (&1099511627776:int) *
+          bounded_signed64_to_int output_upper` by
+       (mp_tac
+          (Q.INST
+            [`left` |-> `BoundedInterval64 left_lower left_upper`,
+             `left_value` |-> `bounded_signed64_to_int left_upper`,
+             `right` |-> `BoundedInterval64 right_lower right_upper`,
+             `right_value` |-> `bounded_signed64_to_int right_lower`,
+             `lower` |-> `output_lower`,
+             `upper` |-> `output_upper`]
+            bounded_interval64_mul_contains_product)
+        >> simp [])
+  >> `(&1099511627776:int) *
+        bounded_signed64_to_int output_lower ≤
+        bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper ∧
+      bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper ≤
+        (&1099511627776:int) *
+          bounded_signed64_to_int output_upper` by
+       (mp_tac
+          (Q.INST
+            [`left` |-> `BoundedInterval64 left_lower left_upper`,
+             `left_value` |-> `bounded_signed64_to_int left_upper`,
+             `right` |-> `BoundedInterval64 right_lower right_upper`,
+             `right_value` |-> `bounded_signed64_to_int right_upper`,
+             `lower` |-> `output_lower`,
+             `upper` |-> `output_upper`]
+            bounded_interval64_mul_contains_product)
+        >> simp [])
+  >> `(&1099511627776:int) * &1099511627776 *
+        bounded_signed64_to_int output_lower ≤
+        ((&1099511627776:int) *
+          bounded_signed64_to_int left_lower) *
+          bounded_signed64_to_int right_lower ∧
+      ((&1099511627776:int) *
+          bounded_signed64_to_int left_lower) *
+          bounded_signed64_to_int right_lower ≤
+        (&1099511627776:int) * &1099511627776 *
+          bounded_signed64_to_int output_upper` by
+       (mp_tac
+          (Q.INST
+            [`lower` |-> `bounded_signed64_to_int output_lower`,
+             `left` |-> `bounded_signed64_to_int left_lower`,
+             `right` |-> `bounded_signed64_to_int right_lower`,
+             `upper` |-> `bounded_signed64_to_int output_upper`]
+            bounded_scale40_corner)
+        >> simp [])
+  >> `(&1099511627776:int) * &1099511627776 *
+        bounded_signed64_to_int output_lower ≤
+        ((&1099511627776:int) *
+          bounded_signed64_to_int left_lower) *
+          bounded_signed64_to_int right_upper ∧
+      ((&1099511627776:int) *
+          bounded_signed64_to_int left_lower) *
+          bounded_signed64_to_int right_upper ≤
+        (&1099511627776:int) * &1099511627776 *
+          bounded_signed64_to_int output_upper` by
+       (mp_tac
+          (Q.INST
+            [`lower` |-> `bounded_signed64_to_int output_lower`,
+             `left` |-> `bounded_signed64_to_int left_lower`,
+             `right` |-> `bounded_signed64_to_int right_upper`,
+             `upper` |-> `bounded_signed64_to_int output_upper`]
+            bounded_scale40_corner)
+        >> simp [])
+  >> `(&1099511627776:int) * &1099511627776 *
+        bounded_signed64_to_int output_lower ≤
+        ((&1099511627776:int) *
+          bounded_signed64_to_int left_upper) *
+          bounded_signed64_to_int right_lower ∧
+      ((&1099511627776:int) *
+          bounded_signed64_to_int left_upper) *
+          bounded_signed64_to_int right_lower ≤
+        (&1099511627776:int) * &1099511627776 *
+          bounded_signed64_to_int output_upper` by
+       (mp_tac
+          (Q.INST
+            [`lower` |-> `bounded_signed64_to_int output_lower`,
+             `left` |-> `bounded_signed64_to_int left_upper`,
+             `right` |-> `bounded_signed64_to_int right_lower`,
+             `upper` |-> `bounded_signed64_to_int output_upper`]
+            bounded_scale40_corner)
+        >> simp [])
+  >> `(&1099511627776:int) * &1099511627776 *
+        bounded_signed64_to_int output_lower ≤
+        ((&1099511627776:int) *
+          bounded_signed64_to_int left_upper) *
+          bounded_signed64_to_int right_upper ∧
+      ((&1099511627776:int) *
+          bounded_signed64_to_int left_upper) *
+          bounded_signed64_to_int right_upper ≤
+        (&1099511627776:int) * &1099511627776 *
+          bounded_signed64_to_int output_upper` by
+       (mp_tac
+          (Q.INST
+            [`lower` |-> `bounded_signed64_to_int output_lower`,
+             `left` |-> `bounded_signed64_to_int left_upper`,
+             `right` |-> `bounded_signed64_to_int right_upper`,
+             `upper` |-> `bounded_signed64_to_int output_upper`]
+            bounded_scale40_corner)
+        >> simp [])
+  >> mp_tac
+       (INST
+         [``left_lower:int`` |->
+            ``(&1099511627776:int) *
+                bounded_signed64_to_int left_lower``,
+          ``left_value:int`` |-> ``left_value:int``,
+          ``left_upper:int`` |->
+            ``(&1099511627776:int) *
+                bounded_signed64_to_int left_upper``,
+          ``right_lower:int`` |->
+            ``bounded_signed64_to_int right_lower``,
+          ``right_value:int`` |-> ``right_value:int``,
+          ``right_upper:int`` |->
+            ``bounded_signed64_to_int right_upper``]
+         bounded_int_product_bounds_corners)
+  >> fs [bounded_interval64_contains_scaled_int_def,
+         bounded_interval64_contains_int_def]
+  >> strip_tac
+  >> fs [bounded_interval64_contains_scaled_int_def]
+  >> mp_tac
+       (Q.INST
+         [`lower` |->
+            `(&1099511627776:int) * &1099511627776 *
+               bounded_signed64_to_int output_lower`,
+          `corner1` |->
+            `((&1099511627776:int) *
+               bounded_signed64_to_int left_lower) *
+               bounded_signed64_to_int right_lower`,
+          `corner2` |->
+            `((&1099511627776:int) *
+               bounded_signed64_to_int left_lower) *
+               bounded_signed64_to_int right_upper`,
+          `corner3` |->
+            `((&1099511627776:int) *
+               bounded_signed64_to_int left_upper) *
+               bounded_signed64_to_int right_lower`,
+          `corner4` |->
+            `((&1099511627776:int) *
+               bounded_signed64_to_int left_upper) *
+               bounded_signed64_to_int right_upper`,
+          `value` |-> `left_value * right_value`,
+          `upper` |->
+            `(&1099511627776:int) * &1099511627776 *
+               bounded_signed64_to_int output_upper`]
+         bounded_int_four_corners_enclose)
+  >> simp []
 QED
 
 Theorem bounded_interval64_rejects_invalid:

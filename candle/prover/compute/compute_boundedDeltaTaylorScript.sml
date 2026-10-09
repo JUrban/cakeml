@@ -390,6 +390,26 @@ Definition bounded_delta64_four_coordinate_def:
                                   center_gradient result_hessian
 End
 
+Theorem bounded_interval64_mul3_contains_scaled_int:
+  bounded_interval64_contains_int first first_value ∧
+  bounded_interval64_contains_int second second_value ∧
+  bounded_interval64_contains_int third third_value ∧
+  bounded_interval64_mul3 first second third = SOME result ⇒
+  bounded_interval64_contains_scaled_int result
+    ((&1099511627776:int) * &1099511627776)
+    ((first_value * second_value) * third_value)
+Proof
+  rw [bounded_interval64_mul3_def]
+  >> every_case_tac
+  >> gvs []
+  >> drule_all
+       compute_boundedIntervalTheory.bounded_interval64_mul_contains_scaled_product
+  >> disch_tac
+  >> drule_all
+       compute_boundedIntervalTheory.bounded_interval64_mul_contains_left_scaled_product
+  >> simp []
+QED
+
 Theorem bounded_interval64_sum_aux_contains_scaled_int:
   ∀values real_values accumulator accumulator_value result scale.
     LIST_REL
