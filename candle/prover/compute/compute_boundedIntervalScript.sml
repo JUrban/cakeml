@@ -11,7 +11,7 @@ Theory compute_boundedInterval
 Ancestors
   compute_boundedSignedEndpoint compute_boundedSigned
 Libs
-  bossLib
+  bossLib preamble
 
 Datatype:
   bounded_interval64 = BoundedInterval64 bounded_signed64 bounded_signed64
@@ -166,6 +166,35 @@ Proof
   >> numLib.REDUCE_TAC
 QED
 
+Theorem bounded_signed64_nonnegative_correct:
+  bounded_signed64_nonnegative value ⇔
+  0 ≤ bounded_signed64_to_int value
+Proof
+  Cases_on `value`
+  >> rename1 `BoundedSigned64 negative magnitude`
+  >> Cases_on `negative`
+  >> Cases_on `magnitude = 0w`
+  >> simp [bounded_signed64_nonnegative_def,
+           bounded_signed64_effective_negative_def,
+           bounded_signed64_to_int_def,
+           wordsTheory.w2n_eq_0]
+QED
+
+Theorem bounded_signed64_nonpositive_correct:
+  bounded_signed64_nonpositive value ⇔
+  bounded_signed64_to_int value ≤ 0
+Proof
+  Cases_on `value`
+  >> rename1 `BoundedSigned64 negative magnitude`
+  >> Cases_on `negative`
+  >> Cases_on `magnitude = 0w`
+  >> simp [bounded_signed64_nonpositive_def,
+           bounded_signed64_effective_negative_def,
+           bounded_signed64_magnitude_def,
+           bounded_signed64_to_int_def,
+           wordsTheory.w2n_eq_0]
+QED
+
 Theorem bounded_signed_word64_mul_floor40_to_int:
   bounded_signed_word64_mul_floor40
       (BoundedSigned64 left_negative left_word)
@@ -307,6 +336,26 @@ Proof
   >> simp [integerTheory.INT_MUL_CALCULATE]
 QED
 
+Theorem bounded_scaled_mul_floor64_lower_bound_general:
+  bounded_scaled_mul_floor64 left right = SOME result ⇒
+  (&1099511627776:int) * bounded_signed64_to_int result ≤
+    bounded_signed64_to_int left * bounded_signed64_to_int right
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> metis_tac [bounded_scaled_mul_floor64_lower_bound]
+QED
+
+Theorem bounded_scaled_mul_ceil64_upper_bound_general:
+  bounded_scaled_mul_ceil64 left right = SOME result ⇒
+  bounded_signed64_to_int left * bounded_signed64_to_int right ≤
+    (&1099511627776:int) * bounded_signed64_to_int result
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> metis_tac [bounded_scaled_mul_ceil64_upper_bound]
+QED
+
 Theorem bounded_scaled_mul_floor64_normalized:
   bounded_scaled_mul_floor64 left right = SOME result ⇒
   bounded_signed64_normalized result
@@ -327,6 +376,25 @@ Proof
   >> imp_res_tac bounded_signed128_narrow64_some
 QED
 
+Theorem bounded_interval64_product_from_pairs_bounds:
+  bounded_interval64_product_from_pairs
+    lower_left lower_right upper_left upper_right =
+      SOME (BoundedInterval64 lower upper) ⇒
+  (&1099511627776:int) * bounded_signed64_to_int lower ≤
+    bounded_signed64_to_int lower_left *
+    bounded_signed64_to_int lower_right ∧
+  bounded_signed64_to_int upper_left *
+    bounded_signed64_to_int upper_right ≤
+    (&1099511627776:int) * bounded_signed64_to_int upper
+Proof
+  strip_tac
+  >> Cases_on `bounded_scaled_mul_floor64 lower_left lower_right`
+  >> Cases_on `bounded_scaled_mul_ceil64 upper_left upper_right`
+  >> fs [bounded_interval64_product_from_pairs_def]
+  >> metis_tac [bounded_scaled_mul_floor64_lower_bound_general,
+                 bounded_scaled_mul_ceil64_upper_bound_general]
+QED
+
 Theorem bounded_interval64_product_from_pairs_normalized:
   bounded_interval64_product_from_pairs
     lower_left lower_right upper_left upper_right =
@@ -340,6 +408,37 @@ Proof
   >> gvs []
   >> metis_tac [bounded_scaled_mul_floor64_normalized,
                  bounded_scaled_mul_ceil64_normalized]
+QED
+
+Theorem bounded_interval64_product_mixed_bounds:
+  bounded_interval64_product_mixed
+    left_lower left_upper right_lower right_upper =
+      SOME (BoundedInterval64 lower upper) ⇒
+  (&1099511627776:int) * bounded_signed64_to_int lower ≤
+      bounded_signed64_to_int left_lower *
+      bounded_signed64_to_int right_upper ∧
+  (&1099511627776:int) * bounded_signed64_to_int lower ≤
+      bounded_signed64_to_int left_upper *
+      bounded_signed64_to_int right_lower ∧
+  bounded_signed64_to_int left_lower *
+      bounded_signed64_to_int right_lower ≤
+      (&1099511627776:int) * bounded_signed64_to_int upper ∧
+  bounded_signed64_to_int left_upper *
+      bounded_signed64_to_int right_upper ≤
+      (&1099511627776:int) * bounded_signed64_to_int upper
+Proof
+  strip_tac
+  >> Cases_on `bounded_scaled_mul_floor64 left_lower right_upper`
+  >> Cases_on `bounded_scaled_mul_floor64 left_upper right_lower`
+  >> Cases_on `bounded_scaled_mul_ceil64 left_lower right_lower`
+  >> Cases_on `bounded_scaled_mul_ceil64 left_upper right_upper`
+  >> fs [bounded_interval64_product_mixed_def]
+  >> imp_res_tac bounded_scaled_mul_floor64_lower_bound_general
+  >> imp_res_tac bounded_scaled_mul_ceil64_upper_bound_general
+  >> rw [bounded_signed64_min_correct, bounded_signed64_max_correct]
+  >> every_case_tac
+  >> fs []
+  >> intLib.ARITH_TAC
 QED
 
 Theorem bounded_interval64_rejects_invalid:
