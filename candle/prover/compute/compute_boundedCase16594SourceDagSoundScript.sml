@@ -809,6 +809,100 @@ Proof
     (metis_tac [bounded_analytic64_dag_cache_hit_step_refines_sequential])
 QED
 
+(* The one-step refinement composes across the complete authenticated
+ * schedule.  The executable DAG run and the ordinary sequential run consume
+ * the same prepared instruction and certificate streams; the two cache
+ * invariants are threaded only on the DAG side. *)
+Theorem bounded_analytic64_dag_run_refines_sequential:
+  !sources roles instructions identities identity_stack value_stack
+      certificates result_cache certificate_cache next_identity_stack
+      next_value_stack next_certificates next_result_cache
+      next_certificate_cache.
+    bounded_analytic64_dag_schedule_run nodes sources roles instructions
+        identities identity_stack = SOME next_identity_stack /\
+    bounded_analytic64_dag_cache_valid radii center_environment
+        box_environment nodes result_cache certificate_cache /\
+    bounded_analytic64_dag_stack_refines identity_stack value_stack
+        result_cache /\
+    bounded_analytic64_dag_run radii center_environment box_environment
+        instructions identities
+        (value_stack,certificates,result_cache,certificate_cache) =
+      SOME (next_value_stack,next_certificates,next_result_cache,
+            next_certificate_cache) ==>
+    bounded_analytic64_program_run radii center_environment box_environment
+        instructions (value_stack,certificates) =
+      SOME (next_value_stack,next_certificates) /\
+    bounded_analytic64_dag_cache_valid radii center_environment
+        box_environment nodes next_result_cache next_certificate_cache /\
+    bounded_analytic64_dag_stack_refines next_identity_stack
+        next_value_stack next_result_cache
+Proof
+  Induct_on `sources`
+  >- (Cases_on `roles` >> Cases_on `instructions` >>
+      Cases_on `identities` >>
+      gvs [bounded_analytic64_dag_schedule_run_def,
+        compute_boundedCase16594SourceDagEvalTheory.bounded_analytic64_dag_run_def,
+        compute_boundedAnalyticProgramTheory.bounded_analytic64_program_run_def])
+  >- (Cases_on `roles` >> Cases_on `instructions` >>
+      Cases_on `identities` >>
+      gvs [bounded_analytic64_dag_schedule_run_def,
+        compute_boundedCase16594SourceDagEvalTheory.bounded_analytic64_dag_run_def] >>
+      rpt strip_tac >> every_case_tac >> gvs [] >>
+      PairCases_on `x` >> gvs [] >>
+      imp_res_tac bounded_analytic64_dag_step_refines_sequential >>
+      first_x_assum (drule_all_then strip_assume_tac) >>
+      gvs [compute_boundedAnalyticProgramTheory.bounded_analytic64_program_run_def])
+QED
+
+Theorem bounded_analytic64_dag_eval_refines_sequential:
+  bounded_analytic64_dag_schedule_run nodes sources roles instructions
+      identities [] = SOME next_identity_stack /\
+  bounded_analytic64_dag_eval radii center_environment box_environment
+      instructions identities (LENGTH nodes) certificates = SOME result ==>
+  bounded_analytic64_program_eval radii center_environment box_environment
+      instructions certificates = SOME result
+Proof
+  rw [compute_boundedCase16594SourceDagEvalTheory.bounded_analytic64_dag_eval_def] >>
+  every_case_tac >> gvs [] >>
+  PairCases_on `r'` >> gvs [] >>
+  `bounded_analytic64_dag_cache_valid radii center_environment
+      box_environment nodes
+      (REPLICATE (LENGTH nodes) NONE)
+      (REPLICATE (LENGTH nodes) NONE)` by
+    simp [bounded_analytic64_dag_cache_valid_empty] >>
+  `bounded_analytic64_dag_stack_refines [] []
+      (REPLICATE (LENGTH nodes) NONE)` by
+    simp [bounded_analytic64_dag_stack_refines_empty] >>
+  `bounded_analytic64_program_run radii center_environment box_environment
+      instructions ([],certificates) = SOME ([h],[]) /\
+   bounded_analytic64_dag_cache_valid radii center_environment
+      box_environment nodes r'0 r'1 /\
+   bounded_analytic64_dag_stack_refines next_identity_stack [h] r'0`
+    suffices_by
+      gvs [compute_boundedAnalyticProgramTheory.bounded_analytic64_program_eval_def] >>
+  irule bounded_analytic64_dag_run_refines_sequential >>
+  qexists_tac `REPLICATE (LENGTH nodes) NONE` >>
+  qexists_tac `identities` >>
+  qexists_tac `[]` >>
+  qexists_tac `REPLICATE (LENGTH nodes) NONE` >>
+  qexists_tac `roles` >>
+  qexists_tac `sources` >>
+  gvs [] >>
+  simp [bounded_analytic64_dag_stack_refines_empty]
+QED
+
+Theorem bounded_case16594_source_dag_eval_refines_sequential:
+  bounded_case16594_source_dag_eval radii center_environment
+      box_environment certificates = SOME result ==>
+  bounded_analytic64_program_eval radii center_environment box_environment
+      bounded_case16594_prepared_program certificates = SOME result
+Proof
+  assume_tac bounded_case16594_source_dag_schedule_ok_value >>
+  rw [compute_boundedCase16594SourceDagEvalTheory.bounded_case16594_source_dag_eval_def] >>
+  gvs [bounded_case16594_source_dag_schedule_ok_def] >>
+  metis_tac [bounded_analytic64_dag_eval_refines_sequential]
+QED
+
 Theorem bounded_analytic64_dag_schedule_rejects_prepared_alias:
   bounded_analytic64_dag_schedule_step
     [BoundedAnalyticDagPiHalf] BoundedAnalyticPiHalf
