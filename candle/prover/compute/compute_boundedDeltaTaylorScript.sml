@@ -390,6 +390,147 @@ Definition bounded_delta64_four_coordinate_def:
                                   center_gradient result_hessian
 End
 
+Theorem bounded_interval64_sum_aux_contains_scaled_int:
+  ∀values real_values accumulator accumulator_value result scale.
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval scale value)
+      values real_values ∧
+    bounded_interval64_contains_scaled_int
+      accumulator scale accumulator_value ∧
+    bounded_interval64_sum_aux values accumulator = SOME result ⇒
+    bounded_interval64_contains_scaled_int result scale
+      (FOLDL (λtotal value:int. total + value)
+        accumulator_value real_values)
+Proof
+  Induct
+  >> Cases_on `real_values`
+  >> rw [bounded_interval64_sum_aux_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> drule_all
+       compute_boundedIntervalAddTheory.bounded_interval64_add_contains_scaled_int
+  >> disch_tac
+  >> first_x_assum drule_all
+  >> simp []
+QED
+
+Theorem bounded_interval64_sum_contains_scaled_int:
+  LIST_REL
+    (λinterval value.
+       bounded_interval64_contains_scaled_int interval scale value)
+    values real_values ∧
+  bounded_interval64_sum values = SOME result ⇒
+  bounded_interval64_contains_scaled_int result scale
+    (FOLDL (λtotal value:int. total + value) 0 real_values)
+Proof
+  rw [bounded_interval64_sum_def]
+  >> irule bounded_interval64_sum_aux_contains_scaled_int
+  >> qexists_tac `bounded_interval64_zero`
+  >> qexists_tac `values`
+  >> simp
+       [compute_boundedIntervalListTheory.bounded_interval64_zero_def,
+        compute_boundedIntervalTheory.bounded_interval64_contains_scaled_int_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def]
+QED
+
+Theorem bounded_interval64_scale4_contains_scaled_int:
+  bounded_interval64_contains_scaled_int source scale value ∧
+  bounded_interval64_scale4 source = SOME result ⇒
+  bounded_interval64_contains_scaled_int result scale (4 * value)
+Proof
+  rw [bounded_interval64_scale4_def]
+  >> every_case_tac
+  >> gvs []
+  >> drule_all
+       compute_boundedIntervalAddTheory.bounded_interval64_add_contains_scaled_int
+  >> disch_tac
+  >> drule_all
+       compute_boundedIntervalAddTheory.bounded_interval64_add_contains_scaled_int
+  >> disch_tac
+  >> qsuff_tac
+       `(4:int) * value = value + value + (value + value)`
+  >> simp []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_list_scale4_contains_scaled_int:
+  ∀values real_values result scale.
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval scale value)
+      values real_values ∧
+    bounded_interval64_list_scale4 values = SOME result ⇒
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval scale value)
+      result (MAP (λvalue:int. 4 * value) real_values)
+Proof
+  Induct
+  >> Cases_on `real_values`
+  >> rw [bounded_interval64_list_scale4_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> fs []
+  >> metis_tac [bounded_interval64_scale4_contains_scaled_int]
+QED
+
+Theorem bounded_interval64_sums_contains_scaled_int:
+  ∀values real_values result scale.
+    LIST_REL
+      (LIST_REL
+        (λinterval value.
+           bounded_interval64_contains_scaled_int interval scale value))
+      values real_values ∧
+    bounded_interval64_sums values = SOME result ⇒
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval scale value)
+      result
+      (MAP (FOLDL (λtotal value:int. total + value) 0) real_values)
+Proof
+  Induct
+  >> Cases_on `real_values`
+  >> rw [bounded_interval64_sums_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> fs []
+  >> metis_tac [bounded_interval64_sum_contains_scaled_int]
+QED
+
+Theorem bounded_interval64_list_add_at_contains_scaled_int:
+  ∀index values real_values result value real_value scale.
+    LIST_REL
+      (λinterval entry_value.
+         bounded_interval64_contains_scaled_int
+           interval scale entry_value)
+      values real_values ∧
+    bounded_interval64_contains_scaled_int value scale real_value ∧
+    bounded_interval64_list_add_at value index values = SOME result ⇒
+    LIST_REL
+      (λinterval entry_value.
+         bounded_interval64_contains_scaled_int
+           interval scale entry_value)
+      result
+      (LUPDATE (EL index real_values + real_value) index real_values)
+Proof
+  Induct
+  >> Cases_on `values`
+  >> Cases_on `real_values`
+  >> rw [bounded_interval64_list_add_at_def, LIST_REL_def,
+         listTheory.LUPDATE_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> fs []
+  >> metis_tac
+       [compute_boundedIntervalAddTheory.bounded_interval64_add_contains_scaled_int]
+QED
+
 Theorem bounded_delta64_neg_derivative_some:
   bounded_delta64_neg_derivative radii center_environment coordinate =
     SOME result ⇒
