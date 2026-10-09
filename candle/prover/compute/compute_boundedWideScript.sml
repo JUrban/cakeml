@@ -99,6 +99,58 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded128_mul_word64_to_192_words_some:
+  bounded128_mul_word64_to_192_words left right = SOME result ⇒
+  bounded192_to_num result = bounded128_to_num left * w2n right
+Proof
+  Cases_on `left`
+  >> Cases_on `result`
+  >> rw [bounded128_mul_word64_to_192_words_def,
+         bounded_word64_mul_full_chunks22_correct,
+         bounded_word64_add_carry_correct, add_with_carry_def]
+  >> fs [bounded192_to_num_def, bounded128_to_num_def,
+         bounded_word_base_def, dimword_64]
+  >- (mp_tac
+        (Q.INST
+          [`left` |-> `(c0:word64)`, `right` |-> `right`]
+          bounded_word64_mul_full_chunks22_correct)
+      >> mp_tac
+        (Q.INST
+          [`left` |-> `(c:word64)`, `right` |-> `right`]
+          bounded_word64_mul_full_chunks22_correct)
+      >> simp [LET_THM, bounded_word_base_eq]
+      >> rpt strip_tac
+      >> qspec_then
+           `FST (bounded_word64_mul_full_chunks22 c0 right)`
+           assume_tac w2n_lt
+      >> qspec_then
+           `SND (bounded_word64_mul_full_chunks22 c right)`
+           assume_tac w2n_lt
+      >> fs [dimword_64]
+      >> `(w2n (FST (bounded_word64_mul_full_chunks22 c0 right)) +
+            w2n (SND (bounded_word64_mul_full_chunks22 c right))) MOD
+           18446744073709551616 =
+           w2n (FST (bounded_word64_mul_full_chunks22 c0 right)) +
+           w2n (SND (bounded_word64_mul_full_chunks22 c right)) -
+           18446744073709551616` by
+           (irule MOD_UNIQUE
+            >> qexists_tac `1`
+            >> simp []
+            >> intLib.ARITH_TAC)
+      >> intLib.ARITH_TAC)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `(c0:word64)`, `right` |-> `right`]
+         bounded_word64_mul_full_chunks22_correct)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `(c:word64)`, `right` |-> `right`]
+         bounded_word64_mul_full_chunks22_correct)
+  >> simp [LET_THM, bounded_word_base_eq]
+  >> rpt strip_tac
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_wide_closed_tests:
   bounded_word64_sub_borrow_in 7w 3w F = (4w,F) ∧
   bounded_word64_sub_borrow_in 7w 3w T = (3w,F) ∧

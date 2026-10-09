@@ -328,6 +328,34 @@ Proof
            compute_boundedWideSignedTheory.bounded_signed192_make_normalized]
 QED
 
+Theorem bounded_signed128_mul_signed64_raw192_value:
+  bounded_signed128_mul_signed64_raw192 left right = SOME result ⇒
+  bounded_signed192_normalized result ∧
+  bounded_signed192_to_int result =
+    bounded_signed128_to_int left * bounded_signed64_to_int right
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rename1
+       `bounded_signed128_mul_signed64_raw192
+          (BoundedSigned128 left_negative left_magnitude)
+          (BoundedSigned64 right_negative right_magnitude) = SOME result`
+  >> rw [bounded_signed128_mul_signed64_raw192_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedWideTheory.bounded128_mul_word64_to_192_words_some
+  >> Cases_on `left_negative`
+  >> Cases_on `right_negative`
+  >> simp
+       [compute_boundedWideSignedTheory.bounded_signed192_make_normalized,
+        compute_boundedWideSignedTheory.bounded_signed192_make_value,
+        compute_boundedSignedEndpointTheory.bounded_signed128_to_int_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def,
+        integerTheory.INT_MUL_LNEG, integerTheory.INT_MUL_RNEG,
+        integerTheory.INT_MUL]
+QED
+
 Theorem bounded_historical_delta64_point_one_test:
   let one = BoundedInterval64
     (BoundedSigned64 F 1099511627776w)
