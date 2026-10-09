@@ -10,7 +10,7 @@ Theory compute_boundedDeltaTaylor
 Ancestors
   compute_boundedTaylorBase compute_boundedDeltaSpecialization
 Libs
-  bossLib preamble
+  bossLib preamble intLib
 
 Definition bounded_interval64_sum_aux_def:
   bounded_interval64_sum_aux [] accumulator = SOME accumulator ∧
@@ -390,6 +390,16 @@ Definition bounded_delta64_four_coordinate_def:
                                   center_gradient result_hessian
 End
 
+Theorem bounded_interval64_contains_scaled_one:
+  bounded_interval64_contains_scaled_int interval 1 value ⇔
+  bounded_interval64_contains_int interval value
+Proof
+  Cases_on `interval`
+  >> simp
+       [compute_boundedIntervalTheory.bounded_interval64_contains_scaled_int_def,
+        compute_boundedIntervalTheory.bounded_interval64_contains_int_def]
+QED
+
 Theorem bounded_interval64_mul3_contains_scaled_int:
   bounded_interval64_contains_int first first_value ∧
   bounded_interval64_contains_int second second_value ∧
@@ -454,6 +464,187 @@ Proof
         compute_boundedIntervalTheory.bounded_interval64_lower_def,
         compute_boundedIntervalTheory.bounded_interval64_upper_def,
         compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def]
+QED
+
+Theorem bounded_interval64_sum_aux_contains_int:
+  ∀values real_values accumulator accumulator_value result.
+    LIST_REL bounded_interval64_contains_int values real_values ∧
+    bounded_interval64_contains_int accumulator accumulator_value ∧
+    bounded_interval64_sum_aux values accumulator = SOME result ⇒
+    bounded_interval64_contains_int result
+      (FOLDL (λtotal value:int. total + value)
+        accumulator_value real_values)
+Proof
+  Induct
+  >> Cases_on `real_values`
+  >> rw [bounded_interval64_sum_aux_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> drule_all
+       compute_boundedIntervalAddTheory.bounded_interval64_add_contains_int
+  >> disch_tac
+  >> first_x_assum drule_all
+  >> simp []
+QED
+
+Theorem bounded_interval64_sum_contains_int:
+  LIST_REL bounded_interval64_contains_int values real_values ∧
+  bounded_interval64_sum values = SOME result ⇒
+  bounded_interval64_contains_int result
+    (FOLDL (λtotal value:int. total + value) 0 real_values)
+Proof
+  rw [bounded_interval64_sum_def]
+  >> irule bounded_interval64_sum_aux_contains_int
+  >> qexists_tac `bounded_interval64_zero`
+  >> qexists_tac `values`
+  >> simp
+       [compute_boundedIntervalListTheory.bounded_interval64_zero_contains_int]
+QED
+
+Theorem bounded_interval64_sum6_contains_int:
+  bounded_interval64_contains_int first first_value ∧
+  bounded_interval64_contains_int second second_value ∧
+  bounded_interval64_contains_int third third_value ∧
+  bounded_interval64_contains_int fourth fourth_value ∧
+  bounded_interval64_contains_int fifth fifth_value ∧
+  bounded_interval64_contains_int sixth sixth_value ∧
+  bounded_interval64_sum [first;second;third;fourth;fifth;sixth] =
+    SOME result ⇒
+  bounded_interval64_contains_int result
+    (first_value + second_value + third_value + fourth_value +
+     fifth_value + sixth_value)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`values` |-> `[first;second;third;fourth;fifth;sixth]`,
+          `real_values` |->
+            `[first_value;second_value;third_value;fourth_value;
+              fifth_value;sixth_value]`,
+          `result` |-> `result`]
+         bounded_interval64_sum_contains_int)
+  >> simp [LIST_REL_def]
+QED
+
+Theorem bounded_interval64_sum7_contains_scaled_int:
+  bounded_interval64_contains_scaled_int first scale first_value ∧
+  bounded_interval64_contains_scaled_int second scale second_value ∧
+  bounded_interval64_contains_scaled_int third scale third_value ∧
+  bounded_interval64_contains_scaled_int fourth scale fourth_value ∧
+  bounded_interval64_contains_scaled_int fifth scale fifth_value ∧
+  bounded_interval64_contains_scaled_int sixth scale sixth_value ∧
+  bounded_interval64_contains_scaled_int seventh scale seventh_value ∧
+  bounded_interval64_sum
+    [first;second;third;fourth;fifth;sixth;seventh] = SOME result ⇒
+  bounded_interval64_contains_scaled_int result scale
+    (first_value + second_value + third_value + fourth_value +
+     fifth_value + sixth_value + seventh_value)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`values` |->
+            `[first;second;third;fourth;fifth;sixth;seventh]`,
+          `real_values` |->
+            `[first_value;second_value;third_value;fourth_value;
+              fifth_value;sixth_value;seventh_value]`,
+          `result` |-> `result`,
+          `scale` |-> `scale`]
+         bounded_interval64_sum_contains_scaled_int)
+  >> simp [LIST_REL_def]
+QED
+
+Theorem bounded_interval64_sum6_contains_int_from_result:
+  bounded_interval64_sum [first;second;third;fourth;fifth;sixth] =
+    SOME result ⇒
+  bounded_interval64_contains_int first first_value ⇒
+  bounded_interval64_contains_int second second_value ⇒
+  bounded_interval64_contains_int third third_value ⇒
+  bounded_interval64_contains_int fourth fourth_value ⇒
+  bounded_interval64_contains_int fifth fifth_value ⇒
+  bounded_interval64_contains_int sixth sixth_value ⇒
+  bounded_interval64_contains_int result
+    (first_value + second_value + third_value + fourth_value +
+     fifth_value + sixth_value)
+Proof
+  rpt strip_tac
+  >> mp_tac
+       (Q.INST
+         [`first` |-> `first`,
+          `second` |-> `second`,
+          `third` |-> `third`,
+          `fourth` |-> `fourth`,
+          `fifth` |-> `fifth`,
+          `sixth` |-> `sixth`,
+          `result` |-> `result`,
+          `first_value` |-> `first_value`,
+          `second_value` |-> `second_value`,
+          `third_value` |-> `third_value`,
+          `fourth_value` |-> `fourth_value`,
+          `fifth_value` |-> `fifth_value`,
+          `sixth_value` |-> `sixth_value`]
+         bounded_interval64_sum6_contains_int)
+  >> simp []
+QED
+
+Theorem bounded_interval64_mul3_contains_scaled_int_from_result:
+  bounded_interval64_mul3 first second third = SOME result ⇒
+  bounded_interval64_contains_int first first_value ⇒
+  bounded_interval64_contains_int second second_value ⇒
+  bounded_interval64_contains_int third third_value ⇒
+  bounded_interval64_contains_scaled_int result
+    ((&1099511627776:int) * &1099511627776)
+    ((first_value * second_value) * third_value)
+Proof
+  rpt strip_tac
+  >> mp_tac
+       (Q.INST
+         [`first` |-> `first`,
+          `second` |-> `second`,
+          `third` |-> `third`,
+          `result` |-> `result`,
+          `first_value` |-> `first_value`,
+          `second_value` |-> `second_value`,
+          `third_value` |-> `third_value`]
+         bounded_interval64_mul3_contains_scaled_int)
+  >> simp []
+QED
+
+Theorem bounded_interval64_sum7_contains_scaled_int_from_result:
+  bounded_interval64_sum
+    [first;second;third;fourth;fifth;sixth;seventh] = SOME result ⇒
+  bounded_interval64_contains_scaled_int first scale first_value ⇒
+  bounded_interval64_contains_scaled_int second scale second_value ⇒
+  bounded_interval64_contains_scaled_int third scale third_value ⇒
+  bounded_interval64_contains_scaled_int fourth scale fourth_value ⇒
+  bounded_interval64_contains_scaled_int fifth scale fifth_value ⇒
+  bounded_interval64_contains_scaled_int sixth scale sixth_value ⇒
+  bounded_interval64_contains_scaled_int seventh scale seventh_value ⇒
+  bounded_interval64_contains_scaled_int result scale
+    (first_value + second_value + third_value + fourth_value +
+     fifth_value + sixth_value + seventh_value)
+Proof
+  rpt strip_tac
+  >> mp_tac
+       (Q.INST
+         [`first` |-> `first`,
+          `second` |-> `second`,
+          `third` |-> `third`,
+          `fourth` |-> `fourth`,
+          `fifth` |-> `fifth`,
+          `sixth` |-> `sixth`,
+          `seventh` |-> `seventh`,
+          `result` |-> `result`,
+          `scale` |-> `scale`,
+          `first_value` |-> `first_value`,
+          `second_value` |-> `second_value`,
+          `third_value` |-> `third_value`,
+          `fourth_value` |-> `fourth_value`,
+          `fifth_value` |-> `fifth_value`,
+          `sixth_value` |-> `sixth_value`,
+          `seventh_value` |-> `seventh_value`]
+         bounded_interval64_sum7_contains_scaled_int)
+  >> simp []
 QED
 
 Theorem bounded_interval64_scale4_contains_scaled_int:
@@ -549,6 +740,65 @@ Proof
   >> fs []
   >> metis_tac
        [compute_boundedIntervalAddTheory.bounded_interval64_add_contains_scaled_int]
+QED
+
+Theorem bounded_delta_value_sum_of_products:
+  bounded_delta_value v0 v1 v2 v3 v4 v5 =
+    (v0 * v3 * (-v0 + v1 + v2 + -v3 + v4 + v5) +
+     v1 * v4 * (v0 + -v1 + v2 + v3 + -v4 + v5) +
+     v2 * v5 * (v0 + v1 + -v2 + v3 + v4 + -v5) +
+     -(v1 * v2 * v3) + -(v0 * v2 * v4) +
+     -(v0 * v1 * v5) + -(v3 * v4 * v5))
+Proof
+  simp [bounded_delta_value_def]
+  >> INT_RING_TAC
+QED
+
+Theorem bounded_delta64_value_six_contains_scaled_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_delta64_value_six x0 x1 x2 x3 x4 x5 = SOME result ⇒
+  bounded_interval64_contains_scaled_int result
+    ((&1099511627776:int) * &1099511627776)
+    (bounded_delta_value v0 v1 v2 v3 v4 v5)
+Proof
+  rw [bounded_delta64_value_six_def]
+  >> every_case_tac
+  >> gvs []
+  >> rename1 `bounded_interval64_mul3 x3 x4 x5 = SOME seventh_product`
+  >> rename1 `bounded_interval64_mul3 x0 x1 x5 = SOME sixth_product`
+  >> rename1 `bounded_interval64_mul3 x0 x2 x4 = SOME fifth_product`
+  >> rename1 `bounded_interval64_mul3 x1 x2 x3 = SOME fourth_product`
+  >> rename1
+       `bounded_interval64_sum
+          [x0;x1;bounded_interval64_neg x2;x3;x4;
+           bounded_interval64_neg x5] = SOME third_linear`
+  >> rename1
+       `bounded_interval64_mul3 x2 x5 third_linear = SOME third_product`
+  >> rename1
+       `bounded_interval64_sum
+          [x0;bounded_interval64_neg x1;x2;x3;
+           bounded_interval64_neg x4;x5] = SOME second_linear`
+  >> rename1
+       `bounded_interval64_mul3 x1 x4 second_linear = SOME second_product`
+  >> rename1
+       `bounded_interval64_sum
+          [bounded_interval64_neg x0;x1;x2;
+           bounded_interval64_neg x3;x4;x5] = SOME first_linear`
+  >> rename1
+       `bounded_interval64_mul3 x0 x3 first_linear = SOME first_product`
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> imp_res_tac bounded_interval64_sum6_contains_int_from_result
+  >> imp_res_tac bounded_interval64_mul3_contains_scaled_int_from_result
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_scaled_int
+  >> imp_res_tac bounded_interval64_sum7_contains_scaled_int_from_result
+  >> fs [bounded_delta_value_sum_of_products]
 QED
 
 Theorem bounded_delta64_neg_derivative_some:
