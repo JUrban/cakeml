@@ -331,6 +331,29 @@ Proof
   every_case_tac >> gvs []
 QED
 
+(* A successful instruction consumes exactly its arity-sized operand prefix;
+ * the remaining value stack is carried through unchanged.  This is the
+ * shape fact needed when a cache miss executes an ordinary program step. *)
+Theorem bounded_analytic64_program_step_rest:
+  &(LENGTH operand_stack) = bounded_analytic64_instruction_arity instruction /\
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction (operand_stack ++ rest_stack,certificates) =
+      SOME (result::next_rest_stack,next_certificates) ==>
+  next_rest_stack = rest_stack
+Proof
+  Cases_on `instruction` >>
+  simp [bounded_analytic64_instruction_arity_def,
+    compute_boundedAnalyticProgramTheory.bounded_analytic64_program_step_def] >>
+  every_case_tac >> gvs [] >> rpt strip_tac >> gvs [] >>
+  Cases_on `operand_stack` >> gvs [LENGTH_EQ_1]
+QED
+
+Theorem oEL_some_length:
+  oEL index values = SOME value ==> index < LENGTH values
+Proof
+  simp [oEL_THM] >> every_case_tac >> gvs []
+QED
+
 Theorem bounded_analytic64_current_certificate_prefix:
   bounded_analytic64_current_certificate instruction certificates =
       SOME (current_certificate,rest_certificates) ==>
@@ -596,6 +619,194 @@ Proof
   match_mp_tac LIST_REL_mono >>
   rw [] >>
   Cases_on `identity = x` >> gvs [oEL_LUPDATE]
+QED
+
+Theorem bounded_analytic64_dag_step_hit_decompose:
+  bounded_analytic64_dag_step radii center_environment box_environment
+      instruction identity
+      (value_stack,certificates,result_cache,certificate_cache) =
+      SOME (next_value_stack,next_certificates,next_result_cache,
+            next_certificate_cache) /\
+  oEL identity result_cache = SOME (SOME cached_result) ==>
+  ?current_certificate.
+    bounded_analytic64_current_certificate instruction certificates =
+      SOME (current_certificate,next_certificates) /\
+    oEL identity certificate_cache = SOME current_certificate /\
+    bounded_analytic64_reuse_stack cached_result
+      (bounded_analytic64_instruction_arity instruction) value_stack =
+      SOME next_value_stack /\
+    next_result_cache = result_cache /\
+    next_certificate_cache = certificate_cache
+Proof
+  strip_tac >>
+  fs [compute_boundedCase16594SourceDagEvalTheory.bounded_analytic64_dag_step_def] >>
+  every_case_tac >> gvs []
+QED
+
+Theorem bounded_analytic64_dag_step_cache_lookup:
+  bounded_analytic64_dag_step radii center_environment box_environment
+      instruction identity
+      (value_stack,certificates,result_cache,certificate_cache) =
+      SOME next_state ==>
+  ?cache_entry. oEL identity result_cache = SOME cache_entry
+Proof
+  strip_tac >>
+  fs [compute_boundedCase16594SourceDagEvalTheory.bounded_analytic64_dag_step_def] >>
+  every_case_tac >> gvs []
+QED
+
+Theorem bounded_analytic64_program_step_certificate_rest:
+  bounded_analytic64_current_certificate instruction certificates =
+      SOME (current_certificate,rest_certificates) /\
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction (value_stack,certificates) =
+      SOME (next_value_stack,next_certificates) ==>
+  next_certificates = rest_certificates
+Proof
+  Cases_on `instruction` >>
+  simp [bounded_analytic64_current_certificate_def,
+    bounded_analytic64_instruction_uses_certificate_def,
+    compute_boundedAnalyticProgramTheory.bounded_analytic64_program_step_def] >>
+  every_case_tac >> gvs [] >> rpt strip_tac >> gvs []
+QED
+
+Theorem bounded_analytic64_dag_step_miss_decompose:
+  bounded_analytic64_dag_step radii center_environment box_environment
+      instruction identity
+      (value_stack,certificates,result_cache,certificate_cache) =
+      SOME (next_value_stack,next_certificates,next_result_cache,
+            next_certificate_cache) /\
+  oEL identity result_cache = SOME NONE ==>
+  ?current_certificate result rest_value_stack.
+    bounded_analytic64_current_certificate instruction certificates =
+      SOME (current_certificate,next_certificates) /\
+    bounded_analytic64_program_step radii center_environment box_environment
+      instruction (value_stack,certificates) =
+      SOME (next_value_stack,next_certificates) /\
+    next_value_stack = result::rest_value_stack /\
+    next_result_cache =
+      LUPDATE (SOME result) identity result_cache /\
+    next_certificate_cache =
+      LUPDATE current_certificate identity certificate_cache
+Proof
+  strip_tac >>
+  fs [compute_boundedCase16594SourceDagEvalTheory.bounded_analytic64_dag_step_def] >>
+  every_case_tac >> gvs [] >>
+  metis_tac [bounded_analytic64_program_step_certificate_rest]
+QED
+
+Theorem bounded_analytic64_dag_cache_miss_refines_sequential:
+  bounded_analytic64_dag_schedule_step nodes source role instruction identity
+      identity_stack = SOME next_identity_stack /\
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+      nodes result_cache certificate_cache /\
+  bounded_analytic64_dag_stack_refines identity_stack value_stack
+      result_cache /\
+  bounded_analytic64_dag_step radii center_environment box_environment
+      instruction identity
+      (value_stack,certificates,result_cache,certificate_cache) =
+      SOME (next_value_stack,next_certificates,next_result_cache,
+            next_certificate_cache) /\
+  oEL identity result_cache = SOME NONE ==>
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction (value_stack,certificates) =
+      SOME (next_value_stack,next_certificates) /\
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+      nodes next_result_cache next_certificate_cache /\
+  bounded_analytic64_dag_stack_refines next_identity_stack next_value_stack
+      next_result_cache
+Proof
+  strip_tac >>
+  imp_res_tac bounded_analytic64_dag_schedule_step_lookup >>
+  imp_res_tac bounded_analytic64_dag_schedule_step_decompose >>
+  fs [compute_boundedCase16594SourceDagEvalTheory.bounded_analytic64_dag_step_def] >>
+  every_case_tac >> gvs [] >>
+  imp_res_tac bounded_analytic64_dag_source_node_instruction >>
+  imp_res_tac bounded_analytic64_dag_source_node_operands >>
+  imp_res_tac bounded_analytic64_dag_node_operand_stack_length >>
+  imp_res_tac bounded_analytic64_program_step_certificate_rest >>
+  `t = rest_value_stack` by
+    metis_tac [bounded_analytic64_program_step_rest] >>
+  gvs [] >>
+  `bounded_analytic64_dag_node_eval radii center_environment
+     box_environment node q result_cache = SOME h` by
+    metis_tac [bounded_analytic64_dag_node_eval_from_program_step] >>
+  `oEL identity certificate_cache =
+     SOME (EL identity certificate_cache)` by gvs [oEL_THM] >>
+  `bounded_analytic64_dag_cache_valid radii center_environment
+     box_environment nodes (LUPDATE (SOME h) identity result_cache)
+       (LUPDATE q identity certificate_cache)` by
+    (match_mp_tac (Q.INST
+       [`old_certificate` |-> `EL identity certificate_cache`]
+       bounded_analytic64_dag_cache_valid_insert) >>
+     gvs []) >>
+  `bounded_analytic64_dag_stack_refines rest rest_value_stack
+     (LUPDATE (SOME h) identity result_cache)` by
+    metis_tac [bounded_analytic64_dag_stack_refines_insert_empty] >>
+  gvs [bounded_analytic64_dag_stack_refines_cons,oEL_LUPDATE]
+QED
+
+Theorem bounded_analytic64_dag_cache_hit_step_refines_sequential:
+  bounded_analytic64_dag_schedule_step nodes source role instruction identity
+      identity_stack = SOME next_identity_stack /\
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+      nodes result_cache certificate_cache /\
+  bounded_analytic64_dag_stack_refines identity_stack value_stack
+      result_cache /\
+  bounded_analytic64_dag_step radii center_environment box_environment
+      instruction identity
+      (value_stack,certificates,result_cache,certificate_cache) =
+      SOME (next_value_stack,next_certificates,next_result_cache,
+            next_certificate_cache) /\
+  oEL identity result_cache = SOME (SOME cached_result) ==>
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction (value_stack,certificates) =
+      SOME (next_value_stack,next_certificates) /\
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+      nodes next_result_cache next_certificate_cache /\
+  bounded_analytic64_dag_stack_refines next_identity_stack next_value_stack
+      next_result_cache
+Proof
+  strip_tac >>
+  fs [compute_boundedCase16594SourceDagEvalTheory.bounded_analytic64_dag_step_def] >>
+  every_case_tac >> gvs [] >>
+  match_mp_tac (Q.INST [`current_certificate` |-> `q`,
+                         `cached_result` |-> `cached_result`]
+    bounded_analytic64_dag_cache_hit_refines_sequential) >>
+  gvs []
+QED
+
+(* Every authenticated DAG step is the corresponding ordinary sequential
+ * instruction step.  Cache hits reuse an already validated node result;
+ * cache misses execute the ordinary step and extend both cache invariants. *)
+Theorem bounded_analytic64_dag_step_refines_sequential:
+  bounded_analytic64_dag_schedule_step nodes source role instruction identity
+      identity_stack = SOME next_identity_stack /\
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+      nodes result_cache certificate_cache /\
+  bounded_analytic64_dag_stack_refines identity_stack value_stack
+      result_cache /\
+  bounded_analytic64_dag_step radii center_environment box_environment
+      instruction identity
+      (value_stack,certificates,result_cache,certificate_cache) =
+      SOME (next_value_stack,next_certificates,next_result_cache,
+            next_certificate_cache) ==>
+  bounded_analytic64_program_step radii center_environment box_environment
+      instruction (value_stack,certificates) =
+      SOME (next_value_stack,next_certificates) /\
+  bounded_analytic64_dag_cache_valid radii center_environment box_environment
+      nodes next_result_cache next_certificate_cache /\
+  bounded_analytic64_dag_stack_refines next_identity_stack next_value_stack
+      next_result_cache
+Proof
+  strip_tac >>
+  imp_res_tac bounded_analytic64_dag_schedule_step_lookup >>
+  imp_res_tac bounded_analytic64_dag_schedule_step_decompose >>
+  drule bounded_analytic64_dag_step_cache_lookup >>
+  disch_then (qx_choose_then `cache_entry` assume_tac) >>
+  Cases_on `cache_entry` >-
+    (metis_tac [bounded_analytic64_dag_cache_miss_refines_sequential]) >-
+    (metis_tac [bounded_analytic64_dag_cache_hit_step_refines_sequential])
 QED
 
 Theorem bounded_analytic64_dag_schedule_rejects_prepared_alias:
