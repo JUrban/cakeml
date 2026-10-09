@@ -32,6 +32,13 @@ Definition bounded_interval64_valid_def:
     bounded_signed64_le lower upper
 End
 
+Definition bounded_interval64_contains_int_def:
+  bounded_interval64_contains_int
+      (BoundedInterval64 lower upper) value ⇔
+    bounded_signed64_to_int lower ≤ value ∧
+    value ≤ bounded_signed64_to_int upper
+End
+
 Definition bounded_signed64_nonnegative_def:
   bounded_signed64_nonnegative value =
     ¬bounded_signed64_effective_negative value
@@ -238,6 +245,241 @@ Proof
              integerTheory.INT_MUL_COMM]
 QED
 
+Theorem bounded_int_product_bounds_nonnegative_nonnegative:
+  (left_lower:int) ≤ left_value ∧ left_value ≤ left_upper ∧
+  right_lower ≤ right_value ∧ right_value ≤ right_upper ∧
+  0 ≤ left_lower ∧ 0 ≤ right_lower ⇒
+  left_lower * right_lower ≤ left_value * right_value ∧
+  left_value * right_value ≤ left_upper * right_upper
+Proof
+  strip_tac
+  >> `0 ≤ left_value ∧ 0 ≤ left_upper ∧
+      0 ≤ right_value ∧ 0 ≤ right_upper` by intLib.ARITH_TAC
+  >> metis_tac [bounded_int_mul_right_mono_nonnegative,
+                 bounded_int_mul_left_mono_nonnegative,
+                 integerTheory.INT_LE_TRANS]
+QED
+
+Theorem bounded_int_product_bounds_nonnegative_nonpositive:
+  (left_lower:int) ≤ left_value ∧ left_value ≤ left_upper ∧
+  right_lower ≤ right_value ∧ right_value ≤ right_upper ∧
+  0 ≤ left_lower ∧ right_upper ≤ 0 ⇒
+  left_upper * right_lower ≤ left_value * right_value ∧
+  left_value * right_value ≤ left_lower * right_upper
+Proof
+  strip_tac
+  >> `0 ≤ left_value ∧ 0 ≤ left_upper ∧
+      right_lower ≤ 0 ∧ right_value ≤ 0` by intLib.ARITH_TAC
+  >> metis_tac [bounded_int_mul_right_mono_nonnegative,
+                 bounded_int_mul_right_antimono_nonpositive,
+                 bounded_int_mul_left_mono_nonnegative,
+                 bounded_int_mul_left_antimono_nonpositive,
+                 integerTheory.INT_LE_TRANS]
+QED
+
+Theorem bounded_int_product_bounds_nonpositive_nonnegative:
+  (left_lower:int) ≤ left_value ∧ left_value ≤ left_upper ∧
+  right_lower ≤ right_value ∧ right_value ≤ right_upper ∧
+  left_upper ≤ 0 ∧ 0 ≤ right_lower ⇒
+  left_lower * right_upper ≤ left_value * right_value ∧
+  left_value * right_value ≤ left_upper * right_lower
+Proof
+  strip_tac
+  >> `left_lower ≤ 0 ∧ left_value ≤ 0 ∧
+      0 ≤ right_value ∧ 0 ≤ right_upper` by intLib.ARITH_TAC
+  >> metis_tac [bounded_int_mul_right_mono_nonnegative,
+                 bounded_int_mul_right_antimono_nonpositive,
+                 bounded_int_mul_left_mono_nonnegative,
+                 bounded_int_mul_left_antimono_nonpositive,
+                 integerTheory.INT_LE_TRANS]
+QED
+
+Theorem bounded_int_product_bounds_nonpositive_nonpositive:
+  (left_lower:int) ≤ left_value ∧ left_value ≤ left_upper ∧
+  right_lower ≤ right_value ∧ right_value ≤ right_upper ∧
+  left_upper ≤ 0 ∧ right_upper ≤ 0 ⇒
+  left_upper * right_upper ≤ left_value * right_value ∧
+  left_value * right_value ≤ left_lower * right_lower
+Proof
+  strip_tac
+  >> `left_lower ≤ 0 ∧ left_value ≤ 0 ∧
+      right_lower ≤ 0 ∧ right_value ≤ 0` by intLib.ARITH_TAC
+  >> metis_tac [bounded_int_mul_right_antimono_nonpositive,
+                 bounded_int_mul_left_antimono_nonpositive,
+                 integerTheory.INT_LE_TRANS]
+QED
+
+Theorem bounded_int_mul_nonnegative_same_sign:
+  (0 ≤ (left:int) ∧ 0 ≤ right) ∨ (left ≤ 0 ∧ right ≤ 0) ⇒
+  0 ≤ left * right
+Proof
+  strip_tac
+  >- metis_tac [integerTheory.INT_LE_MUL]
+  >> `0 ≤ -left ∧ 0 ≤ -right` by intLib.ARITH_TAC
+  >> metis_tac [integerTheory.INT_LE_MUL,
+                 integerTheory.INT_NEG_MUL2]
+QED
+
+Theorem bounded_int_mul_nonpositive_opposite_sign:
+  (0 ≤ (left:int) ∧ right ≤ 0) ∨ (left ≤ 0 ∧ 0 ≤ right) ⇒
+  left * right ≤ 0
+Proof
+  strip_tac
+  >- metis_tac [bounded_int_mul_left_mono_nonnegative,
+                 integerTheory.INT_MUL_RZERO]
+  >> metis_tac [bounded_int_mul_right_mono_nonnegative,
+                 integerTheory.INT_MUL_LZERO]
+QED
+
+Theorem bounded_int_product_bounds_nonnegative_mixed:
+  (left_lower:int) ≤ left_value ∧ left_value ≤ left_upper ∧
+  right_lower ≤ right_value ∧ right_value ≤ right_upper ∧
+  0 ≤ left_lower ∧ right_lower ≤ 0 ∧ 0 ≤ right_upper ⇒
+  left_upper * right_lower ≤ left_value * right_value ∧
+  left_value * right_value ≤ left_upper * right_upper
+Proof
+  strip_tac
+  >> `0 ≤ left_value ∧ 0 ≤ left_upper` by intLib.ARITH_TAC
+  >> Cases_on `0 ≤ right_value`
+  >- (`left_upper * right_lower ≤ 0` by
+        metis_tac [bounded_int_mul_nonpositive_opposite_sign]
+      >> `0 ≤ left_value * right_value` by
+        metis_tac [bounded_int_mul_nonnegative_same_sign]
+      >> `left_value * right_value ≤ left_upper * right_value` by
+        metis_tac [bounded_int_mul_right_mono_nonnegative]
+      >> `left_upper * right_value ≤ left_upper * right_upper` by
+        metis_tac [bounded_int_mul_left_mono_nonnegative]
+      >> intLib.ARITH_TAC)
+  >> `right_value ≤ 0` by intLib.ARITH_TAC
+  >> `left_upper * right_lower ≤ left_value * right_lower` by
+       metis_tac [bounded_int_mul_right_antimono_nonpositive]
+  >> `left_value * right_lower ≤ left_value * right_value` by
+       metis_tac [bounded_int_mul_left_mono_nonnegative]
+  >> `left_value * right_value ≤ 0` by
+       metis_tac [bounded_int_mul_nonpositive_opposite_sign]
+  >> `0 ≤ left_upper * right_upper` by
+       metis_tac [bounded_int_mul_nonnegative_same_sign]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_int_product_bounds_nonpositive_mixed:
+  (left_lower:int) ≤ left_value ∧ left_value ≤ left_upper ∧
+  right_lower ≤ right_value ∧ right_value ≤ right_upper ∧
+  left_upper ≤ 0 ∧ right_lower ≤ 0 ∧ 0 ≤ right_upper ⇒
+  left_lower * right_upper ≤ left_value * right_value ∧
+  left_value * right_value ≤ left_lower * right_lower
+Proof
+  strip_tac
+  >> `left_lower ≤ 0 ∧ left_value ≤ 0` by intLib.ARITH_TAC
+  >> Cases_on `0 ≤ right_value`
+  >- (`left_lower * right_upper ≤ left_lower * right_value` by
+        metis_tac [bounded_int_mul_left_antimono_nonpositive]
+      >> `left_lower * right_value ≤ left_value * right_value` by
+        metis_tac [bounded_int_mul_right_mono_nonnegative]
+      >> `left_value * right_value ≤ 0` by
+        metis_tac [bounded_int_mul_nonpositive_opposite_sign]
+      >> `0 ≤ left_lower * right_lower` by
+        metis_tac [bounded_int_mul_nonnegative_same_sign]
+      >> intLib.ARITH_TAC)
+  >> `right_value ≤ 0` by intLib.ARITH_TAC
+  >> `left_lower * right_upper ≤ 0` by
+       metis_tac [bounded_int_mul_nonpositive_opposite_sign]
+  >> `0 ≤ left_value * right_value` by
+       metis_tac [bounded_int_mul_nonnegative_same_sign]
+  >> `left_value * right_value ≤ left_lower * right_value` by
+       metis_tac [bounded_int_mul_right_antimono_nonpositive]
+  >> `left_lower * right_value ≤ left_lower * right_lower` by
+       metis_tac [bounded_int_mul_left_antimono_nonpositive]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_int_product_bounds_mixed_nonnegative:
+  (left_lower:int) ≤ left_value ∧ left_value ≤ left_upper ∧
+  right_lower ≤ right_value ∧ right_value ≤ right_upper ∧
+  left_lower ≤ 0 ∧ 0 ≤ left_upper ∧ 0 ≤ right_lower ⇒
+  left_lower * right_upper ≤ left_value * right_value ∧
+  left_value * right_value ≤ left_upper * right_upper
+Proof
+  strip_tac
+  >> `0 ≤ right_value ∧ 0 ≤ right_upper` by intLib.ARITH_TAC
+  >> Cases_on `0 ≤ left_value`
+  >- (`left_lower * right_upper ≤ 0` by
+        metis_tac [bounded_int_mul_nonpositive_opposite_sign]
+      >> `0 ≤ left_value * right_value` by
+        metis_tac [bounded_int_mul_nonnegative_same_sign]
+      >> `left_value * right_value ≤ left_upper * right_value` by
+        metis_tac [bounded_int_mul_right_mono_nonnegative]
+      >> `left_upper * right_value ≤ left_upper * right_upper` by
+        metis_tac [bounded_int_mul_left_mono_nonnegative]
+      >> intLib.ARITH_TAC)
+  >> `left_value ≤ 0` by intLib.ARITH_TAC
+  >> `left_lower * right_upper ≤ left_lower * right_value` by
+       metis_tac [bounded_int_mul_left_antimono_nonpositive]
+  >> `left_lower * right_value ≤ left_value * right_value` by
+       metis_tac [bounded_int_mul_right_mono_nonnegative]
+  >> `left_value * right_value ≤ 0` by
+       metis_tac [bounded_int_mul_nonpositive_opposite_sign]
+  >> `0 ≤ left_upper * right_upper` by
+       metis_tac [bounded_int_mul_nonnegative_same_sign]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_int_product_bounds_mixed_nonpositive:
+  (left_lower:int) ≤ left_value ∧ left_value ≤ left_upper ∧
+  right_lower ≤ right_value ∧ right_value ≤ right_upper ∧
+  left_lower ≤ 0 ∧ 0 ≤ left_upper ∧ right_upper ≤ 0 ⇒
+  left_upper * right_lower ≤ left_value * right_value ∧
+  left_value * right_value ≤ left_lower * right_lower
+Proof
+  strip_tac
+  >> `right_lower ≤ 0 ∧ right_value ≤ 0` by intLib.ARITH_TAC
+  >> Cases_on `0 ≤ left_value`
+  >- (`left_upper * right_lower ≤ left_value * right_lower` by
+        metis_tac [bounded_int_mul_right_antimono_nonpositive]
+      >> `left_value * right_lower ≤ left_value * right_value` by
+        metis_tac [bounded_int_mul_left_mono_nonnegative]
+      >> `left_value * right_value ≤ 0` by
+        metis_tac [bounded_int_mul_nonpositive_opposite_sign]
+      >> `0 ≤ left_lower * right_lower` by
+        metis_tac [bounded_int_mul_nonnegative_same_sign]
+      >> intLib.ARITH_TAC)
+  >> `left_value ≤ 0` by intLib.ARITH_TAC
+  >> `left_upper * right_lower ≤ 0` by
+       metis_tac [bounded_int_mul_nonpositive_opposite_sign]
+  >> `0 ≤ left_value * right_value` by
+       metis_tac [bounded_int_mul_nonnegative_same_sign]
+  >> `left_value * right_value ≤ left_lower * right_value` by
+       metis_tac [bounded_int_mul_right_antimono_nonpositive]
+  >> `left_lower * right_value ≤ left_lower * right_lower` by
+       metis_tac [bounded_int_mul_left_antimono_nonpositive]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_int_product_bounds_mixed_mixed:
+  (left_lower:int) ≤ left_value ∧ left_value ≤ left_upper ∧
+  right_lower ≤ right_value ∧ right_value ≤ right_upper ∧
+  left_lower ≤ 0 ∧ 0 ≤ left_upper ∧
+  right_lower ≤ 0 ∧ 0 ≤ right_upper ⇒
+  (left_lower * right_upper ≤ left_value * right_value ∨
+   left_upper * right_lower ≤ left_value * right_value) ∧
+  (left_value * right_value ≤ left_lower * right_lower ∨
+   left_value * right_value ≤ left_upper * right_upper)
+Proof
+  strip_tac
+  >> Cases_on `0 ≤ left_value`
+  >- (mp_tac
+        (Q.INST [`left_lower` |-> `left_value`]
+          bounded_int_product_bounds_nonnegative_mixed)
+      >> simp []
+      >> metis_tac [])
+  >> `left_value ≤ 0` by intLib.ARITH_TAC
+  >> mp_tac
+       (Q.INST [`left_upper` |-> `left_value`]
+         bounded_int_product_bounds_nonpositive_mixed)
+  >> simp []
+  >> metis_tac []
+QED
+
 Theorem bounded_signed_word64_mul_floor40_to_int:
   bounded_signed_word64_mul_floor40
       (BoundedSigned64 left_negative left_word)
@@ -438,6 +680,21 @@ Proof
                  bounded_scaled_mul_ceil64_upper_bound_general]
 QED
 
+Theorem bounded_interval64_product_from_pairs_contains_product:
+  bounded_interval64_product_from_pairs
+    lower_left lower_right upper_left upper_right =
+      SOME (BoundedInterval64 lower upper) ∧
+  bounded_signed64_to_int lower_left *
+      bounded_signed64_to_int lower_right ≤ product ∧
+  product ≤ bounded_signed64_to_int upper_left *
+      bounded_signed64_to_int upper_right ⇒
+  (&1099511627776:int) * bounded_signed64_to_int lower ≤ product ∧
+  product ≤ (&1099511627776:int) * bounded_signed64_to_int upper
+Proof
+  metis_tac [bounded_interval64_product_from_pairs_bounds,
+             integerTheory.INT_LE_TRANS]
+QED
+
 Theorem bounded_interval64_product_from_pairs_normalized:
   bounded_interval64_product_from_pairs
     lower_left lower_right upper_left upper_right =
@@ -482,6 +739,199 @@ Proof
   >> every_case_tac
   >> fs []
   >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_product_mixed_contains_product:
+  bounded_interval64_product_mixed
+    left_lower left_upper right_lower right_upper =
+      SOME (BoundedInterval64 lower upper) ∧
+  (bounded_signed64_to_int left_lower *
+       bounded_signed64_to_int right_upper ≤ product ∨
+   bounded_signed64_to_int left_upper *
+       bounded_signed64_to_int right_lower ≤ product) ∧
+  (product ≤ bounded_signed64_to_int left_lower *
+       bounded_signed64_to_int right_lower ∨
+   product ≤ bounded_signed64_to_int left_upper *
+       bounded_signed64_to_int right_upper) ⇒
+  (&1099511627776:int) * bounded_signed64_to_int lower ≤ product ∧
+  product ≤ (&1099511627776:int) * bounded_signed64_to_int upper
+Proof
+  metis_tac [bounded_interval64_product_mixed_bounds,
+             integerTheory.INT_LE_TRANS]
+QED
+
+Theorem bounded_interval64_mul_unchecked_contains_product:
+  bounded_interval64_valid left ∧
+  bounded_interval64_valid right ∧
+  bounded_interval64_contains_int left left_value ∧
+  bounded_interval64_contains_int right right_value ∧
+  bounded_interval64_mul_unchecked left right =
+    SOME (BoundedInterval64 lower upper) ⇒
+  (&1099511627776:int) * bounded_signed64_to_int lower ≤
+      left_value * right_value ∧
+  left_value * right_value ≤
+      (&1099511627776:int) * bounded_signed64_to_int upper
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rename1
+       `bounded_interval64_mul_unchecked
+          (BoundedInterval64 left_lower left_upper)
+          (BoundedInterval64 right_lower right_upper) = _`
+  >> simp [bounded_interval64_valid_def,
+           bounded_interval64_contains_int_def,
+           bounded_signed64_le_correct]
+  >> strip_tac
+  >> Cases_on `bounded_signed64_nonnegative left_lower`
+  >- (Cases_on `bounded_signed64_nonnegative right_lower`
+      >- (fs [bounded_interval64_mul_unchecked_def,
+              bounded_signed64_nonnegative_correct,
+              bounded_signed64_nonpositive_correct]
+          >> `bounded_signed64_to_int left_lower *
+                bounded_signed64_to_int right_lower ≤
+                left_value * right_value ∧
+              left_value * right_value ≤
+                bounded_signed64_to_int left_upper *
+                bounded_signed64_to_int right_upper` by
+               (irule bounded_int_product_bounds_nonnegative_nonnegative
+                >> simp [])
+          >> metis_tac
+               [bounded_interval64_product_from_pairs_contains_product])
+      >> Cases_on `bounded_signed64_nonpositive right_upper`
+      >- (fs [bounded_interval64_mul_unchecked_def,
+              bounded_signed64_nonnegative_correct,
+              bounded_signed64_nonpositive_correct]
+          >> `bounded_signed64_to_int left_upper *
+                bounded_signed64_to_int right_lower ≤
+                left_value * right_value ∧
+              left_value * right_value ≤
+                bounded_signed64_to_int left_lower *
+                bounded_signed64_to_int right_upper` by
+               (irule bounded_int_product_bounds_nonnegative_nonpositive
+                >> simp [])
+          >> metis_tac
+               [bounded_interval64_product_from_pairs_contains_product])
+      >> fs [bounded_interval64_mul_unchecked_def,
+             bounded_signed64_nonnegative_correct,
+             bounded_signed64_nonpositive_correct]
+      >> `bounded_signed64_to_int left_upper *
+            bounded_signed64_to_int right_lower ≤
+            left_value * right_value ∧
+          left_value * right_value ≤
+            bounded_signed64_to_int left_upper *
+            bounded_signed64_to_int right_upper` by
+           (irule bounded_int_product_bounds_nonnegative_mixed
+            >> intLib.ARITH_TAC)
+      >> metis_tac
+           [bounded_interval64_product_from_pairs_contains_product])
+  >> Cases_on `bounded_signed64_nonpositive left_upper`
+  >- (Cases_on `bounded_signed64_nonnegative right_lower`
+      >- (fs [bounded_interval64_mul_unchecked_def,
+              bounded_signed64_nonnegative_correct,
+              bounded_signed64_nonpositive_correct]
+          >> `bounded_signed64_to_int left_lower *
+                bounded_signed64_to_int right_upper ≤
+                left_value * right_value ∧
+              left_value * right_value ≤
+                bounded_signed64_to_int left_upper *
+                bounded_signed64_to_int right_lower` by
+               (irule bounded_int_product_bounds_nonpositive_nonnegative
+                >> simp [])
+          >> metis_tac
+               [bounded_interval64_product_from_pairs_contains_product])
+      >> Cases_on `bounded_signed64_nonpositive right_upper`
+      >- (fs [bounded_interval64_mul_unchecked_def,
+              bounded_signed64_nonnegative_correct,
+              bounded_signed64_nonpositive_correct]
+          >> `bounded_signed64_to_int left_upper *
+                bounded_signed64_to_int right_upper ≤
+                left_value * right_value ∧
+              left_value * right_value ≤
+                bounded_signed64_to_int left_lower *
+                bounded_signed64_to_int right_lower` by
+               (irule bounded_int_product_bounds_nonpositive_nonpositive
+                >> simp [])
+          >> metis_tac
+               [bounded_interval64_product_from_pairs_contains_product])
+      >> fs [bounded_interval64_mul_unchecked_def,
+             bounded_signed64_nonnegative_correct,
+             bounded_signed64_nonpositive_correct]
+      >> `bounded_signed64_to_int left_lower *
+            bounded_signed64_to_int right_upper ≤
+            left_value * right_value ∧
+          left_value * right_value ≤
+            bounded_signed64_to_int left_lower *
+            bounded_signed64_to_int right_lower` by
+           (irule bounded_int_product_bounds_nonpositive_mixed
+            >> intLib.ARITH_TAC)
+      >> metis_tac
+           [bounded_interval64_product_from_pairs_contains_product])
+  >> Cases_on `bounded_signed64_nonnegative right_lower`
+  >- (fs [bounded_interval64_mul_unchecked_def,
+          bounded_signed64_nonnegative_correct,
+          bounded_signed64_nonpositive_correct]
+      >> `bounded_signed64_to_int left_lower *
+            bounded_signed64_to_int right_upper ≤
+            left_value * right_value ∧
+          left_value * right_value ≤
+            bounded_signed64_to_int left_upper *
+            bounded_signed64_to_int right_upper` by
+           (irule bounded_int_product_bounds_mixed_nonnegative
+            >> intLib.ARITH_TAC)
+      >> metis_tac
+           [bounded_interval64_product_from_pairs_contains_product])
+  >> Cases_on `bounded_signed64_nonpositive right_upper`
+  >- (fs [bounded_interval64_mul_unchecked_def,
+          bounded_signed64_nonnegative_correct,
+          bounded_signed64_nonpositive_correct]
+      >> `bounded_signed64_to_int left_upper *
+            bounded_signed64_to_int right_lower ≤
+            left_value * right_value ∧
+          left_value * right_value ≤
+            bounded_signed64_to_int left_lower *
+            bounded_signed64_to_int right_lower` by
+           (irule bounded_int_product_bounds_mixed_nonpositive
+            >> intLib.ARITH_TAC)
+      >> metis_tac
+           [bounded_interval64_product_from_pairs_contains_product])
+  >> fs [bounded_interval64_mul_unchecked_def,
+         bounded_signed64_nonnegative_correct,
+         bounded_signed64_nonpositive_correct]
+  >> `(bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper ≤
+          left_value * right_value ∨
+        bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower ≤
+          left_value * right_value) ∧
+      (left_value * right_value ≤
+          bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower ∨
+       left_value * right_value ≤
+          bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper)` by
+       (irule bounded_int_product_bounds_mixed_mixed
+        >> intLib.ARITH_TAC)
+  >> metis_tac [bounded_interval64_product_mixed_contains_product]
+QED
+
+Theorem bounded_interval64_mul_contains_product:
+  bounded_interval64_contains_int left left_value ∧
+  bounded_interval64_contains_int right right_value ∧
+  bounded_interval64_mul left right =
+    SOME (BoundedInterval64 lower upper) ⇒
+  (&1099511627776:int) * bounded_signed64_to_int lower ≤
+      left_value * right_value ∧
+  left_value * right_value ≤
+      (&1099511627776:int) * bounded_signed64_to_int upper
+Proof
+  strip_tac
+  >> Cases_on
+       `bounded_interval64_valid left ∧ bounded_interval64_valid right`
+  >- (fs [bounded_interval64_mul_def]
+      >> irule bounded_interval64_mul_unchecked_contains_product
+      >> metis_tac [])
+  >> fs [bounded_interval64_mul_def]
+  >> metis_tac []
 QED
 
 Theorem bounded_interval64_rejects_invalid:
