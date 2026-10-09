@@ -195,6 +195,49 @@ Proof
            wordsTheory.w2n_eq_0]
 QED
 
+Theorem bounded_int_mul_right_mono_nonnegative:
+  (left:int) ≤ right ∧ 0 ≤ multiplier ⇒
+  left * multiplier ≤ right * multiplier
+Proof
+  strip_tac
+  >> Cases_on `multiplier = 0`
+  >- simp []
+  >> `0 < multiplier` by intLib.ARITH_TAC
+  >> metis_tac [integerTheory.INT_LE_MONO,
+                 integerTheory.INT_MUL_COMM]
+QED
+
+Theorem bounded_int_mul_right_antimono_nonpositive:
+  (left:int) ≤ right ∧ multiplier ≤ 0 ⇒
+  right * multiplier ≤ left * multiplier
+Proof
+  strip_tac
+  >> Cases_on `multiplier = 0`
+  >- simp []
+  >> `0 < -multiplier` by intLib.ARITH_TAC
+  >> mp_tac
+       (Q.SPECL [`-multiplier`, `left`, `right`]
+          integerTheory.INT_LE_MONO)
+  >> simp [integerTheory.INT_MUL_CALCULATE,
+           integerTheory.INT_MUL_COMM]
+QED
+
+Theorem bounded_int_mul_left_mono_nonnegative:
+  (left:int) ≤ right ∧ 0 ≤ multiplier ⇒
+  multiplier * left ≤ multiplier * right
+Proof
+  metis_tac [bounded_int_mul_right_mono_nonnegative,
+             integerTheory.INT_MUL_COMM]
+QED
+
+Theorem bounded_int_mul_left_antimono_nonpositive:
+  (left:int) ≤ right ∧ multiplier ≤ 0 ⇒
+  multiplier * right ≤ multiplier * left
+Proof
+  metis_tac [bounded_int_mul_right_antimono_nonpositive,
+             integerTheory.INT_MUL_COMM]
+QED
+
 Theorem bounded_signed_word64_mul_floor40_to_int:
   bounded_signed_word64_mul_floor40
       (BoundedSigned64 left_negative left_word)
