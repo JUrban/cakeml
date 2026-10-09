@@ -15,7 +15,7 @@ Theory compute_boundedTaylorMul
 Ancestors
   compute_boundedTaylorAtan
 Libs
-  bossLib preamble
+  bossLib preamble intLib
 
 Definition bounded_signed64_raw_product_def:
   bounded_signed64_raw_product
@@ -295,6 +295,285 @@ Definition bounded_taylor64_mul_def:
                       (left_domain ∧ right_domain) center_value
                       center_gradient hessian
 End
+
+Theorem bounded_signed64_raw_product_value:
+  bounded_signed128_normalized
+    (bounded_signed64_raw_product left right) ∧
+  bounded_signed128_to_int
+    (bounded_signed64_raw_product left right) =
+    bounded_signed64_to_int left * bounded_signed64_to_int right
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rename1
+       `bounded_signed64_raw_product
+          (BoundedSigned64 left_negative left_magnitude)
+          (BoundedSigned64 right_negative right_magnitude)`
+  >> rw [bounded_signed64_raw_product_def]
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_magnitude`, `right` |-> `right_magnitude`]
+         compute_boundedTheory.bounded_word64_mul_full_chunks22_correct)
+  >> Cases_on `left_negative`
+  >> Cases_on `right_negative`
+  >> simp
+       [LET_THM,
+        compute_boundedSignedTheory.bounded_signed128_make_normalized,
+        compute_boundedSignedEndpointAddTheory.bounded_signed128_make_value,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def,
+        compute_boundedTheory.bounded128_to_num_def,
+        compute_boundedTheory.bounded_word_base_eq,
+        integerTheory.INT_MUL_LNEG, integerTheory.INT_MUL_RNEG,
+        integerTheory.INT_MUL]
+QED
+
+Theorem bounded_signed128_le_words_correct:
+  bounded_signed128_normalized left ∧
+  bounded_signed128_normalized right ⇒
+  (bounded_signed128_le_words left right ⇔
+   bounded_signed128_to_int left ≤ bounded_signed128_to_int right)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `b`
+  >> Cases_on `b'`
+  >> rw [bounded_signed128_le_words_def,
+         compute_boundedSignedTheory.bounded_signed128_normalized_def,
+         compute_boundedSignedEndpointTheory.bounded_signed128_to_int_def,
+         compute_boundedSignedAddTheory.bounded128_le_words_correct]
+  >> fs [compute_boundedSignedTheory.bounded128_is_zero_iff]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_signed128_min_value:
+  bounded_signed128_normalized left ∧
+  bounded_signed128_normalized right ⇒
+  bounded_signed128_to_int (bounded_signed128_min left right) =
+    (if bounded_signed128_to_int left ≤ bounded_signed128_to_int right then
+       bounded_signed128_to_int left
+     else bounded_signed128_to_int right)
+Proof
+  rw [bounded_signed128_min_def, bounded_signed128_le_words_correct]
+QED
+
+Theorem bounded_signed128_max_value:
+  bounded_signed128_normalized left ∧
+  bounded_signed128_normalized right ⇒
+  bounded_signed128_to_int (bounded_signed128_max left right) =
+    (if bounded_signed128_to_int left ≤ bounded_signed128_to_int right then
+       bounded_signed128_to_int right
+     else bounded_signed128_to_int left)
+Proof
+  rw [bounded_signed128_max_def, bounded_signed128_le_words_correct]
+QED
+
+Theorem bounded_signed128_min_normalized:
+  bounded_signed128_normalized left ∧
+  bounded_signed128_normalized right ⇒
+  bounded_signed128_normalized (bounded_signed128_min left right)
+Proof
+  rw [bounded_signed128_min_def]
+  >> every_case_tac
+  >> simp []
+QED
+
+Theorem bounded_signed128_max_normalized:
+  bounded_signed128_normalized left ∧
+  bounded_signed128_normalized right ⇒
+  bounded_signed128_normalized (bounded_signed128_max left right)
+Proof
+  rw [bounded_signed128_max_def]
+  >> every_case_tac
+  >> simp []
+QED
+
+Theorem bounded_interval64_raw_product_from_pairs_value:
+  let result = bounded_interval64_raw_product_from_pairs
+    lower_left lower_right upper_left upper_right in
+  bounded_signed128_normalized (FST result) ∧
+  bounded_signed128_normalized (SND result) ∧
+  bounded_signed128_to_int (FST result) =
+    bounded_signed64_to_int lower_left *
+      bounded_signed64_to_int lower_right ∧
+  bounded_signed128_to_int (SND result) =
+    bounded_signed64_to_int upper_left *
+      bounded_signed64_to_int upper_right
+Proof
+  simp [bounded_interval64_raw_product_from_pairs_def, LET_THM,
+        bounded_signed64_raw_product_value]
+QED
+
+Theorem bounded_interval64_raw_product_mixed_value:
+  let result = bounded_interval64_raw_product_mixed
+    left_lower left_upper right_lower right_upper in
+  bounded_signed128_normalized (FST result) ∧
+  bounded_signed128_normalized (SND result) ∧
+  bounded_signed128_to_int (FST result) =
+    (if bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper ≤
+        bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower
+     then bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper
+     else bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower) ∧
+  bounded_signed128_to_int (SND result) =
+    (if bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower ≤
+        bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper
+     then bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper
+     else bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower)
+Proof
+  simp [bounded_interval64_raw_product_mixed_def, LET_THM,
+        bounded_signed64_raw_product_value,
+        bounded_signed128_min_normalized,
+        bounded_signed128_max_normalized,
+        bounded_signed128_min_value,
+        bounded_signed128_max_value]
+QED
+
+Theorem bounded_signed128_raw_products_le_correct:
+  bounded_signed128_le_words
+    (bounded_signed64_raw_product left_lower right_upper)
+    (bounded_signed64_raw_product left_upper right_lower) ⇔
+  bounded_signed64_to_int left_lower *
+      bounded_signed64_to_int right_upper ≤
+    bounded_signed64_to_int left_upper *
+      bounded_signed64_to_int right_lower
+Proof
+  simp [bounded_signed128_le_words_correct,
+        bounded_signed64_raw_product_value]
+QED
+
+fun apply_raw_product_bounds theorem =
+  mp_tac
+    (INST
+      [``left_lower:int`` |->
+         ``bounded_signed64_to_int (left_lower:bounded_signed64)``,
+       ``left_value:int`` |-> ``(left_value:int)``,
+       ``left_upper:int`` |->
+         ``bounded_signed64_to_int (left_upper:bounded_signed64)``,
+       ``right_lower:int`` |->
+         ``bounded_signed64_to_int (right_lower:bounded_signed64)``,
+       ``right_value:int`` |-> ``(right_value:int)``,
+       ``right_upper:int`` |->
+         ``bounded_signed64_to_int (right_upper:bounded_signed64)``]
+      theorem)
+  >> simp [];
+
+Theorem bounded_interval64_raw_mul_bounds_contains_product:
+  bounded_interval64_valid left ∧
+  bounded_interval64_valid right ∧
+  bounded_interval64_contains_int left left_value ∧
+  bounded_interval64_contains_int right right_value ⇒
+  let result = bounded_interval64_raw_mul_bounds_unchecked left right in
+  bounded_signed128_normalized (FST result) ∧
+  bounded_signed128_normalized (SND result) ∧
+  bounded_signed128_to_int (FST result) ≤ left_value * right_value ∧
+  left_value * right_value ≤ bounded_signed128_to_int (SND result)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rename1
+       `bounded_interval64_valid
+          (BoundedInterval64 left_lower left_upper) ∧
+        bounded_interval64_valid
+          (BoundedInterval64 right_lower right_upper) ∧ _`
+  >> strip_tac
+  >> fs [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+         compute_boundedIntervalTheory.bounded_interval64_contains_int_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+  >> Cases_on `bounded_signed64_nonnegative left_lower`
+  >- (Cases_on `bounded_signed64_nonnegative right_lower`
+      >- (gvs
+           [bounded_interval64_raw_mul_bounds_unchecked_def,
+            bounded_interval64_raw_product_from_pairs_def,
+            bounded_signed64_raw_product_value,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct]
+          >> apply_raw_product_bounds
+               compute_boundedIntervalTheory.bounded_int_product_bounds_nonnegative_nonnegative)
+      >> Cases_on `bounded_signed64_nonpositive right_upper`
+      >- (gvs
+           [bounded_interval64_raw_mul_bounds_unchecked_def,
+            bounded_interval64_raw_product_from_pairs_def,
+            bounded_signed64_raw_product_value,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+          >> apply_raw_product_bounds
+               compute_boundedIntervalTheory.bounded_int_product_bounds_nonnegative_nonpositive)
+      >> gvs
+           [bounded_interval64_raw_mul_bounds_unchecked_def,
+            bounded_interval64_raw_product_from_pairs_def,
+            bounded_signed64_raw_product_value,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> apply_raw_product_bounds
+           compute_boundedIntervalTheory.bounded_int_product_bounds_nonnegative_mixed
+      >> intLib.ARITH_TAC)
+  >> Cases_on `bounded_signed64_nonpositive left_upper`
+  >- (Cases_on `bounded_signed64_nonnegative right_lower`
+      >- (gvs
+           [bounded_interval64_raw_mul_bounds_unchecked_def,
+            bounded_interval64_raw_product_from_pairs_def,
+            bounded_signed64_raw_product_value,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+          >> apply_raw_product_bounds
+               compute_boundedIntervalTheory.bounded_int_product_bounds_nonpositive_nonnegative)
+      >> Cases_on `bounded_signed64_nonpositive right_upper`
+      >- (gvs
+           [bounded_interval64_raw_mul_bounds_unchecked_def,
+            bounded_interval64_raw_product_from_pairs_def,
+            bounded_signed64_raw_product_value,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+          >> apply_raw_product_bounds
+               compute_boundedIntervalTheory.bounded_int_product_bounds_nonpositive_nonpositive)
+      >> gvs
+           [bounded_interval64_raw_mul_bounds_unchecked_def,
+            bounded_interval64_raw_product_from_pairs_def,
+            bounded_signed64_raw_product_value,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> apply_raw_product_bounds
+           compute_boundedIntervalTheory.bounded_int_product_bounds_nonpositive_mixed
+      >> intLib.ARITH_TAC)
+  >> Cases_on `bounded_signed64_nonnegative right_lower`
+  >- (gvs
+       [bounded_interval64_raw_mul_bounds_unchecked_def,
+        bounded_interval64_raw_product_from_pairs_def,
+        bounded_signed64_raw_product_value,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> apply_raw_product_bounds
+           compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_nonnegative
+      >> intLib.ARITH_TAC)
+  >> Cases_on `bounded_signed64_nonpositive right_upper`
+  >- (gvs
+       [bounded_interval64_raw_mul_bounds_unchecked_def,
+        bounded_interval64_raw_product_from_pairs_def,
+        bounded_signed64_raw_product_value,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> apply_raw_product_bounds
+           compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_nonpositive
+      >> intLib.ARITH_TAC)
+  >> gvs
+       [bounded_interval64_raw_mul_bounds_unchecked_def,
+        bounded_interval64_raw_product_mixed_def,
+        bounded_signed128_min_def,
+        bounded_signed128_max_def,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+  >> every_case_tac
+  >> gvs [bounded_signed128_raw_products_le_correct,
+          bounded_signed64_raw_product_value]
+  >> apply_raw_product_bounds
+       compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_mixed
+  >> intLib.ARITH_TAC
+QED
 
 Theorem bounded_taylor64_mul_some:
   bounded_taylor64_mul radii left right = SOME result ⇒
