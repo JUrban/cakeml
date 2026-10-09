@@ -28,6 +28,15 @@ Definition bounded_scale_squared128_def:
   bounded_scale_squared128 = Bounded128 65536w 0w
 End
 
+Theorem bounded_scale_squared128_value:
+  bounded128_to_num bounded_scale_squared128 =
+    1208925819614629174706176
+Proof
+  rw [bounded_scale_squared128_def,
+      compute_boundedTheory.bounded128_to_num_def,
+      compute_boundedTheory.bounded_word_base_def]
+QED
+
 Definition bounded_interval64_inv_certificate_def:
   bounded_interval64_inv_certificate
       (BoundedInterval64 input_lower input_upper)
@@ -58,6 +67,45 @@ Definition bounded_interval64_inv_certificate_def:
        bounded128_le_words upper_product bounded_scale_squared128
      else F)
 End
+
+Theorem bounded_interval64_inv_certificate_positive_magnitude_bounds:
+  bounded_interval64_inv_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ∧
+  bounded_signed64_strict_positive input_lower ⇒
+  bounded_signed64_strict_positive output_lower ∧
+  w2n (bounded_signed64_magnitude output_lower) *
+      w2n (bounded_signed64_magnitude input_upper) ≤
+    1208925819614629174706176 ∧
+  1208925819614629174706176 ≤
+    w2n (bounded_signed64_magnitude output_upper) *
+      w2n (bounded_signed64_magnitude input_lower)
+Proof
+  rw [bounded_interval64_inv_certificate_def, LET_THM,
+      compute_boundedSignedAddTheory.bounded128_le_words_correct,
+      compute_boundedTaylorCompleteTheory.bounded_word64_product128_value,
+      bounded_scale_squared128_value]
+QED
+
+Theorem bounded_interval64_inv_certificate_negative_magnitude_bounds:
+  bounded_interval64_inv_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ∧
+  ¬bounded_signed64_strict_positive input_lower ∧
+  bounded_signed64_strict_negative input_upper ⇒
+  bounded_signed64_strict_negative output_upper ∧
+  1208925819614629174706176 ≤
+    w2n (bounded_signed64_magnitude output_lower) *
+      w2n (bounded_signed64_magnitude input_upper) ∧
+  w2n (bounded_signed64_magnitude output_upper) *
+      w2n (bounded_signed64_magnitude input_lower) ≤
+    1208925819614629174706176
+Proof
+  rw [bounded_interval64_inv_certificate_def, LET_THM,
+      compute_boundedSignedAddTheory.bounded128_le_words_correct,
+      compute_boundedTaylorCompleteTheory.bounded_word64_product128_value,
+      bounded_scale_squared128_value]
+QED
 
 Theorem bounded_interval64_inv_certificate_closed_tests:
   let positive_input = BoundedInterval64

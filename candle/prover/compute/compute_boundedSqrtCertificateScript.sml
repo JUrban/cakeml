@@ -36,6 +36,22 @@ Definition bounded_interval64_sqrt_certificate_def:
      bounded128_le_words input_upper_scaled output_upper_squared)
 End
 
+Theorem bounded_interval64_sqrt_certificate_magnitude_bounds:
+  bounded_interval64_sqrt_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ⇒
+  w2n (bounded_signed64_magnitude output_lower) *
+      w2n (bounded_signed64_magnitude output_lower) ≤
+    w2n (bounded_signed64_magnitude input_lower) * 1099511627776 ∧
+  w2n (bounded_signed64_magnitude input_upper) * 1099511627776 ≤
+    w2n (bounded_signed64_magnitude output_upper) *
+      w2n (bounded_signed64_magnitude output_upper)
+Proof
+  rw [bounded_interval64_sqrt_certificate_def, LET_THM,
+      compute_boundedSignedAddTheory.bounded128_le_words_correct,
+      compute_boundedTaylorCompleteTheory.bounded_word64_product128_value]
+QED
+
 Theorem bounded_interval64_sqrt_certificate_closed_tests:
   let input = BoundedInterval64
     (BoundedSigned64 F 4398046511104w)

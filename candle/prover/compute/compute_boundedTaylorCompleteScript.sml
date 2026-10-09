@@ -12,7 +12,7 @@
  *****************************************************************************)
 Theory compute_boundedTaylorComplete
 Ancestors
-  compute_boundedTaylorState compute_boundedWideSigned
+  compute_boundedTaylorState compute_boundedWideSigned compute_bounded
 Libs
   bossLib preamble
 
@@ -30,6 +30,15 @@ Definition bounded_word64_product128_def:
     let product = bounded_word64_mul_full_chunks22 left right in
     Bounded128 (FST product) (SND product)
 End
+
+Theorem bounded_word64_product128_value:
+  bounded128_to_num (bounded_word64_product128 left right) =
+    w2n left * w2n right
+Proof
+  rw [bounded_word64_product128_def, bounded128_to_num_def]
+  >> mp_tac bounded_word64_mul_full_chunks22_correct
+  >> simp [LET_THM, bounded_word_base_def]
+QED
 
 Definition bounded_dot_abs_upper_acc_def:
   bounded_dot_abs_upper_acc [] [] accumulator = SOME accumulator ∧
