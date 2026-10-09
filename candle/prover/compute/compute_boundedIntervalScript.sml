@@ -131,6 +131,182 @@ Definition bounded_interval64_mul_def:
     else NONE
 End
 
+Theorem bounded_signed128_to_int_components:
+  bounded_signed128_to_int source =
+    if bounded_signed128_negative source then
+      -&(bounded128_to_num (bounded_signed128_magnitude source))
+    else &(bounded128_to_num (bounded_signed128_magnitude source))
+Proof
+  Cases_on `source`
+  >> simp [bounded_signed128_to_int_def,
+           bounded_signed128_negative_def,
+           bounded_signed128_magnitude_def]
+QED
+
+Theorem bounded_div_floor40_scaled_le:
+  (value DIV 1099511627776) * 1099511627776 ≤ value
+Proof
+  simp [GSYM arithmeticTheory.X_LE_DIV]
+QED
+
+Theorem bounded_div_ceil40_scaled_ge:
+  value ≤
+    ((value + 1099511627775) DIV 1099511627776) * 1099511627776
+Proof
+  mp_tac (Q.SPEC `1099511627776` arithmeticTheory.DIVISION)
+  >> simp []
+  >> disch_then (qspec_then `value` strip_assume_tac)
+  >> Cases_on `value MOD 1099511627776 = 0`
+  >- fs [bounded_div_ceil40]
+  >> fs [bounded_div_ceil40, arithmeticTheory.LEFT_ADD_DISTRIB]
+  >> qpat_x_assum `value = _` (fn th => once_rewrite_tac [th])
+  >> rw [arithmeticTheory.ADD_MONO_LESS_EQ]
+  >> irule arithmeticTheory.LESS_IMP_LESS_OR_EQ
+  >> irule arithmeticTheory.MOD_LESS
+  >> numLib.REDUCE_TAC
+QED
+
+Theorem bounded_signed_word64_mul_floor40_to_int:
+  bounded_signed_word64_mul_floor40
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME result ⇒
+  bounded_signed128_to_int result =
+    if left_negative ≠ right_negative then
+      -&((w2n left_word * w2n right_word + 1099511627775) DIV
+         1099511627776)
+    else
+      &((w2n left_word * w2n right_word) DIV 1099511627776)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_signed_word64_mul_floor40_magnitude
+  >> imp_res_tac bounded_signed_word64_mul_floor40_negative
+  >> fs [bounded_signed128_to_int_components]
+  >> Cases_on `left_negative ≠ right_negative`
+  >> fs []
+  >> Cases_on
+       `(w2n left_word * w2n right_word + 1099511627775) DIV
+          1099511627776 = 0`
+  >> fs []
+QED
+
+Theorem bounded_signed_word64_mul_ceil40_to_int:
+  bounded_signed_word64_mul_ceil40
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME result ⇒
+  bounded_signed128_to_int result =
+    if left_negative ≠ right_negative then
+      -&((w2n left_word * w2n right_word) DIV 1099511627776)
+    else
+      &((w2n left_word * w2n right_word + 1099511627775) DIV
+         1099511627776)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_signed_word64_mul_ceil40_magnitude
+  >> imp_res_tac bounded_signed_word64_mul_ceil40_negative
+  >> fs [bounded_signed128_to_int_components]
+  >> Cases_on `left_negative ≠ right_negative`
+  >> fs []
+  >> Cases_on
+       `(w2n left_word * w2n right_word) DIV 1099511627776 = 0`
+  >> fs []
+QED
+
+Theorem bounded_scaled_mul_floor64_value:
+  bounded_scaled_mul_floor64
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME result ⇒
+  bounded_signed64_to_int result =
+    if left_negative ≠ right_negative then
+      -&((w2n left_word * w2n right_word + 1099511627775) DIV
+         1099511627776)
+    else
+      &((w2n left_word * w2n right_word) DIV 1099511627776)
+Proof
+  strip_tac
+  >> Cases_on
+       `bounded_signed_word64_mul_floor40
+          (BoundedSigned64 left_negative left_word)
+          (BoundedSigned64 right_negative right_word)`
+  >> fs [bounded_scaled_mul_floor64_def]
+  >> imp_res_tac bounded_signed128_narrow64_some
+  >> imp_res_tac bounded_signed_word64_mul_floor40_to_int
+  >> fs []
+QED
+
+Theorem bounded_scaled_mul_ceil64_value:
+  bounded_scaled_mul_ceil64
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME result ⇒
+  bounded_signed64_to_int result =
+    if left_negative ≠ right_negative then
+      -&((w2n left_word * w2n right_word) DIV 1099511627776)
+    else
+      &((w2n left_word * w2n right_word + 1099511627775) DIV
+         1099511627776)
+Proof
+  strip_tac
+  >> Cases_on
+       `bounded_signed_word64_mul_ceil40
+          (BoundedSigned64 left_negative left_word)
+          (BoundedSigned64 right_negative right_word)`
+  >> fs [bounded_scaled_mul_ceil64_def]
+  >> imp_res_tac bounded_signed128_narrow64_some
+  >> imp_res_tac bounded_signed_word64_mul_ceil40_to_int
+  >> fs []
+QED
+
+Theorem bounded_scaled_mul_floor64_lower_bound:
+  bounded_scaled_mul_floor64
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME result ⇒
+  (&1099511627776:int) * bounded_signed64_to_int result ≤
+    bounded_signed64_to_int (BoundedSigned64 left_negative left_word) *
+    bounded_signed64_to_int (BoundedSigned64 right_negative right_word)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_scaled_mul_floor64_value
+  >> assume_tac
+       (Q.INST
+          [`value` |->
+             `w2n (left_word:word64) * w2n (right_word:word64)`]
+          bounded_div_floor40_scaled_le)
+  >> assume_tac
+       (Q.INST
+          [`value` |->
+             `w2n (left_word:word64) * w2n (right_word:word64)`]
+          bounded_div_ceil40_scaled_ge)
+  >> Cases_on `left_negative`
+  >> Cases_on `right_negative`
+  >> fs [bounded_signed64_to_int_def]
+  >> simp [integerTheory.INT_MUL_CALCULATE]
+QED
+
+Theorem bounded_scaled_mul_ceil64_upper_bound:
+  bounded_scaled_mul_ceil64
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME result ⇒
+  bounded_signed64_to_int (BoundedSigned64 left_negative left_word) *
+    bounded_signed64_to_int (BoundedSigned64 right_negative right_word) ≤
+  (&1099511627776:int) * bounded_signed64_to_int result
+Proof
+  strip_tac
+  >> imp_res_tac bounded_scaled_mul_ceil64_value
+  >> assume_tac
+       (Q.INST
+          [`value` |->
+             `w2n (left_word:word64) * w2n (right_word:word64)`]
+          bounded_div_floor40_scaled_le)
+  >> assume_tac
+       (Q.INST
+          [`value` |->
+             `w2n (left_word:word64) * w2n (right_word:word64)`]
+          bounded_div_ceil40_scaled_ge)
+  >> Cases_on `left_negative`
+  >> Cases_on `right_negative`
+  >> fs [bounded_signed64_to_int_def]
+  >> simp [integerTheory.INT_MUL_CALCULATE]
+QED
+
 Theorem bounded_scaled_mul_floor64_normalized:
   bounded_scaled_mul_floor64 left right = SOME result ⇒
   bounded_signed64_normalized result
