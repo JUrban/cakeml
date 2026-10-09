@@ -82,6 +82,107 @@ Proof
   EVAL_TAC >> wordsLib.WORD_EVAL_TAC
 QED
 
+Theorem bounded_interval64_zero_contains_int:
+  bounded_interval64_contains_int bounded_interval64_zero 0
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded_interval64_list_neg_contains_scaled_int:
+  ∀values real_values scale.
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval scale value)
+      values real_values ⇒
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval scale value)
+      (bounded_interval64_list_neg values)
+      (MAP (λvalue:int. -value) real_values)
+Proof
+  Induct
+  >> Cases_on `real_values`
+  >> simp [bounded_interval64_list_neg_def, LIST_REL_def]
+  >> rpt strip_tac
+  >- metis_tac [bounded_interval64_neg_contains_scaled_int]
+  >> first_x_assum (qspecl_then [`t`, `scale`] mp_tac)
+  >> simp [bounded_interval64_list_neg_def]
+QED
+
+Theorem bounded_interval64_list_add_contains_scaled_int:
+  ∀left right left_values right_values result scale.
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval scale value)
+      left left_values ∧
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval scale value)
+      right right_values ∧
+    bounded_interval64_list_add left right = SOME result ⇒
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval scale value)
+      result (MAP2 (λleft_value right_value:int.
+        left_value + right_value) left_values right_values)
+Proof
+  Induct
+  >> Cases_on `right`
+  >> Cases_on `left_values`
+  >> Cases_on `right_values`
+  >> rw [bounded_interval64_list_add_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> fs []
+  >> metis_tac [bounded_interval64_add_contains_scaled_int]
+QED
+
+Theorem bounded_interval64_list_scale_contains_scaled_int:
+  ∀values real_values scalar scalar_value result.
+    bounded_interval64_contains_int scalar scalar_value ∧
+    LIST_REL bounded_interval64_contains_int values real_values ∧
+    bounded_interval64_list_scale scalar values = SOME result ⇒
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval
+           (&1099511627776:int) value)
+      result (MAP (λvalue:int. scalar_value * value) real_values)
+Proof
+  Induct
+  >> Cases_on `real_values`
+  >> rw [bounded_interval64_list_scale_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> fs []
+  >> metis_tac [bounded_interval64_mul_contains_scaled_product]
+QED
+
+Theorem bounded_interval64_list_pairwise_mul_contains_scaled_int:
+  ∀left right left_values right_values result.
+    LIST_REL bounded_interval64_contains_int left left_values ∧
+    LIST_REL bounded_interval64_contains_int right right_values ∧
+    bounded_interval64_list_pairwise_mul left right = SOME result ⇒
+    LIST_REL
+      (λinterval value.
+         bounded_interval64_contains_scaled_int interval
+           (&1099511627776:int) value)
+      result (MAP2 (λleft_value right_value:int.
+        left_value * right_value) left_values right_values)
+Proof
+  Induct
+  >> Cases_on `right`
+  >> Cases_on `left_values`
+  >> Cases_on `right_values`
+  >> rw [bounded_interval64_list_pairwise_mul_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> fs []
+  >> metis_tac [bounded_interval64_mul_contains_scaled_product]
+QED
+
 Theorem bounded_interval64_list_neg_length:
   LENGTH (bounded_interval64_list_neg values) = LENGTH values
 Proof

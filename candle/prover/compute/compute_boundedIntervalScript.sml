@@ -39,6 +39,13 @@ Definition bounded_interval64_contains_int_def:
     value ≤ bounded_signed64_to_int upper
 End
 
+Definition bounded_interval64_contains_scaled_int_def:
+  bounded_interval64_contains_scaled_int
+      (BoundedInterval64 lower upper) scale value ⇔
+    scale * bounded_signed64_to_int lower ≤ value ∧
+    value ≤ scale * bounded_signed64_to_int upper
+End
+
 Definition bounded_signed64_nonnegative_def:
   bounded_signed64_nonnegative value =
     ¬bounded_signed64_effective_negative value
@@ -959,6 +966,19 @@ Proof
       >> metis_tac [])
   >> fs [bounded_interval64_mul_def]
   >> metis_tac []
+QED
+
+Theorem bounded_interval64_mul_contains_scaled_product:
+  bounded_interval64_contains_int left left_value ∧
+  bounded_interval64_contains_int right right_value ∧
+  bounded_interval64_mul left right = SOME result ⇒
+  bounded_interval64_contains_scaled_int result
+    (&1099511627776:int) (left_value * right_value)
+Proof
+  strip_tac
+  >> Cases_on `result`
+  >> fs [bounded_interval64_contains_scaled_int_def]
+  >> metis_tac [bounded_interval64_mul_contains_product]
 QED
 
 Theorem bounded_interval64_rejects_invalid:

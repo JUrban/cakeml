@@ -134,6 +134,18 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded_interval64_neg_contains_scaled_int:
+  bounded_interval64_contains_scaled_int source scale value ⇒
+  bounded_interval64_contains_scaled_int
+    (bounded_interval64_neg source) scale (-value)
+Proof
+  Cases_on `source`
+  >> simp [bounded_interval64_contains_scaled_int_def,
+           bounded_interval64_neg_def,
+           bounded_signed64_neg_value]
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_interval64_add_contains_int:
   bounded_interval64_contains_int left left_value ∧
   bounded_interval64_contains_int right right_value ∧
@@ -146,6 +158,24 @@ Proof
   >> Cases_on `right`
   >> Cases_on `result`
   >> fs [bounded_interval64_contains_int_def,
+         bounded_interval64_lower_def,
+         bounded_interval64_upper_def]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_add_contains_scaled_int:
+  bounded_interval64_contains_scaled_int left scale left_value ∧
+  bounded_interval64_contains_scaled_int right scale right_value ∧
+  bounded_interval64_add left right = SOME result ⇒
+  bounded_interval64_contains_scaled_int
+    result scale (left_value + right_value)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_interval64_add_value
+  >> Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `result`
+  >> fs [bounded_interval64_contains_scaled_int_def,
          bounded_interval64_lower_def,
          bounded_interval64_upper_def]
   >> intLib.ARITH_TAC
