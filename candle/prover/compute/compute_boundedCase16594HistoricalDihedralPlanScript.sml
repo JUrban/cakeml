@@ -10,6 +10,7 @@
 Theory compute_boundedCase16594HistoricalDihedralPlan
 Ancestors
   compute_boundedCase16594ProgramData
+  compute_boundedCase16594SourceDagPlan
 Libs
   bossLib preamble
 
@@ -69,11 +70,62 @@ Definition bounded_case16594_historical_dihedral_motifs_def:
       bounded_case16594_specializations 0
 End
 
+Definition bounded_historical_dihedral_root_identity_def:
+  bounded_historical_dihedral_root_identity
+      (BoundedHistoricalDihedralMotif start radicand_coordinate
+        derivative_coordinate) identities =
+    oEL (start + 7) identities
+End
+
+Definition bounded_historical_dihedral_permutation_def:
+  bounded_historical_dihedral_permutation coordinate =
+    if coordinate = 0 then SOME [0;1;2;3;4;5]
+    else if coordinate = 1 then SOME [1;0;2;4;3;5]
+    else if coordinate = 2 then SOME [2;1;0;5;4;3]
+    else NONE
+End
+
 Theorem bounded_case16594_historical_dihedral_motifs_value:
   bounded_case16594_historical_dihedral_motifs =
     [BoundedHistoricalDihedralMotif 33 0 3;
      BoundedHistoricalDihedralMotif 76 1 4;
      BoundedHistoricalDihedralMotif 119 2 5]
+Proof
+  EVAL_TAC
+QED
+
+Theorem bounded_case16594_historical_dihedral_root_identities:
+  MAP (\motif. bounded_historical_dihedral_root_identity motif
+        bounded_case16594_source_dag_identities)
+      bounded_case16594_historical_dihedral_motifs =
+    [SOME 34;SOME 50;SOME 65]
+Proof
+  EVAL_TAC
+QED
+
+Theorem bounded_historical_dihedral_permutations_value:
+  bounded_historical_dihedral_permutation 0 = SOME [0;1;2;3;4;5] /\
+  bounded_historical_dihedral_permutation 1 = SOME [1;0;2;4;3;5] /\
+  bounded_historical_dihedral_permutation 2 = SOME [2;1;0;5;4;3] /\
+  bounded_historical_dihedral_permutation 3 = NONE
+Proof
+  EVAL_TAC
+QED
+
+Theorem bounded_historical_dihedral_permutations_ok:
+  EVERY
+    (\coordinate.
+      case bounded_historical_dihedral_permutation coordinate of
+      | NONE => F
+      | SOME permutation =>
+          LENGTH permutation = 6 /\
+          ALL_DISTINCT permutation /\
+          EVERY (\index. index < 6) permutation /\
+          EL 0 permutation = coordinate /\
+          EL 3 permutation = coordinate + 3 /\
+          MAP (\index. EL (EL index permutation) permutation)
+            [0;1;2;3;4;5] = [0;1;2;3;4;5])
+    [0;1;2]
 Proof
   EVAL_TAC
 QED
