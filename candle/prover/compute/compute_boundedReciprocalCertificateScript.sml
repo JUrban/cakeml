@@ -24,6 +24,40 @@ Definition bounded_signed64_strict_negative_def:
     bounded_signed64_effective_negative value
 End
 
+Theorem bounded_signed64_strict_positive_correct:
+  bounded_signed64_strict_positive value ⇔
+  0 < bounded_signed64_to_int value
+Proof
+  Cases_on `value`
+  >> rename1 `BoundedSigned64 negative magnitude`
+  >> Cases_on `negative`
+  >> Cases_on `magnitude = 0w`
+  >> simp [bounded_signed64_strict_positive_def,
+           compute_boundedIntervalTheory.bounded_signed64_nonnegative_def,
+           compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def,
+           compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def,
+           compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def,
+           wordsTheory.w2n_eq_0]
+  >> metis_tac [wordsTheory.w2n_eq_0,
+                 arithmeticTheory.NOT_ZERO_LT_ZERO]
+QED
+
+Theorem bounded_signed64_strict_negative_correct:
+  bounded_signed64_strict_negative value ⇔
+  bounded_signed64_to_int value < 0
+Proof
+  Cases_on `value`
+  >> rename1 `BoundedSigned64 negative magnitude`
+  >> Cases_on `negative`
+  >> Cases_on `magnitude = 0w`
+  >> simp [bounded_signed64_strict_negative_def,
+           compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def,
+           compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def,
+           wordsTheory.w2n_eq_0]
+  >> metis_tac [wordsTheory.w2n_eq_0,
+                 arithmeticTheory.NOT_ZERO_LT_ZERO]
+QED
+
 Definition bounded_scale_squared128_def:
   bounded_scale_squared128 = Bounded128 65536w 0w
 End
@@ -105,6 +139,92 @@ Proof
       compute_boundedSignedAddTheory.bounded128_le_words_correct,
       compute_boundedTaylorCompleteTheory.bounded_word64_product128_value,
       bounded_scale_squared128_value]
+QED
+
+Theorem bounded_interval64_inv_certificate_positive_signs:
+  bounded_interval64_inv_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ∧
+  bounded_signed64_strict_positive input_lower ⇒
+  bounded_signed64_strict_positive input_upper ∧
+  bounded_signed64_strict_positive output_lower ∧
+  bounded_signed64_strict_positive output_upper
+Proof
+  strip_tac
+  >> fs [bounded_interval64_inv_certificate_def,
+         compute_boundedIntervalTheory.bounded_interval64_valid_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+         bounded_signed64_strict_positive_correct]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_inv_certificate_positive_int_bounds:
+  bounded_interval64_inv_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ∧
+  bounded_signed64_strict_positive input_lower ⇒
+  bounded_signed64_to_int output_lower *
+      bounded_signed64_to_int input_upper ≤
+    (&1208925819614629174706176:int) ∧
+  (&1208925819614629174706176:int) ≤
+    bounded_signed64_to_int output_upper *
+      bounded_signed64_to_int input_lower
+Proof
+  strip_tac
+  >> imp_res_tac
+       bounded_interval64_inv_certificate_positive_magnitude_bounds
+  >> imp_res_tac bounded_interval64_inv_certificate_positive_signs
+  >> fs [bounded_signed64_strict_positive_def,
+         compute_boundedIntervalTheory.bounded_signed64_nonnegative_magnitude_value,
+         integerTheory.INT_OF_NUM_MUL,
+         integerTheory.INT_OF_NUM_LE]
+QED
+
+Theorem bounded_interval64_inv_certificate_negative_signs:
+  bounded_interval64_inv_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ∧
+  bounded_signed64_strict_negative input_upper ⇒
+  bounded_signed64_strict_negative input_lower ∧
+  bounded_signed64_strict_negative output_lower ∧
+  bounded_signed64_strict_negative output_upper
+Proof
+  strip_tac
+  >> fs [bounded_interval64_inv_certificate_def,
+         compute_boundedIntervalTheory.bounded_interval64_valid_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+         bounded_signed64_strict_positive_correct,
+         bounded_signed64_strict_negative_correct]
+  >> every_case_tac
+  >> gvs []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_inv_certificate_negative_int_bounds:
+  bounded_interval64_inv_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ∧
+  bounded_signed64_strict_negative input_upper ⇒
+  (&1208925819614629174706176:int) ≤
+    bounded_signed64_to_int output_lower *
+      bounded_signed64_to_int input_upper ∧
+  bounded_signed64_to_int output_upper *
+      bounded_signed64_to_int input_lower ≤
+    (&1208925819614629174706176:int)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_interval64_inv_certificate_negative_signs
+  >> `¬bounded_signed64_strict_positive input_lower` by
+       fs [bounded_signed64_strict_positive_def,
+           bounded_signed64_strict_negative_def,
+           compute_boundedIntervalTheory.bounded_signed64_nonnegative_def]
+  >> imp_res_tac
+       bounded_interval64_inv_certificate_negative_magnitude_bounds
+  >> fs [bounded_signed64_strict_negative_def,
+         compute_boundedIntervalTheory.bounded_signed64_effective_negative_magnitude_value,
+         integerTheory.INT_MUL_CALCULATE,
+         integerTheory.INT_OF_NUM_MUL,
+         integerTheory.INT_OF_NUM_LE]
 QED
 
 Theorem bounded_interval64_inv_certificate_closed_tests:

@@ -202,6 +202,33 @@ Proof
            wordsTheory.w2n_eq_0]
 QED
 
+Theorem bounded_signed64_nonnegative_magnitude_value:
+  bounded_signed64_nonnegative value ⇒
+  bounded_signed64_to_int value =
+    &(w2n (bounded_signed64_magnitude value))
+Proof
+  Cases_on `value`
+  >> rename1 `BoundedSigned64 negative magnitude`
+  >> Cases_on `negative`
+  >> Cases_on `magnitude = 0w`
+  >> simp [bounded_signed64_nonnegative_def,
+           bounded_signed64_effective_negative_def,
+           bounded_signed64_magnitude_def,
+           bounded_signed64_to_int_def,
+           wordsTheory.w2n_eq_0]
+QED
+
+Theorem bounded_signed64_effective_negative_magnitude_value:
+  bounded_signed64_effective_negative value ⇒
+  bounded_signed64_to_int value =
+    -&(w2n (bounded_signed64_magnitude value))
+Proof
+  Cases_on `value`
+  >> simp [bounded_signed64_effective_negative_def,
+           bounded_signed64_magnitude_def,
+           bounded_signed64_to_int_def]
+QED
+
 Theorem bounded_int_mul_right_mono_nonnegative:
   (left:int) ≤ right ∧ 0 ≤ multiplier ⇒
   left * multiplier ≤ right * multiplier

@@ -52,6 +52,46 @@ Proof
       compute_boundedTaylorCompleteTheory.bounded_word64_product128_value]
 QED
 
+Theorem bounded_interval64_sqrt_certificate_nonnegative:
+  bounded_interval64_sqrt_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ⇒
+  bounded_interval64_valid
+      (BoundedInterval64 input_lower input_upper) ∧
+  bounded_interval64_valid
+      (BoundedInterval64 output_lower output_upper) ∧
+  bounded_signed64_nonnegative input_lower ∧
+  bounded_signed64_nonnegative input_upper ∧
+  bounded_signed64_nonnegative output_lower ∧
+  bounded_signed64_nonnegative output_upper
+Proof
+  strip_tac
+  >> fs [bounded_interval64_sqrt_certificate_def,
+         compute_boundedIntervalTheory.bounded_interval64_valid_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+         compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_sqrt_certificate_int_bounds:
+  bounded_interval64_sqrt_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ⇒
+  bounded_signed64_to_int output_lower *
+      bounded_signed64_to_int output_lower ≤
+    (&1099511627776:int) * bounded_signed64_to_int input_lower ∧
+  (&1099511627776:int) * bounded_signed64_to_int input_upper ≤
+    bounded_signed64_to_int output_upper *
+      bounded_signed64_to_int output_upper
+Proof
+  strip_tac
+  >> imp_res_tac bounded_interval64_sqrt_certificate_magnitude_bounds
+  >> imp_res_tac bounded_interval64_sqrt_certificate_nonnegative
+  >> fs [compute_boundedIntervalTheory.bounded_signed64_nonnegative_magnitude_value,
+         integerTheory.INT_OF_NUM_MUL,
+         integerTheory.INT_OF_NUM_LE]
+QED
+
 Theorem bounded_interval64_sqrt_certificate_closed_tests:
   let input = BoundedInterval64
     (BoundedSigned64 F 4398046511104w)
