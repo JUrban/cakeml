@@ -12,7 +12,7 @@ Theory compute_boundedHistoricalDelta
 Ancestors
   compute_boundedTaylorMul compute_boundedDeltaTaylor
 Libs
-  bossLib preamble
+  bossLib preamble intLib
 
 Definition bounded_signed192_le_words_def:
   bounded_signed192_le_words
@@ -265,6 +265,68 @@ Definition bounded_historical_delta64_value_def:
         bounded_historical_delta64_value_six x0 x1 x2 x3 x4 x5
     | _ => NONE
 End
+
+Theorem bounded_signed192_le_words_correct:
+  bounded_signed192_normalized left ∧
+  bounded_signed192_normalized right ⇒
+  (bounded_signed192_le_words left right ⇔
+   bounded_signed192_to_int left ≤ bounded_signed192_to_int right)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `b`
+  >> Cases_on `b'`
+  >> rw [bounded_signed192_le_words_def,
+         compute_boundedWideSignedTheory.bounded_signed192_normalized_def,
+         compute_boundedWideSignedTheory.bounded_signed192_to_int_def,
+         compute_boundedWideTheory.bounded192_le_words_correct]
+  >> fs [compute_boundedWideSignedTheory.bounded192_is_zero_iff]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_signed192_min_value:
+  bounded_signed192_normalized left ∧
+  bounded_signed192_normalized right ⇒
+  bounded_signed192_to_int (bounded_signed192_min left right) =
+    (if bounded_signed192_to_int left ≤ bounded_signed192_to_int right then
+       bounded_signed192_to_int left
+     else bounded_signed192_to_int right)
+Proof
+  rw [bounded_signed192_min_def, bounded_signed192_le_words_correct]
+QED
+
+Theorem bounded_signed192_max_value:
+  bounded_signed192_normalized left ∧
+  bounded_signed192_normalized right ⇒
+  bounded_signed192_to_int (bounded_signed192_max left right) =
+    (if bounded_signed192_to_int left ≤ bounded_signed192_to_int right then
+       bounded_signed192_to_int right
+     else bounded_signed192_to_int left)
+Proof
+  rw [bounded_signed192_max_def, bounded_signed192_le_words_correct]
+QED
+
+Theorem bounded_signed192_neg_value:
+  bounded_signed192_to_int (bounded_signed192_neg value) =
+  -bounded_signed192_to_int value
+Proof
+  Cases_on `value`
+  >> rename1 `BoundedSigned192 negative magnitude`
+  >> Cases_on `negative`
+  >> Cases_on `bounded192_is_zero magnitude`
+  >> simp [bounded_signed192_neg_def,
+           compute_boundedWideSignedTheory.bounded_signed192_make_value,
+           compute_boundedWideSignedTheory.bounded_signed192_to_int_def,
+           compute_boundedWideSignedTheory.bounded192_is_zero_iff]
+QED
+
+Theorem bounded_signed192_neg_normalized:
+  bounded_signed192_normalized (bounded_signed192_neg value)
+Proof
+  Cases_on `value`
+  >> simp [bounded_signed192_neg_def,
+           compute_boundedWideSignedTheory.bounded_signed192_make_normalized]
+QED
 
 Theorem bounded_historical_delta64_point_one_test:
   let one = BoundedInterval64

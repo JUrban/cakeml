@@ -12,7 +12,7 @@ Theory compute_boundedWideSigned
 Ancestors
   compute_boundedWide compute_boundedSignedEndpoint
 Libs
-  bossLib preamble
+  bossLib preamble intLib
 
 Datatype:
   bounded_signed192 = BoundedSigned192 bool bounded192
@@ -21,6 +21,12 @@ End
 Definition bounded192_is_zero_def:
   bounded192_is_zero (Bounded192 high middle low) =
     (high = 0w ∧ middle = 0w ∧ low = 0w)
+End
+
+Definition bounded_signed192_to_int_def:
+  bounded_signed192_to_int (BoundedSigned192 negative magnitude) =
+    if negative then -&(bounded192_to_num magnitude)
+    else &(bounded192_to_num magnitude)
 End
 
 Definition bounded_signed192_make_def:
@@ -115,6 +121,27 @@ Definition bounded_signed192_shift_ceil81_64_def:
       bounded_signed128_narrow64
         (bounded_signed128_make negative quotient)
 End
+
+Theorem bounded192_is_zero_iff:
+  bounded192_is_zero magnitude ⇔ bounded192_to_num magnitude = 0
+Proof
+  Cases_on `magnitude`
+  >> simp [bounded192_is_zero_def,
+           compute_boundedTheory.bounded192_to_num_def,
+           compute_boundedTheory.bounded_word_base_eq,
+           wordsTheory.w2n_eq_0]
+QED
+
+Theorem bounded_signed192_make_value:
+  bounded_signed192_to_int (bounded_signed192_make negative magnitude) =
+  (if negative then -&(bounded192_to_num magnitude)
+   else &(bounded192_to_num magnitude))
+Proof
+  Cases_on `negative`
+  >> Cases_on `bounded192_is_zero magnitude`
+  >> fs [bounded_signed192_make_def, bounded_signed192_to_int_def,
+         bounded192_is_zero_iff]
+QED
 
 Theorem bounded_signed192_make_normalized:
   bounded_signed192_normalized

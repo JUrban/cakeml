@@ -10,7 +10,7 @@ Theory compute_boundedWide
 Ancestors
   compute_boundedSignedAdd compute_bounded
 Libs
-  bossLib preamble
+  bossLib preamble intLib
 
 Definition bounded192_zero_def:
   bounded192_zero = Bounded192 0w 0w 0w
@@ -70,6 +70,34 @@ Definition bounded128_mul_word64_to_192_words_def:
     else SOME
       (Bounded192 (FST high_sum) (FST middle_sum) (SND low_product))
 End
+
+Theorem bounded192_le_words_correct:
+  bounded192_le_words left right ⇔
+  bounded192_to_num left ≤ bounded192_to_num right
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rw [bounded192_le_words_def, bounded192_to_num_def, WORD_LO,
+         bounded128_le_words_correct]
+  >> Cases_on `c = c'`
+  >- simp [bounded128_to_num_def]
+  >> `w2n c ≠ w2n c'` by metis_tac [w2n_11]
+  >> qspec_then `c` assume_tac w2n_lt
+  >> qspec_then `c'` assume_tac w2n_lt
+  >> qspec_then `c0` assume_tac w2n_lt
+  >> qspec_then `c0'` assume_tac w2n_lt
+  >> qspec_then `c1` assume_tac w2n_lt
+  >> qspec_then `c1'` assume_tac w2n_lt
+  >> fs [bounded128_to_num_def, bounded_word_base_def, dimword_64]
+  >> Cases_on `w2n c < w2n c'`
+  >> fs []
+  >> `w2n c ≠ w2n c'` by metis_tac [w2n_11]
+  >> `w2n c' ≤ w2n c` by fs [NOT_LESS]
+  >> `w2n c' < w2n c` by metis_tac [LESS_OR_EQ]
+  >> Q.PAT_X_ASSUM `c ≠ c'` kall_tac
+  >> fs [NOT_LESS_EQUAL]
+  >> intLib.ARITH_TAC
+QED
 
 Theorem bounded_wide_closed_tests:
   bounded_word64_sub_borrow_in 7w 3w F = (4w,F) ∧
