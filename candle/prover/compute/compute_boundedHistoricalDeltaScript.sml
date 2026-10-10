@@ -306,6 +306,26 @@ Proof
   rw [bounded_signed192_max_def, bounded_signed192_le_words_correct]
 QED
 
+Theorem bounded_signed192_min_normalized:
+  bounded_signed192_normalized left ∧
+  bounded_signed192_normalized right ⇒
+  bounded_signed192_normalized (bounded_signed192_min left right)
+Proof
+  rw [bounded_signed192_min_def]
+  >> every_case_tac
+  >> simp []
+QED
+
+Theorem bounded_signed192_max_normalized:
+  bounded_signed192_normalized left ∧
+  bounded_signed192_normalized right ⇒
+  bounded_signed192_normalized (bounded_signed192_max left right)
+Proof
+  rw [bounded_signed192_max_def]
+  >> every_case_tac
+  >> simp []
+QED
+
 Theorem bounded_signed192_neg_value:
   bounded_signed192_to_int (bounded_signed192_neg value) =
   -bounded_signed192_to_int value
@@ -354,6 +374,290 @@ Proof
         compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def,
         integerTheory.INT_MUL_LNEG, integerTheory.INT_MUL_RNEG,
         integerTheory.INT_MUL]
+QED
+
+Theorem bounded_signed128_nonnegative_correct:
+  bounded_signed128_normalized value ⇒
+  (bounded_signed128_nonnegative value ⇔
+   0 ≤ bounded_signed128_to_int value)
+Proof
+  Cases_on `value`
+  >> rename1 `BoundedSigned128 negative magnitude`
+  >> Cases_on `negative`
+  >> simp
+       [bounded_signed128_nonnegative_def,
+        compute_boundedSignedTheory.bounded_signed128_normalized_def,
+        compute_boundedSignedEndpointTheory.bounded_signed128_to_int_def,
+        compute_boundedSignedTheory.bounded128_is_zero_iff]
+QED
+
+Theorem bounded_signed128_nonpositive_correct:
+  bounded_signed128_nonpositive value ⇔
+  bounded_signed128_to_int value ≤ 0
+Proof
+  Cases_on `value`
+  >> rename1 `BoundedSigned128 negative magnitude`
+  >> Cases_on `negative`
+  >> simp
+       [bounded_signed128_nonpositive_def,
+        compute_boundedSignedEndpointTheory.bounded_signed128_to_int_def,
+        compute_boundedSignedTheory.bounded128_is_zero_iff]
+QED
+
+Theorem bounded_raw128_interval_product_from_pairs_value:
+  bounded_raw128_interval_product_from_pairs
+    lower_left lower_right upper_left upper_right = SOME (lower,upper) ⇒
+  bounded_signed192_normalized lower ∧
+  bounded_signed192_normalized upper ∧
+  bounded_signed192_to_int lower =
+    bounded_signed128_to_int lower_left *
+      bounded_signed64_to_int lower_right ∧
+  bounded_signed192_to_int upper =
+    bounded_signed128_to_int upper_left *
+      bounded_signed64_to_int upper_right
+Proof
+  rw [bounded_raw128_interval_product_from_pairs_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_signed128_mul_signed64_raw192_value
+QED
+
+Theorem bounded_raw128_interval_product_mixed_value:
+  bounded_raw128_interval_product_mixed
+    left_lower left_upper right_lower right_upper = SOME (lower,upper) ⇒
+  bounded_signed192_normalized lower ∧
+  bounded_signed192_normalized upper ∧
+  bounded_signed192_to_int lower =
+    (if bounded_signed128_to_int left_lower *
+          bounded_signed64_to_int right_upper ≤
+        bounded_signed128_to_int left_upper *
+          bounded_signed64_to_int right_lower
+     then bounded_signed128_to_int left_lower *
+          bounded_signed64_to_int right_upper
+     else bounded_signed128_to_int left_upper *
+          bounded_signed64_to_int right_lower) ∧
+  bounded_signed192_to_int upper =
+    (if bounded_signed128_to_int left_lower *
+          bounded_signed64_to_int right_lower ≤
+        bounded_signed128_to_int left_upper *
+          bounded_signed64_to_int right_upper
+     then bounded_signed128_to_int left_upper *
+          bounded_signed64_to_int right_upper
+     else bounded_signed128_to_int left_lower *
+          bounded_signed64_to_int right_lower)
+Proof
+  rw [bounded_raw128_interval_product_mixed_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_signed128_mul_signed64_raw192_value
+  >> simp [bounded_signed192_min_value,
+           bounded_signed192_max_value,
+           bounded_signed192_min_normalized,
+           bounded_signed192_max_normalized]
+QED
+
+fun apply_raw128_product_bounds theorem =
+  mp_tac
+    (INST
+      [``left_lower:int`` |->
+         ``bounded_signed128_to_int (left_lower:bounded_signed128)``,
+       ``left_value:int`` |-> ``(left_value:int)``,
+       ``left_upper:int`` |->
+         ``bounded_signed128_to_int (left_upper:bounded_signed128)``,
+       ``right_lower:int`` |->
+         ``bounded_signed64_to_int (right_lower:bounded_signed64)``,
+       ``right_value:int`` |-> ``(right_value:int)``,
+       ``right_upper:int`` |->
+         ``bounded_signed64_to_int (right_upper:bounded_signed64)``]
+      theorem)
+  >> simp [];
+
+Theorem bounded_raw128_interval_mul64_contains_product:
+  bounded_signed128_normalized left_lower ∧
+  bounded_signed128_normalized left_upper ∧
+  bounded_signed128_to_int left_lower ≤ left_value ∧
+  left_value ≤ bounded_signed128_to_int left_upper ∧
+  bounded_interval64_valid right ∧
+  bounded_interval64_contains_int right right_value ∧
+  bounded_raw128_interval_mul64_unchecked
+    (left_lower,left_upper) right = SOME (lower,upper) ⇒
+  bounded_signed192_normalized lower ∧
+  bounded_signed192_normalized upper ∧
+  bounded_signed192_to_int lower ≤ left_value * right_value ∧
+  left_value * right_value ≤ bounded_signed192_to_int upper
+Proof
+  Cases_on `right`
+  >> rename1 `BoundedInterval64 right_lower right_upper`
+  >> strip_tac
+  >> fs [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+         compute_boundedIntervalTheory.bounded_interval64_contains_int_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+  >> Cases_on `bounded_signed128_nonnegative left_lower`
+  >- (Cases_on `bounded_signed64_nonnegative right_lower`
+      >- (gvs
+           [bounded_raw128_interval_mul64_unchecked_def,
+            bounded_signed128_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct]
+          >> imp_res_tac
+               bounded_raw128_interval_product_from_pairs_value
+          >> apply_raw128_product_bounds
+               compute_boundedIntervalTheory.bounded_int_product_bounds_nonnegative_nonnegative)
+      >> Cases_on `bounded_signed64_nonpositive right_upper`
+      >- (gvs
+           [bounded_raw128_interval_mul64_unchecked_def,
+            bounded_signed128_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+          >> imp_res_tac
+               bounded_raw128_interval_product_from_pairs_value
+          >> apply_raw128_product_bounds
+               compute_boundedIntervalTheory.bounded_int_product_bounds_nonnegative_nonpositive)
+      >> gvs
+           [bounded_raw128_interval_mul64_unchecked_def,
+            bounded_signed128_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> imp_res_tac bounded_raw128_interval_product_from_pairs_value
+      >> apply_raw128_product_bounds
+           compute_boundedIntervalTheory.bounded_int_product_bounds_nonnegative_mixed
+      >> intLib.ARITH_TAC)
+  >> Cases_on `bounded_signed128_nonpositive left_upper`
+  >- (Cases_on `bounded_signed64_nonnegative right_lower`
+      >- (gvs
+           [bounded_raw128_interval_mul64_unchecked_def,
+            bounded_signed128_nonnegative_correct,
+            bounded_signed128_nonpositive_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+          >> imp_res_tac
+               bounded_raw128_interval_product_from_pairs_value
+          >> apply_raw128_product_bounds
+               compute_boundedIntervalTheory.bounded_int_product_bounds_nonpositive_nonnegative)
+      >> Cases_on `bounded_signed64_nonpositive right_upper`
+      >- (gvs
+           [bounded_raw128_interval_mul64_unchecked_def,
+            bounded_signed128_nonpositive_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+          >> imp_res_tac
+               bounded_raw128_interval_product_from_pairs_value
+          >> apply_raw128_product_bounds
+               compute_boundedIntervalTheory.bounded_int_product_bounds_nonpositive_nonpositive)
+      >> gvs
+           [bounded_raw128_interval_mul64_unchecked_def,
+            bounded_signed128_nonpositive_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> imp_res_tac bounded_raw128_interval_product_from_pairs_value
+      >> apply_raw128_product_bounds
+           compute_boundedIntervalTheory.bounded_int_product_bounds_nonpositive_mixed
+      >> intLib.ARITH_TAC)
+  >> Cases_on `bounded_signed64_nonnegative right_lower`
+  >- (gvs
+       [bounded_raw128_interval_mul64_unchecked_def,
+        bounded_signed128_nonnegative_correct,
+        bounded_signed128_nonpositive_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> imp_res_tac bounded_raw128_interval_product_from_pairs_value
+      >> apply_raw128_product_bounds
+           compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_nonnegative
+      >> intLib.ARITH_TAC)
+  >> Cases_on `bounded_signed64_nonpositive right_upper`
+  >- (gvs
+       [bounded_raw128_interval_mul64_unchecked_def,
+        bounded_signed128_nonnegative_correct,
+        bounded_signed128_nonpositive_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> imp_res_tac bounded_raw128_interval_product_from_pairs_value
+      >> apply_raw128_product_bounds
+           compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_nonpositive
+      >> intLib.ARITH_TAC)
+  >> gvs
+       [bounded_raw128_interval_mul64_unchecked_def,
+        bounded_signed128_nonnegative_correct,
+        bounded_signed128_nonpositive_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+  >> imp_res_tac bounded_raw128_interval_product_mixed_value
+  >> every_case_tac
+  >> gvs []
+  >> apply_raw128_product_bounds
+       compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_mixed
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_historical_raw_cubic_contains_product:
+  bounded_interval64_valid first ∧
+  bounded_interval64_valid second ∧
+  bounded_interval64_valid third ∧
+  bounded_interval64_contains_int first first_value ∧
+  bounded_interval64_contains_int second second_value ∧
+  bounded_interval64_contains_int third third_value ∧
+  bounded_historical_raw_cubic first second third = SOME (lower,upper) ⇒
+  bounded_signed192_normalized lower ∧
+  bounded_signed192_normalized upper ∧
+  bounded_signed192_to_int lower ≤
+    (first_value * second_value) * third_value ∧
+  (first_value * second_value) * third_value ≤
+    bounded_signed192_to_int upper
+Proof
+  rw [bounded_historical_raw_cubic_def]
+  >> every_case_tac
+  >> gvs []
+  >> mp_tac
+       (INST
+         [``left:bounded_interval64`` |-> ``first:bounded_interval64``,
+          ``right:bounded_interval64`` |-> ``second:bounded_interval64``,
+          ``left_value:int`` |-> ``first_value:int``,
+          ``right_value:int`` |-> ``second_value:int``]
+         compute_boundedTaylorMulTheory.bounded_interval64_raw_mul_bounds_contains_product)
+  >> simp []
+  >> strip_tac
+  >> mp_tac
+       (INST
+         [``left_lower:bounded_signed128`` |->
+            ``FST (bounded_interval64_raw_mul_bounds_unchecked
+              first second)``,
+          ``left_upper:bounded_signed128`` |->
+            ``SND (bounded_interval64_raw_mul_bounds_unchecked
+              first second)``,
+          ``left_value:int`` |-> ``first_value * second_value``,
+          ``right:bounded_interval64`` |-> ``third:bounded_interval64``,
+          ``right_value:int`` |-> ``third_value:int``,
+          ``lower:bounded_signed192`` |-> ``lower:bounded_signed192``,
+          ``upper:bounded_signed192`` |-> ``upper:bounded_signed192``]
+         bounded_raw128_interval_mul64_contains_product)
+  >> simp []
+QED
+
+Theorem bounded_historical_raw_cubic_signed_contains_product:
+  bounded_interval64_valid first ∧
+  bounded_interval64_valid second ∧
+  bounded_interval64_valid third ∧
+  bounded_interval64_contains_int first first_value ∧
+  bounded_interval64_contains_int second second_value ∧
+  bounded_interval64_contains_int third third_value ∧
+  bounded_historical_raw_cubic_signed
+    first second third negative = SOME (lower,upper) ⇒
+  bounded_signed192_normalized lower ∧
+  bounded_signed192_normalized upper ∧
+  bounded_signed192_to_int lower ≤
+    (if negative then -((first_value * second_value) * third_value)
+     else (first_value * second_value) * third_value) ∧
+  (if negative then -((first_value * second_value) * third_value)
+   else (first_value * second_value) * third_value) ≤
+    bounded_signed192_to_int upper
+Proof
+  Cases_on `negative`
+  >> rw [bounded_historical_raw_cubic_signed_def]
+  >> every_case_tac
+  >> gvs []
+  >> drule_all bounded_historical_raw_cubic_contains_product
+  >> disch_tac
+  >> simp [bounded_signed192_neg_normalized,
+           bounded_signed192_neg_value]
+  >> intLib.ARITH_TAC
 QED
 
 Theorem bounded_historical_delta64_point_one_test:
