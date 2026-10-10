@@ -99,6 +99,95 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded_word64_sub_borrow_in_correct:
+  let result = bounded_word64_sub_borrow_in left right borrow_in in
+  w2n (FST result) + w2n right + (if borrow_in then 1 else 0) =
+    w2n left + bounded_word_base * (if SND result then 1 else 0)
+Proof
+  Cases_on `borrow_in`
+  >- (simp [bounded_word64_sub_borrow_in_def, LET_THM]
+      >> mp_tac
+           (INST
+             [``left:word64`` |->
+                ``FST (bounded_word64_sub_borrow left right)``,
+              ``right:word64`` |-> ``1w:word64``]
+             bounded_word64_sub_borrow_correct)
+      >> mp_tac
+           (INST
+             [``left:word64`` |-> ``left:word64``,
+              ``right:word64`` |-> ``right:word64``]
+             bounded_word64_sub_borrow_correct)
+      >> simp [LET_THM]
+      >> qspec_then `left` assume_tac w2n_lt
+      >> qspec_then `right` assume_tac w2n_lt
+      >> qspec_then
+           `FST (bounded_word64_sub_borrow left right)`
+           assume_tac w2n_lt
+      >> Cases_on `SND (bounded_word64_sub_borrow left right)`
+      >> Cases_on
+           `SND (bounded_word64_sub_borrow
+             (FST (bounded_word64_sub_borrow left right)) 1w)`
+      >> fs [bounded_word_base_def, dimword_64]
+      >> fs [bounded_word64_sub_borrow_def, WORD_LO]
+      >> intLib.ARITH_TAC)
+  >> simp [bounded_word64_sub_borrow_in_def, LET_THM]
+  >> mp_tac
+       (INST
+         [``left:word64`` |-> ``left:word64``,
+          ``right:word64`` |-> ``right:word64``]
+         bounded_word64_sub_borrow_correct)
+  >> simp [LET_THM, ADD_COMM]
+QED
+
+Theorem bounded192_sub_words_some:
+  bounded192_sub_words left right = SOME result ⇒
+  bounded192_to_num result =
+    bounded192_to_num left - bounded192_to_num right
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `result`
+  >> rename1
+       `bounded192_sub_words
+          (Bounded192 left_high left_middle left_low)
+          (Bounded192 right_high right_middle right_low) =
+        SOME (Bounded192 result_high result_middle result_low)`
+  >> rw [bounded192_sub_words_def, bounded192_le_words_correct, LET_THM]
+  >> mp_tac
+       (INST
+         [``left:word64`` |-> ``left_low:word64``,
+          ``right:word64`` |-> ``right_low:word64``]
+         bounded_word64_sub_borrow_correct)
+  >> mp_tac
+       (INST
+         [``left:word64`` |-> ``left_middle:word64``,
+          ``right:word64`` |-> ``right_middle:word64``,
+          ``borrow_in:bool`` |->
+            ``SND (bounded_word64_sub_borrow
+              left_low right_low)``]
+         bounded_word64_sub_borrow_in_correct)
+  >> mp_tac
+       (INST
+         [``left:word64`` |-> ``left_high:word64``,
+          ``right:word64`` |-> ``right_high:word64``,
+          ``borrow_in:bool`` |->
+            ``SND (bounded_word64_sub_borrow_in
+              left_middle right_middle
+              (SND (bounded_word64_sub_borrow
+                left_low right_low)))``]
+         bounded_word64_sub_borrow_in_correct)
+  >> simp [LET_THM]
+  >> rpt strip_tac
+  >> fs [bounded192_to_num_def, bounded_word_base_def, dimword_64]
+  >> Cases_on `SND (bounded_word64_sub_borrow left_low right_low)`
+  >> Cases_on
+       `SND (bounded_word64_sub_borrow_in
+         left_middle right_middle
+         (SND (bounded_word64_sub_borrow left_low right_low)))`
+  >> fs []
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded128_mul_word64_to_192_words_some:
   bounded128_mul_word64_to_192_words left right = SOME result ⇒
   bounded192_to_num result = bounded128_to_num left * w2n right

@@ -181,6 +181,14 @@ Definition bounded_signed192_interval_sum_def:
     bounded_signed192_interval_sum_aux values zero zero
 End
 
+Definition bounded_signed192_interval_contains_int_def:
+  bounded_signed192_interval_contains_int (lower,upper) value ⇔
+    bounded_signed192_normalized lower ∧
+    bounded_signed192_normalized upper ∧
+    bounded_signed192_to_int lower ≤ value ∧
+    value ≤ bounded_signed192_to_int upper
+End
+
 Definition bounded192_shift_floor80_words_def:
   bounded192_shift_floor80_words (Bounded192 high middle low) =
     Bounded128 (high >>> 16) ((high << 48) + (middle >>> 16))
@@ -658,6 +666,78 @@ Proof
   >> simp [bounded_signed192_neg_normalized,
            bounded_signed192_neg_value]
   >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_signed192_interval_add_contains_int:
+  bounded_signed192_interval_contains_int left left_value ∧
+  bounded_signed192_interval_contains_int right right_value ∧
+  bounded_signed192_add (FST left) (FST right) = SOME lower ∧
+  bounded_signed192_add (SND left) (SND right) = SOME upper ⇒
+  bounded_signed192_interval_contains_int
+    (lower,upper) (left_value + right_value)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rw [bounded_signed192_interval_contains_int_def]
+  >> imp_res_tac
+       compute_boundedWideSignedTheory.bounded_signed192_add_normalized
+  >> imp_res_tac
+       compute_boundedWideSignedTheory.bounded_signed192_add_value
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_signed192_interval_sum_aux_contains_int:
+  ∀values real_values lower upper accumulator_value result.
+    LIST_REL bounded_signed192_interval_contains_int values real_values ∧
+    bounded_signed192_interval_contains_int
+      (lower,upper) accumulator_value ∧
+    bounded_signed192_interval_sum_aux values lower upper = SOME result ⇒
+    bounded_signed192_interval_contains_int result
+      (FOLDL (λtotal value:int. total + value)
+        accumulator_value real_values)
+Proof
+  Induct
+  >- (Cases_on `real_values`
+      >> rw [bounded_signed192_interval_sum_aux_def, LIST_REL_def]
+      >> simp [])
+  >> gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `real_values`
+  >> rw [bounded_signed192_interval_sum_aux_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> mp_tac
+       (Q.INST
+         [`left` |->
+            `((lower,upper):bounded_signed192 # bounded_signed192)`,
+          `right` |-> `((h0,h1):bounded_signed192 # bounded_signed192)`,
+          `left_value` |-> `(accumulator_value:int)`,
+          `right_value` |-> `(h:int)`,
+          `lower` |-> `(x':bounded_signed192)`,
+          `upper` |-> `(x:bounded_signed192)`]
+         bounded_signed192_interval_add_contains_int)
+  >> simp []
+  >> strip_tac
+  >> last_x_assum drule_all
+  >> simp []
+QED
+
+Theorem bounded_signed192_interval_sum_contains_int:
+  LIST_REL bounded_signed192_interval_contains_int values real_values ∧
+  bounded_signed192_interval_sum values = SOME result ⇒
+  bounded_signed192_interval_contains_int result
+    (FOLDL (λtotal value:int. total + value) 0 real_values)
+Proof
+  rw [bounded_signed192_interval_sum_def]
+  >> irule bounded_signed192_interval_sum_aux_contains_int
+  >> qexists_tac `bounded_signed192_make F bounded192_zero`
+  >> qexists_tac `bounded_signed192_make F bounded192_zero`
+  >> qexists_tac `values`
+  >> simp [bounded_signed192_interval_contains_int_def,
+           compute_boundedWideSignedTheory.bounded_signed192_make_normalized,
+           compute_boundedWideSignedTheory.bounded_signed192_make_value,
+           compute_boundedWideTheory.bounded192_zero_def,
+           compute_boundedTheory.bounded192_to_num_def]
 QED
 
 Theorem bounded_historical_delta64_point_one_test:

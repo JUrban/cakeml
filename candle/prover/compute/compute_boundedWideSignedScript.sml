@@ -151,6 +151,72 @@ Proof
   >> simp [bounded_signed192_make_def, bounded_signed192_normalized_def]
 QED
 
+Theorem bounded_signed192_make_option_normalized:
+  (case source of
+   | NONE => NONE
+   | SOME magnitude => SOME (bounded_signed192_make negative magnitude)) =
+    SOME result ⇒
+  bounded_signed192_normalized result
+Proof
+  Cases_on `source`
+  >> fs []
+  >> metis_tac [bounded_signed192_make_normalized]
+QED
+
+Theorem bounded_signed192_add_normalized:
+  bounded_signed192_add left right = SOME result ⇒
+  bounded_signed192_normalized result
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rw [bounded_signed192_add_def]
+  >> metis_tac [bounded_signed192_make_option_normalized]
+QED
+
+Theorem bounded_signed192_add_value:
+  bounded_signed192_add left right = SOME result ⇒
+  bounded_signed192_to_int result =
+    bounded_signed192_to_int left + bounded_signed192_to_int right
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rename1
+       `bounded_signed192_add
+          (BoundedSigned192 left_negative left_magnitude)
+          (BoundedSigned192 right_negative right_magnitude) = SOME result`
+  >> Cases_on `left_negative = right_negative`
+  >- (fs []
+      >> rw [bounded_signed192_add_def]
+      >> Cases_on `bounded192_add_words left_magnitude right_magnitude`
+      >> gvs [compute_boundedTheory.bounded192_add_words_refines,
+              bounded_signed192_make_value,
+              bounded_signed192_to_int_def]
+      >> imp_res_tac compute_boundedTheory.bounded192_add_some
+      >> Cases_on `left_negative`
+      >> fs []
+      >> intLib.ARITH_TAC)
+  >> Cases_on `bounded192_le_words left_magnitude right_magnitude`
+  >> rw [bounded_signed192_add_def]
+  >- (Cases_on `bounded192_sub_words right_magnitude left_magnitude`
+      >> gvs []
+      >> imp_res_tac compute_boundedWideTheory.bounded192_sub_words_some
+      >> Cases_on `left_negative`
+      >> Cases_on `right_negative`
+      >> fs [bounded_signed192_make_value,
+             bounded_signed192_to_int_def,
+             compute_boundedWideTheory.bounded192_le_words_correct]
+      >> intLib.ARITH_TAC)
+  >> Cases_on `bounded192_sub_words left_magnitude right_magnitude`
+  >> gvs []
+  >> imp_res_tac compute_boundedWideTheory.bounded192_sub_words_some
+  >> Cases_on `left_negative`
+  >> Cases_on `right_negative`
+  >> fs [bounded_signed192_make_value,
+         bounded_signed192_to_int_def,
+         compute_boundedWideTheory.bounded192_le_words_correct]
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_wide_signed_closed_tests:
   bounded_signed192_add
       (BoundedSigned192 F (Bounded192 0w 0w 7w))
