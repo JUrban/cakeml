@@ -127,6 +127,20 @@ Definition bounded_interval64_raw_sum_acc_def:
             bounded_interval64_raw_sum_acc products next_lower next_upper
 End
 
+Definition bounded_fused_product_input_represents_def:
+  bounded_fused_product_input_represents (left,right) exact_value ⇔
+    ∃left_value right_value.
+      bounded_interval64_contains_int left left_value ∧
+      bounded_interval64_contains_int right right_value ∧
+      exact_value = left_value * right_value
+End
+
+Definition bounded_fused_raw_interval_contains_int_def:
+  bounded_fused_raw_interval_contains_int (lower,upper) exact_value ⇔
+    bounded_signed192_to_int lower ≤ exact_value ∧
+    exact_value ≤ bounded_signed192_to_int upper
+End
+
 Definition bounded192_shift_floor40_128_def:
   bounded192_shift_floor40_128 (Bounded192 high middle low) =
     if high >>> 40 ≠ 0w then NONE
@@ -573,6 +587,116 @@ Proof
   >> apply_raw_product_bounds
        compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_mixed
   >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_signed128_widen192_value:
+  bounded_signed192_normalized (bounded_signed128_widen192 source) ∧
+  bounded_signed192_to_int (bounded_signed128_widen192 source) =
+    bounded_signed128_to_int source
+Proof
+  Cases_on `source`
+  >> Cases_on `b0`
+  >> simp [bounded_signed128_widen192_def,
+           compute_boundedWideSignedTheory.bounded_signed192_make_normalized,
+           compute_boundedWideSignedTheory.bounded_signed192_make_value,
+           compute_boundedSignedEndpointTheory.bounded_signed128_to_int_def,
+           compute_boundedTheory.bounded128_to_num_def,
+           compute_boundedTheory.bounded192_to_num_def]
+QED
+
+Theorem bounded_interval64_raw_mul_bounds_widen_contains_product:
+  bounded_interval64_valid left ∧
+  bounded_interval64_valid right ∧
+  bounded_interval64_contains_int left left_value ∧
+  bounded_interval64_contains_int right right_value ⇒
+  let bounds = bounded_interval64_raw_mul_bounds_unchecked left right in
+  bounded_fused_raw_interval_contains_int
+    (bounded_signed128_widen192 (FST bounds),
+     bounded_signed128_widen192 (SND bounds))
+    (left_value * right_value)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+          [`left` |-> `left`, `right` |-> `right`,
+           `left_value` |-> `left_value`,
+           `right_value` |-> `right_value`]
+          bounded_interval64_raw_mul_bounds_contains_product)
+  >> simp [LET_THM, bounded_fused_raw_interval_contains_int_def,
+           bounded_signed128_widen192_value]
+QED
+
+Theorem bounded_fused_raw_interval_add_contains_int:
+  bounded_fused_raw_interval_contains_int left left_value ∧
+  bounded_fused_raw_interval_contains_int right right_value ∧
+  bounded_signed192_add (FST left) (FST right) = SOME lower ∧
+  bounded_signed192_add (SND left) (SND right) = SOME upper ⇒
+  bounded_fused_raw_interval_contains_int
+    (lower,upper) (left_value + right_value)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rw [bounded_fused_raw_interval_contains_int_def]
+  >> imp_res_tac
+       compute_boundedWideSignedTheory.bounded_signed192_add_value
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_raw_sum_acc_contains_int:
+  ∀products exact_values lower upper accumulator_value result.
+    LIST_REL bounded_fused_product_input_represents
+      products exact_values ∧
+    bounded_fused_raw_interval_contains_int
+      (lower,upper) accumulator_value ∧
+    bounded_interval64_raw_sum_acc products lower upper = SOME result ⇒
+    bounded_fused_raw_interval_contains_int result
+      (FOLDL (λtotal value:int. total + value)
+        accumulator_value exact_values)
+Proof
+  Induct
+  >- (Cases_on `exact_values`
+      >> rw [bounded_interval64_raw_sum_acc_def, LIST_REL_def]
+      >> simp [])
+  >> gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `exact_values`
+  >> rw [bounded_interval64_raw_sum_acc_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def, bounded_fused_product_input_represents_def]
+  >> `bounded_fused_raw_interval_contains_int
+        (bounded_signed128_widen192
+           (FST (bounded_interval64_raw_mul_bounds_unchecked h0 h1)),
+         bounded_signed128_widen192
+           (SND (bounded_interval64_raw_mul_bounds_unchecked h0 h1)))
+        (left_value * right_value)` by
+       (mp_tac
+          (Q.INST
+            [`left` |-> `h0`, `right` |-> `h1`,
+             `left_value` |-> `left_value`,
+             `right_value` |-> `right_value`]
+            bounded_interval64_raw_mul_bounds_widen_contains_product)
+        >> simp [])
+  >> `bounded_fused_raw_interval_contains_int (x',x)
+        (accumulator_value + left_value * right_value)` by
+       (mp_tac
+          (Q.INST
+            [`left` |-> `(lower,upper)`,
+             `right` |->
+               `(bounded_signed128_widen192
+                   (FST (bounded_interval64_raw_mul_bounds_unchecked h0 h1)),
+                 bounded_signed128_widen192
+                   (SND (bounded_interval64_raw_mul_bounds_unchecked h0 h1)))`,
+             `left_value` |-> `accumulator_value`,
+             `right_value` |-> `left_value * right_value`,
+             `lower` |-> `x'`, `upper` |-> `x`]
+            bounded_fused_raw_interval_add_contains_int)
+        >> simp [])
+  >> qpat_x_assum
+       `∀exact_values lower upper accumulator_value result. _`
+       (mp_tac o Q.SPECL
+          [`t`, `x'`, `x`,
+           `accumulator_value + left_value * right_value`, `result`])
+  >> simp []
 QED
 
 Theorem bounded_taylor64_mul_some:
