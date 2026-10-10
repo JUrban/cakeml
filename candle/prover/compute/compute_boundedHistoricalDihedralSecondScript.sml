@@ -2932,4 +2932,33 @@ Proof
   >> fs [compute_boundedDeltaTaylorTheory.bounded_delta64_hessian_indices_def]
 QED
 
+Theorem bounded_historical_delta_sqrt_second_value_square_contains:
+  EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+  LIST_REL bounded_interval64_contains_int
+    [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+  bounded_historical_delta_second [x0;x1;x2;x3;x4;x5] =
+    SOME (delta,gradient,hessian) ∧
+  bounded_historical_sqrt_second delta gradient hessian root
+      derivative_reciprocal logarithmic_reciprocal =
+    SOME (result_value,result_gradient,result_hessian) ⇒
+  (&1099511627776:int) *
+      bounded_signed64_to_int
+        (bounded_interval64_lower result_value) *
+      bounded_signed64_to_int
+        (bounded_interval64_lower result_value) ≤
+    bounded_delta_value v0 v1 v2 v3 v4 v5 ∧
+  bounded_delta_value v0 v1 v2 v3 v4 v5 ≤
+    (&1099511627776:int) *
+      bounded_signed64_to_int
+        (bounded_interval64_upper result_value) *
+      bounded_signed64_to_int
+        (bounded_interval64_upper result_value)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_historical_delta_second_value_contains_scaled_int
+  >> imp_res_tac bounded_historical_sqrt_second_components
+  >> metis_tac
+       [compute_boundedSqrtCertificateTheory.bounded_interval64_sqrt_certificate_contains_scaled_square]
+QED
+
 val _ = export_theory ();

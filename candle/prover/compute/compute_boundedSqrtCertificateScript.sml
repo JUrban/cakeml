@@ -92,6 +92,29 @@ Proof
          integerTheory.INT_OF_NUM_LE]
 QED
 
+Theorem bounded_interval64_sqrt_certificate_contains_scaled_square:
+  bounded_interval64_contains_scaled_int input
+      (&1208925819614629174706176:int) exact_value ∧
+  bounded_interval64_sqrt_certificate input output ⇒
+  (&1099511627776:int) *
+      bounded_signed64_to_int (bounded_interval64_lower output) *
+      bounded_signed64_to_int (bounded_interval64_lower output) ≤
+    exact_value ∧
+  exact_value ≤
+    (&1099511627776:int) *
+      bounded_signed64_to_int (bounded_interval64_upper output) *
+      bounded_signed64_to_int (bounded_interval64_upper output)
+Proof
+  Cases_on `input`
+  >> Cases_on `output`
+  >> strip_tac
+  >> imp_res_tac bounded_interval64_sqrt_certificate_int_bounds
+  >> fs [compute_boundedIntervalTheory.bounded_interval64_contains_scaled_int_def,
+         compute_boundedIntervalTheory.bounded_interval64_lower_def,
+         compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_interval64_sqrt_certificate_closed_tests:
   let input = BoundedInterval64
     (BoundedSigned64 F 4398046511104w)
