@@ -1397,6 +1397,278 @@ Proof
   >> simp [bounded_historical_delta_x4_exact_gradient_def, LIST_REL_def]
 QED
 
+Theorem bounded_historical_delta_x4_coordinate_differences:
+  2 *
+      (bounded_historical_delta_x4_exact_value
+         replacement v1 v2 v3 v4 v5 -
+       bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v0) *
+      (EL 0
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5) +
+       EL 0
+         (bounded_historical_delta_x4_exact_gradient
+            replacement v1 v2 v3 v4 v5)) ∧
+  2 *
+      (bounded_historical_delta_x4_exact_value
+         v0 replacement v2 v3 v4 v5 -
+       bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v1) *
+      (EL 1
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5) +
+       EL 1
+         (bounded_historical_delta_x4_exact_gradient
+            v0 replacement v2 v3 v4 v5)) ∧
+  2 *
+      (bounded_historical_delta_x4_exact_value
+         v0 v1 replacement v3 v4 v5 -
+       bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v2) *
+      (EL 2
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5) +
+       EL 2
+         (bounded_historical_delta_x4_exact_gradient
+            v0 v1 replacement v3 v4 v5)) ∧
+  2 *
+      (bounded_historical_delta_x4_exact_value
+         v0 v1 v2 replacement v4 v5 -
+       bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v3) *
+      (EL 3
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5) +
+       EL 3
+         (bounded_historical_delta_x4_exact_gradient
+            v0 v1 v2 replacement v4 v5)) ∧
+  2 *
+      (bounded_historical_delta_x4_exact_value
+         v0 v1 v2 v3 replacement v5 -
+       bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v4) *
+      (EL 4
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5) +
+       EL 4
+         (bounded_historical_delta_x4_exact_gradient
+            v0 v1 v2 v3 replacement v5)) ∧
+  2 *
+      (bounded_historical_delta_x4_exact_value
+         v0 v1 v2 v3 v4 replacement -
+       bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v5) *
+      (EL 5
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5) +
+       EL 5
+         (bounded_historical_delta_x4_exact_gradient
+            v0 v1 v2 v3 v4 replacement))
+Proof
+  simp [bounded_historical_delta_x4_exact_value_def,
+        bounded_historical_delta_x4_exact_gradient_def]
+  >> rpt conj_tac
+  >> INT_RING_TAC
+QED
+
+Theorem bounded_historical_delta_x4_coordinate_step_zero:
+  selected = bounded_historical_monotone_exact x0 g0 upper v0 ∧
+  bounded_interval64_valid x0 ∧
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int g0
+    (EL 0
+      (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)) ∧
+  bounded_interval64_contains_int g0
+    (EL 0
+      (bounded_historical_delta_x4_exact_gradient
+        selected v1 v2 v3 v4 v5)) ⇒
+  if upper then
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_x4_exact_value selected v1 v2 v3 v4 v5
+  else
+    bounded_historical_delta_x4_exact_value selected v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant
+  >> qexists_tac `g0`
+  >> qexists_tac `v0`
+  >> qexists_tac
+       `EL 0
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `EL 0
+         (bounded_historical_delta_x4_exact_gradient
+           selected v1 v2 v3 v4 v5)`
+  >> qexists_tac `x0`
+  >> metis_tac [bounded_historical_delta_x4_coordinate_differences]
+QED
+
+Theorem bounded_historical_delta_x4_coordinate_step_one:
+  selected = bounded_historical_monotone_exact x1 g1 upper v1 ∧
+  bounded_interval64_valid x1 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int g1
+    (EL 1
+      (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)) ∧
+  bounded_interval64_contains_int g1
+    (EL 1
+      (bounded_historical_delta_x4_exact_gradient
+        v0 selected v2 v3 v4 v5)) ⇒
+  if upper then
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_x4_exact_value v0 selected v2 v3 v4 v5
+  else
+    bounded_historical_delta_x4_exact_value v0 selected v2 v3 v4 v5 ≤
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant
+  >> qexists_tac `g1`
+  >> qexists_tac `v1`
+  >> qexists_tac
+       `EL 1
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `EL 1
+         (bounded_historical_delta_x4_exact_gradient
+           v0 selected v2 v3 v4 v5)`
+  >> qexists_tac `x1`
+  >> metis_tac [bounded_historical_delta_x4_coordinate_differences]
+QED
+
+Theorem bounded_historical_delta_x4_coordinate_step_two:
+  selected = bounded_historical_monotone_exact x2 g2 upper v2 ∧
+  bounded_interval64_valid x2 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int g2
+    (EL 2
+      (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)) ∧
+  bounded_interval64_contains_int g2
+    (EL 2
+      (bounded_historical_delta_x4_exact_gradient
+        v0 v1 selected v3 v4 v5)) ⇒
+  if upper then
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_x4_exact_value v0 v1 selected v3 v4 v5
+  else
+    bounded_historical_delta_x4_exact_value v0 v1 selected v3 v4 v5 ≤
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant
+  >> qexists_tac `g2`
+  >> qexists_tac `v2`
+  >> qexists_tac
+       `EL 2
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `EL 2
+         (bounded_historical_delta_x4_exact_gradient
+           v0 v1 selected v3 v4 v5)`
+  >> qexists_tac `x2`
+  >> metis_tac [bounded_historical_delta_x4_coordinate_differences]
+QED
+
+Theorem bounded_historical_delta_x4_coordinate_step_three:
+  selected = bounded_historical_monotone_exact x3 g3 upper v3 ∧
+  bounded_interval64_valid x3 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int g3
+    (EL 3
+      (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)) ∧
+  bounded_interval64_contains_int g3
+    (EL 3
+      (bounded_historical_delta_x4_exact_gradient
+        v0 v1 v2 selected v4 v5)) ⇒
+  if upper then
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_x4_exact_value v0 v1 v2 selected v4 v5
+  else
+    bounded_historical_delta_x4_exact_value v0 v1 v2 selected v4 v5 ≤
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant
+  >> qexists_tac `g3`
+  >> qexists_tac `v3`
+  >> qexists_tac
+       `EL 3
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `EL 3
+         (bounded_historical_delta_x4_exact_gradient
+           v0 v1 v2 selected v4 v5)`
+  >> qexists_tac `x3`
+  >> metis_tac [bounded_historical_delta_x4_coordinate_differences]
+QED
+
+Theorem bounded_historical_delta_x4_coordinate_step_four:
+  selected = bounded_historical_monotone_exact x4 g4 upper v4 ∧
+  bounded_interval64_valid x4 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int g4
+    (EL 4
+      (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)) ∧
+  bounded_interval64_contains_int g4
+    (EL 4
+      (bounded_historical_delta_x4_exact_gradient
+        v0 v1 v2 v3 selected v5)) ⇒
+  if upper then
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 selected v5
+  else
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 selected v5 ≤
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant
+  >> qexists_tac `g4`
+  >> qexists_tac `v4`
+  >> qexists_tac
+       `EL 4
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `EL 4
+         (bounded_historical_delta_x4_exact_gradient
+           v0 v1 v2 v3 selected v5)`
+  >> qexists_tac `x4`
+  >> metis_tac [bounded_historical_delta_x4_coordinate_differences]
+QED
+
+Theorem bounded_historical_delta_x4_coordinate_step_five:
+  selected = bounded_historical_monotone_exact x5 g5 upper v5 ∧
+  bounded_interval64_valid x5 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_interval64_contains_int g5
+    (EL 5
+      (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)) ∧
+  bounded_interval64_contains_int g5
+    (EL 5
+      (bounded_historical_delta_x4_exact_gradient
+        v0 v1 v2 v3 v4 selected)) ⇒
+  if upper then
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 selected
+  else
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 selected ≤
+    bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant
+  >> qexists_tac `g5`
+  >> qexists_tac `v5`
+  >> qexists_tac
+       `EL 5
+         (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `EL 5
+         (bounded_historical_delta_x4_exact_gradient
+           v0 v1 v2 v3 v4 selected)`
+  >> qexists_tac `x5`
+  >> metis_tac [bounded_historical_delta_x4_coordinate_differences]
+QED
+
 Theorem bounded_historical_delta_gradient_component_zero_contains_scaled_int:
   bounded_interval64_contains_int x0 v0 ∧
   bounded_interval64_contains_int x1 v1 ∧
