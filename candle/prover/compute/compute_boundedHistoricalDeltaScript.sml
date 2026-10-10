@@ -189,6 +189,21 @@ Definition bounded_signed192_interval_contains_int_def:
     value ≤ bounded_signed192_to_int upper
 End
 
+Definition bounded_historical_raw_cubic_input_represents_def:
+  bounded_historical_raw_cubic_input_represents
+      (first,second,third,negative) exact_value ⇔
+    ∃first_value second_value third_value.
+      bounded_interval64_valid first ∧
+      bounded_interval64_valid second ∧
+      bounded_interval64_valid third ∧
+      bounded_interval64_contains_int first first_value ∧
+      bounded_interval64_contains_int second second_value ∧
+      bounded_interval64_contains_int third third_value ∧
+      exact_value =
+        if negative then -((first_value * second_value) * third_value)
+        else (first_value * second_value) * third_value
+End
+
 Definition bounded192_shift_floor80_words_def:
   bounded192_shift_floor80_words (Bounded192 high middle low) =
     Bounded128 (high >>> 16) ((high << 48) + (middle >>> 16))
@@ -668,6 +683,42 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded_historical_raw_cubic_signed_contains_int:
+  bounded_historical_raw_cubic_input_represents
+    (first,second,third,negative) exact_value ∧
+  bounded_historical_raw_cubic_signed
+    first second third negative = SOME result ⇒
+  bounded_signed192_interval_contains_int result exact_value
+Proof
+  Cases_on `result`
+  >> rw [bounded_historical_raw_cubic_input_represents_def,
+         bounded_signed192_interval_contains_int_def]
+  >> gvs []
+  >> drule_all bounded_historical_raw_cubic_signed_contains_product
+  >> simp []
+QED
+
+Theorem bounded_historical_raw_cubics_contains_ints:
+  ∀terms exact_values results.
+    LIST_REL bounded_historical_raw_cubic_input_represents
+      terms exact_values ∧
+    bounded_historical_raw_cubics terms = SOME results ⇒
+    LIST_REL bounded_signed192_interval_contains_int results exact_values
+Proof
+  Induct
+  >- (Cases_on `exact_values`
+      >> rw [bounded_historical_raw_cubics_def, LIST_REL_def])
+  >> gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `exact_values`
+  >> rw [bounded_historical_raw_cubics_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> imp_res_tac bounded_historical_raw_cubic_signed_contains_int
+  >> res_tac
+  >> simp []
+QED
+
 Theorem bounded_signed192_interval_add_contains_int:
   bounded_signed192_interval_contains_int left left_value ∧
   bounded_signed192_interval_contains_int right right_value ∧
@@ -738,6 +789,205 @@ Proof
            compute_boundedWideSignedTheory.bounded_signed192_make_value,
            compute_boundedWideTheory.bounded192_zero_def,
            compute_boundedTheory.bounded192_to_num_def]
+QED
+
+Theorem bounded_word64_shift_pair16_correct:
+  w2n (((middle:word64) >>> 16) + ((high:word64) << 48)) +
+    bounded_word_base * w2n (high >>> 16) =
+  (w2n middle + bounded_word_base * w2n high) DIV 65536
+Proof
+  Cases_on `high`
+  >> Cases_on `middle`
+  >> fs [dimword_64]
+  >> `((n2w n'):word64) >>> 16 = n2w (n' DIV 65536)` by
+       (mp_tac
+          (Q.SPECL [`n'`, `16`]
+             (n2w_DIV |> INST_TYPE [alpha |-> ``:64``]))
+        >> simp [dimword_64])
+  >> asm_rewrite_tac []
+  >> simp [compute_boundedTheory.bounded_word_base_eq,
+           w2n_lsr, word_lsl_n2w,
+           word_add_n2w, w2n_n2w, dimword_64]
+  >> qabbrev_tac `q = n DIV 65536`
+  >> qabbrev_tac `r = n MOD 65536`
+  >> qabbrev_tac `q' = n' DIV 65536`
+  >> qabbrev_tac `r' = n' MOD 65536`
+  >> `r < 65536` by (qunabbrev_tac `r` >> simp [])
+  >> `r' < 65536` by (qunabbrev_tac `r'` >> simp [])
+  >> `q < 281474976710656` by
+       (qunabbrev_tac `q` >> simp [DIV_LT_X])
+  >> `q' < 281474976710656` by
+       (qunabbrev_tac `q'` >> simp [DIV_LT_X])
+  >> `r + 65536 * q = n` by
+       (qunabbrev_tac `r`
+        >> qunabbrev_tac `q`
+        >> irule compute_boundedTheory.bounded_division_reconstruct
+        >> simp [])
+  >> `r' + 65536 * q' = n'` by
+       (qunabbrev_tac `r'`
+        >> qunabbrev_tac `q'`
+        >> irule compute_boundedTheory.bounded_division_reconstruct
+        >> simp [])
+  >> `281474976710656 * n + q' =
+      q * 18446744073709551616 + (281474976710656 * r + q')` by
+       intLib.ARITH_TAC
+  >> `281474976710656 * r + q' < 18446744073709551616` by
+       intLib.ARITH_TAC
+  >> `(281474976710656 * n + q') MOD 18446744073709551616 =
+      281474976710656 * r + q'` by
+       (qpat_x_assum
+          `281474976710656 * n + q' =
+           q * 18446744073709551616 + (281474976710656 * r + q')`
+          (fn th => once_rewrite_tac [th])
+        >> irule MOD_UNIQUE
+        >> qexists_tac `q`
+        >> simp [])
+  >> `18446744073709551616 * n + n' =
+      (18446744073709551616 * q + 281474976710656 * r + q') *
+        65536 + r'` by
+       intLib.ARITH_TAC
+  >> `(18446744073709551616 * n + n') DIV 65536 =
+      18446744073709551616 * q + 281474976710656 * r + q'` by
+       (qpat_x_assum
+          `18446744073709551616 * n + n' =
+           (18446744073709551616 * q + 281474976710656 * r + q') *
+             65536 + r'`
+          (fn th => once_rewrite_tac [th])
+        >> irule DIV_UNIQUE
+        >> qexists_tac `r'`
+        >> simp [])
+  >> asm_rewrite_tac []
+  >> CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+QED
+
+Theorem bounded192_shift_floor80_words_correct:
+  bounded128_to_num (bounded192_shift_floor80_words value) =
+    bounded192_to_num value DIV 1208925819614629174706176
+Proof
+  Cases_on `value`
+  >> rename1 `Bounded192 high middle low`
+  >> rw [bounded192_shift_floor80_words_def,
+         compute_boundedTheory.bounded128_to_num_def,
+         compute_boundedTheory.bounded192_to_num_def]
+  >> once_rewrite_tac [WORD_ADD_COMM]
+  >> rw [bounded_word64_shift_pair16_correct]
+  >> simp [compute_boundedTheory.bounded_word_base_eq]
+  >> qabbrev_tac
+       `pair = 18446744073709551616 * w2n high + w2n middle`
+  >> qabbrev_tac
+       `whole_value =
+          340282366920938463463374607431768211456 * w2n high +
+          (w2n low + 18446744073709551616 * w2n middle)`
+  >> `w2n low < 18446744073709551616` by
+       (qspec_then `low` assume_tac w2n_lt >> fs [dimword_64])
+  >> `whole_value = w2n low + 18446744073709551616 * pair` by
+       (qunabbrev_tac `whole_value`
+        >> qunabbrev_tac `pair`
+        >> CONV_TAC (EQT_INTRO o Grobner.NUM_RING))
+  >> `whole_value DIV 18446744073709551616 = pair` by
+       (qpat_x_assum
+          `whole_value = w2n low + 18446744073709551616 * pair`
+          (fn th => rewrite_tac [th])
+        >> `w2n low + 18446744073709551616 * pair =
+            pair * 18446744073709551616 + w2n low` by
+             CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+        >> asm_rewrite_tac []
+        >> match_mp_tac DIV_MULT
+        >> asm_rewrite_tac [])
+  >> `(whole_value DIV 18446744073709551616) DIV 65536 =
+      whole_value DIV (18446744073709551616 * 65536)` by
+       (mp_tac
+          (Q.SPECL [`18446744073709551616`, `65536`]
+             DIV_DIV_DIV_MULT)
+        >> impl_tac >- EVAL_TAC
+        >> disch_then (qspec_then `whole_value` MATCH_ACCEPT_TAC))
+  >> qpat_x_assum
+       `whole_value DIV 18446744073709551616 = pair`
+       (fn base_th =>
+         qpat_x_assum
+           `whole_value DIV 18446744073709551616 DIV 65536 =
+            whole_value DIV (18446744073709551616 * 65536)`
+           (fn division_th =>
+             MATCH_ACCEPT_TAC
+               (REWRITE_RULE
+                 [base_th,
+                  EQT_ELIM
+                    (EVAL
+                      ``((18446744073709551616:num) * 65536 =
+                          1208925819614629174706176)``)]
+                 division_th)))
+QED
+
+Theorem bounded_word64_low16_nonzero_correct:
+  word_and (value:word64) 65535w ≠ 0w ⇔
+  w2n value MOD 65536 ≠ 0
+Proof
+  mp_tac
+    (Q.SPECL [`16`, `w2n (value:word64)`]
+      (WORD_AND_EXP_SUB1 |> INST_TYPE [alpha |-> ``:64``]))
+  >> simp [n2w_w2n, wordsTheory.w2n_eq_0,
+           w2n_n2w, dimword_64]
+  >> strip_tac
+  >> `w2n (value:word64) MOD 65536 < 18446744073709551616` by
+       (irule LESS_TRANS
+        >> qexists_tac `65536`
+        >> simp [])
+  >> simp []
+QED
+
+Theorem bounded192_low80_nonzero_correct:
+  bounded192_low80_nonzero magnitude ⇔
+  bounded192_to_num magnitude MOD 1208925819614629174706176 ≠ 0
+Proof
+  Cases_on `magnitude`
+  >> rename1 `Bounded192 high middle low`
+  >> qabbrev_tac `q = w2n middle DIV 65536`
+  >> qabbrev_tac `r = w2n middle MOD 65536`
+  >> `r < 65536` by (qunabbrev_tac `r` >> simp [])
+  >> `w2n low < 18446744073709551616` by
+       (qspec_then `low` assume_tac w2n_lt >> fs [dimword_64])
+  >> `w2n middle = r + 65536 * q` by
+       (qunabbrev_tac `r`
+        >> qunabbrev_tac `q`
+        >> once_rewrite_tac [EQ_SYM_EQ]
+        >> irule compute_boundedTheory.bounded_division_reconstruct
+        >> simp [])
+  >> `w2n low + 18446744073709551616 * r <
+      1208925819614629174706176` by intLib.ARITH_TAC
+  >> `w2n low + 18446744073709551616 * w2n middle +
+       18446744073709551616 * 18446744073709551616 * w2n high =
+      (281474976710656 * w2n high + q) *
+        1208925819614629174706176 +
+      (w2n low + 18446744073709551616 * r)` by
+       intLib.ARITH_TAC
+  >> `(w2n low + 18446744073709551616 * w2n middle +
+        18446744073709551616 * 18446744073709551616 * w2n high) MOD
+       1208925819614629174706176 =
+      w2n low + 18446744073709551616 * r` by
+       (qpat_x_assum
+          `w2n low + 18446744073709551616 * w2n middle +
+           18446744073709551616 * 18446744073709551616 * w2n high =
+           (281474976710656 * w2n high + q) *
+             1208925819614629174706176 +
+           (w2n low + 18446744073709551616 * r)`
+          (fn th => once_rewrite_tac [th])
+        >> irule MOD_UNIQUE
+        >> qexists_tac `281474976710656 * w2n high + q`
+        >> simp [])
+  >> simp_tac bool_ss
+       [bounded192_low80_nonzero_def,
+        compute_boundedTheory.bounded192_to_num_def,
+        compute_boundedTheory.bounded_word_base_eq]
+  >> qpat_x_assum
+       `(w2n low + 18446744073709551616 * w2n middle +
+         18446744073709551616 * 18446744073709551616 * w2n high) MOD
+        1208925819614629174706176 =
+        w2n low + 18446744073709551616 * r`
+       (fn th => rewrite_tac [th])
+  >> Cases_on `low = 0w`
+  >> qunabbrev_tac `r`
+  >> fs [bounded_word64_low16_nonzero_correct,
+         wordsTheory.w2n_eq_0]
 QED
 
 Theorem bounded_historical_delta64_point_one_test:
