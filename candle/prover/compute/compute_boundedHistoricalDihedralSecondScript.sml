@@ -901,6 +901,35 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded_historical_monotone_exact_direction_scaled40:
+  bounded_interval64_valid value ∧
+  bounded_interval64_contains_int value original ∧
+  bounded_interval64_contains_scaled_int derivative
+    (&1099511627776:int) derivative_exact ⇒
+  0 ≤
+    (if upper then
+       (bounded_historical_monotone_exact
+          value derivative upper original - original) * derivative_exact
+     else
+       (original - bounded_historical_monotone_exact
+          value derivative upper original) * derivative_exact)
+Proof
+  Cases_on `value`
+  >> Cases_on `derivative`
+  >> rw [bounded_historical_monotone_exact_def]
+  >> every_case_tac
+  >> fs [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+         compute_boundedIntervalTheory.bounded_interval64_contains_int_def,
+         compute_boundedIntervalTheory.bounded_interval64_contains_scaled_int_def,
+         compute_boundedIntervalTheory.bounded_interval64_lower_def,
+         compute_boundedIntervalTheory.bounded_interval64_upper_def,
+         compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+         compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct,
+         compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+  >> irule compute_boundedIntervalTheory.bounded_int_mul_nonnegative_same_sign
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_historical_secant_direction:
   2 * (selected_gradient - original_gradient) =
       (selected - original) *
@@ -954,6 +983,33 @@ Proof
   >> conj_tac
   >- metis_tac [bounded_historical_monotone_exact_direction]
   >> metis_tac [bounded_historical_monotone_exact_direction]
+QED
+
+Theorem bounded_historical_monotone_exact_secant_scaled40:
+  bounded_interval64_valid value ∧
+  bounded_interval64_contains_int value original ∧
+  bounded_interval64_contains_scaled_int derivative
+    (&1099511627776:int) original_derivative ∧
+  bounded_interval64_contains_scaled_int derivative
+    (&1099511627776:int) selected_derivative ∧
+  selected =
+    bounded_historical_monotone_exact value derivative upper original ∧
+  2 * (selected_gradient - original_gradient) =
+    (selected - original) *
+      (original_derivative + selected_derivative) ⇒
+  if upper then original_gradient ≤ selected_gradient
+  else selected_gradient ≤ original_gradient
+Proof
+  strip_tac
+  >> irule bounded_historical_secant_direction
+  >> qexists_tac `original`
+  >> qexists_tac `original_derivative`
+  >> qexists_tac `selected`
+  >> qexists_tac `selected_derivative`
+  >> simp []
+  >> conj_tac
+  >- metis_tac [bounded_historical_monotone_exact_direction_scaled40]
+  >> metis_tac [bounded_historical_monotone_exact_direction_scaled40]
 QED
 
 Theorem bounded_historical_monotone_exact_environment_selected_contains:
