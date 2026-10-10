@@ -1021,4 +1021,26 @@ Proof
   >> INT_RING_TAC
 QED
 
+Theorem bounded_historical_delta_hessian_rows_contains_ints:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_delta64_hessian [x0;x1;x2;x3;x4;x5] = SOME hessian ∧
+  bounded_hessian64_rows hessian = SOME rows ⇒
+  LIST_REL (LIST_REL bounded_interval64_contains_int) rows
+    (bounded_delta_hessian_value_matrix v0 v1 v2 v3 v4 v5)
+Proof
+  strip_tac
+  >> `LIST_REL bounded_interval64_contains_int hessian
+        (bounded_delta_hessian_values v0 v1 v2 v3 v4 v5)` by
+       metis_tac
+         [compute_boundedDeltaTaylorTheory.bounded_delta64_hessian_contains_ints]
+  >> metis_tac
+       [compute_boundedDeltaTaylorTheory.bounded_delta_hessian_values_rows,
+        compute_boundedTaylorGradientTheory.bounded_hessian64_rows_list_rel]
+QED
+
 val _ = export_theory ();

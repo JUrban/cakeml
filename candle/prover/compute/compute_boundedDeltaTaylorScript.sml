@@ -182,6 +182,45 @@ Definition bounded_delta64_hessian_def:
     | _ => NONE
 End
 
+Definition bounded_delta_hessian_value_rows_def:
+  bounded_delta_hessian_value_rows (v0:int) v1 v2 v3 v4 v5 =
+    [[(-v3);(-v3)];
+     [v3;v4;(-v5)];
+     [v3;(-v4);v5];
+     [(-v0);(-v0);v1;v2;(-v3);(-v3);v4;v5];
+     [v1;(-v2);v3];
+     [(-v1);v2;v3];
+     [(-v4);(-v4)];
+     [(-v3);v4;v5];
+     [v0;(-v2);v4];
+     [v0;(-v1);(-v1);v2;v3;(-v4);(-v4);v5];
+     [(-v0);v2;v4];
+     [(-v5);(-v5)];
+     [v0;(-v1);v5];
+     [(-v0);v1;v5];
+     [v0;v1;(-v2);(-v2);v3;v4;(-v5);(-v5)];
+     [(-v0);(-v0)];
+     [v0;v1;(-v5)];
+     [v0;v2;(-v4)];
+     [(-v1);(-v1)];
+     [v1;v2;(-v3)];
+     [(-v2);(-v2)]]
+End
+
+Definition bounded_delta_hessian_values_def:
+  bounded_delta_hessian_values (v0:int) v1 v2 v3 v4 v5 =
+    MAP (FOLDL (λtotal value:int. total + value) 0)
+      (bounded_delta_hessian_value_rows v0 v1 v2 v3 v4 v5)
+End
+
+Definition bounded_delta_hessian_value_matrix_def:
+  bounded_delta_hessian_value_matrix (v0:int) v1 v2 v3 v4 v5 =
+    case bounded_hessian64_rows
+      (bounded_delta_hessian_values v0 v1 v2 v3 v4 v5) of
+    | NONE => []
+    | SOME rows => rows
+End
+
 Definition bounded_delta64_value_six_def:
   bounded_delta64_value_six x0 x1 x2 x3 x4 x5 =
     case bounded_interval64_sum
@@ -711,6 +750,83 @@ Proof
   >> res_tac
   >> fs []
   >> metis_tac [bounded_interval64_sum_contains_scaled_int]
+QED
+
+Theorem bounded_interval64_sums_contains_int:
+  ∀values real_values result.
+    LIST_REL (LIST_REL bounded_interval64_contains_int)
+      values real_values ∧
+    bounded_interval64_sums values = SOME result ⇒
+    LIST_REL bounded_interval64_contains_int result
+      (MAP (FOLDL (λtotal value:int. total + value) 0) real_values)
+Proof
+  Induct
+  >> Cases_on `real_values`
+  >> rw [bounded_interval64_sums_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> fs []
+  >> metis_tac [bounded_interval64_sum_contains_int]
+QED
+
+Theorem bounded_delta_hessian_values_rows:
+  bounded_hessian64_rows
+      (bounded_delta_hessian_values v0 v1 v2 v3 v4 v5) =
+    SOME (bounded_delta_hessian_value_matrix v0 v1 v2 v3 v4 v5)
+Proof
+  simp [bounded_delta_hessian_value_matrix_def,
+        bounded_delta_hessian_values_def,
+        bounded_delta_hessian_value_rows_def,
+        compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+QED
+
+Theorem bounded_delta64_hessian_contains_ints:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_delta64_hessian [x0;x1;x2;x3;x4;x5] = SOME result ⇒
+  LIST_REL bounded_interval64_contains_int result
+    (bounded_delta_hessian_values v0 v1 v2 v3 v4 v5)
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> fs [bounded_delta64_hessian_def, LET_THM]
+  >> rw [bounded_delta_hessian_values_def]
+  >> irule bounded_interval64_sums_contains_int
+  >> qexists_tac
+       `[[bounded_interval64_neg x3;bounded_interval64_neg x3];
+         [x3;x4;bounded_interval64_neg x5];
+         [x3;bounded_interval64_neg x4;x5];
+         [bounded_interval64_neg x0;bounded_interval64_neg x0;
+          x1;x2;bounded_interval64_neg x3;
+          bounded_interval64_neg x3;x4;x5];
+         [x1;bounded_interval64_neg x2;x3];
+         [bounded_interval64_neg x1;x2;x3];
+         [bounded_interval64_neg x4;bounded_interval64_neg x4];
+         [bounded_interval64_neg x3;x4;x5];
+         [x0;bounded_interval64_neg x2;x4];
+         [x0;bounded_interval64_neg x1;bounded_interval64_neg x1;
+          x2;x3;bounded_interval64_neg x4;
+          bounded_interval64_neg x4;x5];
+         [bounded_interval64_neg x0;x2;x4];
+         [bounded_interval64_neg x5;bounded_interval64_neg x5];
+         [x0;bounded_interval64_neg x1;x5];
+         [bounded_interval64_neg x0;x1;x5];
+         [x0;x1;bounded_interval64_neg x2;bounded_interval64_neg x2;
+          x3;x4;bounded_interval64_neg x5;
+          bounded_interval64_neg x5];
+         [bounded_interval64_neg x0;bounded_interval64_neg x0];
+         [x0;x1;bounded_interval64_neg x5];
+         [x0;x2;bounded_interval64_neg x4];
+         [bounded_interval64_neg x1;bounded_interval64_neg x1];
+         [x1;x2;bounded_interval64_neg x3];
+         [bounded_interval64_neg x2;bounded_interval64_neg x2]]`
+  >> simp [bounded_delta_hessian_value_rows_def, LIST_REL_def]
 QED
 
 Theorem bounded_interval64_list_add_at_contains_scaled_int:

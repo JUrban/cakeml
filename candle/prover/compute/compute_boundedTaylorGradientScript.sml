@@ -142,6 +142,17 @@ Proof
   EVAL_TAC
 QED
 
+Theorem bounded_hessian64_rows_list_rel:
+  bounded_hessian64_rows left = SOME left_rows ∧
+  bounded_hessian64_rows right = SOME right_rows ∧
+  LIST_REL relation left right ⇒
+  LIST_REL (LIST_REL relation) left_rows right_rows
+Proof
+  rw [bounded_hessian64_rows_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+QED
+
 Theorem bounded_taylor_gradient_closed_tests:
   let zeros6 = REPLICATE 6 bounded_interval64_zero in
   let zeros20 = REPLICATE 20 bounded_interval64_zero in
