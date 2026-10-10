@@ -258,6 +258,13 @@ Definition bounded_historical_delta_x4_value_block_def:
     | _ => NONE
 End
 
+Definition bounded_historical_delta_x4_exact_value_def:
+  bounded_historical_delta_x4_exact_value
+      (v0:int) v1 v2 v3 v4 v5 =
+    (-v1) * v2 + (-v0) * v3 + v1 * v4 + v2 * v5 +
+    (-v4) * v5 + v0 * ((-v0) + v1 + v2 + (-v3) + v4 + v5)
+End
+
 Definition bounded_historical_delta_x4_hessian_def:
   bounded_historical_delta_x4_hessian =
     case bounded_historical_scale2 bounded_atan_one of
@@ -1068,6 +1075,52 @@ Proof
            compute_boundedIntervalTheory.bounded_interval64_lower_def,
            compute_boundedIntervalTheory.bounded_interval64_upper_def]
   >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_historical_delta_x4_value_block_contains_scaled_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta_x4_value_block
+    [x0;x1;x2;x3;x4;x5] = SOME result ⇒
+  bounded_interval64_contains_scaled_int result (&1099511627776:int)
+    (bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5)
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> fs [bounded_historical_delta_x4_value_block_def]
+  >> Cases_on
+       `bounded_interval64_sum
+          [bounded_interval64_neg x0;x1;x2;
+           bounded_interval64_neg x3;x4;x5]`
+  >> gvs []
+  >> rename1
+       `bounded_interval64_sum
+          [bounded_interval64_neg x0;x1;x2;
+           bounded_interval64_neg x3;x4;x5] = SOME linear`
+  >> imp_res_tac
+       compute_boundedDeltaTaylorTheory.bounded_interval64_sum6_contains_int_from_result
+  >> mp_tac
+       (Q.INST
+         [`products` |->
+            `[(bounded_interval64_neg x1,x2);
+              (bounded_interval64_neg x0,x3);
+              (x1,x4);(x2,x5);
+              (bounded_interval64_neg x4,x5);
+              (x0,linear)]`,
+          `exact_values` |->
+            `[(-v1)*v2;(-v0)*v3;v1*v4;v2*v5;(-v4)*v5;
+              v0*((-v0)+v1+v2+(-v3)+v4+v5)]`,
+          `result` |-> `result`]
+         compute_boundedTaylorMulTheory.bounded_interval64_fused_products_contains_scaled_int)
+  >> impl_tac
+  >- (simp [LIST_REL_def,
+            compute_boundedTaylorMulTheory.bounded_fused_product_input_represents_from_contains])
+  >> simp [bounded_historical_delta_x4_exact_value_def]
 QED
 
 Theorem bounded_historical_delta_gradient_component_zero_contains_scaled_int:
