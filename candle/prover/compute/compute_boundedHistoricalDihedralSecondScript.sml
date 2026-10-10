@@ -4021,6 +4021,39 @@ Proof
   >> metis_tac []
 QED
 
+Theorem bounded_historical_dihedral_second64_delta_x4_contains_scaled_int:
+  EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+  LIST_REL bounded_interval64_contains_int
+    [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+  bounded_historical_dihedral_second64
+      [x0;x1;x2;x3;x4;x5] root_delta root_four_x0
+      [root_derivative;root_logarithmic;root_four_reciprocal;
+       diagonal_reciprocal;u_reciprocal;special_root_reciprocal;
+       b_reciprocal;u126_reciprocal;u135_reciprocal] =
+    SOME (value,gradient,hessian) ⇒
+  ∃delta_x4 delta_x4_gradient delta_x4_hessian b quotient angle.
+    bounded_historical_delta_x4_second [x0;x1;x2;x3;x4;x5] =
+      SOME (delta_x4,delta_x4_gradient,delta_x4_hessian) ∧
+    bounded_interval64_contains_scaled_int delta_x4
+      (&1099511627776:int)
+      (bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5) ∧
+    bounded_interval64_mul root_delta root_four_x0 = SOME b ∧
+    bounded_interval64_inv_certificate b b_reciprocal ∧
+    bounded_interval64_mul
+      (bounded_interval64_neg delta_x4) b_reciprocal = SOME quotient ∧
+    bounded_interval64_atan_range quotient NONE NONE = SOME angle ∧
+    bounded_interval64_add bounded_atan_pi_half angle = SOME value
+Proof
+  strip_tac
+  >> imp_res_tac bounded_historical_dihedral_second64_value_contract
+  >> qexistsl_tac
+       [`delta_x4`, `delta_x4_gradient`, `delta_x4_hessian`, `b`,
+        `quotient`, `angle`]
+  >> simp []
+  >> metis_tac
+       [bounded_historical_delta_x4_second_value_contains_scaled_int]
+QED
+
 Theorem bounded_historical_dihedral_second64_root_product_contains:
   bounded_interval64_contains_int root_delta root_delta_value ∧
   bounded_interval64_contains_int root_four_x0 root_four_x0_value ∧
@@ -4042,6 +4075,106 @@ Proof
   >- fs []
   >> metis_tac
        [compute_boundedIntervalTheory.bounded_interval64_mul_contains_scaled_product]
+QED
+
+Theorem bounded_historical_dihedral_second64_root_squares_contain:
+  EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+  LIST_REL bounded_interval64_contains_int
+    [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+  bounded_historical_dihedral_second64
+      [x0;x1;x2;x3;x4;x5] root_delta root_four_x0
+      [root_derivative;root_logarithmic;root_four_reciprocal;
+       diagonal_reciprocal;u_reciprocal;special_root_reciprocal;
+       b_reciprocal;u126_reciprocal;u135_reciprocal] =
+    SOME (value,gradient,hessian) ⇒
+  ∃delta delta_gradient delta_hessian
+      root_value root_gradient root_hessian four_x0.
+    bounded_historical_delta_second [x0;x1;x2;x3;x4;x5] =
+      SOME (delta,delta_gradient,delta_hessian) ∧
+    bounded_historical_sqrt_second delta delta_gradient delta_hessian
+      root_delta root_derivative root_logarithmic =
+      SOME (root_value,root_gradient,root_hessian) ∧
+    root_value = root_delta ∧
+    bounded_interval64_scale4 x0 = SOME four_x0 ∧
+    bounded_interval64_sqrt_certificate four_x0 root_four_x0 ∧
+    (&1099511627776:int) *
+        bounded_signed64_to_int
+          (bounded_interval64_lower root_delta) *
+        bounded_signed64_to_int
+          (bounded_interval64_lower root_delta) ≤
+      bounded_delta_value v0 v1 v2 v3 v4 v5 ∧
+    bounded_delta_value v0 v1 v2 v3 v4 v5 ≤
+      (&1099511627776:int) *
+        bounded_signed64_to_int
+          (bounded_interval64_upper root_delta) *
+        bounded_signed64_to_int
+          (bounded_interval64_upper root_delta) ∧
+    (&1099511627776:int) *
+        bounded_signed64_to_int
+          (bounded_interval64_lower root_four_x0) *
+        bounded_signed64_to_int
+          (bounded_interval64_lower root_four_x0) ≤
+      (&1208925819614629174706176:int) * (4 * v0) ∧
+    (&1208925819614629174706176:int) * (4 * v0) ≤
+      (&1099511627776:int) *
+        bounded_signed64_to_int
+          (bounded_interval64_upper root_four_x0) *
+        bounded_signed64_to_int
+          (bounded_interval64_upper root_four_x0)
+Proof
+  strip_tac
+  >> imp_res_tac
+       bounded_historical_dihedral_second64_root_product_contract
+  >> imp_res_tac bounded_historical_sqrt_second_components
+  >> `x0' = x0` by
+       fs [compute_boundedTaylorBaseTheory.bounded_interval64_nth_def]
+  >> `(&1099511627776:int) *
+        bounded_signed64_to_int
+          (bounded_interval64_lower root_delta) *
+        bounded_signed64_to_int
+          (bounded_interval64_lower root_delta) ≤
+      bounded_delta_value v0 v1 v2 v3 v4 v5 ∧
+      bounded_delta_value v0 v1 v2 v3 v4 v5 ≤
+        (&1099511627776:int) *
+        bounded_signed64_to_int
+          (bounded_interval64_upper root_delta) *
+        bounded_signed64_to_int
+          (bounded_interval64_upper root_delta)` by
+      (mp_tac
+         (Q.INST
+           [`gradient` |-> `delta_gradient`,
+            `hessian` |-> `delta_hessian`,
+            `root` |-> `root_delta`,
+            `derivative_reciprocal` |-> `root_derivative`,
+            `logarithmic_reciprocal` |-> `root_logarithmic`,
+            `result_value` |-> `root_delta`,
+            `result_gradient` |-> `root_gradient`,
+            `result_hessian` |-> `root_hessian`]
+           bounded_historical_delta_sqrt_second_value_square_contains)
+       >> simp [])
+  >> `(&1099511627776:int) *
+        bounded_signed64_to_int
+          (bounded_interval64_lower root_four_x0) *
+        bounded_signed64_to_int
+          (bounded_interval64_lower root_four_x0) ≤
+      (&1208925819614629174706176:int) * (4 * v0) ∧
+      (&1208925819614629174706176:int) * (4 * v0) ≤
+        (&1099511627776:int) *
+        bounded_signed64_to_int
+          (bounded_interval64_upper root_four_x0) *
+        bounded_signed64_to_int
+          (bounded_interval64_upper root_four_x0)` by
+      (mp_tac
+         (Q.INST
+           [`x0` |-> `x0`, `v0` |-> `v0`, `four_x0` |-> `four_x0`,
+            `root_four_x0` |-> `root_four_x0`]
+           bounded_historical_root_four_square_contains)
+       >> fs [LIST_REL_def])
+  >> qexistsl_tac
+       [`delta`, `delta_gradient`, `delta_hessian`, `root_value`,
+        `root_gradient`, `root_hessian`, `four_x0`]
+  >> simp []
+  >> gvs []
 QED
 
 Theorem bounded_historical_dihedral_second64_rejects_bad_reciprocal_length:
