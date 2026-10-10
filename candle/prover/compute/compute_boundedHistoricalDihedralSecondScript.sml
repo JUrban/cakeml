@@ -2814,4 +2814,60 @@ Proof
   >> simp [LIST_REL_def]
 QED
 
+Theorem bounded_historical_delta_second_derivative_components:
+  bounded_historical_delta_second environment =
+    SOME (delta,gradient,hessian) ⇒
+  ∃rows.
+    bounded_delta64_hessian environment = SOME hessian ∧
+    bounded_hessian64_rows hessian = SOME rows ∧
+    bounded_historical_delta_gradient_box environment
+      [0;1;2;3;4;5] rows = SOME gradient
+Proof
+  simp [bounded_historical_delta_second_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+QED
+
+Theorem bounded_historical_delta_second_derivatives_contain:
+  EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+  LIST_REL bounded_interval64_contains_int
+    [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+  bounded_historical_delta_second [x0;x1;x2;x3;x4;x5] =
+    SOME (delta,gradient,hessian) ⇒
+  LIST_REL
+    (λcoordinate value.
+      bounded_interval64_contains_scaled_int value
+        (&1099511627776:int)
+        (bounded_historical_delta_gradient_value
+          coordinate v0 v1 v2 v3 v4 v5))
+    [0;1;2;3;4;5] gradient ∧
+  ∃rows.
+    bounded_hessian64_rows hessian = SOME rows ∧
+    LIST_REL (LIST_REL bounded_interval64_contains_int) rows
+      (bounded_delta_hessian_value_matrix v0 v1 v2 v3 v4 v5)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_historical_delta_second_derivative_components
+  >> conj_tac
+  >-
+   (mp_tac
+      (Q.SPECL
+         [`x5`, `x4`, `x3`, `x2`, `x1`, `x0`,
+          `v5`, `v4`, `v3`, `v2`, `v1`, `v0`,
+          `rows`, `hessian`, `gradient`]
+         (GEN_ALL bounded_historical_delta_gradient_box_at_point))
+    >> simp [LIST_REL_def])
+  >> qexists_tac `rows`
+  >> conj_tac
+  >- simp []
+  >> mp_tac
+       (Q.SPECL
+          [`x5`, `x4`, `x3`, `x2`, `x1`, `x0`,
+           `v5`, `v4`, `v3`, `v2`, `v1`, `v0`, `rows`, `hessian`]
+          (GEN_ALL bounded_historical_delta_hessian_rows_contains_ints))
+  >> disch_then irule
+  >> fs [LIST_REL_def]
+QED
+
 val _ = export_theory ();
