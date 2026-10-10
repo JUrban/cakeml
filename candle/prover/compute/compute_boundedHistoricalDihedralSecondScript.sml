@@ -52,6 +52,31 @@ Definition bounded_interval64_subinterval_def:
       bounded_signed64_to_int (bounded_interval64_upper outer)
 End
 
+Definition bounded_historical_monotone_exact_def:
+  bounded_historical_monotone_exact value derivative upper original =
+    if bounded_signed64_nonnegative
+         (bounded_interval64_lower derivative) then
+      if upper then
+        bounded_signed64_to_int (bounded_interval64_upper value)
+      else bounded_signed64_to_int (bounded_interval64_lower value)
+    else if bounded_signed64_nonpositive
+      (bounded_interval64_upper derivative) then
+      if upper then
+        bounded_signed64_to_int (bounded_interval64_lower value)
+      else bounded_signed64_to_int (bounded_interval64_upper value)
+    else original
+End
+
+Definition bounded_historical_monotone_exact_environment_def:
+  bounded_historical_monotone_exact_environment [] [] upper [] = [] ∧
+  bounded_historical_monotone_exact_environment (value::values)
+      (derivative::derivatives) upper (original::originals) =
+    bounded_historical_monotone_exact value derivative upper original ::
+      bounded_historical_monotone_exact_environment
+        values derivatives upper originals ∧
+  bounded_historical_monotone_exact_environment _ _ upper _ = []
+End
+
 Definition bounded_historical_delta_gradient_value_def:
   bounded_historical_delta_gradient_value (coordinate:num)
       (v0:int) v1 v2 v3 v4 v5 =
@@ -85,6 +110,13 @@ Definition bounded_historical_delta_gradient_value_def:
       v2 * v3 + v2 * v4 +
       (-v2) * v5 + (-v2) * v5 + (-v3) * v4
     else 0
+End
+
+Definition bounded_historical_delta_hessian_value_def:
+  bounded_historical_delta_hessian_value (row:num) (column:num)
+      (v0:int) v1 v2 v3 v4 v5 =
+    EL column
+      (EL row (bounded_delta_hessian_value_matrix v0 v1 v2 v3 v4 v5))
 End
 
 Definition bounded_historical_delta_gradient_component_def:
@@ -809,6 +841,107 @@ Proof
   >> simp [bounded_historical_monotone_coordinate_subinterval]
 QED
 
+Theorem bounded_historical_monotone_exact_selected_contains:
+  bounded_interval64_contains_int value original ⇒
+  bounded_interval64_contains_int
+    (bounded_historical_monotone_coordinate value derivative upper)
+    (bounded_historical_monotone_exact value derivative upper original)
+Proof
+  Cases_on `value`
+  >> rw [bounded_historical_monotone_coordinate_def,
+         bounded_historical_monotone_exact_def]
+  >> every_case_tac
+  >> simp [compute_boundedHistoricalDihedralFirstTheory.bounded_historical_point_lower_def,
+           compute_boundedHistoricalDihedralFirstTheory.bounded_historical_point_upper_def,
+           compute_boundedIntervalTheory.bounded_interval64_contains_int_def,
+           compute_boundedIntervalTheory.bounded_interval64_lower_def,
+           compute_boundedIntervalTheory.bounded_interval64_upper_def]
+QED
+
+Theorem bounded_historical_monotone_exact_original_contains:
+  bounded_interval64_valid value ∧
+  bounded_interval64_contains_int value original ⇒
+  bounded_interval64_contains_int value
+    (bounded_historical_monotone_exact value derivative upper original)
+Proof
+  Cases_on `value`
+  >> rw [bounded_historical_monotone_exact_def]
+  >> every_case_tac
+  >> fs [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+         compute_boundedIntervalTheory.bounded_interval64_contains_int_def,
+         compute_boundedIntervalTheory.bounded_interval64_lower_def,
+         compute_boundedIntervalTheory.bounded_interval64_upper_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+QED
+
+Theorem bounded_historical_monotone_exact_direction:
+  bounded_interval64_valid value ∧
+  bounded_interval64_contains_int value original ∧
+  bounded_interval64_contains_int derivative derivative_exact ⇒
+  0 ≤
+    (if upper then
+       (bounded_historical_monotone_exact
+          value derivative upper original - original) * derivative_exact
+     else
+       (original - bounded_historical_monotone_exact
+          value derivative upper original) * derivative_exact)
+Proof
+  Cases_on `value`
+  >> Cases_on `derivative`
+  >> rw [bounded_historical_monotone_exact_def]
+  >> every_case_tac
+  >> fs [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+         compute_boundedIntervalTheory.bounded_interval64_contains_int_def,
+         compute_boundedIntervalTheory.bounded_interval64_lower_def,
+         compute_boundedIntervalTheory.bounded_interval64_upper_def,
+         compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+         compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct,
+         compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+  >> irule compute_boundedIntervalTheory.bounded_int_mul_nonnegative_same_sign
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_historical_monotone_exact_environment_selected_contains:
+  ∀values derivatives originals upper result.
+    LIST_REL bounded_interval64_contains_int values originals ∧
+    bounded_historical_monotone_environment
+      values derivatives upper = SOME result ⇒
+    LIST_REL bounded_interval64_contains_int result
+      (bounded_historical_monotone_exact_environment
+        values derivatives upper originals)
+Proof
+  Induct
+  >> Cases_on `derivatives`
+  >> Cases_on `originals`
+  >> rw [bounded_historical_monotone_environment_def,
+         bounded_historical_monotone_exact_environment_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> simp [bounded_historical_monotone_exact_selected_contains]
+QED
+
+Theorem bounded_historical_monotone_exact_environment_original_contains:
+  ∀values derivatives originals upper result.
+    EVERY bounded_interval64_valid values ∧
+    LIST_REL bounded_interval64_contains_int values originals ∧
+    bounded_historical_monotone_environment
+      values derivatives upper = SOME result ⇒
+    LIST_REL bounded_interval64_contains_int values
+      (bounded_historical_monotone_exact_environment
+        values derivatives upper originals)
+Proof
+  Induct
+  >> Cases_on `derivatives`
+  >> Cases_on `originals`
+  >> rw [bounded_historical_monotone_environment_def,
+         bounded_historical_monotone_exact_environment_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> simp [bounded_historical_monotone_exact_original_contains]
+QED
+
 Theorem bounded_historical_extreme_interval_contains_scaled_int:
   bounded_interval64_contains_scaled_int lower_value scale lower_exact ∧
   bounded_interval64_contains_scaled_int upper_value scale upper_exact ∧
@@ -1017,6 +1150,115 @@ Theorem bounded_historical_delta_gradient_value_characterizations:
 Proof
   simp [bounded_historical_delta_gradient_value_def,
         compute_boundedDeltaSpecializationTheory.bounded_delta_value_def]
+  >> rpt conj_tac
+  >> INT_RING_TAC
+QED
+
+Theorem bounded_historical_delta_gradient_coordinate_differences:
+  coordinate < 6 ⇒
+  2 * (bounded_historical_delta_gradient_value
+      coordinate replacement v1 v2 v3 v4 v5 -
+    bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 v3 v4 v5) =
+    (replacement - v0) *
+      (bounded_historical_delta_hessian_value
+         coordinate 0 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_hessian_value
+         coordinate 0 replacement v1 v2 v3 v4 v5) ∧
+  2 * (bounded_historical_delta_gradient_value
+      coordinate v0 replacement v2 v3 v4 v5 -
+    bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 v3 v4 v5) =
+    (replacement - v1) *
+      (bounded_historical_delta_hessian_value
+         coordinate 1 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_hessian_value
+         coordinate 1 v0 replacement v2 v3 v4 v5) ∧
+  2 * (bounded_historical_delta_gradient_value
+      coordinate v0 v1 replacement v3 v4 v5 -
+    bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 v3 v4 v5) =
+    (replacement - v2) *
+      (bounded_historical_delta_hessian_value
+         coordinate 2 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_hessian_value
+         coordinate 2 v0 v1 replacement v3 v4 v5) ∧
+  2 * (bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 replacement v4 v5 -
+    bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 v3 v4 v5) =
+    (replacement - v3) *
+      (bounded_historical_delta_hessian_value
+         coordinate 3 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_hessian_value
+         coordinate 3 v0 v1 v2 replacement v4 v5) ∧
+  2 * (bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 v3 replacement v5 -
+    bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 v3 v4 v5) =
+    (replacement - v4) *
+      (bounded_historical_delta_hessian_value
+         coordinate 4 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_hessian_value
+         coordinate 4 v0 v1 v2 v3 replacement v5) ∧
+  2 * (bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 v3 v4 replacement -
+    bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 v3 v4 v5) =
+    (replacement - v5) *
+      (bounded_historical_delta_hessian_value
+         coordinate 5 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_hessian_value
+         coordinate 5 v0 v1 v2 v3 v4 replacement)
+Proof
+  strip_tac
+  >> Cases_on `coordinate = 0`
+  >> fs [bounded_historical_delta_gradient_value_def,
+         bounded_historical_delta_hessian_value_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_matrix_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_values_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_rows_def,
+         compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >- (rpt conj_tac >> INT_RING_TAC)
+  >> Cases_on `coordinate = 1`
+  >> fs [bounded_historical_delta_gradient_value_def,
+         bounded_historical_delta_hessian_value_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_matrix_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_values_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_rows_def,
+         compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >- (rpt conj_tac >> INT_RING_TAC)
+  >> Cases_on `coordinate = 2`
+  >> fs [bounded_historical_delta_gradient_value_def,
+         bounded_historical_delta_hessian_value_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_matrix_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_values_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_rows_def,
+         compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >- (rpt conj_tac >> INT_RING_TAC)
+  >> Cases_on `coordinate = 3`
+  >> fs [bounded_historical_delta_gradient_value_def,
+         bounded_historical_delta_hessian_value_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_matrix_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_values_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_rows_def,
+         compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >- (rpt conj_tac >> INT_RING_TAC)
+  >> Cases_on `coordinate = 4`
+  >> fs [bounded_historical_delta_gradient_value_def,
+         bounded_historical_delta_hessian_value_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_matrix_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_values_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_rows_def,
+         compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >- (rpt conj_tac >> INT_RING_TAC)
+  >> `coordinate = 5` by DECIDE_TAC
+  >> fs [bounded_historical_delta_gradient_value_def,
+         bounded_historical_delta_hessian_value_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_matrix_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_values_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_rows_def,
+         compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
   >> rpt conj_tac
   >> INT_RING_TAC
 QED
