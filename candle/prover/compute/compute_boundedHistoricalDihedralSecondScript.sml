@@ -265,6 +265,17 @@ Definition bounded_historical_delta_x4_exact_value_def:
     (-v4) * v5 + v0 * ((-v0) + v1 + v2 + (-v3) + v4 + v5)
 End
 
+Definition bounded_historical_delta_x4_exact_gradient_def:
+  bounded_historical_delta_x4_exact_gradient
+      (v0:int) v1 v2 v3 v4 v5 =
+    [(-v0) + (-v0) + v1 + v2 + (-v3) + (-v3) + v4 + v5;
+     v0 + (-v2) + v4;
+     v0 + (-v1) + v5;
+     (-v0) + (-v0);
+     v0 + v1 + (-v5);
+     v0 + v2 + (-v4)]
+End
+
 Definition bounded_historical_delta_x4_hessian_def:
   bounded_historical_delta_x4_hessian =
     case bounded_historical_scale2 bounded_atan_one of
@@ -1121,6 +1132,269 @@ Proof
   >- (simp [LIST_REL_def,
             compute_boundedTaylorMulTheory.bounded_fused_product_input_represents_from_contains])
   >> simp [bounded_historical_delta_x4_exact_value_def]
+QED
+
+Theorem bounded_historical_interval64_sum3_contains_int:
+  bounded_interval64_contains_int first first_value ∧
+  bounded_interval64_contains_int second second_value ∧
+  bounded_interval64_contains_int third third_value ∧
+  bounded_interval64_sum [first;second;third] = SOME result ⇒
+  bounded_interval64_contains_int result
+    (first_value + second_value + third_value)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`values` |-> `[first;second;third]`,
+          `real_values` |-> `[first_value;second_value;third_value]`,
+          `result` |-> `result`]
+         compute_boundedDeltaTaylorTheory.bounded_interval64_sum_contains_int)
+  >> simp [LIST_REL_def]
+QED
+
+Theorem bounded_historical_interval64_sum8_contains_int:
+  bounded_interval64_contains_int first first_value ∧
+  bounded_interval64_contains_int second second_value ∧
+  bounded_interval64_contains_int third third_value ∧
+  bounded_interval64_contains_int fourth fourth_value ∧
+  bounded_interval64_contains_int fifth fifth_value ∧
+  bounded_interval64_contains_int sixth sixth_value ∧
+  bounded_interval64_contains_int seventh seventh_value ∧
+  bounded_interval64_contains_int eighth eighth_value ∧
+  bounded_interval64_sum
+    [first;second;third;fourth;fifth;sixth;seventh;eighth] = SOME result ⇒
+  bounded_interval64_contains_int result
+    (first_value + second_value + third_value + fourth_value +
+     fifth_value + sixth_value + seventh_value + eighth_value)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`values` |->
+            `[first;second;third;fourth;fifth;sixth;seventh;eighth]`,
+          `real_values` |->
+            `[first_value;second_value;third_value;fourth_value;
+              fifth_value;sixth_value;seventh_value;eighth_value]`,
+          `result` |-> `result`]
+         compute_boundedDeltaTaylorTheory.bounded_interval64_sum_contains_int)
+  >> simp [LIST_REL_def]
+QED
+
+Theorem bounded_historical_delta_x4_gradient_zero_contains_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_interval64_sum
+    [bounded_interval64_neg x0;bounded_interval64_neg x0;
+     x1;x2;bounded_interval64_neg x3;bounded_interval64_neg x3;x4;x5] =
+    SOME result ⇒
+  bounded_interval64_contains_int result
+    ((-v0) + (-v0) + v1 + v2 + (-v3) + (-v3) + v4 + v5)
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> mp_tac
+       (Q.INST
+         [`first` |-> `bounded_interval64_neg x0`,
+          `second` |-> `bounded_interval64_neg x0`,
+          `third` |-> `x1`, `fourth` |-> `x2`,
+          `fifth` |-> `bounded_interval64_neg x3`,
+          `sixth` |-> `bounded_interval64_neg x3`,
+          `seventh` |-> `x4`, `eighth` |-> `x5`,
+          `first_value` |-> `-v0`, `second_value` |-> `-v0`,
+          `third_value` |-> `v1`, `fourth_value` |-> `v2`,
+          `fifth_value` |-> `-v3`, `sixth_value` |-> `-v3`,
+          `seventh_value` |-> `v4`, `eighth_value` |-> `v5`,
+          `result` |-> `result`]
+         bounded_historical_interval64_sum8_contains_int)
+  >> simp []
+QED
+
+Theorem bounded_historical_delta_x4_gradient_one_contains_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_sum [x0;bounded_interval64_neg x2;x4] = SOME result ⇒
+  bounded_interval64_contains_int result (v0 + (-v2) + v4)
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> mp_tac
+       (Q.INST
+         [`first` |-> `x0`, `second` |-> `bounded_interval64_neg x2`,
+          `third` |-> `x4`, `first_value` |-> `v0`,
+          `second_value` |-> `-v2`, `third_value` |-> `v4`,
+          `result` |-> `result`]
+         bounded_historical_interval64_sum3_contains_int)
+  >> simp []
+QED
+
+Theorem bounded_historical_delta_x4_gradient_two_contains_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_interval64_sum [x0;bounded_interval64_neg x1;x5] = SOME result ⇒
+  bounded_interval64_contains_int result (v0 + (-v1) + v5)
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> mp_tac
+       (Q.INST
+         [`first` |-> `x0`, `second` |-> `bounded_interval64_neg x1`,
+          `third` |-> `x5`, `first_value` |-> `v0`,
+          `second_value` |-> `-v1`, `third_value` |-> `v5`,
+          `result` |-> `result`]
+         bounded_historical_interval64_sum3_contains_int)
+  >> simp []
+QED
+
+Theorem bounded_historical_delta_x4_gradient_three_contains_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_add
+    (bounded_interval64_neg x0) (bounded_interval64_neg x0) = SOME result ⇒
+  bounded_interval64_contains_int result ((-v0) + (-v0))
+Proof
+  metis_tac
+    [compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int,
+     compute_boundedIntervalAddTheory.bounded_interval64_add_contains_int]
+QED
+
+Theorem bounded_historical_delta_x4_gradient_four_contains_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_interval64_sum [x0;x1;bounded_interval64_neg x5] = SOME result ⇒
+  bounded_interval64_contains_int result (v0 + v1 + (-v5))
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> mp_tac
+       (Q.INST
+         [`first` |-> `x0`, `second` |-> `x1`,
+          `third` |-> `bounded_interval64_neg x5`,
+          `first_value` |-> `v0`, `second_value` |-> `v1`,
+          `third_value` |-> `-v5`, `result` |-> `result`]
+         bounded_historical_interval64_sum3_contains_int)
+  >> simp []
+QED
+
+Theorem bounded_historical_delta_x4_gradient_five_contains_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_sum [x0;x2;bounded_interval64_neg x4] = SOME result ⇒
+  bounded_interval64_contains_int result (v0 + v2 + (-v4))
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> mp_tac
+       (Q.INST
+         [`first` |-> `x0`, `second` |-> `x2`,
+          `third` |-> `bounded_interval64_neg x4`,
+          `first_value` |-> `v0`, `second_value` |-> `v2`,
+          `third_value` |-> `-v4`, `result` |-> `result`]
+         bounded_historical_interval64_sum3_contains_int)
+  >> simp []
+QED
+
+Theorem bounded_historical_delta_x4_gradient_contains_ints:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta_x4_gradient
+    [x0;x1;x2;x3;x4;x5] = SOME gradient ⇒
+  LIST_REL bounded_interval64_contains_int gradient
+    (bounded_historical_delta_x4_exact_gradient v0 v1 v2 v3 v4 v5)
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> fs [compute_boundedHistoricalDihedralFirstTheory.bounded_historical_delta_x4_gradient_def,
+         compute_boundedHistoricalDihedralFirstTheory.bounded_historical_scale2_def]
+  >> Cases_on
+       `bounded_interval64_sum
+          [bounded_interval64_neg x0;bounded_interval64_neg x0;
+           x1;x2;bounded_interval64_neg x3;
+           bounded_interval64_neg x3;x4;x5]`
+  >> gvs []
+  >> rename1
+       `bounded_interval64_sum
+          [bounded_interval64_neg x0;bounded_interval64_neg x0;
+           x1;x2;bounded_interval64_neg x3;
+           bounded_interval64_neg x3;x4;x5] = SOME g0`
+  >> Cases_on
+       `bounded_interval64_sum [x0;bounded_interval64_neg x2;x4]`
+  >> gvs []
+  >> rename1
+       `bounded_interval64_sum
+          [x0;bounded_interval64_neg x2;x4] = SOME g1`
+  >> Cases_on
+       `bounded_interval64_sum [x0;bounded_interval64_neg x1;x5]`
+  >> gvs []
+  >> rename1
+       `bounded_interval64_sum
+          [x0;bounded_interval64_neg x1;x5] = SOME g2`
+  >> Cases_on
+       `bounded_interval64_add
+          (bounded_interval64_neg x0) (bounded_interval64_neg x0)`
+  >> gvs []
+  >> rename1
+       `bounded_interval64_add
+          (bounded_interval64_neg x0) (bounded_interval64_neg x0) = SOME g3`
+  >> Cases_on
+       `bounded_interval64_sum [x0;x1;bounded_interval64_neg x5]`
+  >> gvs []
+  >> rename1
+       `bounded_interval64_sum
+          [x0;x1;bounded_interval64_neg x5] = SOME g4`
+  >> Cases_on
+       `bounded_interval64_sum [x0;x2;bounded_interval64_neg x4]`
+  >> gvs []
+  >> rename1
+       `bounded_interval64_sum
+          [x0;x2;bounded_interval64_neg x4] = SOME g5`
+  >> mp_tac
+       (Q.INST [`result` |-> `g0`]
+          bounded_historical_delta_x4_gradient_zero_contains_int)
+  >> impl_tac >- simp []
+  >> disch_tac
+  >> mp_tac
+       (Q.INST [`result` |-> `g1`]
+          bounded_historical_delta_x4_gradient_one_contains_int)
+  >> impl_tac >- simp []
+  >> disch_tac
+  >> mp_tac
+       (Q.INST [`result` |-> `g2`]
+          bounded_historical_delta_x4_gradient_two_contains_int)
+  >> impl_tac >- simp []
+  >> disch_tac
+  >> mp_tac
+       (Q.INST [`result` |-> `g3`]
+          bounded_historical_delta_x4_gradient_three_contains_int)
+  >> impl_tac >- simp []
+  >> disch_tac
+  >> mp_tac
+       (Q.INST [`result` |-> `g4`]
+          bounded_historical_delta_x4_gradient_four_contains_int)
+  >> impl_tac >- simp []
+  >> disch_tac
+  >> mp_tac
+       (Q.INST [`result` |-> `g5`]
+          bounded_historical_delta_x4_gradient_five_contains_int)
+  >> impl_tac >- simp []
+  >> disch_tac
+  >> simp [bounded_historical_delta_x4_exact_gradient_def, LIST_REL_def]
 QED
 
 Theorem bounded_historical_delta_gradient_component_zero_contains_scaled_int:
