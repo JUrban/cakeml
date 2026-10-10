@@ -2012,4 +2012,36 @@ Proof
   >> simp [bounded_historical_monotone_exact_selected_contains]
 QED
 
+Theorem bounded_historical_delta_gradient_box_list_rel:
+  ∀environment coordinates derivative_rows result.
+    environment = [x0;x1;x2;x3;x4;x5] ∧
+    LIST_REL
+      (λcoordinate derivative.
+        coordinate < 6 ∧ derivative = EL coordinate rows)
+      coordinates derivative_rows ∧
+    bounded_historical_delta_gradient_box
+      environment coordinates derivative_rows = SOME result ∧
+    EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+    LIST_REL bounded_interval64_contains_int
+      [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+    bounded_delta64_hessian [x0;x1;x2;x3;x4;x5] = SOME hessian ∧
+    bounded_hessian64_rows hessian = SOME rows ⇒
+    LIST_REL
+      (λcoordinate value.
+        bounded_interval64_contains_scaled_int value
+          (&1099511627776:int)
+          (bounded_historical_delta_gradient_value
+            coordinate v0 v1 v2 v3 v4 v5))
+      coordinates result
+Proof
+  ho_match_mp_tac bounded_historical_delta_gradient_box_ind
+  >> rw [bounded_historical_delta_gradient_box_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule bounded_historical_delta_gradient_box_entry_contains_scaled_int
+  >> simp [LIST_REL_def]
+  >> qexistsl_tac [`hessian`, `rows`, `x0`, `x1`, `x2`, `x3`, `x4`, `x5`]
+  >> simp [LIST_REL_def]
+QED
+
 val _ = export_theory ();
