@@ -1652,4 +1652,171 @@ Proof
   >> metis_tac []
 QED
 
+Definition bounded_historical_delta_gradient_path_endpoint_contract_def:
+  bounded_historical_delta_gradient_path_endpoint_contract coordinate rows
+      upper [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5]
+      [s0;s1;s2;s3;s4;s5] =
+  (coordinate < 6 ∧
+  s0 = bounded_historical_monotone_exact x0
+    (EL 0 (EL coordinate rows)) upper v0 ∧
+  s1 = bounded_historical_monotone_exact x1
+    (EL 1 (EL coordinate rows)) upper v1 ∧
+  s2 = bounded_historical_monotone_exact x2
+    (EL 2 (EL coordinate rows)) upper v2 ∧
+  s3 = bounded_historical_monotone_exact x3
+    (EL 3 (EL coordinate rows)) upper v3 ∧
+  s4 = bounded_historical_monotone_exact x4
+    (EL 4 (EL coordinate rows)) upper v4 ∧
+  s5 = bounded_historical_monotone_exact x5
+    (EL 5 (EL coordinate rows)) upper v5 ∧
+  bounded_interval64_valid x0 ∧
+  bounded_interval64_valid x1 ∧
+  bounded_interval64_valid x2 ∧
+  bounded_interval64_valid x3 ∧
+  bounded_interval64_valid x4 ∧
+  bounded_interval64_valid x5 ∧
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_interval64_contains_int (EL 0 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 0 v0 v1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_int (EL 0 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 0 s0 v1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_int (EL 1 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 1 s0 v1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_int (EL 1 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 1 s0 s1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_int (EL 2 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 2 s0 s1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_int (EL 2 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 2 s0 s1 s2 v3 v4 v5) ∧
+  bounded_interval64_contains_int (EL 3 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 3 s0 s1 s2 v3 v4 v5) ∧
+  bounded_interval64_contains_int (EL 3 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 3 s0 s1 s2 s3 v4 v5) ∧
+  bounded_interval64_contains_int (EL 4 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 4 s0 s1 s2 s3 v4 v5) ∧
+  bounded_interval64_contains_int (EL 4 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 4 s0 s1 s2 s3 s4 v5) ∧
+  bounded_interval64_contains_int (EL 5 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 5 s0 s1 s2 s3 s4 v5) ∧
+  bounded_interval64_contains_int (EL 5 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 5 s0 s1 s2 s3 s4 s5)) ∧
+  bounded_historical_delta_gradient_path_endpoint_contract
+    _ _ _ _ _ _ = F
+End
+
+val bounded_historical_delta_gradient_coordinate_path_from_endpoints =
+Q.store_thm (
+  "bounded_historical_delta_gradient_coordinate_path_from_endpoints",
+  `
+  bounded_historical_delta_gradient_path_endpoint_contract coordinate rows
+    upper [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5]
+      [s0;s1;s2;s3;s4;s5] ⇒
+  if upper then
+    bounded_historical_delta_gradient_value coordinate v0 v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_gradient_value coordinate s0 s1 s2 s3 s4 s5
+  else
+    bounded_historical_delta_gradient_value coordinate s0 s1 s2 s3 s4 s5 ≤
+    bounded_historical_delta_gradient_value coordinate v0 v1 v2 v3 v4 v5`,
+  simp_tac (srw_ss())
+    [bounded_historical_delta_gradient_path_endpoint_contract_def]
+  >> strip_tac
+  >> `if upper then
+        bounded_historical_delta_gradient_value
+          coordinate v0 v1 v2 v3 v4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 v1 v2 v3 v4 v5
+      else
+        bounded_historical_delta_gradient_value
+          coordinate s0 v1 v2 v3 v4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate v0 v1 v2 v3 v4 v5` by
+       metis_tac
+         [bounded_historical_delta_gradient_coordinate_step_zero_from_endpoints,
+          EL]
+  >> `if upper then
+        bounded_historical_delta_gradient_value
+          coordinate s0 v1 v2 v3 v4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 v2 v3 v4 v5
+      else
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 v2 v3 v4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 v1 v2 v3 v4 v5` by
+       metis_tac
+         [bounded_historical_delta_gradient_coordinate_step_one_from_endpoints,
+          EL]
+  >> `if upper then
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 v2 v3 v4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 v3 v4 v5
+      else
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 v3 v4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 v2 v3 v4 v5` by
+       metis_tac
+         [bounded_historical_delta_gradient_coordinate_step_two_from_endpoints,
+          EL]
+  >> `if upper then
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 v3 v4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 s3 v4 v5
+      else
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 s3 v4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 v3 v4 v5` by
+       metis_tac
+         [bounded_historical_delta_gradient_coordinate_step_three_from_endpoints,
+          EL]
+  >> `if upper then
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 s3 v4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 s3 s4 v5
+      else
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 s3 s4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 s3 v4 v5` by
+       metis_tac
+         [bounded_historical_delta_gradient_coordinate_step_four_from_endpoints,
+          EL]
+  >> `if upper then
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 s3 s4 v5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 s3 s4 s5
+      else
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 s3 s4 s5 ≤
+        bounded_historical_delta_gradient_value
+          coordinate s0 s1 s2 s3 s4 v5` by
+       metis_tac
+         [bounded_historical_delta_gradient_coordinate_step_five_from_endpoints,
+          EL]
+  >> Cases_on `upper`
+  >> fs []
+  >> metis_tac [integerTheory.INT_LE_TRANS]);
+
 val _ = export_theory ();
