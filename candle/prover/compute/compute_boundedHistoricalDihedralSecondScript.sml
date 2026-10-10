@@ -901,6 +901,61 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded_historical_secant_direction:
+  2 * (selected_gradient - original_gradient) =
+      (selected - original) *
+        (original_derivative + selected_derivative) ∧
+  0 ≤
+    (if upper then
+       (selected - original) * original_derivative
+     else (original - selected) * original_derivative) ∧
+  0 ≤
+    (if upper then
+       (selected - original) * selected_derivative
+     else (original - selected) * selected_derivative) ⇒
+  if upper then original_gradient ≤ selected_gradient
+  else selected_gradient ≤ original_gradient
+Proof
+  strip_tac
+  >> `(selected - original) *
+        (original_derivative + selected_derivative) =
+      (selected - original) * original_derivative +
+      (selected - original) * selected_derivative` by INT_RING_TAC
+  >> Cases_on `upper`
+  >> fs []
+  >- intLib.ARITH_TAC
+  >> `(original - selected) * original_derivative =
+      -((selected - original) * original_derivative)` by INT_RING_TAC
+  >> `(original - selected) * selected_derivative =
+      -((selected - original) * selected_derivative)` by INT_RING_TAC
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_historical_monotone_exact_secant:
+  bounded_interval64_valid value ∧
+  bounded_interval64_contains_int value original ∧
+  bounded_interval64_contains_int derivative original_derivative ∧
+  bounded_interval64_contains_int derivative selected_derivative ∧
+  selected =
+    bounded_historical_monotone_exact value derivative upper original ∧
+  2 * (selected_gradient - original_gradient) =
+    (selected - original) *
+      (original_derivative + selected_derivative) ⇒
+  if upper then original_gradient ≤ selected_gradient
+  else selected_gradient ≤ original_gradient
+Proof
+  strip_tac
+  >> irule bounded_historical_secant_direction
+  >> qexists_tac `original`
+  >> qexists_tac `original_derivative`
+  >> qexists_tac `selected`
+  >> qexists_tac `selected_derivative`
+  >> simp []
+  >> conj_tac
+  >- metis_tac [bounded_historical_monotone_exact_direction]
+  >> metis_tac [bounded_historical_monotone_exact_direction]
+QED
+
 Theorem bounded_historical_monotone_exact_environment_selected_contains:
   ∀values derivatives originals upper result.
     LIST_REL bounded_interval64_contains_int values originals ∧
@@ -1283,6 +1338,83 @@ Proof
   >> metis_tac
        [compute_boundedDeltaTaylorTheory.bounded_delta_hessian_values_rows,
         compute_boundedTaylorGradientTheory.bounded_hessian64_rows_list_rel]
+QED
+
+Theorem bounded_historical_delta_hessian_row_entry_contains_int:
+  coordinate < 6 ∧ column < 6 ∧
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_delta64_hessian [x0;x1;x2;x3;x4;x5] = SOME hessian ∧
+  bounded_hessian64_rows hessian = SOME rows ⇒
+  bounded_interval64_contains_int (EL column (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate column v0 v1 v2 v3 v4 v5)
+Proof
+  strip_tac
+  >> `LIST_REL (LIST_REL bounded_interval64_contains_int) rows
+        (bounded_delta_hessian_value_matrix v0 v1 v2 v3 v4 v5)` by
+       metis_tac [bounded_historical_delta_hessian_rows_contains_ints]
+  >> `LENGTH
+        (bounded_delta_hessian_value_matrix v0 v1 v2 v3 v4 v5) = 6 ∧
+      EVERY ($= 6 o LENGTH)
+        (bounded_delta_hessian_value_matrix v0 v1 v2 v3 v4 v5)` by
+       simp [compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_matrix_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_values_def,
+         compute_boundedDeltaTaylorTheory.bounded_delta_hessian_value_rows_def,
+         compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >> fs [LIST_REL_EL_EQN, EVERY_EL,
+         bounded_historical_delta_hessian_value_def]
+QED
+
+Theorem bounded_historical_delta_gradient_coordinate_step_zero_from_endpoints:
+  coordinate < 6 ∧
+  selected = bounded_historical_monotone_exact x0
+    (EL 0 (EL coordinate rows)) upper v0 ∧
+  bounded_interval64_valid x0 ∧
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int (EL 0 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 0 v0 v1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_int (EL 0 (EL coordinate rows))
+    (bounded_historical_delta_hessian_value
+      coordinate 0 selected v1 v2 v3 v4 v5) ⇒
+  if upper then
+    bounded_historical_delta_gradient_value coordinate v0 v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_gradient_value
+      coordinate selected v1 v2 v3 v4 v5
+  else
+    bounded_historical_delta_gradient_value
+      coordinate selected v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_gradient_value coordinate v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> `2 *
+        (bounded_historical_delta_gradient_value
+            coordinate selected v1 v2 v3 v4 v5 -
+         bounded_historical_delta_gradient_value
+            coordinate v0 v1 v2 v3 v4 v5) =
+      (selected - v0) *
+        (bounded_historical_delta_hessian_value
+            coordinate 0 v0 v1 v2 v3 v4 v5 +
+         bounded_historical_delta_hessian_value
+            coordinate 0 selected v1 v2 v3 v4 v5)` by
+       metis_tac [bounded_historical_delta_gradient_coordinate_differences]
+  >> irule bounded_historical_monotone_exact_secant
+  >> qexists_tac `EL 0 (EL coordinate rows)`
+  >> qexists_tac `v0`
+  >> qexists_tac
+       `bounded_historical_delta_hessian_value
+          coordinate 0 v0 v1 v2 v3 v4 v5`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `bounded_historical_delta_hessian_value
+          coordinate 0 selected v1 v2 v3 v4 v5`
+  >> qexists_tac `x0`
+  >> metis_tac []
 QED
 
 val _ = export_theory ();
