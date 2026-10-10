@@ -544,7 +544,7 @@ Definition bounded_historical_dihedral_second64_def:
     | root_derivative::root_logarithmic::root_four_reciprocal::
         diagonal_reciprocal::u_reciprocal::special_root_reciprocal::
         b_reciprocal::u126_reciprocal::u135_reciprocal::[] =>
-      case bounded_historical_delta_second environment of
+      (case bounded_historical_delta_second environment of
       | NONE => NONE
       | SOME (delta,delta_gradient,delta_hessian) =>
         case bounded_historical_sqrt_second
@@ -715,7 +715,7 @@ Definition bounded_historical_dihedral_second64_def:
                                                                         | NONE => NONE
                                                                         | SOME value =>
                                                                             SOME
-                                                                              (value,gradient,hessian)
+                                                                              (value,gradient,hessian))
     | _ => NONE
 End
 
@@ -2959,6 +2959,67 @@ Proof
   >> imp_res_tac bounded_historical_sqrt_second_components
   >> metis_tac
        [compute_boundedSqrtCertificateTheory.bounded_interval64_sqrt_certificate_contains_scaled_square]
+QED
+
+Theorem bounded_historical_replace_three_length:
+  bounded_historical_replace_three values replacement = SOME result ⇒
+  LENGTH result = 6
+Proof
+  rw [compute_boundedHistoricalDihedralFirstTheory.bounded_historical_replace_three_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
+Theorem bounded_historical_second_hessian_lengths:
+  ∀indices delta_hessian b_hessian result delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient.
+    bounded_historical_second_hessian delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      indices delta_hessian b_hessian = SOME result ⇒
+    LENGTH result = LENGTH indices ∧
+    LENGTH result = LENGTH delta_hessian ∧
+    LENGTH result = LENGTH b_hessian
+Proof
+  Induct
+  >- (Cases_on `delta_hessian`
+      >> Cases_on `b_hessian`
+      >> simp [bounded_historical_second_hessian_def])
+  >> rpt gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `delta_hessian`
+  >- simp [bounded_historical_second_hessian_def]
+  >> Cases_on `b_hessian`
+  >- simp [bounded_historical_second_hessian_def]
+  >> simp [bounded_historical_second_hessian_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+  >> res_tac
+  >> fs []
+QED
+
+Theorem bounded_historical_dihedral_second64_rejects_bad_reciprocal_length:
+  LENGTH reciprocal_certificates ≠ 9 ⇒
+  bounded_historical_dihedral_second64 environment root_delta root_four_x0
+      reciprocal_certificates = NONE
+Proof
+  simp [bounded_historical_dihedral_second64_def]
+  >> every_case_tac
+  >> fs []
+QED
+
+Theorem bounded_historical_dihedral_second64_shape:
+  bounded_historical_dihedral_second64 environment root_delta root_four_x0
+      reciprocal_certificates = SOME (value,gradient,hessian) ⇒
+  LENGTH gradient = 6 ∧ LENGTH hessian = 21
+Proof
+  simp [bounded_historical_dihedral_second64_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+  >> imp_res_tac bounded_historical_replace_three_length
+  >> imp_res_tac bounded_historical_second_hessian_lengths
+  >> fs [compute_boundedDeltaTaylorTheory.bounded_delta64_hessian_indices_def]
 QED
 
 val _ = export_theory ();
