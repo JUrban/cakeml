@@ -52,6 +52,41 @@ Definition bounded_interval64_subinterval_def:
       bounded_signed64_to_int (bounded_interval64_upper outer)
 End
 
+Definition bounded_historical_delta_gradient_value_def:
+  bounded_historical_delta_gradient_value (coordinate:num)
+      (v0:int) v1 v2 v3 v4 v5 =
+    if coordinate = 0 then
+      (-v0) * v3 + (-v0) * v3 +
+      v1 * v3 + v1 * v4 + (-v1) * v5 +
+      v2 * v3 + (-v2) * v4 + v2 * v5 +
+      (-v3) * v3 + v3 * v4 + v3 * v5
+    else if coordinate = 1 then
+      v0 * v3 + v0 * v4 + (-v0) * v5 +
+      (-v1) * v4 + (-v1) * v4 +
+      (-v2) * v3 + v2 * v4 + v2 * v5 +
+      v3 * v4 + (-v4) * v4 + v4 * v5
+    else if coordinate = 2 then
+      v0 * v3 + (-v0) * v4 + v0 * v5 +
+      (-v1) * v3 + v1 * v4 + v1 * v5 +
+      (-v2) * v5 + (-v2) * v5 +
+      v3 * v5 + v4 * v5 + (-v5) * v5
+    else if coordinate = 3 then
+      (-v0) * v0 + v0 * v1 + v0 * v2 +
+      (-v0) * v3 + (-v0) * v3 + v0 * v4 + v0 * v5 +
+      (-v1) * v2 + v1 * v4 + v2 * v5 + (-v4) * v5
+    else if coordinate = 4 then
+      v0 * v1 + (-v0) * v2 + v0 * v3 +
+      (-v1) * v1 + v1 * v2 + v1 * v3 +
+      (-v1) * v4 + (-v1) * v4 +
+      v1 * v5 + v2 * v5 + (-v3) * v5
+    else if coordinate = 5 then
+      (-v0) * v1 + v0 * v2 + v0 * v3 +
+      v1 * v2 + v1 * v4 + (-v2) * v2 +
+      v2 * v3 + v2 * v4 +
+      (-v2) * v5 + (-v2) * v5 + (-v3) * v4
+    else 0
+End
+
 Definition bounded_historical_delta_gradient_component_def:
   bounded_historical_delta_gradient_component (coordinate:num) environment =
     case environment of
@@ -789,6 +824,201 @@ Proof
            compute_boundedIntervalTheory.bounded_interval64_lower_def,
            compute_boundedIntervalTheory.bounded_interval64_upper_def]
   >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_historical_delta_gradient_component_zero_contains_scaled_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta_gradient_component
+    0 [x0;x1;x2;x3;x4;x5] = SOME result ⇒
+  bounded_interval64_contains_scaled_int result (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 0 v0 v1 v2 v3 v4 v5)
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> fs [bounded_historical_delta_gradient_component_def]
+  >> mp_tac
+       (Q.INST
+          [`products` |->
+             `[(bounded_interval64_neg x0,x3);
+               (bounded_interval64_neg x0,x3);
+               (x1,x3);(x1,x4);(bounded_interval64_neg x1,x5);
+               (x2,x3);(bounded_interval64_neg x2,x4);(x2,x5);
+               (bounded_interval64_neg x3,x3);(x3,x4);(x3,x5)]`,
+           `exact_values` |->
+             `[(-v0)*v3;(-v0)*v3;v1*v3;v1*v4;(-v1)*v5;
+               v2*v3;(-v2)*v4;v2*v5;(-v3)*v3;v3*v4;v3*v5]`,
+           `result` |-> `result`]
+          compute_boundedTaylorMulTheory.bounded_interval64_fused_products_contains_scaled_int)
+  >> impl_tac
+  >- (simp [LIST_REL_def,
+            compute_boundedTaylorMulTheory.bounded_fused_product_input_represents_from_contains])
+  >> simp [bounded_historical_delta_gradient_value_def]
+QED
+
+fun prove_historical_delta_gradient_component products exact_values =
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> fs [bounded_historical_delta_gradient_component_def]
+  >> mp_tac
+       (INST
+          [``products:(bounded_interval64 # bounded_interval64) list`` |->
+             products,
+           ``exact_values:int list`` |-> exact_values,
+           ``result:bounded_interval64`` |-> ``result:bounded_interval64``]
+          compute_boundedTaylorMulTheory.bounded_interval64_fused_products_contains_scaled_int)
+  >> impl_tac
+  >- (simp [LIST_REL_def,
+            compute_boundedTaylorMulTheory.bounded_fused_product_input_represents_from_contains])
+  >> simp [bounded_historical_delta_gradient_value_def];
+
+Theorem bounded_historical_delta_gradient_component_one_contains_scaled_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta_gradient_component
+    1 [x0;x1;x2;x3;x4;x5] = SOME result ⇒
+  bounded_interval64_contains_scaled_int result (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 1 v0 v1 v2 v3 v4 v5)
+Proof
+  prove_historical_delta_gradient_component
+    ``[(x0,x3);(x0,x4);(bounded_interval64_neg x0,x5);
+       (bounded_interval64_neg x1,x4);
+       (bounded_interval64_neg x1,x4);
+       (bounded_interval64_neg x2,x3);(x2,x4);(x2,x5);
+       (x3,x4);(bounded_interval64_neg x4,x4);(x4,x5)]``
+    ``[v0*v3;v0*v4;(-v0)*v5;(-v1)*v4;(-v1)*v4;
+       (-v2)*v3;v2*v4;v2*v5;v3*v4;(-v4)*v4;v4*v5]``
+QED
+
+Theorem bounded_historical_delta_gradient_component_two_contains_scaled_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta_gradient_component
+    2 [x0;x1;x2;x3;x4;x5] = SOME result ⇒
+  bounded_interval64_contains_scaled_int result (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 2 v0 v1 v2 v3 v4 v5)
+Proof
+  prove_historical_delta_gradient_component
+    ``[(x0,x3);(bounded_interval64_neg x0,x4);(x0,x5);
+       (bounded_interval64_neg x1,x3);(x1,x4);(x1,x5);
+       (bounded_interval64_neg x2,x5);
+       (bounded_interval64_neg x2,x5);
+       (x3,x5);(x4,x5);(bounded_interval64_neg x5,x5)]``
+    ``[v0*v3;(-v0)*v4;v0*v5;(-v1)*v3;v1*v4;v1*v5;
+       (-v2)*v5;(-v2)*v5;v3*v5;v4*v5;(-v5)*v5]``
+QED
+
+Theorem bounded_historical_delta_gradient_component_three_contains_scaled_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta_gradient_component
+    3 [x0;x1;x2;x3;x4;x5] = SOME result ⇒
+  bounded_interval64_contains_scaled_int result (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 3 v0 v1 v2 v3 v4 v5)
+Proof
+  prove_historical_delta_gradient_component
+    ``[(bounded_interval64_neg x0,x0);(x0,x1);(x0,x2);
+       (bounded_interval64_neg x0,x3);
+       (bounded_interval64_neg x0,x3);
+       (x0,x4);(x0,x5);(bounded_interval64_neg x1,x2);
+       (x1,x4);(x2,x5);(bounded_interval64_neg x4,x5)]``
+    ``[(-v0)*v0;v0*v1;v0*v2;(-v0)*v3;(-v0)*v3;
+       v0*v4;v0*v5;(-v1)*v2;v1*v4;v2*v5;(-v4)*v5]``
+QED
+
+Theorem bounded_historical_delta_gradient_component_four_contains_scaled_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta_gradient_component
+    4 [x0;x1;x2;x3;x4;x5] = SOME result ⇒
+  bounded_interval64_contains_scaled_int result (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 4 v0 v1 v2 v3 v4 v5)
+Proof
+  prove_historical_delta_gradient_component
+    ``[(x0,x1);(bounded_interval64_neg x0,x2);(x0,x3);
+       (bounded_interval64_neg x1,x1);(x1,x2);(x1,x3);
+       (bounded_interval64_neg x1,x4);
+       (bounded_interval64_neg x1,x4);
+       (x1,x5);(x2,x5);(bounded_interval64_neg x3,x5)]``
+    ``[v0*v1;(-v0)*v2;v0*v3;(-v1)*v1;v1*v2;v1*v3;
+       (-v1)*v4;(-v1)*v4;v1*v5;v2*v5;(-v3)*v5]``
+QED
+
+Theorem bounded_historical_delta_gradient_component_five_contains_scaled_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta_gradient_component
+    5 [x0;x1;x2;x3;x4;x5] = SOME result ⇒
+  bounded_interval64_contains_scaled_int result (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 5 v0 v1 v2 v3 v4 v5)
+Proof
+  prove_historical_delta_gradient_component
+    ``[(bounded_interval64_neg x0,x1);(x0,x2);(x0,x3);
+       (x1,x2);(x1,x4);(bounded_interval64_neg x2,x2);
+       (x2,x3);(x2,x4);
+       (bounded_interval64_neg x2,x5);
+       (bounded_interval64_neg x2,x5);
+       (bounded_interval64_neg x3,x4)]``
+    ``[(-v0)*v1;v0*v2;v0*v3;v1*v2;v1*v4;(-v2)*v2;
+       v2*v3;v2*v4;(-v2)*v5;(-v2)*v5;(-v3)*v4]``
+QED
+
+Theorem bounded_historical_delta_gradient_value_characterizations:
+  bounded_delta_value (v0 + h) v1 v2 v3 v4 v5 -
+      bounded_delta_value (v0 - h) v1 v2 v3 v4 v5 =
+    2 * h * bounded_historical_delta_gradient_value
+      0 v0 v1 v2 v3 v4 v5 ∧
+  bounded_delta_value v0 (v1 + h) v2 v3 v4 v5 -
+      bounded_delta_value v0 (v1 - h) v2 v3 v4 v5 =
+    2 * h * bounded_historical_delta_gradient_value
+      1 v0 v1 v2 v3 v4 v5 ∧
+  bounded_delta_value v0 v1 (v2 + h) v3 v4 v5 -
+      bounded_delta_value v0 v1 (v2 - h) v3 v4 v5 =
+    2 * h * bounded_historical_delta_gradient_value
+      2 v0 v1 v2 v3 v4 v5 ∧
+  bounded_delta_value v0 v1 v2 (v3 + h) v4 v5 -
+      bounded_delta_value v0 v1 v2 (v3 - h) v4 v5 =
+    2 * h * bounded_historical_delta_gradient_value
+      3 v0 v1 v2 v3 v4 v5 ∧
+  bounded_delta_value v0 v1 v2 v3 (v4 + h) v5 -
+      bounded_delta_value v0 v1 v2 v3 (v4 - h) v5 =
+    2 * h * bounded_historical_delta_gradient_value
+      4 v0 v1 v2 v3 v4 v5 ∧
+  bounded_delta_value v0 v1 v2 v3 v4 (v5 + h) -
+      bounded_delta_value v0 v1 v2 v3 v4 (v5 - h) =
+    2 * h * bounded_historical_delta_gradient_value
+      5 v0 v1 v2 v3 v4 v5
+Proof
+  simp [bounded_historical_delta_gradient_value_def,
+        compute_boundedDeltaSpecializationTheory.bounded_delta_value_def]
+  >> rpt conj_tac
+  >> INT_RING_TAC
 QED
 
 val _ = export_theory ();

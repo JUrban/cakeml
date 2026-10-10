@@ -141,6 +141,16 @@ Definition bounded_fused_raw_interval_contains_int_def:
     exact_value ≤ bounded_signed192_to_int upper
 End
 
+Theorem bounded_fused_product_input_represents_from_contains:
+  bounded_interval64_contains_int left left_value ∧
+  bounded_interval64_contains_int right right_value ⇒
+  bounded_fused_product_input_represents
+    (left,right) (left_value * right_value)
+Proof
+  simp [bounded_fused_product_input_represents_def]
+  >> metis_tac []
+QED
+
 Definition bounded192_shift_floor40_128_def:
   bounded192_shift_floor40_128 (Bounded192 high middle low) =
     if high >>> 40 ≠ 0w then NONE
