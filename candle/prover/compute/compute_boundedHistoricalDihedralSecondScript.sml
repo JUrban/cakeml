@@ -2998,6 +2998,46 @@ Proof
   >> fs []
 QED
 
+Theorem bounded_interval64_contains_int_scale_squared:
+  bounded_interval64_contains_int interval value ⇒
+  bounded_interval64_contains_scaled_int interval
+    (&1208925819614629174706176:int)
+    ((&1208925819614629174706176:int) * value)
+Proof
+  Cases_on `interval`
+  >> fs [compute_boundedIntervalTheory.bounded_interval64_contains_int_def,
+         compute_boundedIntervalTheory.bounded_interval64_contains_scaled_int_def]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_historical_root_four_square_contains:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_scale4 x0 = SOME four_x0 ∧
+  bounded_interval64_sqrt_certificate four_x0 root_four_x0 ⇒
+  (&1099511627776:int) *
+      bounded_signed64_to_int (bounded_interval64_lower root_four_x0) *
+      bounded_signed64_to_int (bounded_interval64_lower root_four_x0) ≤
+    (&1208925819614629174706176:int) * (4 * v0) ∧
+  (&1208925819614629174706176:int) * (4 * v0) ≤
+    (&1099511627776:int) *
+      bounded_signed64_to_int (bounded_interval64_upper root_four_x0) *
+      bounded_signed64_to_int (bounded_interval64_upper root_four_x0)
+Proof
+  strip_tac
+  >> `bounded_interval64_contains_scaled_int x0
+        (&1208925819614629174706176:int)
+        ((&1208925819614629174706176:int) * v0)` by
+       metis_tac [bounded_interval64_contains_int_scale_squared]
+  >> `bounded_interval64_contains_scaled_int four_x0
+        (&1208925819614629174706176:int)
+        (4 * ((&1208925819614629174706176:int) * v0))` by
+       metis_tac
+         [compute_boundedDeltaTaylorTheory.bounded_interval64_scale4_contains_scaled_int]
+  >> imp_res_tac
+       compute_boundedSqrtCertificateTheory.bounded_interval64_sqrt_certificate_contains_scaled_square
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_historical_dihedral_second64_root_product_contract:
   bounded_historical_dihedral_second64 environment root_delta root_four_x0
       [root_derivative;root_logarithmic;root_four_reciprocal;
