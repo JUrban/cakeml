@@ -1819,4 +1819,52 @@ Q.store_thm (
   >> fs []
   >> metis_tac [integerTheory.INT_LE_TRANS]);
 
+Definition bounded_historical_delta_gradient_path_source_contract_def:
+  bounded_historical_delta_gradient_path_source_contract coordinate rows
+      upper [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5]
+      [s0;s1;s2;s3;s4;s5] =
+  (coordinate < 6 ∧
+   s0 = bounded_historical_monotone_exact x0
+     (EL 0 (EL coordinate rows)) upper v0 ∧
+   s1 = bounded_historical_monotone_exact x1
+     (EL 1 (EL coordinate rows)) upper v1 ∧
+   s2 = bounded_historical_monotone_exact x2
+     (EL 2 (EL coordinate rows)) upper v2 ∧
+   s3 = bounded_historical_monotone_exact x3
+     (EL 3 (EL coordinate rows)) upper v3 ∧
+   s4 = bounded_historical_monotone_exact x4
+     (EL 4 (EL coordinate rows)) upper v4 ∧
+   s5 = bounded_historical_monotone_exact x5
+     (EL 5 (EL coordinate rows)) upper v5 ∧
+   EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+   LIST_REL bounded_interval64_contains_int
+     [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+   ∃hessian.
+     bounded_delta64_hessian [x0;x1;x2;x3;x4;x5] = SOME hessian ∧
+     bounded_hessian64_rows hessian = SOME rows) ∧
+  bounded_historical_delta_gradient_path_source_contract
+    _ _ _ _ _ _ = F
+End
+
+Theorem bounded_historical_delta_gradient_path_endpoint_contract_from_source:
+  bounded_historical_delta_gradient_path_source_contract coordinate rows
+    upper [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5]
+      [s0;s1;s2;s3;s4;s5] ⇒
+  bounded_historical_delta_gradient_path_endpoint_contract coordinate rows
+    upper [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5]
+      [s0;s1;s2;s3;s4;s5]
+Proof
+  simp_tac (srw_ss())
+    [bounded_historical_delta_gradient_path_source_contract_def,
+     LIST_REL_def]
+  >> strip_tac
+  >> fs [bounded_historical_delta_gradient_path_endpoint_contract_def,
+         bounded_historical_monotone_exact_original_contains]
+  >> rpt conj_tac
+  >> once_rewrite_tac [GSYM (CONJUNCT1 EL)]
+  >> irule bounded_historical_delta_hessian_row_entry_contains_int
+  >> simp []
+  >> metis_tac [bounded_historical_monotone_exact_original_contains]
+QED
+
 val _ = export_theory ();
