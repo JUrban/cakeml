@@ -1805,6 +1805,203 @@ Proof
   >> metis_tac [integerTheory.INT_LE_TRANS]
 QED
 
+Theorem bounded_historical_delta_x4_value_block_list_rel_contains_scaled_int:
+  LIST_REL bounded_interval64_contains_int environment
+    [v0;v1;v2;v3;v4;v5] ∧
+  bounded_historical_delta_x4_value_block environment = SOME result ⇒
+  bounded_interval64_contains_scaled_int result (&1099511627776:int)
+    (bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5)
+Proof
+  Cases_on `environment`
+  >> fs [LIST_REL_def]
+  >> Cases_on `t`
+  >> fs [LIST_REL_def]
+  >> Cases_on `t'`
+  >> fs [LIST_REL_def]
+  >> Cases_on `t`
+  >> fs [LIST_REL_def]
+  >> Cases_on `t'`
+  >> fs [LIST_REL_def]
+  >> Cases_on `t`
+  >> fs [LIST_REL_def]
+  >> Cases_on `t'`
+  >> fs [LIST_REL_def]
+  >> metis_tac [bounded_historical_delta_x4_value_block_contains_scaled_int]
+QED
+
+Theorem bounded_historical_delta_x4_gradient_shape:
+  bounded_historical_delta_x4_gradient environment = SOME gradient ⇒
+  LENGTH gradient = 6
+Proof
+  rw [compute_boundedHistoricalDihedralFirstTheory.bounded_historical_delta_x4_gradient_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
+Theorem bounded_historical_delta_x4_extreme_contains_scaled_int:
+  EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+  LIST_REL bounded_interval64_contains_int
+    [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+  bounded_historical_delta_x4_gradient [x0;x1;x2;x3;x4;x5] =
+    SOME [g0;g1;g2;g3;g4;g5] ∧
+  bounded_historical_monotone_environment [x0;x1;x2;x3;x4;x5]
+    [g0;g1;g2;g3;g4;g5] F = SOME lower_environment ∧
+  bounded_historical_monotone_environment [x0;x1;x2;x3;x4;x5]
+    [g0;g1;g2;g3;g4;g5] T = SOME upper_environment ∧
+  bounded_historical_delta_x4_value_block lower_environment =
+    SOME lower_value ∧
+  bounded_historical_delta_x4_value_block upper_environment =
+    SOME upper_value ⇒
+  bounded_interval64_contains_scaled_int
+    (bounded_historical_extreme_interval lower_value upper_value)
+    (&1099511627776:int)
+    (bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5)
+Proof
+  strip_tac
+  >> `LIST_REL bounded_interval64_contains_int lower_environment
+        [bounded_historical_monotone_exact x0 g0 F v0;
+         bounded_historical_monotone_exact x1 g1 F v1;
+         bounded_historical_monotone_exact x2 g2 F v2;
+         bounded_historical_monotone_exact x3 g3 F v3;
+         bounded_historical_monotone_exact x4 g4 F v4;
+         bounded_historical_monotone_exact x5 g5 F v5]` by
+      (mp_tac
+         (Q.SPECL
+           [`[x0;x1;x2;x3;x4;x5]`, `[g0;g1;g2;g3;g4;g5]`,
+            `[v0;v1;v2;v3;v4;v5]`, `F`, `lower_environment`]
+           bounded_historical_monotone_exact_environment_selected_contains)
+       >> simp [bounded_historical_monotone_exact_environment_def])
+  >> `LIST_REL bounded_interval64_contains_int upper_environment
+        [bounded_historical_monotone_exact x0 g0 T v0;
+         bounded_historical_monotone_exact x1 g1 T v1;
+         bounded_historical_monotone_exact x2 g2 T v2;
+         bounded_historical_monotone_exact x3 g3 T v3;
+         bounded_historical_monotone_exact x4 g4 T v4;
+         bounded_historical_monotone_exact x5 g5 T v5]` by
+      (mp_tac
+         (Q.SPECL
+           [`[x0;x1;x2;x3;x4;x5]`, `[g0;g1;g2;g3;g4;g5]`,
+            `[v0;v1;v2;v3;v4;v5]`, `T`, `upper_environment`]
+           bounded_historical_monotone_exact_environment_selected_contains)
+       >> simp [bounded_historical_monotone_exact_environment_def])
+  >> `bounded_historical_delta_x4_exact_value
+        (bounded_historical_monotone_exact x0 g0 F v0)
+        (bounded_historical_monotone_exact x1 g1 F v1)
+        (bounded_historical_monotone_exact x2 g2 F v2)
+        (bounded_historical_monotone_exact x3 g3 F v3)
+        (bounded_historical_monotone_exact x4 g4 F v4)
+        (bounded_historical_monotone_exact x5 g5 F v5) ≤
+      bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5` by
+      (mp_tac
+         (Q.INST
+           [`upper` |-> `F`,
+            `s0` |-> `bounded_historical_monotone_exact x0 g0 F v0`,
+            `s1` |-> `bounded_historical_monotone_exact x1 g1 F v1`,
+            `s2` |-> `bounded_historical_monotone_exact x2 g2 F v2`,
+            `s3` |-> `bounded_historical_monotone_exact x3 g3 F v3`,
+            `s4` |-> `bounded_historical_monotone_exact x4 g4 F v4`,
+            `s5` |-> `bounded_historical_monotone_exact x5 g5 F v5`]
+           bounded_historical_delta_x4_path_from_gradient)
+       >> simp [LIST_REL_def])
+  >> `bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5 ≤
+      bounded_historical_delta_x4_exact_value
+        (bounded_historical_monotone_exact x0 g0 T v0)
+        (bounded_historical_monotone_exact x1 g1 T v1)
+        (bounded_historical_monotone_exact x2 g2 T v2)
+        (bounded_historical_monotone_exact x3 g3 T v3)
+        (bounded_historical_monotone_exact x4 g4 T v4)
+        (bounded_historical_monotone_exact x5 g5 T v5)` by
+      (mp_tac
+         (Q.INST
+           [`upper` |-> `T`,
+            `s0` |-> `bounded_historical_monotone_exact x0 g0 T v0`,
+            `s1` |-> `bounded_historical_monotone_exact x1 g1 T v1`,
+            `s2` |-> `bounded_historical_monotone_exact x2 g2 T v2`,
+            `s3` |-> `bounded_historical_monotone_exact x3 g3 T v3`,
+            `s4` |-> `bounded_historical_monotone_exact x4 g4 T v4`,
+            `s5` |-> `bounded_historical_monotone_exact x5 g5 T v5`]
+           bounded_historical_delta_x4_path_from_gradient)
+       >> simp [LIST_REL_def])
+  >> irule bounded_historical_extreme_interval_contains_scaled_int
+  >> conj_tac
+  >-
+    (qexists_tac
+       `bounded_historical_delta_x4_exact_value
+          (bounded_historical_monotone_exact x0 g0 F v0)
+          (bounded_historical_monotone_exact x1 g1 F v1)
+          (bounded_historical_monotone_exact x2 g2 F v2)
+          (bounded_historical_monotone_exact x3 g3 F v3)
+          (bounded_historical_monotone_exact x4 g4 F v4)
+          (bounded_historical_monotone_exact x5 g5 F v5)`
+     >> conj_tac
+     >- simp []
+     >> metis_tac
+          [bounded_historical_delta_x4_value_block_list_rel_contains_scaled_int])
+  >> qexists_tac
+       `bounded_historical_delta_x4_exact_value
+          (bounded_historical_monotone_exact x0 g0 T v0)
+          (bounded_historical_monotone_exact x1 g1 T v1)
+          (bounded_historical_monotone_exact x2 g2 T v2)
+          (bounded_historical_monotone_exact x3 g3 T v3)
+          (bounded_historical_monotone_exact x4 g4 T v4)
+          (bounded_historical_monotone_exact x5 g5 T v5)`
+  >> conj_tac
+  >- simp []
+  >> metis_tac
+       [bounded_historical_delta_x4_value_block_list_rel_contains_scaled_int]
+QED
+
+Theorem bounded_historical_delta_x4_second_value_contains_scaled_int:
+  EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+  LIST_REL bounded_interval64_contains_int
+    [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+  bounded_historical_delta_x4_second [x0;x1;x2;x3;x4;x5] =
+    SOME (delta_x4,gradient,hessian) ⇒
+  bounded_interval64_contains_scaled_int delta_x4
+    (&1099511627776:int)
+    (bounded_historical_delta_x4_exact_value v0 v1 v2 v3 v4 v5)
+Proof
+  rw [bounded_historical_delta_x4_second_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_historical_delta_x4_gradient_shape
+  >> Cases_on `gradient`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> gvs []
+  >> rename1
+       `bounded_historical_delta_x4_gradient [x0;x1;x2;x3;x4;x5] =
+          SOME [g0;g1;g2;g3;g4;g5]`
+  >> rename1
+       `bounded_historical_monotone_environment [x0;x1;x2;x3;x4;x5]
+          [g0;g1;g2;g3;g4;g5] T = SOME upper_environment`
+  >> rename1
+       `bounded_historical_delta_x4_value_block upper_environment =
+          SOME upper_value`
+  >> rename1
+       `bounded_historical_monotone_environment [x0;x1;x2;x3;x4;x5]
+          [g0;g1;g2;g3;g4;g5] F = SOME lower_environment`
+  >> rename1
+       `bounded_historical_delta_x4_value_block lower_environment =
+          SOME lower_value`
+  >> irule bounded_historical_delta_x4_extreme_contains_scaled_int
+  >> qexistsl_tac
+       [`g0`, `g1`, `g2`, `g3`, `g4`, `g5`,
+        `lower_environment`, `upper_environment`,
+        `x0`, `x1`, `x2`, `x3`, `x4`, `x5`]
+  >> simp [LIST_REL_def]
+QED
+
 Theorem bounded_historical_delta_gradient_component_zero_contains_scaled_int:
   bounded_interval64_contains_int x0 v0 ∧
   bounded_interval64_contains_int x1 v1 ∧
