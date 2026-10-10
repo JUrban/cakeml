@@ -2294,6 +2294,21 @@ Proof
   >> simp [bounded_historical_monotone_exact_selected_contains]
 QED
 
+Theorem bounded_historical_delta_gradient_box_shape:
+  ∀environment coordinates derivative_rows result.
+    bounded_historical_delta_gradient_box
+      environment coordinates derivative_rows = SOME result ⇒
+    LENGTH coordinates = LENGTH derivative_rows ∧
+    LENGTH result = LENGTH coordinates
+Proof
+  ho_match_mp_tac bounded_historical_delta_gradient_box_ind
+  >> rw [bounded_historical_delta_gradient_box_def]
+  >> every_case_tac
+  >> gvs []
+  >> res_tac
+  >> simp []
+QED
+
 Theorem bounded_historical_delta_gradient_box_list_rel:
   ∀environment coordinates derivative_rows result.
     environment = [x0;x1;x2;x3;x4;x5] ∧
@@ -2324,6 +2339,56 @@ Proof
   >> simp [LIST_REL_def]
   >> qexistsl_tac [`hessian`, `rows`, `x0`, `x1`, `x2`, `x3`, `x4`, `x5`]
   >> simp [LIST_REL_def]
+QED
+
+Theorem bounded_historical_indexed_rows_six:
+  LENGTH rows = 6 ⇒
+  LIST_REL
+    (λcoordinate derivative.
+      coordinate < 6 ∧ derivative = EL coordinate rows)
+    [0;1;2;3;4;5] rows
+Proof
+  Cases_on `rows`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> fs [LIST_REL_def]
+QED
+
+Theorem bounded_historical_delta_gradient_box_at_point:
+  EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+  LIST_REL bounded_interval64_contains_int
+    [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+  bounded_delta64_hessian [x0;x1;x2;x3;x4;x5] = SOME hessian ∧
+  bounded_hessian64_rows hessian = SOME rows ∧
+  bounded_historical_delta_gradient_box [x0;x1;x2;x3;x4;x5]
+    [0;1;2;3;4;5] rows = SOME gradient ⇒
+  LIST_REL
+    (λcoordinate value.
+      bounded_interval64_contains_scaled_int value
+        (&1099511627776:int)
+        (bounded_historical_delta_gradient_value
+          coordinate v0 v1 v2 v3 v4 v5))
+    [0;1;2;3;4;5] gradient
+Proof
+  strip_tac
+  >> imp_res_tac bounded_historical_delta_gradient_box_shape
+  >> `LENGTH rows = 6` by fs []
+  >> `LIST_REL
+        (λcoordinate derivative.
+          coordinate < 6 ∧ derivative = EL coordinate rows)
+        [0;1;2;3;4;5] rows` by
+      metis_tac [bounded_historical_indexed_rows_six]
+  >> metis_tac [bounded_historical_delta_gradient_box_list_rel]
 QED
 
 val _ = export_theory ();
