@@ -2870,4 +2870,66 @@ Proof
   >> fs [LIST_REL_def]
 QED
 
+Theorem bounded_historical_sqrt_hessian_lengths:
+  ∀indices hessian result derivative logarithmic_derivative gradient.
+    bounded_historical_sqrt_hessian derivative logarithmic_derivative
+      gradient indices hessian = SOME result ⇒
+    LENGTH result = LENGTH indices ∧ LENGTH result = LENGTH hessian
+Proof
+  Induct
+  >- (Cases_on `hessian`
+      >> simp [bounded_historical_sqrt_hessian_def])
+  >> rpt gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `hessian`
+  >- simp [bounded_historical_sqrt_hessian_def]
+  >> simp [bounded_historical_sqrt_hessian_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+  >> res_tac
+  >> fs []
+QED
+
+Theorem bounded_historical_sqrt_second_components:
+  bounded_historical_sqrt_second value gradient hessian root
+      derivative_reciprocal logarithmic_reciprocal =
+    SOME (result_value,result_gradient,result_hessian) ⇒
+  result_value = root ∧
+  bounded_interval64_sqrt_certificate value root ∧
+  ∃twice_root twice_value.
+    bounded_historical_scale2 root = SOME twice_root ∧
+    bounded_interval64_inv_certificate
+      twice_root derivative_reciprocal ∧
+    bounded_historical_scale2 value = SOME twice_value ∧
+    bounded_interval64_inv_certificate
+      twice_value logarithmic_reciprocal ∧
+    bounded_interval64_list_scale derivative_reciprocal gradient =
+      SOME result_gradient ∧
+    bounded_historical_sqrt_hessian derivative_reciprocal
+      (bounded_interval64_neg logarithmic_reciprocal) gradient
+      bounded_delta64_hessian_indices hessian = SOME result_hessian
+Proof
+  simp [bounded_historical_sqrt_second_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+QED
+
+Theorem bounded_historical_sqrt_second_shape:
+  bounded_historical_sqrt_second value gradient hessian root
+      derivative_reciprocal logarithmic_reciprocal =
+    SOME (result_value,result_gradient,result_hessian) ⇒
+  result_value = root ∧
+  LENGTH result_gradient = LENGTH gradient ∧
+  LENGTH hessian = 21 ∧ LENGTH result_hessian = 21
+Proof
+  strip_tac
+  >> imp_res_tac bounded_historical_sqrt_second_components
+  >> imp_res_tac
+       compute_boundedIntervalListTheory.bounded_interval64_list_scale_length
+  >> imp_res_tac bounded_historical_sqrt_hessian_lengths
+  >> fs [compute_boundedDeltaTaylorTheory.bounded_delta64_hessian_indices_def]
+QED
+
 val _ = export_theory ();
