@@ -9,7 +9,7 @@ Theory compute_boundedHistoricalDihedralSecond
 Ancestors
   compute_boundedHistoricalDihedralFirst
 Libs
-  bossLib preamble
+  bossLib preamble intLib
 
 Definition bounded_historical_extreme_interval_def:
   bounded_historical_extreme_interval lower_value upper_value =
@@ -42,6 +42,14 @@ Definition bounded_historical_monotone_environment_def:
           (bounded_historical_monotone_coordinate
              value derivative upper::rest)) ∧
   bounded_historical_monotone_environment _ _ upper = NONE
+End
+
+Definition bounded_interval64_subinterval_def:
+  bounded_interval64_subinterval inner outer ⇔
+    bounded_signed64_to_int (bounded_interval64_lower outer) ≤
+      bounded_signed64_to_int (bounded_interval64_lower inner) ∧
+    bounded_signed64_to_int (bounded_interval64_upper inner) ≤
+      bounded_signed64_to_int (bounded_interval64_upper outer)
 End
 
 Definition bounded_historical_delta_gradient_component_def:
@@ -643,5 +651,144 @@ Definition bounded_historical_dihedral_second64_def:
                                                                               (value,gradient,hessian)
     | _ => NONE
 End
+
+Theorem bounded_historical_point_lower_valid:
+  bounded_interval64_valid value ⇒
+  bounded_interval64_valid (bounded_historical_point_lower value)
+Proof
+  Cases_on `value`
+  >> simp [compute_boundedHistoricalDihedralFirstTheory.bounded_historical_point_lower_def,
+           compute_boundedIntervalTheory.bounded_interval64_valid_def,
+           compute_boundedIntervalTheory.bounded_interval64_lower_def,
+           compute_boundedIntervalTheory.bounded_interval64_upper_def,
+           compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+QED
+
+Theorem bounded_historical_point_upper_valid:
+  bounded_interval64_valid value ⇒
+  bounded_interval64_valid (bounded_historical_point_upper value)
+Proof
+  Cases_on `value`
+  >> simp [compute_boundedHistoricalDihedralFirstTheory.bounded_historical_point_upper_def,
+           compute_boundedIntervalTheory.bounded_interval64_valid_def,
+           compute_boundedIntervalTheory.bounded_interval64_lower_def,
+           compute_boundedIntervalTheory.bounded_interval64_upper_def,
+           compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+QED
+
+Theorem bounded_historical_point_lower_subinterval:
+  bounded_interval64_valid value ⇒
+  bounded_interval64_subinterval
+    (bounded_historical_point_lower value) value
+Proof
+  Cases_on `value`
+  >> simp [bounded_interval64_subinterval_def,
+           compute_boundedHistoricalDihedralFirstTheory.bounded_historical_point_lower_def,
+           compute_boundedIntervalTheory.bounded_interval64_valid_def,
+           compute_boundedIntervalTheory.bounded_interval64_lower_def,
+           compute_boundedIntervalTheory.bounded_interval64_upper_def,
+           compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+QED
+
+Theorem bounded_historical_point_upper_subinterval:
+  bounded_interval64_valid value ⇒
+  bounded_interval64_subinterval
+    (bounded_historical_point_upper value) value
+Proof
+  Cases_on `value`
+  >> simp [bounded_interval64_subinterval_def,
+           compute_boundedHistoricalDihedralFirstTheory.bounded_historical_point_upper_def,
+           compute_boundedIntervalTheory.bounded_interval64_valid_def,
+           compute_boundedIntervalTheory.bounded_interval64_lower_def,
+           compute_boundedIntervalTheory.bounded_interval64_upper_def,
+           compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+QED
+
+Theorem bounded_historical_monotone_coordinate_valid:
+  bounded_interval64_valid value ⇒
+  bounded_interval64_valid
+    (bounded_historical_monotone_coordinate value derivative upper)
+Proof
+  rw [bounded_historical_monotone_coordinate_def]
+  >> every_case_tac
+  >> simp [bounded_historical_point_lower_valid,
+           bounded_historical_point_upper_valid]
+QED
+
+Theorem bounded_historical_monotone_coordinate_subinterval:
+  bounded_interval64_valid value ⇒
+  bounded_interval64_subinterval
+    (bounded_historical_monotone_coordinate value derivative upper) value
+Proof
+  rw [bounded_historical_monotone_coordinate_def]
+  >> every_case_tac
+  >> simp [bounded_interval64_subinterval_def,
+           bounded_historical_point_lower_subinterval,
+           bounded_historical_point_upper_subinterval]
+QED
+
+Theorem bounded_historical_monotone_environment_shape:
+  ∀values derivatives upper result.
+    bounded_historical_monotone_environment
+      values derivatives upper = SOME result ⇒
+    LENGTH result = LENGTH values ∧ LENGTH values = LENGTH derivatives
+Proof
+  Induct
+  >> Cases_on `derivatives`
+  >> rw [bounded_historical_monotone_environment_def]
+  >> every_case_tac
+  >> gvs []
+  >> res_tac
+  >> simp []
+QED
+
+Theorem bounded_historical_monotone_environment_valid:
+  ∀values derivatives upper result.
+    EVERY bounded_interval64_valid values ∧
+    bounded_historical_monotone_environment
+      values derivatives upper = SOME result ⇒
+    EVERY bounded_interval64_valid result
+Proof
+  Induct
+  >> Cases_on `derivatives`
+  >> rw [bounded_historical_monotone_environment_def]
+  >> every_case_tac
+  >> gvs []
+  >> res_tac
+  >> simp [bounded_historical_monotone_coordinate_valid]
+QED
+
+Theorem bounded_historical_monotone_environment_subintervals:
+  ∀values derivatives upper result.
+    EVERY bounded_interval64_valid values ∧
+    bounded_historical_monotone_environment
+      values derivatives upper = SOME result ⇒
+    LIST_REL bounded_interval64_subinterval result values
+Proof
+  Induct
+  >> Cases_on `derivatives`
+  >> rw [bounded_historical_monotone_environment_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> simp [bounded_historical_monotone_coordinate_subinterval]
+QED
+
+Theorem bounded_historical_extreme_interval_contains_scaled_int:
+  bounded_interval64_contains_scaled_int lower_value scale lower_exact ∧
+  bounded_interval64_contains_scaled_int upper_value scale upper_exact ∧
+  lower_exact ≤ exact_value ∧ exact_value ≤ upper_exact ⇒
+  bounded_interval64_contains_scaled_int
+    (bounded_historical_extreme_interval lower_value upper_value)
+    scale exact_value
+Proof
+  Cases_on `lower_value`
+  >> Cases_on `upper_value`
+  >> simp [bounded_historical_extreme_interval_def,
+           compute_boundedIntervalTheory.bounded_interval64_contains_scaled_int_def,
+           compute_boundedIntervalTheory.bounded_interval64_lower_def,
+           compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> intLib.ARITH_TAC
+QED
 
 val _ = export_theory ();
