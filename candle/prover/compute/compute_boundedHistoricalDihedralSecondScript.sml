@@ -3119,6 +3119,29 @@ Proof
   >> metis_tac []
 QED
 
+Theorem bounded_historical_dihedral_second64_value_contract:
+  bounded_historical_dihedral_second64 environment root_delta root_four_x0
+      [root_derivative;root_logarithmic;root_four_reciprocal;
+       diagonal_reciprocal;u_reciprocal;special_root_reciprocal;
+       b_reciprocal;u126_reciprocal;u135_reciprocal] =
+    SOME (value,gradient,hessian) ⇒
+  ∃delta_x4 delta_x4_gradient delta_x4_hessian b quotient angle.
+    bounded_historical_delta_x4_second environment =
+      SOME (delta_x4,delta_x4_gradient,delta_x4_hessian) ∧
+    bounded_interval64_mul root_delta root_four_x0 = SOME b ∧
+    bounded_interval64_inv_certificate b b_reciprocal ∧
+    bounded_interval64_mul
+      (bounded_interval64_neg delta_x4) b_reciprocal = SOME quotient ∧
+    bounded_interval64_atan_range quotient NONE NONE = SOME angle ∧
+    bounded_interval64_add bounded_atan_pi_half angle = SOME value
+Proof
+  simp [bounded_historical_dihedral_second64_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+  >> metis_tac []
+QED
+
 Theorem bounded_historical_dihedral_second64_root_product_contains:
   bounded_interval64_contains_int root_delta root_delta_value ∧
   bounded_interval64_contains_int root_four_x0 root_four_x0_value ∧
