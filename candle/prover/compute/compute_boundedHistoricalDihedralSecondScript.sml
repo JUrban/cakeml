@@ -1336,6 +1336,188 @@ Proof
   >> INT_RING_TAC
 QED
 
+Theorem bounded_historical_delta_coordinate_step_zero_from_endpoints:
+  selected = bounded_historical_monotone_exact x0 g0 upper v0 ∧
+  bounded_interval64_valid x0 ∧
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_scaled_int g0 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 0 v0 v1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_scaled_int g0 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value
+      0 selected v1 v2 v3 v4 v5) ⇒
+  if upper then
+    bounded_delta_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_delta_value selected v1 v2 v3 v4 v5
+  else
+    bounded_delta_value selected v1 v2 v3 v4 v5 ≤
+    bounded_delta_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> `2 *
+        (bounded_delta_value selected v1 v2 v3 v4 v5 -
+         bounded_delta_value v0 v1 v2 v3 v4 v5) =
+      (selected - v0) *
+        (bounded_historical_delta_gradient_value 0 v0 v1 v2 v3 v4 v5 +
+         bounded_historical_delta_gradient_value
+           0 selected v1 v2 v3 v4 v5)` by
+       metis_tac [bounded_historical_delta_coordinate_differences]
+  >> irule bounded_historical_monotone_exact_secant_scaled40
+  >> qexists_tac `g0`
+  >> qexists_tac `v0`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 0 v0 v1 v2 v3 v4 v5`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 0 selected v1 v2 v3 v4 v5`
+  >> qexists_tac `x0`
+  >> metis_tac []
+QED
+
+Theorem bounded_historical_delta_coordinate_step_one_from_endpoints:
+  selected = bounded_historical_monotone_exact x1 g1 upper v1 ∧
+  bounded_interval64_valid x1 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_scaled_int g1 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 1 v0 v1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_scaled_int g1 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value
+      1 v0 selected v2 v3 v4 v5) ⇒
+  if upper then
+    bounded_delta_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_delta_value v0 selected v2 v3 v4 v5
+  else
+    bounded_delta_value v0 selected v2 v3 v4 v5 ≤
+    bounded_delta_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant_scaled40
+  >> qexists_tac `g1`
+  >> qexists_tac `v1`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 1 v0 v1 v2 v3 v4 v5`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 1 v0 selected v2 v3 v4 v5`
+  >> qexists_tac `x1`
+  >> metis_tac [bounded_historical_delta_coordinate_differences]
+QED
+
+Theorem bounded_historical_delta_coordinate_step_two_from_endpoints:
+  selected = bounded_historical_monotone_exact x2 g2 upper v2 ∧
+  bounded_interval64_valid x2 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_scaled_int g2 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 2 v0 v1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_scaled_int g2 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value
+      2 v0 v1 selected v3 v4 v5) ⇒
+  if upper then
+    bounded_delta_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_delta_value v0 v1 selected v3 v4 v5
+  else
+    bounded_delta_value v0 v1 selected v3 v4 v5 ≤
+    bounded_delta_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant_scaled40
+  >> qexists_tac `g2`
+  >> qexists_tac `v2`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 2 v0 v1 v2 v3 v4 v5`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 2 v0 v1 selected v3 v4 v5`
+  >> qexists_tac `x2`
+  >> metis_tac [bounded_historical_delta_coordinate_differences]
+QED
+
+Theorem bounded_historical_delta_coordinate_step_three_from_endpoints:
+  selected = bounded_historical_monotone_exact x3 g3 upper v3 ∧
+  bounded_interval64_valid x3 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_scaled_int g3 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 3 v0 v1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_scaled_int g3 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value
+      3 v0 v1 v2 selected v4 v5) ⇒
+  if upper then
+    bounded_delta_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_delta_value v0 v1 v2 selected v4 v5
+  else
+    bounded_delta_value v0 v1 v2 selected v4 v5 ≤
+    bounded_delta_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant_scaled40
+  >> qexists_tac `g3`
+  >> qexists_tac `v3`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 3 v0 v1 v2 v3 v4 v5`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 3 v0 v1 v2 selected v4 v5`
+  >> qexists_tac `x3`
+  >> metis_tac [bounded_historical_delta_coordinate_differences]
+QED
+
+Theorem bounded_historical_delta_coordinate_step_four_from_endpoints:
+  selected = bounded_historical_monotone_exact x4 g4 upper v4 ∧
+  bounded_interval64_valid x4 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_scaled_int g4 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 4 v0 v1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_scaled_int g4 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value
+      4 v0 v1 v2 v3 selected v5) ⇒
+  if upper then
+    bounded_delta_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_delta_value v0 v1 v2 v3 selected v5
+  else
+    bounded_delta_value v0 v1 v2 v3 selected v5 ≤
+    bounded_delta_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant_scaled40
+  >> qexists_tac `g4`
+  >> qexists_tac `v4`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 4 v0 v1 v2 v3 v4 v5`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 4 v0 v1 v2 v3 selected v5`
+  >> qexists_tac `x4`
+  >> metis_tac [bounded_historical_delta_coordinate_differences]
+QED
+
+Theorem bounded_historical_delta_coordinate_step_five_from_endpoints:
+  selected = bounded_historical_monotone_exact x5 g5 upper v5 ∧
+  bounded_interval64_valid x5 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_interval64_contains_scaled_int g5 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value 5 v0 v1 v2 v3 v4 v5) ∧
+  bounded_interval64_contains_scaled_int g5 (&1099511627776:int)
+    (bounded_historical_delta_gradient_value
+      5 v0 v1 v2 v3 v4 selected) ⇒
+  if upper then
+    bounded_delta_value v0 v1 v2 v3 v4 v5 ≤
+    bounded_delta_value v0 v1 v2 v3 v4 selected
+  else
+    bounded_delta_value v0 v1 v2 v3 v4 selected ≤
+    bounded_delta_value v0 v1 v2 v3 v4 v5
+Proof
+  strip_tac
+  >> irule bounded_historical_monotone_exact_secant_scaled40
+  >> qexists_tac `g5`
+  >> qexists_tac `v5`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 5 v0 v1 v2 v3 v4 v5`
+  >> qexists_tac `selected`
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value 5 v0 v1 v2 v3 v4 selected`
+  >> qexists_tac `x5`
+  >> metis_tac [bounded_historical_delta_coordinate_differences]
+QED
+
 Theorem bounded_historical_delta_gradient_coordinate_differences:
   coordinate < 6 ⇒
   2 * (bounded_historical_delta_gradient_value
