@@ -2762,4 +2762,56 @@ Proof
        [bounded_historical_delta64_value_list_rel_contains_scaled_int]
 QED
 
+Theorem bounded_historical_delta_second_value_contains_scaled_int:
+  EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+  LIST_REL bounded_interval64_contains_int
+    [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+  bounded_historical_delta_second [x0;x1;x2;x3;x4;x5] =
+    SOME (delta,gradient,hessian) ⇒
+  bounded_interval64_contains_scaled_int delta
+    (&1208925819614629174706176:int)
+    (bounded_delta_value v0 v1 v2 v3 v4 v5)
+Proof
+  rw [bounded_historical_delta_second_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_historical_delta_gradient_box_shape
+  >> Cases_on `gradient`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> gvs []
+  >> rename1 `bounded_hessian64_rows hessian = SOME rows`
+  >> rename1
+       `bounded_historical_delta_gradient_box [x0;x1;x2;x3;x4;x5]
+          [0;1;2;3;4;5] rows = SOME [g0;g1;g2;g3;g4;g5]`
+  >> rename1
+       `bounded_historical_monotone_environment [x0;x1;x2;x3;x4;x5]
+          [g0;g1;g2;g3;g4;g5] T = SOME upper_environment`
+  >> rename1
+       `bounded_historical_delta64_value upper_environment =
+          SOME upper_value`
+  >> rename1
+       `bounded_historical_monotone_environment [x0;x1;x2;x3;x4;x5]
+          [g0;g1;g2;g3;g4;g5] F = SOME lower_environment`
+  >> rename1
+       `bounded_historical_delta64_value lower_environment =
+          SOME lower_value`
+  >> irule bounded_historical_delta_extreme_contains_scaled_int
+  >> qexistsl_tac
+       [`g0`, `g1`, `g2`, `g3`, `g4`, `g5`, `hessian`,
+        `lower_environment`, `rows`, `upper_environment`,
+        `x0`, `x1`, `x2`, `x3`, `x4`, `x5`]
+  >> simp [LIST_REL_def]
+QED
+
 val _ = export_theory ();
