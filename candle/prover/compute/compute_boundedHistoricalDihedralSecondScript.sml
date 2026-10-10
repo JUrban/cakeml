@@ -244,7 +244,7 @@ Definition bounded_historical_delta_x4_value_block_def:
   bounded_historical_delta_x4_value_block environment =
     case environment of
     | x0::x1::x2::x3::x4::x5::[] =>
-      case bounded_interval64_sum
+      (case bounded_interval64_sum
         [bounded_interval64_neg x0;x1;x2;
          bounded_interval64_neg x3;x4;x5] of
       | NONE => NONE
@@ -254,7 +254,7 @@ Definition bounded_historical_delta_x4_value_block_def:
              (bounded_interval64_neg x0,x3);
              (x1,x4);(x2,x5);
              (bounded_interval64_neg x4,x5);
-             (x0,linear)]
+             (x0,linear)])
     | _ => NONE
 End
 
@@ -381,12 +381,12 @@ Definition bounded_historical_b_hessian_def:
       diagonal_reciprocal root_gradient base_hessian =
     case root_gradient of
     | g0::g1::g2::g3::g4::g5::[] =>
-      case base_hessian of
+      (case base_hessian of
       | h00::h01::h02::h03::h04::h05::
         h11::h12::h13::h14::h15::
         h22::h23::h24::h25::
         h33::h34::h35::h44::h45::h55::[] =>
-        case bounded_interval64_mul g0 two_over_root_four of
+        (case bounded_interval64_mul g0 two_over_root_four of
         | NONE => NONE
         | SOME first_correction =>
           case bounded_historical_scale2 first_correction of
@@ -443,8 +443,8 @@ Definition bounded_historical_b_hessian_def:
                                             [r00;r01;r02;r03;r04;r05;
                                              h11;h12;h13;h14;h15;
                                              h22;h23;h24;h25;
-                                             h33;h34;h35;h44;h45;h55]
-      | _ => NONE
+                                             h33;h34;h35;h44;h45;h55])
+      | _ => NONE)
     | _ => NONE
 End
 

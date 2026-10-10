@@ -117,13 +117,13 @@ Definition bounded_historical_u126_def:
   bounded_historical_u126 environment =
     case environment of
     | x0::x1::x2::x3::x4::x5::[] =>
-      case bounded_historical_u_three x0 x1 x5 of
+      (case bounded_historical_u_three x0 x1 x5 of
       | NONE => NONE
       | SOME (value,g0::g1::g2::[]) =>
           SOME (value,
             [g0;g1;bounded_interval64_zero;bounded_interval64_zero;
              bounded_interval64_zero;g2])
-      | SOME _ => NONE
+      | SOME _ => NONE)
     | _ => NONE
 End
 
@@ -131,13 +131,13 @@ Definition bounded_historical_u135_def:
   bounded_historical_u135 environment =
     case environment of
     | x0::x1::x2::x3::x4::x5::[] =>
-      case bounded_historical_u_three x0 x2 x4 of
+      (case bounded_historical_u_three x0 x2 x4 of
       | NONE => NONE
       | SOME (value,g0::g1::g2::[]) =>
           SOME (value,
             [g0;bounded_interval64_zero;g1;bounded_interval64_zero;
              g2;bounded_interval64_zero])
-      | SOME _ => NONE
+      | SOME _ => NONE)
     | _ => NONE
 End
 
@@ -145,7 +145,7 @@ Definition bounded_historical_delta_x4_value_def:
   bounded_historical_delta_x4_value environment =
     case environment of
     | x0::x1::x2::x3::x4::x5::[] =>
-      case bounded_interval64_sum
+      (case bounded_interval64_sum
         [bounded_interval64_neg x0;x1;x2;
          bounded_interval64_neg x3;x4;x5] of
       | NONE => NONE
@@ -171,7 +171,7 @@ Definition bounded_historical_delta_x4_value_def:
                       bounded_interval64_sum
                         [bounded_interval64_neg p12;
                          bounded_interval64_neg p03;p14;p25;
-                         bounded_interval64_neg p45;p0l]
+                         bounded_interval64_neg p45;p0l])
     | _ => NONE
 End
 
@@ -179,7 +179,7 @@ Definition bounded_historical_delta_x4_gradient_def:
   bounded_historical_delta_x4_gradient environment =
     case environment of
     | x0::x1::x2::x3::x4::x5::[] =>
-      case bounded_interval64_sum
+      (case bounded_interval64_sum
         [bounded_interval64_neg x0;bounded_interval64_neg x0;
          x1;x2;bounded_interval64_neg x3;bounded_interval64_neg x3;x4;x5] of
       | NONE => NONE
@@ -199,7 +199,7 @@ Definition bounded_historical_delta_x4_gradient_def:
                 case bounded_interval64_sum
                   [x0;x2;bounded_interval64_neg x4] of
                 | NONE => NONE
-                | SOME g5 => SOME [g0;g1;g2;g3;g4;g5]
+                | SOME g5 => SOME [g0;g1;g2;g3;g4;g5])
     | _ => NONE
 End
 
@@ -237,7 +237,7 @@ Definition bounded_historical_dihedral_first64_def:
     case reciprocal_certificates of
     | root_derivative::root_four_reciprocal::u_reciprocal::
         special_root_reciprocal::b_reciprocal::[] =>
-      case bounded_delta64_value environment of
+      (case bounded_delta64_value environment of
       | NONE => NONE
       | SOME delta =>
         if ¬bounded_interval64_sqrt_certificate delta root_delta then NONE
@@ -364,7 +364,7 @@ Definition bounded_historical_dihedral_first64_def:
                                                                 | NONE => NONE
                                                                 | SOME value =>
                                                                     SOME
-                                                                      (value,gradient)
+                                                                      (value,gradient))
     | _ => NONE
 End
 
