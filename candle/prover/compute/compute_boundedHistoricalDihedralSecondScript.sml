@@ -1910,4 +1910,106 @@ Proof
      bounded_historical_delta_gradient_coordinate_path_from_endpoints]
 QED
 
+Theorem bounded_historical_delta_gradient_box_entry_contains_scaled_int:
+  coordinate < 6 ∧
+  EVERY bounded_interval64_valid [x0;x1;x2;x3;x4;x5] ∧
+  LIST_REL bounded_interval64_contains_int
+    [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5] ∧
+  bounded_delta64_hessian [x0;x1;x2;x3;x4;x5] = SOME hessian ∧
+  bounded_hessian64_rows hessian = SOME rows ∧
+  bounded_historical_delta_gradient_box_entry
+    [x0;x1;x2;x3;x4;x5] (EL coordinate rows) coordinate = SOME result ⇒
+  bounded_interval64_contains_scaled_int result (&1099511627776:int)
+    (bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 v3 v4 v5)
+Proof
+  strip_tac
+  >> fs [bounded_historical_delta_gradient_box_entry_def]
+  >> every_case_tac
+  >> fs []
+  >> imp_res_tac bounded_historical_monotone_environment_shape
+  >> Cases_on `EL coordinate rows`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> fs []
+  >> Cases_on `t`
+  >> fs []
+  >> Cases_on `t'`
+  >> fs [bounded_historical_monotone_environment_def]
+  >> gvs []
+  >> irule bounded_historical_extreme_interval_contains_scaled_int
+  >> conj_tac
+  >-
+   (qexists_tac
+      `bounded_historical_delta_gradient_value coordinate
+         (bounded_historical_monotone_exact x0 h F v0)
+         (bounded_historical_monotone_exact x1 h' F v1)
+         (bounded_historical_monotone_exact x2 h'' F v2)
+         (bounded_historical_monotone_exact x3 h''' F v3)
+         (bounded_historical_monotone_exact x4 h'''' F v4)
+         (bounded_historical_monotone_exact x5 h''''' F v5)`
+    >> conj_tac
+    >-
+     (`bounded_historical_delta_gradient_path_source_contract coordinate rows F
+         [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5]
+         [bounded_historical_monotone_exact x0 h F v0;
+          bounded_historical_monotone_exact x1 h' F v1;
+          bounded_historical_monotone_exact x2 h'' F v2;
+          bounded_historical_monotone_exact x3 h''' F v3;
+          bounded_historical_monotone_exact x4 h'''' F v4;
+          bounded_historical_monotone_exact x5 h''''' F v5]` by
+        simp [bounded_historical_delta_gradient_path_source_contract_def,
+              LIST_REL_def]
+      >> metis_tac
+           [bounded_historical_delta_gradient_coordinate_path_from_source])
+    >> irule bounded_historical_delta_gradient_component_contains_scaled_int
+    >> simp []
+    >> qexistsl_tac
+         [`bounded_historical_monotone_coordinate x0 h F`,
+          `bounded_historical_monotone_coordinate x1 h' F`,
+          `bounded_historical_monotone_coordinate x2 h'' F`,
+          `bounded_historical_monotone_coordinate x3 h''' F`,
+          `bounded_historical_monotone_coordinate x4 h'''' F`,
+          `bounded_historical_monotone_coordinate x5 h''''' F`]
+    >> simp [bounded_historical_monotone_exact_selected_contains])
+  >> qexists_tac
+       `bounded_historical_delta_gradient_value coordinate
+          (bounded_historical_monotone_exact x0 h T v0)
+          (bounded_historical_monotone_exact x1 h' T v1)
+          (bounded_historical_monotone_exact x2 h'' T v2)
+          (bounded_historical_monotone_exact x3 h''' T v3)
+          (bounded_historical_monotone_exact x4 h'''' T v4)
+          (bounded_historical_monotone_exact x5 h''''' T v5)`
+  >> conj_tac
+  >-
+   (`bounded_historical_delta_gradient_path_source_contract coordinate rows T
+       [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5]
+       [bounded_historical_monotone_exact x0 h T v0;
+        bounded_historical_monotone_exact x1 h' T v1;
+        bounded_historical_monotone_exact x2 h'' T v2;
+        bounded_historical_monotone_exact x3 h''' T v3;
+        bounded_historical_monotone_exact x4 h'''' T v4;
+        bounded_historical_monotone_exact x5 h''''' T v5]` by
+      simp [bounded_historical_delta_gradient_path_source_contract_def,
+            LIST_REL_def]
+    >> metis_tac
+         [bounded_historical_delta_gradient_coordinate_path_from_source])
+  >> irule bounded_historical_delta_gradient_component_contains_scaled_int
+  >> simp []
+  >> qexistsl_tac
+       [`bounded_historical_monotone_coordinate x0 h T`,
+        `bounded_historical_monotone_coordinate x1 h' T`,
+        `bounded_historical_monotone_coordinate x2 h'' T`,
+        `bounded_historical_monotone_coordinate x3 h''' T`,
+        `bounded_historical_monotone_coordinate x4 h'''' T`,
+        `bounded_historical_monotone_coordinate x5 h''''' T`]
+  >> simp [bounded_historical_monotone_exact_selected_contains]
+QED
+
 val _ = export_theory ();
