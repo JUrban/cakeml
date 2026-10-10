@@ -1177,6 +1177,33 @@ Proof
        v2*v3;v2*v4;(-v2)*v5;(-v2)*v5;(-v3)*v4]``
 QED
 
+Theorem bounded_historical_delta_gradient_component_contains_scaled_int:
+  coordinate < 6 ∧
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta_gradient_component coordinate
+    [x0;x1;x2;x3;x4;x5] = SOME result ⇒
+  bounded_interval64_contains_scaled_int result (&1099511627776:int)
+    (bounded_historical_delta_gradient_value
+      coordinate v0 v1 v2 v3 v4 v5)
+Proof
+  strip_tac
+  >>
+  `coordinate = 0 ∨ coordinate = 1 ∨ coordinate = 2 ∨
+   coordinate = 3 ∨ coordinate = 4 ∨ coordinate = 5` by DECIDE_TAC
+  >> metis_tac
+       [bounded_historical_delta_gradient_component_zero_contains_scaled_int,
+        bounded_historical_delta_gradient_component_one_contains_scaled_int,
+        bounded_historical_delta_gradient_component_two_contains_scaled_int,
+        bounded_historical_delta_gradient_component_three_contains_scaled_int,
+        bounded_historical_delta_gradient_component_four_contains_scaled_int,
+        bounded_historical_delta_gradient_component_five_contains_scaled_int]
+QED
+
 Theorem bounded_historical_delta_gradient_value_characterizations:
   bounded_delta_value (v0 + h) v1 v2 v3 v4 v5 -
       bounded_delta_value (v0 - h) v1 v2 v3 v4 v5 =
@@ -1865,6 +1892,22 @@ Proof
   >> irule bounded_historical_delta_hessian_row_entry_contains_int
   >> simp []
   >> metis_tac [bounded_historical_monotone_exact_original_contains]
+QED
+
+Theorem bounded_historical_delta_gradient_coordinate_path_from_source:
+  bounded_historical_delta_gradient_path_source_contract coordinate rows
+    upper [x0;x1;x2;x3;x4;x5] [v0;v1;v2;v3;v4;v5]
+      [s0;s1;s2;s3;s4;s5] ⇒
+  if upper then
+    bounded_historical_delta_gradient_value coordinate v0 v1 v2 v3 v4 v5 ≤
+    bounded_historical_delta_gradient_value coordinate s0 s1 s2 s3 s4 s5
+  else
+    bounded_historical_delta_gradient_value coordinate s0 s1 s2 s3 s4 s5 ≤
+    bounded_historical_delta_gradient_value coordinate v0 v1 v2 v3 v4 v5
+Proof
+  metis_tac
+    [bounded_historical_delta_gradient_path_endpoint_contract_from_source,
+     bounded_historical_delta_gradient_coordinate_path_from_endpoints]
 QED
 
 val _ = export_theory ();
