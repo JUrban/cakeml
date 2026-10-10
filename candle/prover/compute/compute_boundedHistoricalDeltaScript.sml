@@ -191,11 +191,8 @@ End
 
 Definition bounded_historical_raw_cubic_input_represents_def:
   bounded_historical_raw_cubic_input_represents
-      (first,second,third,negative) exact_value ⇔
+    (first,second,third,negative) exact_value ⇔
     ∃first_value second_value third_value.
-      bounded_interval64_valid first ∧
-      bounded_interval64_valid second ∧
-      bounded_interval64_valid third ∧
       bounded_interval64_contains_int first first_value ∧
       bounded_interval64_contains_int second second_value ∧
       bounded_interval64_contains_int third third_value ∧
@@ -683,6 +680,19 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded_historical_raw_cubic_signed_some_valid:
+  bounded_historical_raw_cubic_signed
+      first second third negative = SOME result ⇒
+  bounded_interval64_valid first ∧
+  bounded_interval64_valid second ∧
+  bounded_interval64_valid third
+Proof
+  rw [bounded_historical_raw_cubic_signed_def,
+      bounded_historical_raw_cubic_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
 Theorem bounded_historical_raw_cubic_signed_contains_int:
   bounded_historical_raw_cubic_input_represents
     (first,second,third,negative) exact_value ∧
@@ -694,6 +704,7 @@ Proof
   >> rw [bounded_historical_raw_cubic_input_represents_def,
          bounded_signed192_interval_contains_int_def]
   >> gvs []
+  >> imp_res_tac bounded_historical_raw_cubic_signed_some_valid
   >> drule_all bounded_historical_raw_cubic_signed_contains_product
   >> simp []
 QED
@@ -988,6 +999,193 @@ Proof
   >> qunabbrev_tac `r`
   >> fs [bounded_word64_low16_nonzero_correct,
          wordsTheory.w2n_eq_0]
+QED
+
+Theorem bounded_signed192_shift_floor80_64_value:
+  bounded_signed192_shift_floor80_64
+      (BoundedSigned192 negative magnitude) = SOME result ⇒
+  bounded_signed64_to_int result =
+    if negative then
+      -&(bounded192_to_num magnitude DIV 1208925819614629174706176 +
+         if bounded192_to_num magnitude MOD 1208925819614629174706176 = 0
+         then 0 else 1)
+    else
+      &(bounded192_to_num magnitude DIV 1208925819614629174706176)
+Proof
+  rw [bounded_signed192_shift_floor80_64_def, LET_THM]
+  >> every_case_tac
+  >> gvs [compute_boundedWideSignedTheory.bounded_signed128_narrow64_option_def,
+          bounded192_low80_nonzero_correct,
+          compute_boundedTheory.bounded128_add_words_refines]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedSignedEndpointTheory.bounded_signed128_narrow64_some
+  >> imp_res_tac compute_boundedTheory.bounded128_add_some
+  >> fs [compute_boundedSignedEndpointAddTheory.bounded_signed128_make_value,
+         bounded192_shift_floor80_words_correct,
+         compute_boundedTheory.bounded128_to_num_def,
+         compute_boundedTheory.bounded_word_base_eq]
+QED
+
+Theorem bounded_signed192_shift_ceil80_64_value:
+  bounded_signed192_shift_ceil80_64
+      (BoundedSigned192 negative magnitude) = SOME result ⇒
+  bounded_signed64_to_int result =
+    if negative then
+      -&(bounded192_to_num magnitude DIV 1208925819614629174706176)
+    else
+      &(bounded192_to_num magnitude DIV 1208925819614629174706176 +
+         if bounded192_to_num magnitude MOD 1208925819614629174706176 = 0
+         then 0 else 1)
+Proof
+  rw [bounded_signed192_shift_ceil80_64_def, LET_THM]
+  >> every_case_tac
+  >> gvs [compute_boundedWideSignedTheory.bounded_signed128_narrow64_option_def,
+          bounded192_low80_nonzero_correct,
+          compute_boundedTheory.bounded128_add_words_refines]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedSignedEndpointTheory.bounded_signed128_narrow64_some
+  >> imp_res_tac compute_boundedTheory.bounded128_add_some
+  >> fs [compute_boundedSignedEndpointAddTheory.bounded_signed128_make_value,
+         bounded192_shift_floor80_words_correct,
+         compute_boundedTheory.bounded128_to_num_def,
+         compute_boundedTheory.bounded_word_base_eq]
+QED
+
+Theorem bounded_div_floor80_scaled_le:
+  (value DIV 1208925819614629174706176) *
+      1208925819614629174706176 ≤ value
+Proof
+  simp [GSYM arithmeticTheory.X_LE_DIV]
+QED
+
+Theorem bounded_div_ceil80_scaled_ge:
+  value ≤
+    (value DIV 1208925819614629174706176 +
+       if value MOD 1208925819614629174706176 = 0 then 0 else 1) *
+      1208925819614629174706176
+Proof
+  mp_tac
+    (Q.SPEC `1208925819614629174706176` arithmeticTheory.DIVISION)
+  >> simp []
+  >> disch_then (qspec_then `value` strip_assume_tac)
+  >> Cases_on `value MOD 1208925819614629174706176 = 0`
+  >> fs [arithmeticTheory.LEFT_ADD_DISTRIB]
+  >> qpat_x_assum `value = _` (fn th => once_rewrite_tac [th])
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_signed192_shift_floor80_64_lower_bound:
+  bounded_signed192_shift_floor80_64 source = SOME result ⇒
+  (&1208925819614629174706176:int) * bounded_signed64_to_int result ≤
+    bounded_signed192_to_int source
+Proof
+  Cases_on `source`
+  >> rename1 `BoundedSigned192 negative magnitude`
+  >> strip_tac
+  >> imp_res_tac bounded_signed192_shift_floor80_64_value
+  >> assume_tac
+       (Q.INST [`value` |-> `bounded192_to_num magnitude`]
+          bounded_div_floor80_scaled_le)
+  >> assume_tac
+       (Q.INST [`value` |-> `bounded192_to_num magnitude`]
+          bounded_div_ceil80_scaled_ge)
+  >> Cases_on `negative`
+  >> fs [compute_boundedWideSignedTheory.bounded_signed192_to_int_def]
+  >> simp [integerTheory.INT_MUL_CALCULATE]
+QED
+
+Theorem bounded_signed192_shift_ceil80_64_upper_bound:
+  bounded_signed192_shift_ceil80_64 source = SOME result ⇒
+  bounded_signed192_to_int source ≤
+    (&1208925819614629174706176:int) * bounded_signed64_to_int result
+Proof
+  Cases_on `source`
+  >> rename1 `BoundedSigned192 negative magnitude`
+  >> strip_tac
+  >> imp_res_tac bounded_signed192_shift_ceil80_64_value
+  >> assume_tac
+       (Q.INST [`value` |-> `bounded192_to_num magnitude`]
+          bounded_div_floor80_scaled_le)
+  >> assume_tac
+       (Q.INST [`value` |-> `bounded192_to_num magnitude`]
+          bounded_div_ceil80_scaled_ge)
+  >> Cases_on `negative`
+  >> fs [compute_boundedWideSignedTheory.bounded_signed192_to_int_def]
+  >> simp [integerTheory.INT_MUL_CALCULATE]
+QED
+
+Theorem bounded_historical_raw_round80_contains_int:
+  bounded_signed192_interval_contains_int raw exact_value ∧
+  bounded_historical_raw_round80 raw = SOME result ⇒
+  bounded_interval64_contains_scaled_int result
+    (&1208925819614629174706176:int) exact_value
+Proof
+  Cases_on `raw`
+  >> Cases_on `result`
+  >> rw [bounded_historical_raw_round80_def,
+         bounded_signed192_interval_contains_int_def,
+         compute_boundedIntervalTheory.bounded_interval64_contains_scaled_int_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_signed192_shift_floor80_64_lower_bound
+  >> imp_res_tac bounded_signed192_shift_ceil80_64_upper_bound
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_historical_delta64_value_six_contains_scaled_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta64_value_six x0 x1 x2 x3 x4 x5 =
+    SOME result ⇒
+  bounded_interval64_contains_scaled_int result
+    (&1208925819614629174706176:int)
+    (bounded_delta_value v0 v1 v2 v3 v4 v5)
+Proof
+  rw [bounded_historical_delta64_value_six_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_neg_contains_int
+  >> imp_res_tac
+       compute_boundedDeltaTaylorTheory.bounded_interval64_sum6_contains_int_from_result
+  >> `LIST_REL bounded_historical_raw_cubic_input_represents
+       [(x0,x3,x'',F);(x1,x4,x',F);(x2,x5,x,F);
+        (x1,x2,x3,T);(x0,x2,x4,T);(x0,x1,x5,T);(x3,x4,x5,T)]
+       [(v0 * v3) * (-v0 + v1 + v2 + -v3 + v4 + v5);
+        (v1 * v4) * (v0 + -v1 + v2 + v3 + -v4 + v5);
+        (v2 * v5) * (v0 + v1 + -v2 + v3 + v4 + -v5);
+        -((v1 * v2) * v3);-((v0 * v2) * v4);
+        -((v0 * v1) * v5);-((v3 * v4) * v5)]` by
+       (simp [LIST_REL_def]
+        >> metis_tac [bounded_historical_raw_cubic_input_represents_def])
+  >> imp_res_tac bounded_historical_raw_cubics_contains_ints
+  >> imp_res_tac bounded_signed192_interval_sum_contains_int
+  >> imp_res_tac bounded_historical_raw_round80_contains_int
+  >> fs [compute_boundedDeltaTaylorTheory.bounded_delta_value_sum_of_products]
+QED
+
+Theorem bounded_historical_delta64_value_contains_scaled_int:
+  bounded_interval64_contains_int x0 v0 ∧
+  bounded_interval64_contains_int x1 v1 ∧
+  bounded_interval64_contains_int x2 v2 ∧
+  bounded_interval64_contains_int x3 v3 ∧
+  bounded_interval64_contains_int x4 v4 ∧
+  bounded_interval64_contains_int x5 v5 ∧
+  bounded_historical_delta64_value [x0;x1;x2;x3;x4;x5] = SOME result ⇒
+  bounded_interval64_contains_scaled_int result
+    (&1208925819614629174706176:int)
+    (bounded_delta_value v0 v1 v2 v3 v4 v5)
+Proof
+  simp [bounded_historical_delta64_value_def]
+  >> metis_tac [bounded_historical_delta64_value_six_contains_scaled_int]
 QED
 
 Theorem bounded_historical_delta64_point_one_test:
