@@ -1292,6 +1292,50 @@ Proof
   >> INT_RING_TAC
 QED
 
+Theorem bounded_historical_delta_coordinate_differences:
+  2 * (bounded_delta_value replacement v1 v2 v3 v4 v5 -
+    bounded_delta_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v0) *
+      (bounded_historical_delta_gradient_value 0 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_gradient_value
+         0 replacement v1 v2 v3 v4 v5) ∧
+  2 * (bounded_delta_value v0 replacement v2 v3 v4 v5 -
+    bounded_delta_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v1) *
+      (bounded_historical_delta_gradient_value 1 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_gradient_value
+         1 v0 replacement v2 v3 v4 v5) ∧
+  2 * (bounded_delta_value v0 v1 replacement v3 v4 v5 -
+    bounded_delta_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v2) *
+      (bounded_historical_delta_gradient_value 2 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_gradient_value
+         2 v0 v1 replacement v3 v4 v5) ∧
+  2 * (bounded_delta_value v0 v1 v2 replacement v4 v5 -
+    bounded_delta_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v3) *
+      (bounded_historical_delta_gradient_value 3 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_gradient_value
+         3 v0 v1 v2 replacement v4 v5) ∧
+  2 * (bounded_delta_value v0 v1 v2 v3 replacement v5 -
+    bounded_delta_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v4) *
+      (bounded_historical_delta_gradient_value 4 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_gradient_value
+         4 v0 v1 v2 v3 replacement v5) ∧
+  2 * (bounded_delta_value v0 v1 v2 v3 v4 replacement -
+    bounded_delta_value v0 v1 v2 v3 v4 v5) =
+    (replacement - v5) *
+      (bounded_historical_delta_gradient_value 5 v0 v1 v2 v3 v4 v5 +
+       bounded_historical_delta_gradient_value
+         5 v0 v1 v2 v3 v4 replacement)
+Proof
+  simp [bounded_historical_delta_gradient_value_def,
+        compute_boundedDeltaSpecializationTheory.bounded_delta_value_def]
+  >> rpt conj_tac
+  >> INT_RING_TAC
+QED
+
 Theorem bounded_historical_delta_gradient_coordinate_differences:
   coordinate < 6 ⇒
   2 * (bounded_historical_delta_gradient_value
