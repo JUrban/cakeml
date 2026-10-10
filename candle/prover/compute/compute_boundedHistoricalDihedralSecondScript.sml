@@ -2998,6 +2998,57 @@ Proof
   >> fs []
 QED
 
+Theorem bounded_historical_dihedral_second64_root_product_contract:
+  bounded_historical_dihedral_second64 environment root_delta root_four_x0
+      [root_derivative;root_logarithmic;root_four_reciprocal;
+       diagonal_reciprocal;u_reciprocal;special_root_reciprocal;
+       b_reciprocal;u126_reciprocal;u135_reciprocal] =
+    SOME (value,gradient,hessian) ⇒
+  ∃delta delta_gradient delta_hessian root_value root_gradient root_hessian
+      x0 four_x0 b.
+    bounded_historical_delta_second environment =
+      SOME (delta,delta_gradient,delta_hessian) ∧
+    bounded_historical_sqrt_second delta delta_gradient delta_hessian
+      root_delta root_derivative root_logarithmic =
+      SOME (root_value,root_gradient,root_hessian) ∧
+    bounded_interval64_nth environment 0 = SOME x0 ∧
+    bounded_interval64_scale4 x0 = SOME four_x0 ∧
+    bounded_interval64_sqrt_certificate four_x0 root_four_x0 ∧
+    bounded_interval64_inv_certificate
+      root_four_x0 root_four_reciprocal ∧
+    bounded_interval64_mul root_delta root_four_x0 = SOME b ∧
+    bounded_interval64_inv_certificate b b_reciprocal
+Proof
+  simp [bounded_historical_dihedral_second64_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+  >> metis_tac []
+QED
+
+Theorem bounded_historical_dihedral_second64_root_product_contains:
+  bounded_interval64_contains_int root_delta root_delta_value ∧
+  bounded_interval64_contains_int root_four_x0 root_four_x0_value ∧
+  bounded_historical_dihedral_second64 environment root_delta root_four_x0
+      [root_derivative;root_logarithmic;root_four_reciprocal;
+       diagonal_reciprocal;u_reciprocal;special_root_reciprocal;
+       b_reciprocal;u126_reciprocal;u135_reciprocal] =
+    SOME (value,gradient,hessian) ⇒
+  ∃b.
+    bounded_interval64_inv_certificate b b_reciprocal ∧
+    bounded_interval64_contains_scaled_int b
+      (&1099511627776:int) (root_delta_value * root_four_x0_value)
+Proof
+  strip_tac
+  >> imp_res_tac
+       bounded_historical_dihedral_second64_root_product_contract
+  >> qexists_tac `b`
+  >> conj_tac
+  >- fs []
+  >> metis_tac
+       [compute_boundedIntervalTheory.bounded_interval64_mul_contains_scaled_product]
+QED
+
 Theorem bounded_historical_dihedral_second64_rejects_bad_reciprocal_length:
   LENGTH reciprocal_certificates ≠ 9 ⇒
   bounded_historical_dihedral_second64 environment root_delta root_four_x0
