@@ -260,8 +260,20 @@ Termination
   wf_rel_tac ‘measure (compute_exp_size o SND)’ \\ rw [] \\ gs []
 End
 
-Definition compute_def:
-  compute (ths,ceqs) tm =
+(* An internal fast evaluator is authoritative only when its result has a
+   proved equation in the current object theory.  [compute_with] is kept
+   separate from the public primitive so a case-specific kernel extension can
+   discharge this contract without exposing an arbitrary theorem-producing
+   callback to object-language code. *)
+Definition compute_fast_eval_ok_def:
+  compute_fast_eval_ok thy fast_eval <=>
+    !ceqs cexp res.
+      fast_eval ceqs cexp = SOME res ==>
+      (thy,[]) |- cexp2term cexp === cv2term res
+End
+
+Definition compute_with_def:
+  compute_with fast_eval (ths,ceqs) tm =
     flip handle_Clash (λe. failwith «impossible» ) $
     if ¬compute_init ths then
       failwith «Kernel.compute: wrong theorems provided for initialization»
@@ -278,8 +290,28 @@ Definition compute_def:
           ars <<- MAP (λ(f,(n,r)). (f,LENGTH n)) ceqs;
           check_consts ars «starting cexpr» cexp;
           map (λ(f,(n,r)). check_consts ars f r) ceqs;
-          res <- exec (build_funs ceqs) [] compute_default_clock (to_ce ceqs [] cexp);
-          c <- mk_eq (tm, cv2term res);
-          return (Sequent [] c)
+          case fast_eval ceqs cexp of
+          | SOME res =>
+              do
+                c <- mk_eq (tm, cv2term res);
+                return (Sequent [] c)
+              od
+          | NONE =>
+              do
+                res <- exec (build_funs ceqs) [] compute_default_clock
+                  (to_ce ceqs [] cexp);
+                c <- mk_eq (tm, cv2term res);
+                return (Sequent [] c)
+              od
         od
 End
+
+Definition compute_def:
+  compute = compute_with (\ceqs cexp. NONE)
+End
+
+Theorem compute_fast_eval_ok_none[simp]:
+  compute_fast_eval_ok thy (\ceqs cexp. NONE)
+Proof
+  simp [compute_fast_eval_ok_def]
+QED

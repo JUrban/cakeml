@@ -384,7 +384,8 @@ Theorem compute_thm:
     (∀tm. res ≠ M_failure (Clash tm))
 Proof
   strip_tac
-  \\ simp [compute_def, handle_Clash_def, raise_Failure_def, st_ex_return_def]
+  \\ simp [compute_def, compute_with_def, handle_Clash_def,
+           raise_Failure_def, st_ex_return_def]
   \\ IF_CASES_TAC \\ gs []
   \\ gs []
   \\ drule_all_then strip_assume_tac compute_init_thy_ok

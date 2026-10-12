@@ -128,7 +128,7 @@ val _ = ml_prog_update open_local_in_block;
 
 val r = check [‘ths’,‘tm’] compute_add_def |> m_translate;
 val r = compute_def
-        |> SIMP_RULE(srw_ss()) [combinTheory.C_DEF]
+        |> SIMP_RULE(srw_ss()) [compute_with_def, combinTheory.C_DEF]
         |> check [‘ths’,‘ceqs’,‘tm’]
         |> m_translate;
 
