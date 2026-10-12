@@ -260,16 +260,17 @@ Termination
   wf_rel_tac ‘measure (compute_exp_size o SND)’ \\ rw [] \\ gs []
 End
 
-(* An internal fast evaluator is authoritative only when its result has a
-   proved equation in the current object theory.  [compute_with] is kept
-   separate from the public primitive so a case-specific kernel extension can
-   discharge this contract without exposing an arbitrary theorem-producing
-   callback to object-language code. *)
+(* An internal fast evaluator is authoritative only when its result is proved
+   to be the result of the existing verified evaluator.  [compute_with] is
+   kept separate from the public primitive so a case-specific kernel
+   extension can discharge this contract without exposing an arbitrary
+   theorem-producing callback to object-language code. *)
 Definition compute_fast_eval_ok_def:
-  compute_fast_eval_ok thy fast_eval <=>
-    !ceqs cexp res.
+  compute_fast_eval_ok fast_eval <=>
+    !ceqs cexp res s.
       fast_eval ceqs cexp = SOME res ==>
-      (thy,[]) |- cexp2term cexp === cv2term res
+      exec (build_funs ceqs) [] compute_default_clock
+        (to_ce ceqs [] cexp) s = (M_success res,s)
 End
 
 Definition compute_with_def:
@@ -311,7 +312,7 @@ Definition compute_def:
 End
 
 Theorem compute_fast_eval_ok_none[simp]:
-  compute_fast_eval_ok thy (\ceqs cexp. NONE)
+  compute_fast_eval_ok (\ceqs cexp. NONE)
 Proof
   simp [compute_fast_eval_ok_def]
 QED
