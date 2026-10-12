@@ -308,7 +308,8 @@ Definition compute_with_def:
 End
 
 Definition compute_def:
-  compute = compute_with (\ceqs cexp. NONE)
+  compute (ths,ceqs) tm =
+    compute_with (\ceqs cexp. NONE) (ths,ceqs) tm
 End
 
 Theorem compute_fast_eval_ok_none[simp]:
