@@ -37,6 +37,13 @@ Proof
   >> gvs []
 QED
 
+Theorem compute_exp_to_cv_from_cv[simp]:
+  !value. compute_exp_to_cv (from_cv value) = SOME value
+Proof
+  Induct
+  >> simp [compute_exp_to_cv_def]
+QED
+
 Definition compute_pure_fast_fuel_def:
   compute_pure_fast_fuel = (100000:num)
 End
