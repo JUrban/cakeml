@@ -1616,6 +1616,75 @@ Proof
   \\ rw[]
 QED
 
+(* Structural permission lemmas for the immutable data embedded by the first
+ * registered fast-result gate.  These avoid expanding the 271-equation value
+ * in EVAL: permissions depend only on its translated representation type. *)
+Theorem COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_perms_ok:
+  (!x v. COMPUTE_SYNTAX_COMPUTE_EXP_TYPE x v ==> perms_ok ps v) /\
+  (!xs v. LIST_TYPE COMPUTE_SYNTAX_COMPUTE_EXP_TYPE xs v ==> perms_ok ps v)
+Proof
+  ho_match_mp_tac compute_syntaxTheory.compute_exp_induction
+  \\ rw [COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_def,
+         ml_translatorTheory.LIST_TYPE_def]
+  \\ fs [perms_ok_def, COMPUTE_SYNTAX_BINOP_TYPE_def,
+         COMPUTE_SYNTAX_UOP_TYPE_def]
+  \\ imp_res_tac STRING_TYPE_perms_ok
+  \\ imp_res_tac NUM_perms_ok
+  \\ fs [perms_ok_def]
+  \\ TRY (Cases_on `u` \\ fs [COMPUTE_SYNTAX_UOP_TYPE_def, perms_ok_def])
+  \\ TRY (Cases_on `b` \\ fs [COMPUTE_SYNTAX_BINOP_TYPE_def, perms_ok_def])
+QED
+
+Theorem COMPUTE_EXEC_CV_TYPE_perms_ok:
+  !x v. COMPUTE_EXEC_CV_TYPE x v ==> perms_ok ps v
+Proof
+  Induct
+  \\ rw [COMPUTE_EXEC_CV_TYPE_def]
+  \\ fs [perms_ok_def]
+  \\ imp_res_tac NUM_perms_ok
+  \\ fs [perms_ok_def]
+QED
+
+Theorem perms_ok_registered_case10173_cell0_ceqs_v[simp]:
+  perms_ok kernel_perms registered_case10173_cell0_ceqs_v
+Proof
+  assume_tac registered_case10173_cell0_ceqs_v_thm
+  \\ drule_at Any LIST_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  \\ drule_at Any PAIR_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  >- (imp_res_tac STRING_TYPE_perms_ok \\ fs [])
+  \\ drule_at Any PAIR_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  >- metis_tac [CONJUNCT1 COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_perms_ok]
+  \\ drule_at Any LIST_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  \\ imp_res_tac STRING_TYPE_perms_ok \\ fs []
+QED
+
+Theorem perms_ok_registered_case10173_cell0_cexp_v[simp]:
+  perms_ok kernel_perms registered_case10173_cell0_cexp_v
+Proof
+  mp_tac registered_case10173_cell0_cexp_v_thm
+  \\ metis_tac [CONJUNCT1 COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_perms_ok]
+QED
+
+Theorem perms_ok_registered_case10173_cell0_result_v[simp]:
+  perms_ok kernel_perms registered_case10173_cell0_result_v
+Proof
+  mp_tac registered_case10173_cell0_result_v_thm
+  \\ metis_tac [COMPUTE_EXEC_CV_TYPE_perms_ok]
+QED
+
+Theorem perms_ok_registered_case10173_cell0_cached_eval_v[simp]:
+  perms_ok kernel_perms registered_case10173_cell0_cached_eval_v
+Proof
+  rw [perms_ok_def, registered_case10173_cell0_cached_eval_v_def,
+      astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ pop_assum mp_tac \\ eval_nsLookup_tac
+  \\ rw []
+QED
+
 Theorem perms_ok_compute_v[simp]:
   perms_ok kernel_perms compute_v
 Proof

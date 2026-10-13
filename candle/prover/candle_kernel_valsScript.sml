@@ -1711,7 +1711,9 @@ Theorem inferred_Env[simp]:
 Proof
   fs [inferred_cases]
   \\ conj_tac
-  >- (EVAL_TAC \\ fs [] \\ rewrite_tac [kernel_funs_v_def] \\ EVAL_TAC)
+  >- (rewrite_tac [kernel_funs_def,IN_INSERT,NOT_IN_EMPTY]
+      \\ once_rewrite_tac [kernel_funs_v_def]
+      \\ simp [])
   \\ rpt conj_tac \\ Cases
   \\ fs [TYPE_TYPE_def,TERM_TYPE_def,THM_TYPE_def]
 QED

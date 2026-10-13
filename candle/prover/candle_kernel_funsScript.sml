@@ -2186,10 +2186,12 @@ Proof
     \\ qexists_tac ‘ctxt’ \\ gs [v_ok_def]
     \\ drule_all_then assume_tac v_ok_TERM
     \\ imp_res_tac v_ok_LIST_THM \\ gs [SF SFY_ss]
-    \\ drule_all_then strip_assume_tac compute_thm \\ gvs []
+    \\ drule_all_then strip_assume_tac
+         compute_registeredCase10173Cell0KernelTheory.compute_registered_case10173_cell0_thm
+    \\ gvs []
     \\ strip_tac
     >- ( first_assum $ irule_at $ Any \\ simp[SF SFY_ss] )
-    \\ rename [‘compute _ _ _ = (res1,_)’]
+    \\ rename [‘compute_registered_case10173_cell0 _ _ _ = (res1,_)’]
     \\ Cases_on ‘res1’ \\ gvs [THM_IMP_v_ok, SF SFY_ss]
     \\ rename [‘M_failure ff’] \\ Cases_on ‘ff’ \\ fs []
     \\ fs [HOL_EXN_TYPE_Fail_v_ok, SF SFY_ss])

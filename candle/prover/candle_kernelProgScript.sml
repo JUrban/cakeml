@@ -8,6 +8,7 @@ Libs
 Ancestors
   ml_hol_kernel_funsProg compute print_thm
   (* compute: *) compute_syntax compute_eval compute_pmatch
+  compute_registeredCase10173Cell0Kernel
   runtime_check
 
 val _ = m_translation_extends "ml_hol_kernel_funsProg"
@@ -127,10 +128,43 @@ val r = m_translate compute_execTheory.exec_def
 val _ = ml_prog_update open_local_in_block;
 
 val r = check [‘ths’,‘tm’] compute_add_def |> m_translate;
-val r = compute_def
+(*
+ * First end-to-end fast-result handoff.  The exact registered equations,
+ * call, and result were proved against [compute_eval] in
+ * compute_registeredCase10173Cell0Eval.  Runtime matching is structural;
+ * any other request falls back to the ordinary verified evaluator.
+ *
+ * This exact cached registration is deliberately the smallest theorem-
+ * producing boundary test.  The production registry will replace its body
+ * with the translated specialized checker once the general decoder and
+ * refinement theorem cover arbitrary genuine jobs.
+ *)
+val r = translate
+  compute_registeredCase10173Cell0DataTheory.registered_case10173_cell0_ceqs_def;
+val r = translate
+  compute_registeredCase10173Cell0DataTheory.registered_case10173_cell0_cexp_def;
+val r = translate
+  compute_registeredCase10173Cell0DataTheory.registered_case10173_cell0_result_def;
+val r = translate
+  compute_registeredCase10173Cell0KernelTheory.registered_case10173_cell0_cached_eval_def;
+val _ = next_ml_names := ["compute"];
+val r = compute_registered_case10173_cell0_def
         |> SIMP_RULE(srw_ss()) [compute_with_def, combinTheory.C_DEF]
         |> check [‘ths’,‘ceqs’,‘tm’]
         |> m_translate;
+
+(* Preserve the semantic name consumed by the existing kernel interface. *)
+Definition compute_v_alias_def:
+  compute_v = compute_registered_case10173_cell0_v
+End
+
+Theorem compute_v_def =
+  fetch "-" "compute_registered_case10173_cell0_v_def"
+  |> REWRITE_RULE [GSYM compute_v_alias_def];
+
+Theorem compute_v_thm =
+  fetch "-" "compute_registered_case10173_cell0_v_thm"
+  |> REWRITE_RULE [GSYM compute_v_alias_def];
 
 val _ = ml_prog_update close_local_blocks;
 val _ = ml_prog_update (close_module NONE);
