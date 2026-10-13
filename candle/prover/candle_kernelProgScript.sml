@@ -130,6 +130,14 @@ val r = m_translate compute_execTheory.exec_def
 val _ = ml_prog_update open_local_in_block;
 
 val r = check [‘ths’,‘tm’] compute_add_def |> m_translate;
+
+(* The fast evaluator and its numerical tables are implementation details of
+ * the privileged [compute] entry point.  Keep them in a nested local block:
+ * exporting their closures would also export the captured kernel-reference
+ * environment, whereas [compute_v] is already covered by the kernel-function
+ * invariant and its dedicated refinement theorem. *)
+val _ = ml_prog_update open_local_block;
+
 (*
  * General proof-producing fast path.  This is the same first-order source
  * evaluator used by the offline refinement proof, now translated as ordinary
@@ -259,16 +267,24 @@ val r = translate compute_boundedReciprocalCertificateTheory.bounded_signed64_st
 val r = translate compute_boundedReciprocalCertificateTheory.bounded_scale_squared128_def;
 val r = translate compute_boundedReciprocalCertificateTheory.bounded_interval64_inv_certificate_def;
 val r = translate compute_boundedAtanTheory.bounded_atan_word64_def;
-val r = translate compute_boundedAtanTheory.bounded_atan_scale_def;
-val r = translate compute_boundedAtanTheory.bounded_atan_one_def;
-val r = translate compute_boundedAtanTheory.bounded_atan_pi_half_def;
-val r = translate compute_boundedAtanTheory.bounded_atan_pos_third_def;
-val r = translate compute_boundedAtanTheory.bounded_atan_neg_third_def;
-val r = translate compute_boundedAtanTheory.bounded_atan_pos_fifth_def;
-val r = translate compute_boundedAtanTheory.bounded_atan_neg_seventh_def;
-val r = translate compute_boundedAtanTheory.bounded_atan_pos_ninth_def;
-val r = translate compute_boundedAtanTheory.bounded_atan_neg_eleventh_def;
-val r = translate compute_boundedAtanTheory.bounded_atan_pos_thirteenth_def;
+
+(* Closed immutable data should enter the generated initial state as literal
+ * values.  Normalizing its right-hand side before translation also gives the
+ * translator a syntactic no-change-of-references proof; leaving the helper
+ * calls here would introduce unconstrained reference tails in the state. *)
+fun translate_closed def =
+  def |> CONV_RULE (RAND_CONV EVAL) |> translate;
+
+val r = translate_closed compute_boundedAtanTheory.bounded_atan_scale_def;
+val r = translate_closed compute_boundedAtanTheory.bounded_atan_one_def;
+val r = translate_closed compute_boundedAtanTheory.bounded_atan_pi_half_def;
+val r = translate_closed compute_boundedAtanTheory.bounded_atan_pos_third_def;
+val r = translate_closed compute_boundedAtanTheory.bounded_atan_neg_third_def;
+val r = translate_closed compute_boundedAtanTheory.bounded_atan_pos_fifth_def;
+val r = translate_closed compute_boundedAtanTheory.bounded_atan_neg_seventh_def;
+val r = translate_closed compute_boundedAtanTheory.bounded_atan_pos_ninth_def;
+val r = translate_closed compute_boundedAtanTheory.bounded_atan_neg_eleventh_def;
+val r = translate_closed compute_boundedAtanTheory.bounded_atan_pos_thirteenth_def;
 val r = translate compute_boundedAtanTheory.bounded_interval64_mul_add_def;
 val r = translate compute_boundedAtanTheory.bounded_interval64_atan_pos_lower_def;
 val r = translate compute_boundedAtanTheory.bounded_interval64_atan_pos_upper_def;
@@ -366,7 +382,8 @@ val r = translate compute_boundedHistoricalDihedralSecondTheory.bounded_historic
 val r = translate compute_boundedHistoricalDihedralSecondTheory.bounded_historical_delta_gradient_box_def;
 val r = translate compute_boundedHistoricalDihedralSecondTheory.bounded_historical_delta_second_def;
 val r = translate compute_boundedHistoricalDihedralSecondTheory.bounded_historical_delta_x4_value_block_def;
-val r = translate compute_boundedHistoricalDihedralSecondTheory.bounded_historical_delta_x4_hessian_def;
+val r = translate_closed
+  compute_boundedHistoricalDihedralSecondTheory.bounded_historical_delta_x4_hessian_def;
 val r = translate compute_boundedHistoricalDihedralSecondTheory.bounded_historical_delta_x4_second_def;
 val r = translate compute_boundedHistoricalDihedralSecondTheory.bounded_historical_sqrt_hessian_def;
 val r = translate compute_boundedHistoricalDihedralSecondTheory.bounded_historical_sqrt_second_def;
@@ -479,25 +496,25 @@ val r = translate bounded_case10173_packet_check_cv_def;
 
 val r = translate
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_positive_interval_def;
-val r = translate
+val r = translate_closed
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_center_environment_def;
-val r = translate
+val r = translate_closed
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_box_environment_def;
 val r = translate
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_radii_def;
-val r = translate
+val r = translate_closed
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_sqrt_certificates_def;
-val r = translate
+val r = translate_closed
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_center_root_delta_def;
-val r = translate
+val r = translate_closed
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_center_root_four_x0_def;
-val r = translate
+val r = translate_closed
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_center_reciprocals_def;
-val r = translate
+val r = translate_closed
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_box_root_delta_def;
-val r = translate
+val r = translate_closed
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_box_root_four_x0_def;
-val r = translate
+val r = translate_closed
   compute_boundedCase10173HistoricalCell0DataTheory.bounded_case10173_cell0_box_reciprocals_def;
 val r = translate bounded_case10173_cell0_packet_def;
 
@@ -512,6 +529,9 @@ val r = translate
 val r = translate compute_fastChainTheory.compute_fast_eval_chain_def;
 val r = translate
   compute_packetFastChainTheory.compute_case10173_packet_fast_eval_def;
+
+val _ = ml_prog_update open_local_in_block;
+
 val _ = next_ml_names := ["compute"];
 val r = compute_case10173_packet_fast_def
         |> SIMP_RULE(srw_ss()) [compute_with_def, combinTheory.C_DEF]

@@ -2187,11 +2187,11 @@ Proof
     \\ drule_all_then assume_tac v_ok_TERM
     \\ imp_res_tac v_ok_LIST_THM \\ gs [SF SFY_ss]
     \\ drule_all_then strip_assume_tac
-         compute_pureFastTheory.compute_pure_fast_thm
+         compute_packetFastChainTheory.compute_case10173_packet_fast_thm
     \\ gvs []
     \\ strip_tac
     >- ( first_assum $ irule_at $ Any \\ simp[SF SFY_ss] )
-    \\ rename [‘compute_pure_fast _ _ _ = (res1,_)’]
+    \\ rename [‘compute_case10173_packet_fast _ _ _ = (res1,_)’]
     \\ Cases_on ‘res1’ \\ gvs [THM_IMP_v_ok, SF SFY_ss]
     \\ rename [‘M_failure ff’] \\ Cases_on ‘ff’ \\ fs []
     \\ fs [HOL_EXN_TYPE_Fail_v_ok, SF SFY_ss])

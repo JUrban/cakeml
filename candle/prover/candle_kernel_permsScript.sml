@@ -1716,6 +1716,323 @@ Proof
   \\ fs [perms_ok_def]
 QED
 
+(* The packet fast path is pure, but it introduces a sizeable translated
+ * numerical dependency graph and immutable packet data.  Permissions for
+ * those values follow from their translator representation relations.  Keep
+ * the generic representation facts here and generate the closure facts in
+ * translation order below, so this proof cannot silently drift away from the
+ * actual translated environment. *)
+
+Theorem CANDLE_WORD_perms_ok:
+  !x v. WORD x v ==> perms_ok ps v
+Proof
+  rw [ml_translatorTheory.WORD_def, perms_ok_def]
+QED
+
+Theorem CANDLE_BOOL_perms_ok:
+  !x v. BOOL x v ==> perms_ok ps v
+Proof
+  rw [ml_translatorTheory.BOOL_def,
+      semanticPrimitivesTheory.Boolv_def, perms_ok_def]
+QED
+
+Theorem CANDLE_LIST_TYPE_perms_ok:
+  (!x v. A x v ==> perms_ok ps v) ==>
+  !xs vs. LIST_TYPE A xs vs ==> perms_ok ps vs
+Proof
+  metis_tac [LIST_TYPE_perms_ok]
+QED
+
+Theorem CANDLE_OPTION_TYPE_perms_ok:
+  !x v. (!a av. A a av ==> perms_ok ps av) /\
+        OPTION_TYPE A x v ==> perms_ok ps v
+Proof
+  Cases_on `x`
+  \\ rw [std_preludeTheory.OPTION_TYPE_def, perms_ok_def]
+  \\ fs [perms_ok_def]
+  \\ metis_tac []
+QED
+
+Theorem CANDLE_PAIR_NUM_NUM_perms_ok:
+  !x v. PAIR_TYPE NUM NUM x v ==> perms_ok ps v
+Proof
+  metis_tac [PAIR_TYPE_perms_ok, NUM_perms_ok]
+QED
+
+Theorem CANDLE_BOUNDED128_TYPE_perms_ok:
+  !x v. COMPUTE_BOUNDED_BOUNDED128_TYPE x v ==> perms_ok ps v
+Proof
+  Cases_on `x`
+  \\ rw [COMPUTE_BOUNDED_BOUNDED128_TYPE_def, perms_ok_def]
+  \\ fs [perms_ok_def]
+  \\ metis_tac [CANDLE_WORD_perms_ok]
+QED
+
+Theorem CANDLE_BOUNDED192_TYPE_perms_ok:
+  !x v. COMPUTE_BOUNDED_BOUNDED192_TYPE x v ==> perms_ok ps v
+Proof
+  Cases_on `x`
+  \\ rw [COMPUTE_BOUNDED_BOUNDED192_TYPE_def, perms_ok_def]
+  \\ fs [perms_ok_def]
+  \\ metis_tac [CANDLE_WORD_perms_ok]
+QED
+
+Theorem CANDLE_BOUNDED_SIGNED64_TYPE_perms_ok:
+  !x v. COMPUTE_BOUNDEDSIGNED_BOUNDED_SIGNED64_TYPE x v ==>
+        perms_ok ps v
+Proof
+  Cases_on `x`
+  \\ rw [COMPUTE_BOUNDEDSIGNED_BOUNDED_SIGNED64_TYPE_def, perms_ok_def]
+  \\ fs [perms_ok_def]
+  \\ metis_tac [CANDLE_BOOL_perms_ok, CANDLE_WORD_perms_ok]
+QED
+
+Theorem CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok:
+  !x v. COMPUTE_BOUNDEDINTERVAL_BOUNDED_INTERVAL64_TYPE x v ==>
+        perms_ok ps v
+Proof
+  Cases_on `x`
+  \\ rw [COMPUTE_BOUNDEDINTERVAL_BOUNDED_INTERVAL64_TYPE_def,
+         perms_ok_def]
+  \\ fs [perms_ok_def]
+  \\ metis_tac [CANDLE_BOUNDED_SIGNED64_TYPE_perms_ok]
+QED
+
+Theorem CANDLE_BOUNDED_SQRT64_CERT_TYPE_perms_ok:
+  !x v.
+    COMPUTE_BOUNDEDCASE10173HISTORICALCELL_BOUNDED_CASE10173_SQRT64_CERTIFICATE_TYPE
+      x v ==> perms_ok ps v
+Proof
+  Cases_on `x`
+  \\ rw [COMPUTE_BOUNDEDCASE10173HISTORICALCELL_BOUNDED_CASE10173_SQRT64_CERTIFICATE_TYPE_def,
+         perms_ok_def]
+  \\ fs [perms_ok_def]
+  \\ metis_tac [CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok]
+QED
+
+Theorem CANDLE_BOUNDED_PACKET_TYPE_perms_ok:
+  !x v. COMPUTE_BOUNDEDCASE10173PACKET_BOUNDED_CASE10173_PACKET_TYPE x v ==>
+        perms_ok ps v
+Proof
+  Cases_on `x`
+  \\ rw [COMPUTE_BOUNDEDCASE10173PACKET_BOUNDED_CASE10173_PACKET_TYPE_def,
+         perms_ok_def]
+  \\ fs [perms_ok_def]
+  \\ metis_tac [CANDLE_LIST_TYPE_perms_ok,
+                 CANDLE_WORD_perms_ok,
+                 CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok,
+                 CANDLE_BOUNDED_SQRT64_CERT_TYPE_perms_ok]
+QED
+
+Theorem CANDLE_INTERVAL64_LIST_TYPE_perms_ok:
+  !xs vs.
+    LIST_TYPE COMPUTE_BOUNDEDINTERVAL_BOUNDED_INTERVAL64_TYPE xs vs ==>
+    perms_ok ps vs
+Proof
+  metis_tac [CANDLE_LIST_TYPE_perms_ok,
+             CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok]
+QED
+
+Theorem CANDLE_OPTION_INTERVAL64_LIST_TYPE_perms_ok:
+  !x v.
+    OPTION_TYPE
+      (LIST_TYPE COMPUTE_BOUNDEDINTERVAL_BOUNDED_INTERVAL64_TYPE) x v ==>
+    perms_ok ps v
+Proof
+  metis_tac [CANDLE_OPTION_TYPE_perms_ok,
+             CANDLE_INTERVAL64_LIST_TYPE_perms_ok]
+QED
+
+Theorem CANDLE_NUM_PAIR_LIST_TYPE_perms_ok:
+  !xs vs. LIST_TYPE (PAIR_TYPE NUM NUM) xs vs ==> perms_ok ps vs
+Proof
+  metis_tac [CANDLE_LIST_TYPE_perms_ok, CANDLE_PAIR_NUM_NUM_perms_ok]
+QED
+
+Theorem perms_ok_option_mappartial_v[simp]:
+  perms_ok kernel_perms OptionProg$mappartial_v
+Proof
+  rw [perms_ok_def, OptionProgTheory.mappartial_v_def,
+      astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw []
+QED
+
+Theorem perms_ok_genlist_aux_v[simp]:
+  perms_ok kernel_perms ListProg$genlist_aux_v
+Proof
+  rw [perms_ok_def, ListProgTheory.genlist_aux_v_def,
+      astTheory.pat_bindings_def, perms_ok_env_def]
+QED
+
+Theorem perms_ok_genlist_v[simp]:
+  perms_ok kernel_perms ListProg$genlist_v
+Proof
+  rw [perms_ok_def, ListProgTheory.genlist_v_def,
+      astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw []
+QED
+
+(* Values installed by ml_translator have a representation theorem rather
+ * than a closure definition.  Derive and export their permission facts from
+ * that theorem and the corresponding generic representation fact. *)
+fun prove_data_perms_auto base relation_perms =
+  let
+    val relation_thm = DB.fetch "candle_kernelProg" (base ^ "_thm")
+    val value_tm = rand (concl relation_thm)
+    val goal = list_mk_comb (``perms_ok``, [``kernel_perms``, value_tm])
+    val theorem_name = "perms_ok_" ^ base ^ "_auto"
+    val result = prove (goal, metis_tac [relation_thm, relation_perms])
+    val result = save_thm (theorem_name, result)
+    val _ = export_rewrites [theorem_name]
+  in
+    result
+  end
+
+val _ = prove_data_perms_auto
+  "bounded192_zero_v" CANDLE_BOUNDED192_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_scale_squared128_v" CANDLE_BOUNDED128_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_scale_v" CANDLE_WORD_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_one_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_pi_half_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_pos_third_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_neg_third_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_pos_fifth_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_neg_seventh_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_pos_ninth_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_neg_eleventh_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_pos_thirteenth_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_interval64_zero_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_delta64_hessian_indices_v" CANDLE_NUM_PAIR_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_historical_delta_x4_hessian_v"
+  CANDLE_OPTION_INTERVAL64_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_source_constant_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_root_coefficients_v"
+  CANDLE_INTERVAL64_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_angle_coefficient_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_packet_v" CANDLE_BOUNDED_PACKET_TYPE_perms_ok
+
+Theorem perms_ok_registered_case10173_cell0_ceqs_v[simp]:
+  perms_ok kernel_perms registered_case10173_cell0_ceqs_v
+Proof
+  assume_tac registered_case10173_cell0_ceqs_v_thm
+  \\ drule_at Any LIST_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  \\ drule_at Any PAIR_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  >- (imp_res_tac STRING_TYPE_perms_ok \\ fs [])
+  \\ drule_at Any PAIR_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  >- metis_tac [CONJUNCT1 COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_perms_ok]
+  \\ drule_at Any LIST_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  \\ imp_res_tac STRING_TYPE_perms_ok \\ fs []
+QED
+
+Theorem perms_ok_registered_case10173_cell0_cexp_v[simp]:
+  perms_ok kernel_perms registered_case10173_cell0_cexp_v
+Proof
+  metis_tac [registered_case10173_cell0_cexp_v_thm,
+             CONJUNCT1 COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_perms_ok]
+QED
+
+Theorem perms_ok_registered_case10173_cell0_result_v[simp]:
+  perms_ok kernel_perms registered_case10173_cell0_result_v
+Proof
+  metis_tac [registered_case10173_cell0_result_v_thm,
+             COMPUTE_EXEC_CV_TYPE_perms_ok]
+QED
+
+(* Sort by the newest candle_kernelProg environment captured by each closure.
+ * That is the translator's dependency order and avoids a handwritten list of
+ * hundreds of generated functions. *)
+val packet_env_prefix = "candle_kernelProg_env_"
+
+fun max_int [] = 0
+  | max_int (x :: xs) = Int.max (x, max_int xs)
+
+fun packet_vdef_env_index theorem_name =
+  let
+    val definition = DB.fetch "candle_kernelProg" theorem_name
+    fun index_of tm =
+      case total dest_const tm of
+        SOME (constant_name, _) =>
+          if String.isPrefix packet_env_prefix constant_name then
+            Int.fromString
+              (String.extract
+                 (constant_name, size packet_env_prefix, NONE))
+          else NONE
+      | NONE => NONE
+  in
+    max_int
+      (List.mapPartial index_of
+         (find_terms (fn _ => true) (concl definition)))
+  end
+
+fun insert_packet_vdef theorem_name [] = [theorem_name]
+  | insert_packet_vdef theorem_name (next :: rest) =
+      if packet_vdef_env_index theorem_name <= packet_vdef_env_index next then
+        theorem_name :: next :: rest
+      else
+        next :: insert_packet_vdef theorem_name rest
+
+fun packet_vdef_name theorem_name =
+  String.isSuffix "_v_def" theorem_name andalso
+  (String.isPrefix "bounded" theorem_name orelse
+   String.isPrefix "registered_case10173" theorem_name orelse
+   String.isPrefix "compute_fast_eval_chain" theorem_name orelse
+   String.isPrefix "compute_case10173" theorem_name)
+
+val packet_vdefs =
+  map fst
+    (List.filter (fn (name, _) => packet_vdef_name name)
+       (DB.definitions "candle_kernelProg"))
+
+val ordered_packet_vdefs =
+  foldl (fn (name, result) => insert_packet_vdef name result) [] packet_vdefs
+
+fun prove_pure_perms_auto vdef_name =
+  let
+    val vdef = DB.fetch "candle_kernelProg" vdef_name
+    val (value_tm, _) = dest_eq (concl vdef)
+    val goal = list_mk_comb (``perms_ok``, [``kernel_perms``, value_tm])
+    val base =
+      String.substring (vdef_name, 0, size vdef_name - size "_v_def")
+    val theorem_name = "perms_ok_" ^ base ^ "_auto"
+    val _ = print ("proving " ^ base ^ " permissions\n")
+    val result =
+      prove
+        (goal,
+         rw [perms_ok_def, vdef, astTheory.pat_bindings_def,
+             perms_ok_env_def]
+         \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw [])
+    val result = save_thm (theorem_name, result)
+    val _ = export_rewrites [theorem_name]
+  in
+    result
+  end
+
+val _ = map prove_pure_perms_auto ordered_packet_vdefs
+
 Theorem perms_ok_compute_v[simp]:
   perms_ok kernel_perms compute_v
 Proof
