@@ -269,8 +269,8 @@ Definition compute_fast_eval_ok_def:
   compute_fast_eval_ok fast_eval <=>
     !ceqs cexp res s.
       fast_eval ceqs cexp = SOME res ==>
-      exec (build_funs ceqs) [] compute_default_clock
-        (to_ce ceqs [] cexp) s = (M_success res,s)
+      compute_eval compute_default_clock ceqs cexp s =
+        (M_success (from_cv res),s)
 End
 
 Definition compute_with_def:

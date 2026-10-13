@@ -478,26 +478,11 @@ Proof
   \\ resolve_then Any irule trans_equation_simple sym_equation
   \\ first_x_assum (irule_at Any) \\ gs [sym_equation])
   \\ rename [‘fast_eval eqs cv = SOME fast_res’]
-  \\ ‘exec (build_funs eqs) [] compute_default_clock
-        (to_ce eqs [] cv) s = (M_success fast_res,s)’
+  \\ ‘compute_eval compute_default_clock eqs cv s =
+        (M_success (from_cv fast_res),s)’
     by (qpat_x_assum ‘compute_fast_eval_ok fast_eval’ mp_tac
         \\ rw [compute_fast_eval_ok_def]
         \\ metis_tac [])
-  \\ ‘compute_eval compute_default_clock eqs cv s =
-        (M_success (from_cv fast_res),s)’
-    by (DEP_REWRITE_TAC [compute_execProofTheory.compute_eval_eq_exec]
-        \\ conj_tac >-
-         (drule check_consts_ok \\ fs [] \\ rw []
-          \\ fs [EVERY_EL] \\ rw []
-          \\ ‘∃x. EL n eqs = x’ by fs []
-          \\ PairCases_on ‘x’ \\ fs []
-          \\ res_tac \\ gvs [] \\ gvs [SUBSET_DEF]
-          \\ qpat_x_assum ‘∀x1 x2 x3. _’ mp_tac
-          \\ simp [Once MEM_EL,PULL_EXISTS]
-          \\ disch_then drule \\ fs []
-          \\ simp [GSYM EVERY_EL] \\ fs [LAMBDA_PROD]
-          \\ simp [const_list_imp_cexp_consts_ok])
-        \\ simp [])
   \\ drule (DISCH_ALL (CONJUNCT1 (UNDISCH_ALL compute_eval_thm)))
   \\ disch_then drule \\ gs []
   \\ impl_tac
