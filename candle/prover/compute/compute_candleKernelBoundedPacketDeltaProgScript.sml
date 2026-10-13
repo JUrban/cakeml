@@ -1,0 +1,77 @@
+(* Kernel-lineage checkpoint for specialized delta value/gradient/Hessian work. *)
+Theory compute_candleKernelBoundedPacketDeltaProg
+Ancestors
+  compute_candleKernelBoundedPacketTaylorProg
+  compute_boundedTaylorMul compute_boundedTaylorBase
+  compute_boundedDeltaTaylor compute_boundedHistoricalDelta
+Libs
+  preamble ml_translatorLib ml_monad_translatorLib ml_progLib
+
+val _ = m_translation_extends
+  "compute_candleKernelBoundedPacketTaylorProg";
+
+val _ = translate compute_boundedTaylorMulTheory.bounded_signed64_raw_product_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_signed128_le_words_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_signed128_min_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_signed128_max_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_interval64_raw_product_from_pairs_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_interval64_raw_product_mixed_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_interval64_raw_mul_bounds_unchecked_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_signed128_widen192_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_interval64_raw_sum_acc_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded192_shift_floor40_128_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded192_low40_nonzero_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_signed192_shift_floor40_64_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_signed192_shift_ceil40_64_def;
+val _ = translate compute_boundedTaylorMulTheory.bounded_interval64_fused_products_def;
+
+val _ = translate compute_boundedTaylorBaseTheory.bounded_interval64_zeros_def;
+val _ = translate compute_boundedTaylorBaseTheory.bounded_interval64_nth_def;
+val _ = translate compute_boundedTaylorBaseTheory.bounded_interval64_unit_vector_def;
+val _ = translate compute_boundedTaylorBaseTheory.bounded_taylor64_constant_def;
+
+val _ = translate compute_boundedIntervalListTheory.bounded_interval64_list_neg_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_interval64_sum_aux_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_interval64_sum_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_interval64_scale4_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_interval64_list_scale4_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_interval64_mul3_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_interval64_sums_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_pair_products_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_component_from_products_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_components_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_from_products_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_hessian_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_value_six_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_value_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_interval64_list_add_at_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_neg_derivative_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_hessian_indices_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_product_hessian_entry_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_product_hessian_def;
+val _ = translate compute_boundedDeltaTaylorTheory.bounded_delta64_four_coordinate_def;
+
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed192_le_words_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed192_min_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed192_max_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed192_neg_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed128_nonnegative_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed128_nonpositive_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed128_mul_signed64_raw192_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_raw128_interval_product_from_pairs_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_raw128_interval_product_mixed_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_raw128_interval_mul64_unchecked_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubic_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubic_signed_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubics_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed192_interval_sum_aux_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed192_interval_sum_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded192_shift_floor80_words_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded192_low80_nonzero_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed192_shift_floor80_64_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_signed192_shift_ceil80_64_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_historical_raw_round80_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_historical_delta64_value_six_def;
+val _ = translate compute_boundedHistoricalDeltaTheory.bounded_historical_delta64_value_def;
+
+val _ = export_theory ();
