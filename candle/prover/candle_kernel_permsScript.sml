@@ -1616,6 +1616,77 @@ Proof
   \\ rw[]
 QED
 
+Theorem perms_ok_compute_pure_to_num_v[simp]:
+  perms_ok kernel_perms compute_pure_to_num_v
+Proof
+  rw[perms_ok_def, compute_pure_to_num_v_def,
+     astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw[]
+QED
+
+Theorem perms_ok_compute_pure_uop_v[simp]:
+  perms_ok kernel_perms compute_pure_uop_v
+Proof
+  rw[perms_ok_def, compute_pure_uop_v_def,
+     astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw[]
+QED
+
+Theorem perms_ok_compute_pure_binop_v[simp]:
+  perms_ok kernel_perms compute_pure_binop_v
+Proof
+  rw[perms_ok_def, compute_pure_binop_v_def,
+     astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw[]
+QED
+
+Theorem perms_ok_compute_pure_remove_binding_v[simp]:
+  perms_ok kernel_perms compute_pure_remove_binding_v
+Proof
+  rw[perms_ok_def, compute_pure_remove_binding_v_def,
+     astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw[]
+QED
+
+Theorem perms_ok_compute_pure_subst_v[simp]:
+  perms_ok kernel_perms compute_pure_subst_v
+Proof
+  rw[perms_ok_def, compute_pure_subst_v_def,
+     astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw[]
+QED
+
+Theorem perms_ok_compute_eval_pure_v[simp]:
+  perms_ok kernel_perms compute_eval_pure_v
+Proof
+  rw[perms_ok_def, compute_eval_pure_v_def,
+     astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw[]
+QED
+
+Theorem perms_ok_compute_exp_to_cv_v[simp]:
+  perms_ok kernel_perms compute_exp_to_cv_v
+Proof
+  rw[perms_ok_def, compute_exp_to_cv_v_def,
+     astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw[]
+QED
+
+Theorem perms_ok_compute_pure_fast_fuel_v[simp]:
+  perms_ok kernel_perms compute_pure_fast_fuel_v
+Proof
+  mp_tac compute_pure_fast_fuel_v_thm
+  \\ metis_tac [NUM_perms_ok]
+QED
+
+Theorem perms_ok_compute_pure_fast_eval_v[simp]:
+  perms_ok kernel_perms compute_pure_fast_eval_v
+Proof
+  rw[perms_ok_def, compute_pure_fast_eval_v_def,
+     astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw[]
+QED
+
 (* Structural permission lemmas for the immutable data embedded by the first
  * registered fast-result gate.  These avoid expanding the 271-equation value
  * in EVAL: permissions depend only on its translated representation type. *)
@@ -1643,46 +1714,6 @@ Proof
   \\ fs [perms_ok_def]
   \\ imp_res_tac NUM_perms_ok
   \\ fs [perms_ok_def]
-QED
-
-Theorem perms_ok_registered_case10173_cell0_ceqs_v[simp]:
-  perms_ok kernel_perms registered_case10173_cell0_ceqs_v
-Proof
-  assume_tac registered_case10173_cell0_ceqs_v_thm
-  \\ drule_at Any LIST_TYPE_perms_ok
-  \\ disch_then irule \\ rw []
-  \\ drule_at Any PAIR_TYPE_perms_ok
-  \\ disch_then irule \\ rw []
-  >- (imp_res_tac STRING_TYPE_perms_ok \\ fs [])
-  \\ drule_at Any PAIR_TYPE_perms_ok
-  \\ disch_then irule \\ rw []
-  >- metis_tac [CONJUNCT1 COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_perms_ok]
-  \\ drule_at Any LIST_TYPE_perms_ok
-  \\ disch_then irule \\ rw []
-  \\ imp_res_tac STRING_TYPE_perms_ok \\ fs []
-QED
-
-Theorem perms_ok_registered_case10173_cell0_cexp_v[simp]:
-  perms_ok kernel_perms registered_case10173_cell0_cexp_v
-Proof
-  mp_tac registered_case10173_cell0_cexp_v_thm
-  \\ metis_tac [CONJUNCT1 COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_perms_ok]
-QED
-
-Theorem perms_ok_registered_case10173_cell0_result_v[simp]:
-  perms_ok kernel_perms registered_case10173_cell0_result_v
-Proof
-  mp_tac registered_case10173_cell0_result_v_thm
-  \\ metis_tac [COMPUTE_EXEC_CV_TYPE_perms_ok]
-QED
-
-Theorem perms_ok_registered_case10173_cell0_cached_eval_v[simp]:
-  perms_ok kernel_perms registered_case10173_cell0_cached_eval_v
-Proof
-  rw [perms_ok_def, registered_case10173_cell0_cached_eval_v_def,
-      astTheory.pat_bindings_def, perms_ok_env_def]
-  \\ pop_assum mp_tac \\ eval_nsLookup_tac
-  \\ rw []
 QED
 
 Theorem perms_ok_compute_v[simp]:
