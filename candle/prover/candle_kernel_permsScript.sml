@@ -1962,6 +1962,43 @@ Proof
              COMPUTE_EXEC_CV_TYPE_perms_ok]
 QED
 
+Theorem perms_ok_registered_case10173_historical_chunk_at2048_count16_ceqs_v[simp]:
+  perms_ok kernel_perms
+    registered_case10173_historical_chunk_at2048_count16_ceqs_v
+Proof
+  assume_tac
+    registered_case10173_historical_chunk_at2048_count16_ceqs_v_thm
+  \\ drule_at Any LIST_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  \\ drule_at Any PAIR_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  >- (imp_res_tac STRING_TYPE_perms_ok \\ fs [])
+  \\ drule_at Any PAIR_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  >- metis_tac [CONJUNCT1 COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_perms_ok]
+  \\ drule_at Any LIST_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  \\ imp_res_tac STRING_TYPE_perms_ok \\ fs []
+QED
+
+Theorem perms_ok_registered_case10173_historical_chunk_at2048_count16_cexp_v[simp]:
+  perms_ok kernel_perms
+    registered_case10173_historical_chunk_at2048_count16_cexp_v
+Proof
+  metis_tac
+    [registered_case10173_historical_chunk_at2048_count16_cexp_v_thm,
+     CONJUNCT1 COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_perms_ok]
+QED
+
+Theorem perms_ok_registered_case10173_historical_chunk_at2048_count16_result_v[simp]:
+  perms_ok kernel_perms
+    registered_case10173_historical_chunk_at2048_count16_result_v
+Proof
+  metis_tac
+    [registered_case10173_historical_chunk_at2048_count16_result_v_thm,
+     COMPUTE_EXEC_CV_TYPE_perms_ok]
+QED
+
 (* Sort by the newest candle_kernelProg environment captured by each closure.
  * That is the translator's dependency order and avoids a handwritten list of
  * hundreds of generated functions. *)
