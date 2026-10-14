@@ -8,20 +8,27 @@
 Theory compute_packetFastChain
 Ancestors
   compute_fastChain compute_registeredCase10173PacketFast
+  compute_registeredCase10173HistoricalChunkAt2048Count16Fast
 Libs
   bossLib preamble
 
 Definition compute_case10173_packet_fast_eval_def:
   compute_case10173_packet_fast_eval =
     compute_fast_eval_chain
-      registered_case10173_cell0_packet_fast_eval
-      compute_pure_fast_eval
+      registered_case10173_historical_chunk_at2048_count16_fast_eval
+      (compute_fast_eval_chain
+        registered_case10173_cell0_packet_fast_eval
+        compute_pure_fast_eval)
 End
 
 Theorem compute_case10173_packet_fast_eval_ok:
   compute_fast_eval_ok compute_case10173_packet_fast_eval
 Proof
   rw [compute_case10173_packet_fast_eval_def]
+  >> irule compute_fast_eval_chain_ok
+  >> conj_tac
+  >- simp
+       [compute_registeredCase10173HistoricalChunkAt2048Count16FastTheory.registered_case10173_historical_chunk_at2048_count16_fast_eval_ok]
   >> irule compute_fast_eval_chain_ok
   >> simp
        [compute_registeredCase10173PacketFastTheory.registered_case10173_cell0_packet_fast_eval_ok,

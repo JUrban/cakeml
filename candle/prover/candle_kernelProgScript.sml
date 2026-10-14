@@ -526,6 +526,20 @@ val r = translate
   compute_registeredCase10173Cell0DataTheory.registered_case10173_cell0_result_def;
 val r = translate
   compute_registeredCase10173PacketFastTheory.registered_case10173_cell0_packet_fast_eval_def;
+
+(* Exact bounded registration for genuine cells [2048,2064).  The associated
+   compute_fast_eval_ok theorem was proved once by the HOL4 evaluator; this
+   runtime branch therefore constructs the ordinary Candle equality without
+   replaying the generic evaluator. *)
+val r = translate
+  compute_registeredCase10173HistoricalChunkAt2048Count16DataTheory.registered_case10173_historical_chunk_at2048_count16_ceqs_def;
+val r = translate
+  compute_registeredCase10173HistoricalChunkAt2048Count16DataTheory.registered_case10173_historical_chunk_at2048_count16_cexp_def;
+val r = translate
+  compute_registeredCase10173HistoricalChunkAt2048Count16DataTheory.registered_case10173_historical_chunk_at2048_count16_result_def;
+val r = translate
+  compute_registeredCase10173HistoricalChunkAt2048Count16FastTheory.registered_case10173_historical_chunk_at2048_count16_fast_eval_def;
+
 val r = translate compute_fastChainTheory.compute_fast_eval_chain_def;
 val r = translate
   compute_packetFastChainTheory.compute_case10173_packet_fast_eval_def;
