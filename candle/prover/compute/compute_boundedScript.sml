@@ -800,6 +800,36 @@ Definition bounded_word64_mul_shift_floor40_def:
     Bounded128 (high >>> 40) ((low >>> 40) + (high << 24))
 End
 
+(* Decimal-scale discriminator for the already proved HOL Light fixed-scale
+   checker.  Unlike the production dyadic path this deliberately uses the
+   translated natural-number division boundary.  Keeping it beside the
+   shift-40 primitive makes the matched recurring cost explicit before we
+   decide whether proof reuse justifies a decimal executor. *)
+
+Definition bounded_word64_mul_div_floor_decimal_def:
+  bounded_word64_mul_div_floor_decimal (left:word64) (right:word64) =
+    let quotient = (w2n left * w2n right) DIV 1000000000000 in
+    Bounded128
+      ((n2w (quotient DIV 18446744073709551616)):word64)
+      ((n2w quotient):word64)
+End
+
+Theorem bounded_word64_mul_div_floor_decimal_correct:
+  bounded128_to_num (bounded_word64_mul_div_floor_decimal left right) =
+    (w2n left * w2n right) DIV 1000000000000
+Proof
+  rw [bounded_word64_mul_div_floor_decimal_def, LET_THM,
+      bounded128_to_num_def, bounded_word_base_eq, w2n_n2w]
+  >> irule bounded_two_digit_reconstruct
+  >> simp []
+  >> qspec_then `left` assume_tac w2n_lt
+  >> qspec_then `right` assume_tac w2n_lt
+  >> `w2n left * w2n right <
+      18446744073709551616 * 18446744073709551616` by
+       (irule bounded_product_lt_square >> fs [dimword_64])
+  >> simp [DIV_LT_X]
+QED
+
 Theorem bounded_word64_shift_pair40_correct:
   w2n (((low:word64) >>> 40) + ((high:word64) << 24)) +
     bounded_word_base * w2n (high >>> 40) =
@@ -912,6 +942,15 @@ Definition bounded_word64_mul_shift_floor40_repeat_def:
           (word_xor digest (word_xor high low))
 End
 
+Definition bounded_word64_mul_div_floor_decimal_repeat_def:
+  bounded_word64_mul_div_floor_decimal_repeat 0 left right digest = digest /\
+  bounded_word64_mul_div_floor_decimal_repeat (SUC n) left right digest =
+    case bounded_word64_mul_div_floor_decimal left right of
+      Bounded128 high low =>
+        bounded_word64_mul_div_floor_decimal_repeat n left right
+          (word_xor digest (word_xor high low))
+End
+
 (* First actual-data boundary: consume distinct authenticated endpoint pairs
    rather than replaying one synthetic operand pair.  The generated
    case16594 fixture instantiates this fold with one genuine coordinate
@@ -944,6 +983,17 @@ End
 Definition bounded_word64_mul_shift_floor40_benchmark_ok_def:
   bounded_word64_mul_shift_floor40_benchmark_ok ⇔
     bounded_word64_mul_shift_floor40_benchmark = 4503599627014101w
+End
+
+Definition bounded_word64_mul_div_floor_decimal_benchmark_def:
+  bounded_word64_mul_div_floor_decimal_benchmark =
+    bounded_word64_mul_div_floor_decimal_repeat 10000001
+      4503599627370453w 1099511627689w 0w
+End
+
+Definition bounded_word64_mul_div_floor_decimal_benchmark_ok_def:
+  bounded_word64_mul_div_floor_decimal_benchmark_ok <=>
+    bounded_word64_mul_div_floor_decimal_benchmark = 4951760156749660w
 End
 
 Definition bounded_word64_mul_full_repeat_def:
