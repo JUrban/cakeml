@@ -273,6 +273,11 @@ Definition bounded_case10173_packet_check_cv_def:
           (bounded_case10173_packet_accepts packet))
 End
 
+Definition bounded_case10173_packet_payload_accept_def:
+  bounded_case10173_packet_payload_accept payload <=>
+    bounded_case10173_packet_check_cv payload = SOME (Num 1)
+End
+
 Definition bounded_case10173_cell0_packet_def:
   bounded_case10173_cell0_packet =
     BoundedCase10173Packet
@@ -287,6 +292,69 @@ Definition bounded_case10173_cell0_packet_def:
       bounded_case10173_cell0_box_root_four_x0
       bounded_case10173_cell0_box_reciprocals
 End
+
+(* Canonical success boundary for the payload-bound fast evaluator.  A
+ * successful [Num 1] result necessarily comes from a fully decoded packet
+ * accepted by the complete numerical checker; malformed data cannot be
+ * confused with a negative verdict or with an expected result field. *)
+Theorem bounded_case10173_packet_check_cv_accepts:
+  bounded_case10173_packet_check_cv payload = SOME (Num 1) ==>
+  ?packet.
+    bounded_cv_decode_case10173_packet payload = SOME packet /\
+    bounded_case10173_packet_accepts packet
+Proof
+  rw [bounded_case10173_packet_check_cv_def]
+  >> every_case_tac
+  >> gvs [bounded_cv_encode_bool_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
+Theorem bounded_case10173_packet_check_cv_from_accepts:
+  bounded_cv_decode_case10173_packet payload = SOME packet /\
+  bounded_case10173_packet_accepts packet ==>
+  bounded_case10173_packet_check_cv payload = SOME (Num 1)
+Proof
+  simp [bounded_case10173_packet_check_cv_def,
+        bounded_cv_encode_bool_def]
+QED
+
+Theorem bounded_cv_decode_case10173_packet_well_shaped:
+  bounded_cv_decode_case10173_packet payload = SOME packet ==>
+  bounded_case10173_packet_well_shaped packet
+Proof
+  qsuff_tac
+    `!payload packet.
+       bounded_cv_decode_case10173_packet payload = SOME packet ==>
+       bounded_case10173_packet_well_shaped packet`
+  >- metis_tac []
+  >> ho_match_mp_tac bounded_cv_decode_case10173_packet_ind
+  >> rw [bounded_cv_decode_case10173_packet_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
+Theorem bounded_case10173_packet_check_cv_sound_boundary:
+  bounded_case10173_packet_check_cv payload = SOME (Num 1) ==>
+  ?packet.
+    bounded_cv_decode_case10173_packet payload = SOME packet /\
+    bounded_case10173_packet_well_shaped packet /\
+    bounded_case10173_packet_accepts packet
+Proof
+  metis_tac [bounded_case10173_packet_check_cv_accepts,
+             bounded_cv_decode_case10173_packet_well_shaped]
+QED
+
+Theorem bounded_case10173_packet_payload_accept_sound:
+  bounded_case10173_packet_payload_accept payload ==>
+  ?packet.
+    bounded_cv_decode_case10173_packet payload = SOME packet /\
+    bounded_case10173_packet_well_shaped packet /\
+    bounded_case10173_packet_accepts packet
+Proof
+  rw [bounded_case10173_packet_payload_accept_def]
+  >> metis_tac [bounded_case10173_packet_check_cv_sound_boundary]
+QED
 
 Theorem bounded_cv_decode_word64_encode[simp]:
   bounded_cv_decode_word64 (bounded_cv_encode_word64 word) = SOME word
@@ -380,6 +448,20 @@ Proof
   >> simp [bounded_cv_decode_case10173_packet_def,
            bounded_cv_encode_case10173_packet_def,
            bounded_case10173_packet_well_shaped_def]
+QED
+
+Theorem bounded_case10173_packet_payload_accept_encode:
+  bounded_case10173_packet_well_shaped packet ==>
+  (bounded_case10173_packet_payload_accept
+      (bounded_cv_encode_case10173_packet packet) <=>
+   bounded_case10173_packet_accepts packet)
+Proof
+  simp [bounded_case10173_packet_payload_accept_def,
+        bounded_case10173_packet_check_cv_def,
+        bounded_cv_decode_case10173_packet_encode_exact,
+        bounded_cv_encode_bool_def]
+  >> Cases_on `bounded_case10173_packet_accepts packet`
+  >> simp []
 QED
 
 Theorem bounded_cv_decode_case10173_packet_rejects_bad_widths:

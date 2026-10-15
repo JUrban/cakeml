@@ -368,4 +368,96 @@ Definition bounded_historical_dihedral_first64_def:
     | _ => NONE
 End
 
+(* Keep the proof boundary for the compiled center-jet checker independent of
+ * any particular captured certificate.  These contracts expose the checked
+ * source quantities that a later acceptance-refinement theorem needs without
+ * unfolding the complete executable definition again. *)
+Theorem bounded_historical_dihedral_first64_root_product_contract:
+  bounded_historical_dihedral_first64 environment root_delta root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ⇒
+  ∃delta x0 four_x0 b.
+    bounded_delta64_value environment = SOME delta ∧
+    bounded_interval64_sqrt_certificate delta root_delta ∧
+    bounded_interval64_nth environment 0 = SOME x0 ∧
+    bounded_interval64_scale4 x0 = SOME four_x0 ∧
+    bounded_interval64_sqrt_certificate four_x0 root_four_x0 ∧
+    bounded_interval64_mul root_delta root_four_x0 = SOME b ∧
+    bounded_interval64_inv_certificate b b_reciprocal
+Proof
+  simp [bounded_historical_dihedral_first64_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> metis_tac []
+QED
+
+Theorem bounded_historical_dihedral_first64_derivative_contract:
+  bounded_historical_dihedral_first64 environment root_delta root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ⇒
+  ∃delta twice_root_delta delta_products delta_gradient root_gradient.
+    bounded_delta64_value environment = SOME delta ∧
+    bounded_interval64_sqrt_certificate delta root_delta ∧
+    bounded_historical_scale2 root_delta = SOME twice_root_delta ∧
+    bounded_interval64_inv_certificate
+      twice_root_delta root_derivative ∧
+    bounded_interval64_inv_certificate
+      twice_root_delta special_root_reciprocal ∧
+    bounded_delta64_pair_products environment = SOME delta_products ∧
+    bounded_delta64_gradient_from_products delta_products =
+      SOME delta_gradient ∧
+    bounded_interval64_list_scale root_derivative delta_gradient =
+      SOME root_gradient
+Proof
+  simp [bounded_historical_dihedral_first64_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> metis_tac []
+QED
+
+Theorem bounded_historical_dihedral_first64_value_contract:
+  bounded_historical_dihedral_first64 environment root_delta root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ⇒
+  ∃delta_x4 b quotient angle.
+    bounded_historical_delta_x4_value environment = SOME delta_x4 ∧
+    bounded_interval64_mul root_delta root_four_x0 = SOME b ∧
+    bounded_interval64_inv_certificate b b_reciprocal ∧
+    bounded_interval64_mul
+      (bounded_interval64_neg delta_x4) b_reciprocal = SOME quotient ∧
+    bounded_interval64_atan_range quotient NONE NONE = SOME angle ∧
+    bounded_interval64_add bounded_atan_pi_half angle = SOME value
+Proof
+  simp [bounded_historical_dihedral_first64_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> metis_tac []
+QED
+
+Theorem bounded_historical_dihedral_first64_u_contract:
+  bounded_historical_dihedral_first64 environment root_delta root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ⇒
+  ∃u126 u126_gradient u135 u135_gradient u_product.
+    bounded_historical_u126 environment = SOME (u126,u126_gradient) ∧
+    bounded_historical_u135 environment = SOME (u135,u135_gradient) ∧
+    bounded_interval64_mul u126 u135 = SOME u_product ∧
+    bounded_interval64_inv_certificate u_product u_reciprocal
+Proof
+  simp [bounded_historical_dihedral_first64_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> metis_tac []
+QED
+
+Theorem bounded_historical_dihedral_first64_rejects_bad_reciprocal_length:
+  LENGTH reciprocal_certificates ≠ 5 ⇒
+  bounded_historical_dihedral_first64 environment root_delta root_four_x0
+      reciprocal_certificates = NONE
+Proof
+  simp [bounded_historical_dihedral_first64_def]
+  >> every_case_tac
+  >> fs []
+QED
+
 val _ = export_theory ();
