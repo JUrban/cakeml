@@ -74,6 +74,33 @@ Proof
   >> metis_tac []
 QED
 
+Definition bounded_case10173_packet_historical_root_contract_def:
+  bounded_case10173_packet_historical_root_contract
+    (BoundedCase10173Packet radii center_environment box_environment
+      coordinate_sqrt_certificates center_root_delta center_root_four_x0
+      center_reciprocals box_root_delta box_root_four_x0 box_reciprocals) <=>
+  ?center_result center_delta center_x0 center_four_x0
+   box_result box_delta box_delta_gradient
+   box_delta_hessian box_x0 box_four_x0.
+    bounded_historical_dihedral_first64 center_environment
+      center_root_delta center_root_four_x0 center_reciprocals =
+        SOME center_result /\
+    bounded_delta64_value center_environment = SOME center_delta /\
+    bounded_interval64_sqrt_certificate center_delta center_root_delta /\
+    bounded_interval64_nth center_environment 0 = SOME center_x0 /\
+    bounded_interval64_scale4 center_x0 = SOME center_four_x0 /\
+    bounded_interval64_sqrt_certificate
+      center_four_x0 center_root_four_x0 /\
+    bounded_historical_dihedral_second64 box_environment
+      box_root_delta box_root_four_x0 box_reciprocals = SOME box_result /\
+    bounded_historical_delta_second box_environment =
+      SOME (box_delta,box_delta_gradient,box_delta_hessian) /\
+    bounded_interval64_sqrt_certificate box_delta box_root_delta /\
+    bounded_interval64_nth box_environment 0 = SOME box_x0 /\
+    bounded_interval64_scale4 box_x0 = SOME box_four_x0 /\
+    bounded_interval64_sqrt_certificate box_four_x0 box_root_four_x0
+End
+
 Theorem bounded_case10173_packet_accepts_historical_root_contract:
   bounded_case10173_packet_accepts
     (BoundedCase10173Packet radii center_environment box_environment
@@ -106,6 +133,16 @@ Proof
   >> strip_tac
   >> imp_res_tac bounded_historical_dihedral_first64_root_certificates
   >> imp_res_tac bounded_historical_dihedral_second64_root_certificates
+  >> metis_tac []
+QED
+
+Theorem bounded_case10173_packet_accepts_historical_root_contract_predicate:
+  bounded_case10173_packet_accepts packet ==>
+  bounded_case10173_packet_historical_root_contract packet
+Proof
+  Cases_on `packet`
+  >> rw [bounded_case10173_packet_historical_root_contract_def]
+  >> imp_res_tac bounded_case10173_packet_accepts_historical_root_contract
   >> metis_tac []
 QED
 
