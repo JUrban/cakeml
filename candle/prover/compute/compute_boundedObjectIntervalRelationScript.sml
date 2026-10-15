@@ -120,6 +120,31 @@ Definition bounded_interval64_covers_object_fixed_def:
       bounded_object_fixed_scale_int interval encoded
 End
 
+(* A representation-level diagnostic only: the word interval and object
+ * interval have a nonempty intersection after exact cross multiplication.
+ * Overlap is deliberately distinct from enclosure and is not sufficient to
+ * authorize either interval as a replacement for the other. *)
+Definition bounded_interval64_overlaps_object_at_scale_def:
+  bounded_interval64_overlaps_object_at_scale object_scale interval encoded <=>
+    0 < object_scale /\
+    case bounded_object_interval_ints encoded of
+    | NONE => F
+    | SOME (object_lower,object_upper) =>
+        object_lower <= object_upper /\
+        object_scale *
+            bounded_signed64_to_int (bounded_interval64_lower interval) <=
+          bounded_word_scale_int * object_upper /\
+        bounded_word_scale_int * object_lower <=
+          object_scale *
+            bounded_signed64_to_int (bounded_interval64_upper interval)
+End
+
+Definition bounded_interval64_overlaps_object_fixed_def:
+  bounded_interval64_overlaps_object_fixed interval encoded <=>
+    bounded_interval64_overlaps_object_at_scale
+      bounded_object_fixed_scale_int interval encoded
+End
+
 (* Direct source binding for a rounded word interval.  This relates the word
  * endpoints to the original rational box endpoints, so the fast packet
  * cannot substitute a different box that merely happens to pass the same
@@ -235,6 +260,23 @@ Theorem bounded_interval64_covers_object_at_scale_components:
       bounded_signed64_to_int (bounded_interval64_upper interval)
 Proof
   rw [bounded_interval64_covers_object_at_scale_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
+Theorem bounded_interval64_overlaps_object_at_scale_components:
+  bounded_interval64_overlaps_object_at_scale object_scale interval encoded /\
+  bounded_object_interval_ints encoded = SOME (object_lower,object_upper) ==>
+  0 < object_scale /\
+  object_lower <= object_upper /\
+  object_scale *
+      bounded_signed64_to_int (bounded_interval64_lower interval) <=
+    bounded_word_scale_int * object_upper /\
+  bounded_word_scale_int * object_lower <=
+    object_scale *
+      bounded_signed64_to_int (bounded_interval64_upper interval)
+Proof
+  rw [bounded_interval64_overlaps_object_at_scale_def]
   >> every_case_tac
   >> gvs []
 QED
