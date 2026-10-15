@@ -29,7 +29,7 @@ Definition bounded_case10173_job_packets_semantically_bound_def:
       bounded_case10173_object_job_boxes object_job = SOME source_boxes /\
       bounded_interval64_list_covers_object_q
         (bounded_case10173_packet_box_environment packet) source_boxes /\
-      bounded_case10173_packet_historical_root_contract packet /\
+      bounded_case10173_packet_complete_numerical_contract packet /\
       bounded_case10173_job_packets_semantically_bound remaining rest
         object_jobs
 End
@@ -56,7 +56,7 @@ Proof
   >> imp_res_tac
        compute_boundedCase10173JobBindingTheory.bounded_case10173_packet_box_binds_object_job_components
   >> imp_res_tac
-       compute_boundedCase10173SemanticBoundaryTheory.bounded_case10173_packet_accepts_historical_root_contract_predicate
+       compute_boundedCase10173SemanticBoundaryTheory.bounded_case10173_packet_accepts_complete_numerical_contract
   >> simp [bounded_case10173_job_packets_semantically_bound_def]
   >> metis_tac []
 QED
@@ -85,7 +85,7 @@ Theorem bounded_case10173_job_packets_semantically_bound_step:
     bounded_case10173_object_job_boxes object_job = SOME source_boxes /\
     bounded_interval64_list_covers_object_q
       (bounded_case10173_packet_box_environment packet) source_boxes /\
-    bounded_case10173_packet_historical_root_contract packet /\
+    bounded_case10173_packet_complete_numerical_contract packet /\
     bounded_case10173_job_packets_semantically_bound remaining rest object_jobs
 Proof
   simp [bounded_case10173_job_packets_semantically_bound_def]

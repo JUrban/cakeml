@@ -146,6 +146,48 @@ Proof
   >> metis_tac []
 QED
 
+Definition bounded_case10173_packet_complete_numerical_contract_def:
+  bounded_case10173_packet_complete_numerical_contract
+    (BoundedCase10173Packet radii center_environment box_environment
+      coordinate_sqrt_certificates center_root_delta center_root_four_x0
+      center_reciprocals box_root_delta box_root_four_x0 box_reciprocals) <=>
+  bounded_case10173_packet_historical_root_contract
+    (BoundedCase10173Packet radii center_environment box_environment
+      coordinate_sqrt_certificates center_root_delta center_root_four_x0
+      center_reciprocals box_root_delta box_root_four_x0 box_reciprocals) /\
+  bounded_case10173_geometry_ok
+    box_environment center_environment radii 0 /\
+  bounded_case10173_positive_environment center_environment /\
+  bounded_case10173_positive_environment box_environment /\
+  bounded_case10173_u_guards center_environment /\
+  bounded_case10173_u_guards box_environment /\
+  ?center_value center_gradient value_bound gradient_bounds hessian.
+    bounded_case10173_checked_cell64 radii center_environment box_environment
+      coordinate_sqrt_certificates center_root_delta center_root_four_x0
+      center_reciprocals box_root_delta box_root_four_x0 box_reciprocals =
+        SOME (BoundedTaylor64 T center_value center_gradient
+          value_bound gradient_bounds hessian) /\
+    bounded_signed64_strict_negative
+      (bounded_interval64_upper value_bound)
+End
+
+Theorem bounded_case10173_packet_accepts_complete_numerical_contract:
+  bounded_case10173_packet_accepts packet ==>
+  bounded_case10173_packet_complete_numerical_contract packet
+Proof
+  Cases_on `packet`
+  >> strip_tac
+  >> imp_res_tac
+       bounded_case10173_packet_accepts_historical_root_contract_predicate
+  >> fs [bounded_case10173_packet_complete_numerical_contract_def,
+         compute_boundedCase10173PacketTheory.bounded_case10173_packet_accepts_def]
+  >> imp_res_tac
+       compute_boundedCase10173HistoricalCellTheory.bounded_case10173_checked_cell_accepts_contract
+  >> imp_res_tac
+       compute_boundedCase10173HistoricalCellTheory.bounded_case10173_checked_cell_accepts_guards
+  >> metis_tac []
+QED
+
 Theorem bounded_case10173_packet_object_job_direct_boundary:
   bounded_case10173_packet_accepts packet /\
   bounded_case10173_packet_box_binds_object_job packet object_job ==>
