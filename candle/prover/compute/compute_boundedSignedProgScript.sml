@@ -28,5 +28,11 @@ val bounded_signed_word64_mul_floor40_v =
   translate compute_boundedSignedTheory.bounded_signed_word64_mul_floor40_def;
 val bounded_signed_word64_mul_ceil40_v =
   translate compute_boundedSignedTheory.bounded_signed_word64_mul_ceil40_def;
+val bounded_signed_word64_mul_floor_decimal_v =
+  translate
+    compute_boundedSignedTheory.bounded_signed_word64_mul_floor_decimal_def;
+val bounded_signed_word64_mul_ceil_decimal_v =
+  translate
+    compute_boundedSignedTheory.bounded_signed_word64_mul_ceil_decimal_def;
 
 val _ = export_theory ();

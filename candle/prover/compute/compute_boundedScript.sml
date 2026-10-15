@@ -830,6 +830,35 @@ Proof
   >> simp [DIV_LT_X]
 QED
 
+(* Directed upper rounding at the same decimal scale.  This keeps the full
+ * product in the mathematical natural-number domain until after division;
+ * the two-word result is exact and total for every word64 input. *)
+Definition bounded_word64_mul_div_ceil_decimal_def:
+  bounded_word64_mul_div_ceil_decimal (left:word64) (right:word64) =
+    let quotient =
+      (w2n left * w2n right + 999999999999) DIV 1000000000000 in
+    Bounded128
+      ((n2w (quotient DIV 18446744073709551616)):word64)
+      ((n2w quotient):word64)
+End
+
+Theorem bounded_word64_mul_div_ceil_decimal_correct:
+  bounded128_to_num (bounded_word64_mul_div_ceil_decimal left right) =
+    (w2n left * w2n right + 999999999999) DIV 1000000000000
+Proof
+  rw [bounded_word64_mul_div_ceil_decimal_def, LET_THM,
+      bounded128_to_num_def, bounded_word_base_eq, w2n_n2w]
+  >> irule bounded_two_digit_reconstruct
+  >> simp []
+  >> qspec_then `left` assume_tac w2n_lt
+  >> qspec_then `right` assume_tac w2n_lt
+  >> `w2n left * w2n right <
+      18446744073709551616 * 18446744073709551616` by
+       (irule bounded_product_lt_square >> fs [dimword_64])
+  >> simp [DIV_LT_X]
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_word64_shift_pair40_correct:
   w2n (((low:word64) >>> 40) + ((high:word64) << 24)) +
     bounded_word_base * w2n (high >>> 40) =

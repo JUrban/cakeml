@@ -471,6 +471,222 @@ Proof
   >> asm_rewrite_tac []
 QED
 
+(* Decimal-scale counterpart of the directed signed product above.  The
+ * existing HOL Light nonlinear checker uses scale 10^12, so these are the
+ * first executable operations that can refine its fixed-scale arithmetic
+ * without a cross-scale analytic argument. *)
+Definition bounded_signed_word64_mul_floor_decimal_def:
+  bounded_signed_word64_mul_floor_decimal
+      (BoundedSigned64 left_negative left)
+      (BoundedSigned64 right_negative right) =
+    let negative = ¬(left_negative = right_negative) in
+    if negative then
+      SOME
+        (bounded_signed128_make T
+          (bounded_word64_mul_div_ceil_decimal left right))
+    else
+      SOME
+        (bounded_signed128_make F
+          (bounded_word64_mul_div_floor_decimal left right))
+End
+
+Definition bounded_signed_word64_mul_ceil_decimal_def:
+  bounded_signed_word64_mul_ceil_decimal
+      (BoundedSigned64 left_negative left)
+      (BoundedSigned64 right_negative right) =
+    let negative = ¬(left_negative = right_negative) in
+    if negative then
+      SOME
+        (bounded_signed128_make T
+          (bounded_word64_mul_div_floor_decimal left right))
+    else
+      SOME
+        (bounded_signed128_make F
+          (bounded_word64_mul_div_ceil_decimal left right))
+End
+
+Theorem bounded_signed_word64_mul_floor_decimal_total:
+  ∃result.
+    bounded_signed_word64_mul_floor_decimal left right = SOME result
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `b`
+  >> Cases_on `b'`
+  >> simp [bounded_signed_word64_mul_floor_decimal_def]
+QED
+
+Theorem bounded_signed_word64_mul_ceil_decimal_total:
+  ∃result.
+    bounded_signed_word64_mul_ceil_decimal left right = SOME result
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `b`
+  >> Cases_on `b'`
+  >> simp [bounded_signed_word64_mul_ceil_decimal_def]
+QED
+
+Theorem bounded_signed_word64_mul_floor_decimal_normalized:
+  bounded_signed_word64_mul_floor_decimal left right = SOME result ⇒
+  bounded_signed128_normalized result
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `b`
+  >> Cases_on `b'`
+  >> rw [bounded_signed_word64_mul_floor_decimal_def]
+  >> simp [bounded_signed128_make_normalized]
+QED
+
+Theorem bounded_signed_word64_mul_ceil_decimal_normalized:
+  bounded_signed_word64_mul_ceil_decimal left right = SOME result ⇒
+  bounded_signed128_normalized result
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `b`
+  >> Cases_on `b'`
+  >> rw [bounded_signed_word64_mul_ceil_decimal_def]
+  >> simp [bounded_signed128_make_normalized]
+QED
+
+Theorem bounded_signed_word64_mul_floor_decimal_magnitude:
+  bounded_signed_word64_mul_floor_decimal
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME result ⇒
+  bounded128_to_num (bounded_signed128_magnitude result) =
+    (if left_negative ≠ right_negative then
+       (w2n left_word * w2n right_word + 999999999999) DIV
+         1000000000000
+     else
+       (w2n left_word * w2n right_word) DIV 1000000000000)
+Proof
+  Cases_on `left_negative`
+  >> Cases_on `right_negative`
+  >> strip_tac
+  >> gvs [bounded_signed_word64_mul_floor_decimal_def,
+          bounded_signed128_make_magnitude,
+          bounded_word64_mul_div_floor_decimal_correct,
+          bounded_word64_mul_div_ceil_decimal_correct]
+QED
+
+Theorem bounded_signed_word64_mul_ceil_decimal_magnitude:
+  bounded_signed_word64_mul_ceil_decimal
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME result ⇒
+  bounded128_to_num (bounded_signed128_magnitude result) =
+    (if left_negative ≠ right_negative then
+       (w2n left_word * w2n right_word) DIV 1000000000000
+     else
+       (w2n left_word * w2n right_word + 999999999999) DIV
+         1000000000000)
+Proof
+  Cases_on `left_negative`
+  >> Cases_on `right_negative`
+  >> strip_tac
+  >> gvs [bounded_signed_word64_mul_ceil_decimal_def,
+          bounded_signed128_make_magnitude,
+          bounded_word64_mul_div_floor_decimal_correct,
+          bounded_word64_mul_div_ceil_decimal_correct]
+QED
+
+Theorem bounded_signed_word64_mul_floor_decimal_negative:
+  bounded_signed_word64_mul_floor_decimal
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME result ⇒
+  bounded_signed128_negative result =
+    (left_negative ≠ right_negative ∧
+     (w2n left_word * w2n right_word + 999999999999) DIV
+       1000000000000 ≠ 0)
+Proof
+  Cases_on `left_negative`
+  >> Cases_on `right_negative`
+  >> strip_tac
+  >> gvs [bounded_signed_word64_mul_floor_decimal_def,
+          bounded_signed128_make_negative,
+          bounded_word64_mul_div_ceil_decimal_correct]
+QED
+
+Theorem bounded_signed_word64_mul_ceil_decimal_negative:
+  bounded_signed_word64_mul_ceil_decimal
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME result ⇒
+  bounded_signed128_negative result =
+    (left_negative ≠ right_negative ∧
+     (w2n left_word * w2n right_word) DIV 1000000000000 ≠ 0)
+Proof
+  Cases_on `left_negative`
+  >> Cases_on `right_negative`
+  >> strip_tac
+  >> gvs [bounded_signed_word64_mul_ceil_decimal_def,
+          bounded_signed128_make_negative,
+          bounded_word64_mul_div_floor_decimal_correct]
+QED
+
+Theorem bounded_signed_word64_mul_decimal_directed_contract:
+  let product = w2n left_word * w2n right_word in
+  let floor_magnitude = product DIV 1000000000000 in
+  let ceil_magnitude =
+    (product + 999999999999) DIV 1000000000000 in
+  bounded_signed_word64_mul_floor_decimal
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME floor_result ∧
+  bounded_signed_word64_mul_ceil_decimal
+      (BoundedSigned64 left_negative left_word)
+      (BoundedSigned64 right_negative right_word) = SOME ceil_result ⇒
+  bounded_signed128_normalized floor_result ∧
+  bounded_signed128_normalized ceil_result ∧
+  bounded_signed128_negative floor_result =
+    (left_negative ≠ right_negative ∧ ceil_magnitude ≠ 0) ∧
+  bounded_signed128_negative ceil_result =
+    (left_negative ≠ right_negative ∧ floor_magnitude ≠ 0) ∧
+  bounded128_to_num (bounded_signed128_magnitude floor_result) =
+    (if left_negative ≠ right_negative then ceil_magnitude
+     else floor_magnitude) ∧
+  bounded128_to_num (bounded_signed128_magnitude ceil_result) =
+    (if left_negative ≠ right_negative then floor_magnitude
+     else ceil_magnitude)
+Proof
+  simp_tac std_ss [LET_THM]
+  >> strip_tac
+  >> imp_res_tac bounded_signed_word64_mul_floor_decimal_normalized
+  >> imp_res_tac bounded_signed_word64_mul_ceil_decimal_normalized
+  >> imp_res_tac bounded_signed_word64_mul_floor_decimal_negative
+  >> imp_res_tac bounded_signed_word64_mul_ceil_decimal_negative
+  >> imp_res_tac bounded_signed_word64_mul_floor_decimal_magnitude
+  >> imp_res_tac bounded_signed_word64_mul_ceil_decimal_magnitude
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_signed_word64_mul_decimal_zero_canonical_test:
+  bounded_signed_word64_mul_floor_decimal
+    (BoundedSigned64 T 0w) (BoundedSigned64 F 17w) =
+      SOME (BoundedSigned128 F (Bounded128 0w 0w)) ∧
+  bounded_signed_word64_mul_ceil_decimal
+    (BoundedSigned64 T 0w) (BoundedSigned64 F 17w) =
+      SOME (BoundedSigned128 F (Bounded128 0w 0w))
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded_signed_word64_mul_decimal_mixed_sign_test:
+  bounded_signed_word64_mul_floor_decimal
+    (BoundedSigned64 T 1000000000001w)
+    (BoundedSigned64 F 1000000000001w) =
+      SOME
+        (BoundedSigned128 T
+          (Bounded128 0w 1000000000003w)) ∧
+  bounded_signed_word64_mul_ceil_decimal
+    (BoundedSigned64 T 1000000000001w)
+    (BoundedSigned64 F 1000000000001w) =
+      SOME
+        (BoundedSigned128 T
+          (Bounded128 0w 1000000000002w))
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
 Theorem bounded_signed_word64_mul_zero_canonical_test:
   bounded_signed_word64_mul_floor40
     (BoundedSigned64 T 0w) (BoundedSigned64 F 17w) =
