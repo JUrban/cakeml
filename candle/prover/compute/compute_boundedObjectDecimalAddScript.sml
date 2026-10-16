@@ -290,4 +290,40 @@ Proof
         compute_boundedIntervalTheory.bounded_interval64_upper_def]
 QED
 
+Theorem bounded_object_fs_raw_interval_add_signed_values:
+  bounded_object_signed_int left_lower = SOME left_lower_value /\
+  bounded_object_signed_int left_upper = SOME left_upper_value /\
+  bounded_object_signed_int right_lower = SOME right_lower_value /\
+  bounded_object_signed_int right_upper = SOME right_upper_value ==>
+  ?lower upper.
+    bounded_object_fs_raw_interval_add
+      (Pair left_lower left_upper)
+      (Pair right_lower right_upper) = SOME (Pair lower upper) /\
+    bounded_object_signed_int lower =
+      SOME (left_lower_value + right_lower_value) /\
+    bounded_object_signed_int upper =
+      SOME (left_upper_value + right_upper_value)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_lower`, `right` |-> `right_lower`,
+          `left_value` |-> `left_lower_value`,
+          `right_value` |-> `right_lower_value`]
+         bounded_object_fs_raw_add_signed_value)
+  >> simp []
+  >> disch_then (qx_choose_then `lower` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_upper`, `right` |-> `right_upper`,
+          `left_value` |-> `left_upper_value`,
+          `right_value` |-> `right_upper_value`]
+         bounded_object_fs_raw_add_signed_value)
+  >> simp []
+  >> disch_then (qx_choose_then `upper` strip_assume_tac)
+  >> qexists_tac `lower`
+  >> qexists_tac `upper`
+  >> simp [bounded_object_fs_raw_interval_add_def]
+QED
+
 val _ = export_theory ();
