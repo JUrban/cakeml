@@ -1417,4 +1417,182 @@ Proof
   >> gvs []
 QED
 
+Definition bounded_object_fs_historical_delta_gradient_component_decimal_def:
+  bounded_object_fs_historical_delta_gradient_component_decimal
+      (coordinate:num) environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+      if coordinate = 0 then
+        bounded_object_fs_fused_products_decimal
+          [(bounded_interval64_neg x0,x3);
+           (bounded_interval64_neg x0,x3);
+           (x1,x3);(x1,x4);(bounded_interval64_neg x1,x5);
+           (x2,x3);(bounded_interval64_neg x2,x4);(x2,x5);
+           (bounded_interval64_neg x3,x3);(x3,x4);(x3,x5)]
+      else if coordinate = 1 then
+        bounded_object_fs_fused_products_decimal
+          [(x0,x3);(x0,x4);(bounded_interval64_neg x0,x5);
+           (bounded_interval64_neg x1,x4);
+           (bounded_interval64_neg x1,x4);
+           (bounded_interval64_neg x2,x3);(x2,x4);(x2,x5);
+           (x3,x4);(bounded_interval64_neg x4,x4);(x4,x5)]
+      else if coordinate = 2 then
+        bounded_object_fs_fused_products_decimal
+          [(x0,x3);(bounded_interval64_neg x0,x4);(x0,x5);
+           (bounded_interval64_neg x1,x3);(x1,x4);(x1,x5);
+           (bounded_interval64_neg x2,x5);
+           (bounded_interval64_neg x2,x5);
+           (x3,x5);(x4,x5);(bounded_interval64_neg x5,x5)]
+      else if coordinate = 3 then
+        bounded_object_fs_fused_products_decimal
+          [(bounded_interval64_neg x0,x0);(x0,x1);(x0,x2);
+           (bounded_interval64_neg x0,x3);
+           (bounded_interval64_neg x0,x3);
+           (x0,x4);(x0,x5);(bounded_interval64_neg x1,x2);
+           (x1,x4);(x2,x5);(bounded_interval64_neg x4,x5)]
+      else if coordinate = 4 then
+        bounded_object_fs_fused_products_decimal
+          [(x0,x1);(bounded_interval64_neg x0,x2);(x0,x3);
+           (bounded_interval64_neg x1,x1);(x1,x2);(x1,x3);
+           (bounded_interval64_neg x1,x4);
+           (bounded_interval64_neg x1,x4);
+           (x1,x5);(x2,x5);(bounded_interval64_neg x3,x5)]
+      else if coordinate = 5 then
+        bounded_object_fs_fused_products_decimal
+          [(bounded_interval64_neg x0,x1);(x0,x2);(x0,x3);
+           (x1,x2);(x1,x4);(bounded_interval64_neg x2,x2);
+           (x2,x3);(x2,x4);
+           (bounded_interval64_neg x2,x5);
+           (bounded_interval64_neg x2,x5);
+           (bounded_interval64_neg x3,x4)]
+      else NONE
+    | _ => NONE
+End
+
+Theorem bounded_object_fs_historical_delta_gradient_component_decimal_0_exact:
+  bounded_historical_delta_gradient_component_decimal 0 environment =
+    SOME result ==>
+  bounded_object_fs_historical_delta_gradient_component_decimal
+    0 environment = SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_gradient_component_decimal_def,
+     bounded_object_fs_historical_delta_gradient_component_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectDecimalFusedTheory.bounded_object_fs_fused_products_decimal_exact
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_historical_delta_gradient_component_decimal_1_exact:
+  bounded_historical_delta_gradient_component_decimal 1 environment =
+    SOME result ==>
+  bounded_object_fs_historical_delta_gradient_component_decimal
+    1 environment = SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_gradient_component_decimal_def,
+     bounded_object_fs_historical_delta_gradient_component_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectDecimalFusedTheory.bounded_object_fs_fused_products_decimal_exact
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_historical_delta_gradient_component_decimal_2_exact:
+  bounded_historical_delta_gradient_component_decimal 2 environment =
+    SOME result ==>
+  bounded_object_fs_historical_delta_gradient_component_decimal
+    2 environment = SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_gradient_component_decimal_def,
+     bounded_object_fs_historical_delta_gradient_component_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectDecimalFusedTheory.bounded_object_fs_fused_products_decimal_exact
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_historical_delta_gradient_component_decimal_3_exact:
+  bounded_historical_delta_gradient_component_decimal 3 environment =
+    SOME result ==>
+  bounded_object_fs_historical_delta_gradient_component_decimal
+    3 environment = SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_gradient_component_decimal_def,
+     bounded_object_fs_historical_delta_gradient_component_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectDecimalFusedTheory.bounded_object_fs_fused_products_decimal_exact
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_historical_delta_gradient_component_decimal_4_exact:
+  bounded_historical_delta_gradient_component_decimal 4 environment =
+    SOME result ==>
+  bounded_object_fs_historical_delta_gradient_component_decimal
+    4 environment = SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_gradient_component_decimal_def,
+     bounded_object_fs_historical_delta_gradient_component_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectDecimalFusedTheory.bounded_object_fs_fused_products_decimal_exact
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_historical_delta_gradient_component_decimal_5_exact:
+  bounded_historical_delta_gradient_component_decimal 5 environment =
+    SOME result ==>
+  bounded_object_fs_historical_delta_gradient_component_decimal
+    5 environment = SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_gradient_component_decimal_def,
+     bounded_object_fs_historical_delta_gradient_component_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectDecimalFusedTheory.bounded_object_fs_fused_products_decimal_exact
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_historical_delta_gradient_component_decimal_exact:
+  bounded_historical_delta_gradient_component_decimal coordinate environment =
+    SOME result ==>
+  bounded_object_fs_historical_delta_gradient_component_decimal
+    coordinate environment = SOME (bounded_interval64_object_cv result)
+Proof
+  Cases_on `coordinate = 0`
+  >- metis_tac
+       [bounded_object_fs_historical_delta_gradient_component_decimal_0_exact]
+  >> Cases_on `coordinate = 1`
+  >- metis_tac
+       [bounded_object_fs_historical_delta_gradient_component_decimal_1_exact]
+  >> Cases_on `coordinate = 2`
+  >- metis_tac
+       [bounded_object_fs_historical_delta_gradient_component_decimal_2_exact]
+  >> Cases_on `coordinate = 3`
+  >- metis_tac
+       [bounded_object_fs_historical_delta_gradient_component_decimal_3_exact]
+  >> Cases_on `coordinate = 4`
+  >- metis_tac
+       [bounded_object_fs_historical_delta_gradient_component_decimal_4_exact]
+  >> Cases_on `coordinate = 5`
+  >- metis_tac
+       [bounded_object_fs_historical_delta_gradient_component_decimal_5_exact]
+  >> rw
+       [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_gradient_component_decimal_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
 val _ = export_theory ();
