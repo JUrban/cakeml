@@ -1595,4 +1595,122 @@ Proof
   >> gvs []
 QED
 
+Theorem bounded_historical_delta_gradient_box_entry_decimal_source_trace:
+  bounded_historical_delta_gradient_box_entry_decimal
+      environment derivatives coordinate = SOME result ==>
+  ?lower_environment upper_environment lower_value upper_value.
+    bounded_historical_monotone_environment environment derivatives F =
+      SOME lower_environment /\
+    bounded_historical_monotone_environment environment derivatives T =
+      SOME upper_environment /\
+    bounded_historical_delta_gradient_component_decimal
+      coordinate lower_environment = SOME lower_value /\
+    bounded_historical_delta_gradient_component_decimal
+      coordinate upper_environment = SOME upper_value /\
+    result = bounded_historical_extreme_interval lower_value upper_value
+Proof
+  simp
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_gradient_box_entry_decimal_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+QED
+
+Definition bounded_object_fs_historical_delta_gradient_box_entry_decimal_def:
+  bounded_object_fs_historical_delta_gradient_box_entry_decimal
+      environment derivatives coordinate =
+    case bounded_historical_monotone_environment
+      environment derivatives F of
+    | NONE => NONE
+    | SOME lower_environment =>
+      case bounded_object_fs_historical_monotone_environment
+        environment derivatives F of
+      | NONE => NONE
+      | SOME object_lower_environment =>
+        case bounded_historical_monotone_environment
+          environment derivatives T of
+        | NONE => NONE
+        | SOME upper_environment =>
+          case bounded_object_fs_historical_monotone_environment
+            environment derivatives T of
+          | NONE => NONE
+          | SOME object_upper_environment =>
+            case bounded_historical_delta_gradient_component_decimal
+              coordinate lower_environment of
+            | NONE => NONE
+            | SOME lower_value =>
+              case bounded_object_fs_historical_delta_gradient_component_decimal
+                coordinate lower_environment of
+              | NONE => NONE
+              | SOME object_lower_value =>
+                case bounded_historical_delta_gradient_component_decimal
+                  coordinate upper_environment of
+                | NONE => NONE
+                | SOME upper_value =>
+                  case bounded_object_fs_historical_delta_gradient_component_decimal
+                    coordinate upper_environment of
+                  | NONE => NONE
+                  | SOME object_upper_value =>
+                      bounded_object_fs_historical_extreme_interval
+                        lower_value upper_value
+End
+
+Theorem bounded_object_fs_historical_delta_gradient_box_entry_decimal_exact:
+  bounded_historical_delta_gradient_box_entry_decimal
+      environment derivatives coordinate = SOME result ==>
+  bounded_object_fs_historical_delta_gradient_box_entry_decimal
+      environment derivatives coordinate =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> drule bounded_historical_delta_gradient_box_entry_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac bounded_object_fs_historical_monotone_environment_exact
+  >> imp_res_tac
+       bounded_object_fs_historical_delta_gradient_component_decimal_exact
+  >> gvs
+       [bounded_object_fs_historical_delta_gradient_box_entry_decimal_def,
+        bounded_object_fs_historical_extreme_interval_exact]
+QED
+
+Definition bounded_object_fs_historical_delta_gradient_box_decimal_def:
+  bounded_object_fs_historical_delta_gradient_box_decimal environment
+      [] [] = SOME (Num 0 : cv) /\
+  bounded_object_fs_historical_delta_gradient_box_decimal environment
+      (coordinate::coordinates) (derivatives::derivative_rows) =
+    (case bounded_object_fs_historical_delta_gradient_box_entry_decimal
+      environment derivatives coordinate of
+    | NONE => NONE
+    | SOME value =>
+      case bounded_object_fs_historical_delta_gradient_box_decimal
+        environment coordinates derivative_rows of
+      | NONE => NONE
+      | SOME rest => SOME (Pair value rest)) /\
+  bounded_object_fs_historical_delta_gradient_box_decimal environment
+      _ _ = NONE
+End
+
+Theorem bounded_object_fs_historical_delta_gradient_box_decimal_exact:
+  !derivative_rows result.
+    bounded_historical_delta_gradient_box_decimal environment coordinates
+      derivative_rows = SOME result ==>
+    bounded_object_fs_historical_delta_gradient_box_decimal environment
+      coordinates derivative_rows =
+    SOME (bounded_interval64_object_cv_list result)
+Proof
+  Induct_on `coordinates`
+  >> Cases_on `derivative_rows`
+  >> rw
+       [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_gradient_box_decimal_def,
+        bounded_object_fs_historical_delta_gradient_box_decimal_def,
+        compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       bounded_object_fs_historical_delta_gradient_box_entry_decimal_exact
+  >> res_tac
+  >> gvs
+       [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
 val _ = export_theory ();
