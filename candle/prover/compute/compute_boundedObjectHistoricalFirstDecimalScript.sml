@@ -192,4 +192,167 @@ Proof
         compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
 QED
 
+Definition bounded_object_fs_signed_interval_list_def:
+  bounded_object_fs_signed_interval_list [] = SOME (Num 0 : cv) /\
+  bounded_object_fs_signed_interval_list ((negative,value)::rest) =
+    case (if negative then
+            bounded_object_fs_interval_neg
+              (bounded_interval64_object_cv value)
+          else SOME (bounded_interval64_object_cv value)) of
+    | NONE => NONE
+    | SOME signed_value =>
+      case bounded_object_fs_signed_interval_list rest of
+      | NONE => NONE
+      | SOME signed_rest => SOME (Pair signed_value signed_rest)
+End
+
+Theorem bounded_object_fs_signed_interval_list_exact:
+  !entries.
+    bounded_object_fs_signed_interval_list entries =
+      SOME
+        (bounded_interval64_object_cv_list
+          (MAP (\(negative,value).
+             if negative then bounded_interval64_neg value else value)
+           entries))
+Proof
+  Induct
+  >- simp [bounded_object_fs_signed_interval_list_def,
+           compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+  >> gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `h0`
+  >> simp [bounded_object_fs_signed_interval_list_def,
+           compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact,
+           compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
+Definition bounded_object_fs_interval_sum_signed_def:
+  bounded_object_fs_interval_sum_signed entries =
+    case bounded_object_fs_signed_interval_list entries of
+    | NONE => NONE
+    | SOME values => bounded_object_fs_interval_sum values
+End
+
+Theorem bounded_object_fs_interval_sum_signed_exact:
+  bounded_interval64_sum
+      (MAP (\(negative,value).
+         if negative then bounded_interval64_neg value else value) entries) =
+    SOME result ==>
+  bounded_object_fs_interval_sum_signed entries =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw [bounded_object_fs_interval_sum_signed_def,
+      bounded_object_fs_signed_interval_list_exact]
+  >> metis_tac
+       [compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_sum_exact]
+QED
+
+Definition bounded_object_fs_delta64_pair_products_decimal_def:
+  bounded_object_fs_delta64_pair_products_decimal environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+      bounded_object_fs_interval_list_pairwise_mul_decimal
+        (bounded_interval64_object_cv_list
+          [x0;x0;x0;x0;x0;x0;
+           x1;x1;x1;x1;x1;
+           x2;x2;x2;x2;
+           x3;x3;x3;
+           x4;x4;
+           x5])
+        (bounded_interval64_object_cv_list
+          [x0;x1;x2;x3;x4;x5;
+           x1;x2;x3;x4;x5;
+           x2;x3;x4;x5;
+           x3;x4;x5;
+           x4;x5;
+           x5])
+    | _ => NONE
+End
+
+Theorem bounded_object_fs_delta64_pair_products_decimal_exact:
+  bounded_delta64_pair_products_decimal environment = SOME result ==>
+  bounded_object_fs_delta64_pair_products_decimal environment =
+    SOME (bounded_interval64_object_cv_list result)
+Proof
+  rw [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_delta64_pair_products_decimal_def,
+      bounded_object_fs_delta64_pair_products_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> metis_tac
+       [compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_list_pairwise_mul_decimal_exact]
+QED
+
+Definition bounded_object_fs_delta64_gradient_component_from_products_def:
+  bounded_object_fs_delta64_gradient_component_from_products (coordinate:num)
+      products =
+    case bounded_delta64_gradient_signed_terms coordinate products of
+    | NONE => NONE
+    | SOME terms => bounded_object_fs_interval_sum_signed terms
+End
+
+val bounded_delta_gradient_component_defs =
+  [compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_component_from_products_def,
+   compute_boundedDeltaTaylorTheory.bounded_delta64_apply_signed_terms_def,
+   bounded_object_fs_delta64_gradient_component_from_products_def];
+
+Theorem bounded_object_fs_delta64_gradient_component_from_products_exact:
+  bounded_delta64_gradient_component_from_products coordinate products =
+    SOME result ==>
+  bounded_object_fs_delta64_gradient_component_from_products coordinate
+    products = SOME (bounded_interval64_object_cv result)
+Proof
+  rw bounded_delta_gradient_component_defs
+  >> every_case_tac
+  >> gvs []
+  >> metis_tac [bounded_object_fs_interval_sum_signed_exact]
+QED
+
+Definition bounded_object_fs_delta64_gradient_components_def:
+  bounded_object_fs_delta64_gradient_components [] products =
+    SOME (Num 0 : cv) /\
+  bounded_object_fs_delta64_gradient_components
+      (coordinate::coordinates) products =
+    case bounded_object_fs_delta64_gradient_component_from_products
+      coordinate products of
+    | NONE => NONE
+    | SOME entry =>
+      case bounded_object_fs_delta64_gradient_components coordinates products of
+      | NONE => NONE
+      | SOME rest => SOME (Pair entry rest)
+End
+
+Theorem bounded_object_fs_delta64_gradient_components_exact:
+  !products result.
+    bounded_delta64_gradient_components coordinates products = SOME result ==>
+    bounded_object_fs_delta64_gradient_components coordinates products =
+      SOME (bounded_interval64_object_cv_list result)
+Proof
+  Induct_on `coordinates`
+  >> rw [compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_components_def,
+         bounded_object_fs_delta64_gradient_components_def,
+         compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       bounded_object_fs_delta64_gradient_component_from_products_exact
+  >> res_tac
+  >> gvs
+       [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
+Definition bounded_object_fs_delta64_gradient_from_products_def:
+  bounded_object_fs_delta64_gradient_from_products products =
+    bounded_object_fs_delta64_gradient_components [0;1;2;3;4;5] products
+End
+
+Theorem bounded_object_fs_delta64_gradient_from_products_exact:
+  bounded_delta64_gradient_from_products products = SOME result ==>
+  bounded_object_fs_delta64_gradient_from_products products =
+    SOME (bounded_interval64_object_cv_list result)
+Proof
+  rw [compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_from_products_def,
+      bounded_object_fs_delta64_gradient_from_products_def]
+  >> metis_tac [bounded_object_fs_delta64_gradient_components_exact]
+QED
+
 val _ = export_theory ();

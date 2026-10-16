@@ -13,6 +13,10 @@ val _ = translate
   compute_boundedTaylorBaseTheory.bounded_interval64_nth_def;
 val _ = translate compute_boundedDeltaTaylorTheory.bounded_interval64_scale4_def;
 val _ = translate
+  compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_signed_terms_def;
+val _ = translate
+  compute_boundedDeltaTaylorTheory.bounded_delta64_apply_signed_terms_def;
+val _ = translate
   compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_component_from_products_def;
 val _ = translate
   compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_components_def;

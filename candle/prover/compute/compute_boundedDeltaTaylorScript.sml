@@ -81,8 +81,8 @@ Definition bounded_delta64_pair_products_def:
     | _ => NONE
 End
 
-Definition bounded_delta64_gradient_component_from_products_def:
-  bounded_delta64_gradient_component_from_products (coordinate:num) products =
+Definition bounded_delta64_gradient_signed_terms_def:
+  bounded_delta64_gradient_signed_terms (coordinate:num) products =
     case products of
     | p00::p01::p02::p03::p04::p05::
       p11::p12::p13::p14::p15::
@@ -91,43 +91,45 @@ Definition bounded_delta64_gradient_component_from_products_def:
       p44::p45::
       p55::[] =>
       if coordinate = 0 then
-        bounded_interval64_sum
-          [bounded_interval64_neg p03; bounded_interval64_neg p03;
-           p13;p14;bounded_interval64_neg p15;p23;
-           bounded_interval64_neg p24;p25;
-           bounded_interval64_neg p33;p34;p35]
+        SOME
+          [(T,p03);(T,p03);(F,p13);(F,p14);(T,p15);(F,p23);
+           (T,p24);(F,p25);(T,p33);(F,p34);(F,p35)]
       else if coordinate = 1 then
-        bounded_interval64_sum
-          [p03;p04;bounded_interval64_neg p05;
-           bounded_interval64_neg p14;bounded_interval64_neg p14;
-           bounded_interval64_neg p23;p24;p25;p34;
-           bounded_interval64_neg p44;p45]
+        SOME
+          [(F,p03);(F,p04);(T,p05);(T,p14);(T,p14);(T,p23);
+           (F,p24);(F,p25);(F,p34);(T,p44);(F,p45)]
       else if coordinate = 2 then
-        bounded_interval64_sum
-          [p03;bounded_interval64_neg p04;p05;
-           bounded_interval64_neg p13;p14;p15;
-           bounded_interval64_neg p25;bounded_interval64_neg p25;
-           p35;p45;bounded_interval64_neg p55]
+        SOME
+          [(F,p03);(T,p04);(F,p05);(T,p13);(F,p14);(F,p15);
+           (T,p25);(T,p25);(F,p35);(F,p45);(T,p55)]
       else if coordinate = 3 then
-        bounded_interval64_sum
-          [bounded_interval64_neg p00;p01;p02;
-           bounded_interval64_neg p03;bounded_interval64_neg p03;
-           p04;p05;bounded_interval64_neg p12;p14;p25;
-           bounded_interval64_neg p45]
+        SOME
+          [(T,p00);(F,p01);(F,p02);(T,p03);(T,p03);(F,p04);
+           (F,p05);(T,p12);(F,p14);(F,p25);(T,p45)]
       else if coordinate = 4 then
-        bounded_interval64_sum
-          [p01;bounded_interval64_neg p02;p03;
-           bounded_interval64_neg p11;p12;p13;
-           bounded_interval64_neg p14;bounded_interval64_neg p14;
-           p15;p25;bounded_interval64_neg p35]
+        SOME
+          [(F,p01);(T,p02);(F,p03);(T,p11);(F,p12);(F,p13);
+           (T,p14);(T,p14);(F,p15);(F,p25);(T,p35)]
       else if coordinate = 5 then
-        bounded_interval64_sum
-          [bounded_interval64_neg p01;p02;p03;p12;p14;
-           bounded_interval64_neg p22;p23;p24;
-           bounded_interval64_neg p25;bounded_interval64_neg p25;
-           bounded_interval64_neg p34]
+        SOME
+          [(T,p01);(F,p02);(F,p03);(F,p12);(F,p14);(T,p22);
+           (F,p23);(F,p24);(T,p25);(T,p25);(T,p34)]
       else NONE
     | _ => NONE
+End
+
+Definition bounded_delta64_apply_signed_terms_def:
+  bounded_delta64_apply_signed_terms terms =
+    MAP (\(negative,value).
+      if negative then bounded_interval64_neg value else value) terms
+End
+
+Definition bounded_delta64_gradient_component_from_products_def:
+  bounded_delta64_gradient_component_from_products coordinate products =
+    case bounded_delta64_gradient_signed_terms coordinate products of
+    | NONE => NONE
+    | SOME terms =>
+        bounded_interval64_sum (bounded_delta64_apply_signed_terms terms)
 End
 
 Definition bounded_delta64_gradient_components_def:

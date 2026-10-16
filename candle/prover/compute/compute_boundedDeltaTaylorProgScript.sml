@@ -21,6 +21,10 @@ val bounded_interval64_sums_v =
   translate compute_boundedDeltaTaylorTheory.bounded_interval64_sums_def;
 val bounded_delta64_pair_products_v =
   translate compute_boundedDeltaTaylorTheory.bounded_delta64_pair_products_def;
+val bounded_delta64_gradient_signed_terms_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_signed_terms_def;
+val bounded_delta64_apply_signed_terms_v =
+  translate compute_boundedDeltaTaylorTheory.bounded_delta64_apply_signed_terms_def;
 val bounded_delta64_gradient_component_from_products_v =
   translate
     compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_component_from_products_def;
