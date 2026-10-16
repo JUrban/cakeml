@@ -334,4 +334,35 @@ Proof
         ml_monadBaseTheory.st_ex_return_def]
 QED
 
+Theorem registered_case10173_fs_interval_lookup_tail_eval:
+  1 < clock /\
+  compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_interval_lookup»
+        [from_cv (Num variable);from_cv items]) (refs:hol_refs) = result ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_interval_lookup»
+        [from_cv (Num (SUC variable));from_cv (Pair item items)]) refs =
+    result
+Proof
+  strip_tac
+  >> simp [registered_case10173_fs_interval_lookup_unfold]
+  >> fs
+       [registered_case10173_fs_interval_lookup_body_def,
+        registered_case10173_fs_interval_lookup_unfold,
+        compute_execTheory.from_cv_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.compute_eval_def,
+        compute_evalTheory.subst_def,
+        compute_evalTheory.do_uop_def,
+        compute_evalTheory.do_ispair_def,
+        compute_evalTheory.do_snd_def,
+        compute_evalTheory.do_binop_def,
+        compute_evalTheory.do_eq_def,
+        compute_evalTheory.do_arith_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> gvs []
+QED
+
 val _ = export_theory ();
