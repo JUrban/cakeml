@@ -34,6 +34,38 @@ Definition bounded_object_int_max4_def:
       (bounded_object_int_max third fourth)
 End
 
+Theorem bounded_object_int_min4_eq_member:
+  (candidate = first_value \/ candidate = second_value \/
+   candidate = third_value \/ candidate = fourth_value) /\
+  candidate <= first_value /\
+  candidate <= second_value /\
+  candidate <= third_value /\
+  candidate <= fourth_value ==>
+  bounded_object_int_min4 first_value second_value
+      third_value fourth_value = candidate
+Proof
+  rw [bounded_object_int_min4_def, bounded_object_int_min_def]
+  >> every_case_tac
+  >> gvs []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_object_int_max4_eq_member:
+  (candidate = first_value \/ candidate = second_value \/
+   candidate = third_value \/ candidate = fourth_value) /\
+  first_value <= candidate /\
+  second_value <= candidate /\
+  third_value <= candidate /\
+  fourth_value <= candidate ==>
+  bounded_object_int_max4 first_value second_value
+      third_value fourth_value = candidate
+Proof
+  rw [bounded_object_int_max4_def, bounded_object_int_max_def]
+  >> every_case_tac
+  >> gvs []
+  >> intLib.ARITH_TAC
+QED
+
 Definition bounded_object_fs_raw_interval_extrema_def:
   bounded_object_fs_raw_interval_extrema first second third fourth =
     case bounded_object_fs_raw_min first second of
