@@ -7,6 +7,135 @@ Ancestors
 Libs
   bossLib preamble
 
+Theorem bounded_raw128_interval_mul64_corner_members:
+  bounded_raw128_interval_mul64_unchecked
+      (left_lower,left_upper)
+      (BoundedInterval64 right_lower right_upper) = SOME (lower,upper) ==>
+  (bounded_signed192_to_int lower =
+       bounded_signed128_to_int left_lower *
+         bounded_signed64_to_int right_lower \/
+   bounded_signed192_to_int lower =
+       bounded_signed128_to_int left_lower *
+         bounded_signed64_to_int right_upper \/
+   bounded_signed192_to_int lower =
+       bounded_signed128_to_int left_upper *
+         bounded_signed64_to_int right_lower \/
+   bounded_signed192_to_int lower =
+       bounded_signed128_to_int left_upper *
+         bounded_signed64_to_int right_upper) /\
+  (bounded_signed192_to_int upper =
+       bounded_signed128_to_int left_lower *
+         bounded_signed64_to_int right_lower \/
+   bounded_signed192_to_int upper =
+       bounded_signed128_to_int left_lower *
+         bounded_signed64_to_int right_upper \/
+   bounded_signed192_to_int upper =
+       bounded_signed128_to_int left_upper *
+         bounded_signed64_to_int right_lower \/
+   bounded_signed192_to_int upper =
+       bounded_signed128_to_int left_upper *
+         bounded_signed64_to_int right_upper)
+Proof
+  Cases_on `bounded_signed128_nonnegative left_lower`
+  >> Cases_on `bounded_signed128_nonpositive left_upper`
+  >> Cases_on `bounded_signed64_nonnegative right_lower`
+  >> Cases_on `bounded_signed64_nonpositive right_upper`
+  >> rw
+       [compute_boundedHistoricalDeltaTheory.bounded_raw128_interval_mul64_unchecked_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedHistoricalDeltaTheory.bounded_raw128_interval_product_from_pairs_value
+  >> imp_res_tac
+       compute_boundedHistoricalDeltaTheory.bounded_raw128_interval_product_mixed_value
+  >> every_case_tac
+  >> gvs []
+QED
+
+Theorem bounded_raw128_interval_mul64_object_extrema:
+  bounded_signed128_normalized left_lower /\
+  bounded_signed128_normalized left_upper /\
+  bounded_signed128_to_int left_lower <=
+    bounded_signed128_to_int left_upper /\
+  bounded_interval64_valid
+    (BoundedInterval64 right_lower right_upper) /\
+  bounded_raw128_interval_mul64_unchecked
+      (left_lower,left_upper)
+      (BoundedInterval64 right_lower right_upper) = SOME (lower,upper) ==>
+  bounded_signed192_to_int lower =
+    bounded_object_int_min4
+      (bounded_signed128_to_int left_lower *
+        bounded_signed64_to_int right_lower)
+      (bounded_signed128_to_int left_lower *
+        bounded_signed64_to_int right_upper)
+      (bounded_signed128_to_int left_upper *
+        bounded_signed64_to_int right_lower)
+      (bounded_signed128_to_int left_upper *
+        bounded_signed64_to_int right_upper) /\
+  bounded_signed192_to_int upper =
+    bounded_object_int_max4
+      (bounded_signed128_to_int left_lower *
+        bounded_signed64_to_int right_lower)
+      (bounded_signed128_to_int left_lower *
+        bounded_signed64_to_int right_upper)
+      (bounded_signed128_to_int left_upper *
+        bounded_signed64_to_int right_lower)
+      (bounded_signed128_to_int left_upper *
+        bounded_signed64_to_int right_upper)
+Proof
+  strip_tac
+  >> mp_tac
+       (INST
+         [``(left_lower:int)`` |->
+            ``bounded_signed128_to_int
+                (left_lower:bounded_signed128)``,
+          ``(left_upper:int)`` |->
+            ``bounded_signed128_to_int
+                (left_upper:bounded_signed128)``,
+          ``(right_lower:int)`` |->
+            ``bounded_signed64_to_int
+                (right_lower:bounded_signed64)``,
+          ``(right_upper:int)`` |->
+            ``bounded_signed64_to_int
+                (right_upper:bounded_signed64)``,
+          ``(lower:int)`` |->
+            ``bounded_signed192_to_int
+                (lower:bounded_signed192)``,
+          ``(upper:int)`` |->
+            ``bounded_signed192_to_int
+                (upper:bounded_signed192)``]
+         compute_boundedObjectDecimalIntervalTheory.bounded_object_int_product_extrema_from_bounds)
+  >> impl_tac
+  >- (fs
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+      >> conj_tac
+      >- (drule bounded_raw128_interval_mul64_corner_members
+          >> simp [])
+      >> conj_tac
+      >- (drule bounded_raw128_interval_mul64_corner_members
+          >> simp [])
+      >> rpt gen_tac
+      >> strip_tac
+      >> mp_tac
+           (Q.INST
+             [`left_lower` |-> `left_lower`,
+              `left_upper` |-> `left_upper`,
+              `right` |->
+                `BoundedInterval64 right_lower right_upper`,
+              `left_value` |-> `left_value`,
+              `right_value` |-> `right_value`,
+              `lower` |-> `lower`, `upper` |-> `upper`]
+             compute_boundedHistoricalDeltaTheory.bounded_raw128_interval_mul64_contains_product)
+      >> simp
+           [compute_boundedIntervalTheory.bounded_interval64_contains_int_def,
+            compute_boundedIntervalTheory.bounded_interval64_lower_def,
+            compute_boundedIntervalTheory.bounded_interval64_upper_def,
+            compute_boundedIntervalTheory.bounded_interval64_valid_def,
+            compute_boundedSignedEndpointTheory.bounded_signed64_le_correct])
+  >> simp []
+QED
+
 Definition bounded_object_fs_historical_delta_x4_value_decimal_def:
   bounded_object_fs_historical_delta_x4_value_decimal environment =
     case environment of
