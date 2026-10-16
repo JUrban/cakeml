@@ -357,6 +357,60 @@ Proof
   >> metis_tac []
 QED
 
+Definition bounded_object_raw_interval_cv_list_rel_def:
+  (bounded_object_raw_interval_cv_list_rel (Num 0) [] <=> T) /\
+  (bounded_object_raw_interval_cv_list_rel
+      (Pair (Pair object_lower object_upper) object_rest)
+      ((source_lower,source_upper)::source_rest) <=>
+    bounded_object_signed_int object_lower =
+      SOME (bounded_signed192_to_int source_lower) /\
+    bounded_object_signed_int object_upper =
+      SOME (bounded_signed192_to_int source_upper) /\
+    bounded_object_raw_interval_cv_list_rel object_rest source_rest) /\
+  (bounded_object_raw_interval_cv_list_rel _ _ <=> F)
+End
+
+Definition bounded_object_fs_historical_raw_cubics_def:
+  bounded_object_fs_historical_raw_cubics [] = SOME (Num 0 : cv) /\
+  bounded_object_fs_historical_raw_cubics
+      ((first_interval,second_interval,third_interval,negative)::rest) =
+    case bounded_object_fs_historical_raw_cubic_signed
+      first_interval second_interval third_interval negative of
+    | NONE => NONE
+    | SOME raw =>
+      case bounded_object_fs_historical_raw_cubics rest of
+      | NONE => NONE
+      | SOME raw_rest => SOME (Pair raw raw_rest)
+End
+
+Theorem bounded_object_fs_historical_raw_cubics_exact:
+  !results.
+    bounded_historical_raw_cubics terms = SOME results ==>
+    ?object_results.
+      bounded_object_fs_historical_raw_cubics terms =
+        SOME object_results /\
+      bounded_object_raw_interval_cv_list_rel object_results results
+Proof
+  Induct_on `terms`
+  >- simp
+       [compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubics_def,
+        bounded_object_fs_historical_raw_cubics_def,
+        bounded_object_raw_interval_cv_list_rel_def]
+  >> rpt gen_tac
+  >> PairCases_on `h`
+  >> rw
+       [compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubics_def]
+  >> every_case_tac
+  >> gvs []
+  >> PairCases_on `x'`
+  >> imp_res_tac bounded_object_fs_historical_raw_cubic_signed_exact
+  >> res_tac
+  >> qexists_tac `Pair (Pair object_lower object_upper) object_results`
+  >> gvs
+       [bounded_object_fs_historical_raw_cubics_def,
+        bounded_object_raw_interval_cv_list_rel_def]
+QED
+
 Definition bounded_object_fs_historical_delta_x4_value_decimal_def:
   bounded_object_fs_historical_delta_x4_value_decimal environment =
     case environment of
