@@ -2106,4 +2106,77 @@ Proof
   >> gvs []
 QED
 
+Theorem bounded_historical_dihedral_first64_decimal_source_trace:
+  bounded_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ==>
+  ?delta_interval x0 four_x0 twice_root_delta
+   delta_products delta_gradient root_gradient delta_x4
+   delta_x4_gradient u126 u126_gradient u135 u135_gradient b
+   u_product two two_over_root_four b_gradient_base b_correction
+   b_gradient c gradient_base special_gradient quotient angle.
+    bounded_historical_delta64_value_decimal environment =
+      SOME delta_interval /\
+    bounded_interval64_positive_sqrt_certificate_decimal
+      delta_interval root_delta /\
+    bounded_interval64_nth environment 0 = SOME x0 /\
+    bounded_interval64_scale4 x0 = SOME four_x0 /\
+    bounded_interval64_positive_sqrt_certificate_decimal
+      four_x0 root_four_x0 /\
+    bounded_historical_scale2 root_delta = SOME twice_root_delta /\
+    bounded_interval64_positive_inv_certificate_decimal
+      twice_root_delta root_derivative /\
+    bounded_interval64_positive_inv_certificate_decimal
+      twice_root_delta special_root_reciprocal /\
+    bounded_interval64_positive_inv_certificate_decimal
+      root_four_x0 root_four_reciprocal /\
+    bounded_delta64_pair_products_decimal environment =
+      SOME delta_products /\
+    bounded_delta64_gradient_from_products delta_products =
+      SOME delta_gradient /\
+    bounded_interval64_list_scale_decimal root_derivative delta_gradient =
+      SOME root_gradient /\
+    bounded_historical_delta_x4_value_decimal environment = SOME delta_x4 /\
+    bounded_historical_delta_x4_gradient environment =
+      SOME delta_x4_gradient /\
+    bounded_historical_u126_decimal environment =
+      SOME (u126,u126_gradient) /\
+    bounded_historical_u135_decimal environment =
+      SOME (u135,u135_gradient) /\
+    bounded_interval64_mul_decimal root_delta root_four_x0 = SOME b /\
+    bounded_interval64_positive_inv_certificate_decimal b b_reciprocal /\
+    bounded_interval64_mul_decimal u126 u135 = SOME u_product /\
+    bounded_interval64_positive_inv_certificate_decimal
+      u_product u_reciprocal /\
+    bounded_historical_scale2 bounded_atan_one_decimal = SOME two /\
+    bounded_interval64_mul_decimal two root_four_reciprocal =
+      SOME two_over_root_four /\
+    bounded_interval64_list_scale_decimal root_four_x0 root_gradient =
+      SOME b_gradient_base /\
+    bounded_interval64_mul_decimal root_delta two_over_root_four =
+      SOME b_correction /\
+    bounded_interval64_list_add_at b_correction 0 b_gradient_base =
+      SOME b_gradient /\
+    bounded_historical_c_vector_decimal delta_x4 b
+      delta_x4_gradient b_gradient = SOME c /\
+    bounded_interval64_list_scale_decimal u_reciprocal c =
+      SOME gradient_base /\
+    bounded_interval64_mul_decimal root_four_x0 special_root_reciprocal =
+      SOME special_gradient /\
+    bounded_historical_replace_three gradient_base special_gradient =
+      SOME gradient /\
+    bounded_interval64_mul_decimal
+      (bounded_interval64_neg delta_x4) b_reciprocal = SOME quotient /\
+    bounded_interval64_atan_range_decimal quotient NONE NONE = SOME angle /\
+    bounded_interval64_add bounded_atan_pi_half_decimal angle = SOME value
+Proof
+  simp
+    [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_dihedral_first64_decimal_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> simp []
+QED
+
 val _ = export_theory ();
