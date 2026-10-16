@@ -1087,4 +1087,150 @@ Proof
         compute_boundedIntervalTheory.bounded_interval64_upper_def]
 QED
 
+Definition bounded_object_fs_historical_delta_x4_value_block_decimal_def:
+  bounded_object_fs_historical_delta_x4_value_block_decimal environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+      case bounded_interval64_sum
+        [bounded_interval64_neg x0;x1;x2;
+         bounded_interval64_neg x3;x4;x5] of
+      | NONE => NONE
+      | SOME linear =>
+        case bounded_object_fs_interval_sum_signed
+          [(T,x0);(F,x1);(F,x2);(T,x3);(F,x4);(F,x5)] of
+        | NONE => NONE
+        | SOME object_linear =>
+            bounded_object_fs_fused_products_decimal
+              [(bounded_interval64_neg x1,x2);
+               (bounded_interval64_neg x0,x3);
+               (x1,x4);(x2,x5);
+               (bounded_interval64_neg x4,x5);
+               (x0,linear)]
+    | _ => NONE
+End
+
+Theorem bounded_object_fs_historical_delta_x4_value_block_decimal_exact:
+  bounded_historical_delta_x4_value_block_decimal environment = SOME result ==>
+  bounded_object_fs_historical_delta_x4_value_block_decimal environment =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_x4_value_block_decimal_def,
+     bounded_object_fs_historical_delta_x4_value_block_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_fs_interval_sum_negative_zero_three_exact
+  >> imp_res_tac
+       compute_boundedObjectDecimalFusedTheory.bounded_object_fs_fused_products_decimal_exact
+  >> gvs []
+QED
+
+Definition bounded_object_fs_historical_delta_x4_hessian_decimal_def:
+  bounded_object_fs_historical_delta_x4_hessian_decimal =
+    case bounded_object_fs_interval_scale2
+      (bounded_interval64_object_cv bounded_atan_one_decimal) of
+    | NONE => NONE
+    | SOME object_two =>
+      case bounded_object_fs_interval_neg object_two of
+      | NONE => NONE
+      | SOME negative_two =>
+        case bounded_object_fs_interval_neg
+          (bounded_interval64_object_cv bounded_atan_one_decimal) of
+        | NONE => NONE
+        | SOME negative_one =>
+              SOME
+                (Pair negative_two
+                  (Pair
+                    (bounded_interval64_object_cv bounded_atan_one_decimal)
+                    (Pair
+                      (bounded_interval64_object_cv bounded_atan_one_decimal)
+                      (Pair negative_two
+                        (Pair
+                          (bounded_interval64_object_cv bounded_atan_one_decimal)
+                          (Pair
+                            (bounded_interval64_object_cv bounded_atan_one_decimal)
+                            (Pair
+                              (bounded_interval64_object_cv bounded_interval64_zero)
+                              (Pair negative_one
+                                (Pair
+                                  (bounded_interval64_object_cv bounded_interval64_zero)
+                                  (Pair
+                                    (bounded_interval64_object_cv bounded_atan_one_decimal)
+                                    (Pair
+                                      (bounded_interval64_object_cv bounded_interval64_zero)
+                                      (Pair
+                                        (bounded_interval64_object_cv bounded_interval64_zero)
+                                        (Pair
+                                          (bounded_interval64_object_cv bounded_interval64_zero)
+                                          (Pair
+                                            (bounded_interval64_object_cv bounded_interval64_zero)
+                                            (Pair
+                                              (bounded_interval64_object_cv bounded_atan_one_decimal)
+                                              (Pair
+                                                (bounded_interval64_object_cv bounded_interval64_zero)
+                                                (Pair
+                                                  (bounded_interval64_object_cv bounded_interval64_zero)
+                                                  (Pair
+                                                    (bounded_interval64_object_cv bounded_interval64_zero)
+                                                    (Pair
+                                                      (bounded_interval64_object_cv bounded_interval64_zero)
+                                                      (Pair negative_one
+                                                        (Pair
+                                                          (bounded_interval64_object_cv bounded_interval64_zero)
+                                                          (Num 0))))))))))))))))))))))
+End
+
+Theorem bounded_historical_delta_x4_hessian_decimal_source_trace:
+  bounded_historical_delta_x4_hessian_decimal = SOME result ==>
+  ?two.
+    bounded_historical_scale2 bounded_atan_one_decimal = SOME two /\
+    result =
+      [bounded_interval64_neg two;
+       bounded_atan_one_decimal;bounded_atan_one_decimal;
+       bounded_interval64_neg two;
+       bounded_atan_one_decimal;bounded_atan_one_decimal;
+       bounded_interval64_zero;
+       bounded_interval64_neg bounded_atan_one_decimal;
+       bounded_interval64_zero;bounded_atan_one_decimal;
+       bounded_interval64_zero;
+       bounded_interval64_zero;
+       bounded_interval64_zero;bounded_interval64_zero;
+       bounded_atan_one_decimal;
+       bounded_interval64_zero;bounded_interval64_zero;
+       bounded_interval64_zero;
+       bounded_interval64_zero;
+       bounded_interval64_neg bounded_atan_one_decimal;
+       bounded_interval64_zero]
+Proof
+  simp
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_x4_hessian_decimal_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_historical_delta_x4_hessian_decimal_exact:
+  bounded_historical_delta_x4_hessian_decimal = SOME result ==>
+  bounded_object_fs_historical_delta_x4_hessian_decimal =
+    SOME (bounded_interval64_object_cv_list result)
+Proof
+  strip_tac
+  >> drule bounded_historical_delta_x4_hessian_decimal_source_trace
+  >> strip_tac
+  >> `bounded_object_fs_interval_scale2
+        (bounded_interval64_object_cv bounded_atan_one_decimal) =
+      SOME (bounded_interval64_object_cv two)` by
+       metis_tac
+         [compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_scale2_exact]
+  >> qpat_x_assum
+       `bounded_object_fs_interval_scale2 _ =
+          SOME (bounded_interval64_object_cv two)`
+       (fn object_two =>
+          simp
+            [bounded_object_fs_historical_delta_x4_hessian_decimal_def,
+             object_two,
+             compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact,
+             compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def])
+QED
+
 val _ = export_theory ();
