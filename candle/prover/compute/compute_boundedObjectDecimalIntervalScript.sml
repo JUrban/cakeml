@@ -509,6 +509,108 @@ Proof
   >> gvs []
 QED
 
+Theorem bounded_object_fs_raw_mul_general_signed_values:
+  bounded_object_signed_int left = SOME left_value /\
+  bounded_object_signed_int right = SOME right_value ==>
+  ?raw.
+    bounded_object_fs_raw_mul left right = SOME raw /\
+    bounded_object_signed_int raw = SOME (left_value * right_value)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> Cases_on `c`
+  >> Cases_on `c0`
+  >> Cases_on `c'`
+  >> Cases_on `c0'`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def,
+        compute_boundedObjectDecimalArithmeticTheory.bounded_object_fs_raw_mul_def]
+  >> rpt strip_tac
+  >> gvs []
+  >> PURE_REWRITE_TAC
+       [GSYM integerTheory.INT_OF_NUM_ADD,
+        GSYM integerTheory.INT_OF_NUM_MUL]
+  >> INT_RING_TAC
+QED
+
+Theorem bounded_object_fs_raw_interval_mul_general_signed_values:
+  bounded_object_signed_int left_lower = SOME left_lower_value /\
+  bounded_object_signed_int left_upper = SOME left_upper_value /\
+  bounded_object_signed_int right_lower = SOME right_lower_value /\
+  bounded_object_signed_int right_upper = SOME right_upper_value /\
+  bounded_object_fs_raw_interval_mul
+      (Pair left_lower left_upper) (Pair right_lower right_upper) =
+    SOME (Pair lower upper) ==>
+  bounded_object_signed_int lower =
+    SOME
+      (bounded_object_int_min4
+        (left_lower_value * right_lower_value)
+        (left_lower_value * right_upper_value)
+        (left_upper_value * right_lower_value)
+        (left_upper_value * right_upper_value)) /\
+  bounded_object_signed_int upper =
+    SOME
+      (bounded_object_int_max4
+        (left_lower_value * right_lower_value)
+        (left_lower_value * right_upper_value)
+        (left_upper_value * right_lower_value)
+        (left_upper_value * right_upper_value))
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_lower`, `right` |-> `right_lower`,
+          `left_value` |-> `left_lower_value`,
+          `right_value` |-> `right_lower_value`]
+         bounded_object_fs_raw_mul_general_signed_values)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `lower_lower` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_lower`, `right` |-> `right_upper`,
+          `left_value` |-> `left_lower_value`,
+          `right_value` |-> `right_upper_value`]
+         bounded_object_fs_raw_mul_general_signed_values)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `lower_upper` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_upper`, `right` |-> `right_lower`,
+          `left_value` |-> `left_upper_value`,
+          `right_value` |-> `right_lower_value`]
+         bounded_object_fs_raw_mul_general_signed_values)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `upper_lower` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_upper`, `right` |-> `right_upper`,
+          `left_value` |-> `left_upper_value`,
+          `right_value` |-> `right_upper_value`]
+         bounded_object_fs_raw_mul_general_signed_values)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `upper_upper` strip_assume_tac)
+  >> fs [bounded_object_fs_raw_interval_mul_def]
+  >> mp_tac
+       (Q.INST
+         [`first_raw` |-> `lower_lower`,
+          `second_raw` |-> `lower_upper`,
+          `third_raw` |-> `upper_lower`,
+          `fourth_raw` |-> `upper_upper`,
+          `first_value` |-> `left_lower_value * right_lower_value`,
+          `second_value` |-> `left_lower_value * right_upper_value`,
+          `third_value` |-> `left_upper_value * right_lower_value`,
+          `fourth_value` |-> `left_upper_value * right_upper_value`,
+          `lower` |-> `lower`, `upper` |-> `upper`]
+         bounded_object_fs_raw_interval_extrema_signed_values)
+  >> simp []
+QED
+
 Theorem bounded_object_fs_raw_interval_mul_object_cv_exists:
   ?lower upper.
     bounded_object_fs_raw_interval_mul
