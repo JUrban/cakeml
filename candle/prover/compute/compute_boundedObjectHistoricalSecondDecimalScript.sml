@@ -869,4 +869,67 @@ Proof
         compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
 QED
 
+Theorem bounded_historical_dihedral_second64_decimal_b_hessian_object_trace:
+  bounded_historical_dihedral_second64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_logarithmic;root_four_reciprocal;
+       diagonal_reciprocal;u_reciprocal;special_root_reciprocal;
+       b_reciprocal;u126_reciprocal;u135_reciprocal] =
+    SOME (value,gradient,hessian) ==>
+  ?root_gradient two_over_root_four b_hessian_base b_hessian.
+    bounded_object_fs_historical_b_hessian_decimal
+      (bounded_interval64_object_cv root_delta)
+      (bounded_interval64_object_cv two_over_root_four)
+      (bounded_interval64_object_cv diagonal_reciprocal)
+      (bounded_interval64_object_cv_list root_gradient)
+      (bounded_interval64_object_cv_list b_hessian_base) =
+    SOME (bounded_interval64_object_cv_list b_hessian)
+Proof
+  strip_tac
+  >> drule bounded_historical_dihedral_second64_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac bounded_object_fs_historical_b_hessian_decimal_exact
+  >> qexists_tac `root_gradient`
+  >> qexists_tac `two_over_root_four`
+  >> qexists_tac `b_hessian_base`
+  >> qexists_tac `b_hessian`
+  >> simp []
+QED
+
+Theorem bounded_historical_dihedral_second64_decimal_hessian_object_trace:
+  bounded_historical_dihedral_second64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_logarithmic;root_four_reciprocal;
+       diagonal_reciprocal;u_reciprocal;special_root_reciprocal;
+       b_reciprocal;u126_reciprocal;u135_reciprocal] =
+    SOME (value,gradient,hessian) ==>
+  ?delta_x4 b delta_x4_gradient b_gradient logarithmic_u_gradient
+   delta_x4_hessian b_hessian.
+    bounded_object_fs_historical_second_hessian_decimal
+      (bounded_interval64_object_cv delta_x4)
+      (bounded_interval64_object_cv b)
+      (bounded_interval64_object_cv u_reciprocal)
+      (bounded_interval64_object_cv_list delta_x4_gradient)
+      (bounded_interval64_object_cv_list b_gradient)
+      (bounded_interval64_object_cv_list gradient)
+      (bounded_interval64_object_cv_list logarithmic_u_gradient)
+      bounded_delta64_hessian_indices
+      (bounded_interval64_object_cv_list delta_x4_hessian)
+      (bounded_interval64_object_cv_list b_hessian) =
+    SOME (bounded_interval64_object_cv_list hessian)
+Proof
+  strip_tac
+  >> drule bounded_historical_dihedral_second64_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac bounded_object_fs_historical_second_hessian_decimal_exact
+  >> qexists_tac `delta_x4`
+  >> qexists_tac `b`
+  >> qexists_tac `delta_x4_gradient`
+  >> qexists_tac `b_gradient`
+  >> qexists_tac `logarithmic_u_gradient`
+  >> qexists_tac `delta_x4_hessian`
+  >> qexists_tac `b_hessian`
+  >> simp []
+QED
+
 val _ = export_theory ();
