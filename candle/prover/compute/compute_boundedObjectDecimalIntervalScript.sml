@@ -917,4 +917,326 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_signed64_to_int_injective_normalized:
+  bounded_signed64_normalized left /\
+  bounded_signed64_normalized right /\
+  bounded_signed64_to_int left = bounded_signed64_to_int right ==>
+  left = right
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `b`
+  >> Cases_on `b'`
+  >> simp
+       [compute_boundedSignedEndpointTheory.bounded_signed64_normalized_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_signed64_min_reverse_order:
+  bounded_signed64_normalized left /\
+  bounded_signed64_normalized right /\
+  bounded_signed64_le right left ==>
+  bounded_signed64_min left right = right
+Proof
+  strip_tac
+  >> Cases_on `bounded_signed64_le left right`
+  >> fs [compute_boundedSignedEndpointTheory.bounded_signed64_min_def]
+  >> metis_tac
+       [compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+        bounded_signed64_to_int_injective_normalized,
+        integerTheory.INT_LE_ANTISYM]
+QED
+
+Theorem bounded_signed64_max_reverse_order:
+  bounded_signed64_normalized left /\
+  bounded_signed64_normalized right /\
+  bounded_signed64_le right left ==>
+  bounded_signed64_max left right = left
+Proof
+  strip_tac
+  >> Cases_on `bounded_signed64_le left right`
+  >> fs [compute_boundedSignedEndpointTheory.bounded_signed64_max_def]
+  >> metis_tac
+       [compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+        bounded_signed64_to_int_injective_normalized,
+        integerTheory.INT_LE_ANTISYM]
+QED
+
+Theorem bounded_object_fs_interval_mul_decimal_mixed_exact:
+  bounded_interval64_valid (BoundedInterval64 left_lower left_upper) /\
+  bounded_interval64_valid (BoundedInterval64 right_lower right_upper) /\
+  ~bounded_signed64_nonnegative left_lower /\
+  ~bounded_signed64_nonpositive left_upper /\
+  ~bounded_signed64_nonnegative right_lower /\
+  ~bounded_signed64_nonpositive right_upper /\
+  bounded_interval64_product_mixed_decimal
+      left_lower left_upper right_lower right_upper = SOME result ==>
+  bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv
+        (BoundedInterval64 left_lower left_upper))
+      (bounded_interval64_object_cv
+        (BoundedInterval64 right_lower right_upper)) =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`left_lower` |-> `left_lower`,
+          `left_upper` |-> `left_upper`,
+          `right_lower` |-> `right_lower`,
+          `right_upper` |-> `right_upper`]
+         bounded_object_fs_raw_interval_mul_object_cv_exists)
+  >> disch_then
+       (qx_choose_then `object_lower`
+         (qx_choose_then `object_upper` assume_tac))
+  >> mp_tac
+       (INST
+         [``(left_lower:int)`` |->
+            ``bounded_signed64_to_int (left_lower:bounded_signed64)``,
+          ``(left_upper:int)`` |->
+            ``bounded_signed64_to_int (left_upper:bounded_signed64)``,
+          ``(right_lower:int)`` |->
+            ``bounded_signed64_to_int (right_lower:bounded_signed64)``,
+          ``(right_upper:int)`` |->
+            ``bounded_signed64_to_int (right_upper:bounded_signed64)``]
+         bounded_object_int_product_extrema_mixed_mixed)
+  >> impl_tac
+  >- (fs
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> intLib.ARITH_TAC)
+  >> strip_tac
+  >> Cases_on
+       `bounded_scaled_mul_floor64_decimal left_lower right_upper`
+  >> Cases_on
+       `bounded_scaled_mul_floor64_decimal left_upper right_lower`
+  >> Cases_on
+       `bounded_scaled_mul_ceil64_decimal left_lower right_lower`
+  >> Cases_on
+       `bounded_scaled_mul_ceil64_decimal left_upper right_upper`
+  >> gvs
+       [compute_boundedIntervalDecimalTheory.bounded_interval64_product_mixed_decimal_def]
+  >> rename1
+       `bounded_scaled_mul_floor64_decimal left_lower right_upper =
+          SOME rounded_lower_left`
+  >> rename1
+       `bounded_scaled_mul_floor64_decimal left_upper right_lower =
+          SOME rounded_lower_right`
+  >> rename1
+       `bounded_scaled_mul_ceil64_decimal left_lower right_lower =
+          SOME rounded_upper_left`
+  >> rename1
+       `bounded_scaled_mul_ceil64_decimal left_upper right_upper =
+          SOME rounded_upper_right`
+  >> imp_res_tac
+       compute_boundedIntervalDecimalTheory.bounded_scaled_mul_floor64_decimal_normalized
+  >> imp_res_tac
+       compute_boundedIntervalDecimalTheory.bounded_scaled_mul_ceil64_decimal_normalized
+  >> Cases_on
+       `bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper <=
+        bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower`
+  >> Cases_on
+       `bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower <=
+        bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper`
+  >- (mp_tac
+       (Q.INST
+         [`negative_left` |-> `left_lower`,
+          `positive_right` |-> `right_upper`,
+          `positive_left` |-> `left_upper`,
+          `negative_right` |-> `right_lower`,
+          `first_result` |-> `rounded_lower_left`,
+          `second_result` |-> `rounded_lower_right`]
+         bounded_scaled_mul_floor64_decimal_cross_order)
+      >> impl_tac
+      >- simp []
+      >> disch_tac
+      >> mp_tac
+       (Q.INST
+         [`negative_left` |-> `left_lower`,
+          `positive_right` |-> `right_upper`,
+          `positive_left` |-> `left_upper`,
+          `negative_right` |-> `right_lower`,
+          `first_result` |-> `rounded_upper_left`,
+          `second_result` |-> `rounded_upper_right`]
+         bounded_scaled_mul_ceil64_decimal_same_sign_order)
+      >> impl_tac
+      >- simp []
+      >> disch_tac
+      >> fs
+       [bounded_object_int_min_def,
+        bounded_object_int_max_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_min_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_max_def,
+        bounded_signed64_min_reverse_order,
+        bounded_signed64_max_reverse_order]
+      >> irule
+       (Q.INST
+         [`selected_lower_left` |-> `left_lower`,
+          `selected_lower_right` |-> `right_upper`,
+          `selected_upper_left` |-> `left_upper`,
+          `selected_upper_right` |-> `right_upper`,
+          `object_lower` |-> `object_lower`,
+          `object_upper` |-> `object_upper`,
+          `result` |->
+            `BoundedInterval64 rounded_lower_left rounded_upper_right`]
+         bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+      >> fs
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedIntervalDecimalTheory.bounded_interval64_product_from_pairs_decimal_def])
+  >- (mp_tac
+       (Q.INST
+         [`negative_left` |-> `left_lower`,
+          `positive_right` |-> `right_upper`,
+          `positive_left` |-> `left_upper`,
+          `negative_right` |-> `right_lower`,
+          `first_result` |-> `rounded_lower_left`,
+          `second_result` |-> `rounded_lower_right`]
+         bounded_scaled_mul_floor64_decimal_cross_order)
+      >> impl_tac
+      >- simp []
+      >> disch_tac
+      >> mp_tac
+       (Q.INST
+         [`negative_left` |-> `left_lower`,
+          `positive_right` |-> `right_upper`,
+          `positive_left` |-> `left_upper`,
+          `negative_right` |-> `right_lower`,
+          `first_result` |-> `rounded_upper_left`,
+          `second_result` |-> `rounded_upper_right`]
+         bounded_scaled_mul_ceil64_decimal_same_sign_reverse_order)
+      >> impl_tac
+      >- (simp [] >> intLib.ARITH_TAC)
+      >> disch_tac
+      >> `bounded_signed64_max rounded_upper_left rounded_upper_right =
+            rounded_upper_left` by
+           (irule bounded_signed64_max_reverse_order >> simp [])
+      >> fs
+       [bounded_object_int_min_def,
+        bounded_object_int_max_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_min_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_max_def,
+        bounded_signed64_min_reverse_order,
+        bounded_signed64_max_reverse_order]
+      >> irule
+       (Q.INST
+         [`selected_lower_left` |-> `left_lower`,
+          `selected_lower_right` |-> `right_upper`,
+          `selected_upper_left` |-> `left_lower`,
+          `selected_upper_right` |-> `right_lower`,
+          `object_lower` |-> `object_lower`,
+          `object_upper` |-> `object_upper`,
+          `result` |->
+            `BoundedInterval64 rounded_lower_left rounded_upper_left`]
+         bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+      >> fs
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedIntervalDecimalTheory.bounded_interval64_product_from_pairs_decimal_def])
+  >- (mp_tac
+       (Q.INST
+         [`negative_left` |-> `left_lower`,
+          `positive_right` |-> `right_upper`,
+          `positive_left` |-> `left_upper`,
+          `negative_right` |-> `right_lower`,
+          `first_result` |-> `rounded_lower_left`,
+          `second_result` |-> `rounded_lower_right`]
+         bounded_scaled_mul_floor64_decimal_cross_reverse_order)
+      >> impl_tac
+      >- (simp [] >> intLib.ARITH_TAC)
+      >> disch_tac
+      >> mp_tac
+       (Q.INST
+         [`negative_left` |-> `left_lower`,
+          `positive_right` |-> `right_upper`,
+          `positive_left` |-> `left_upper`,
+          `negative_right` |-> `right_lower`,
+          `first_result` |-> `rounded_upper_left`,
+          `second_result` |-> `rounded_upper_right`]
+         bounded_scaled_mul_ceil64_decimal_same_sign_order)
+      >> impl_tac
+      >- simp []
+      >> disch_tac
+      >> `bounded_signed64_min rounded_lower_left rounded_lower_right =
+            rounded_lower_right` by
+           (irule bounded_signed64_min_reverse_order >> simp [])
+      >> fs
+       [bounded_object_int_min_def,
+        bounded_object_int_max_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_min_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_max_def,
+        bounded_signed64_min_reverse_order,
+        bounded_signed64_max_reverse_order]
+      >> irule
+       (Q.INST
+         [`selected_lower_left` |-> `left_upper`,
+          `selected_lower_right` |-> `right_lower`,
+          `selected_upper_left` |-> `left_upper`,
+          `selected_upper_right` |-> `right_upper`,
+          `object_lower` |-> `object_lower`,
+          `object_upper` |-> `object_upper`,
+          `result` |->
+            `BoundedInterval64 rounded_lower_right rounded_upper_right`]
+         bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+      >> fs
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedIntervalDecimalTheory.bounded_interval64_product_from_pairs_decimal_def])
+  >> mp_tac
+       (Q.INST
+         [`negative_left` |-> `left_lower`,
+          `positive_right` |-> `right_upper`,
+          `positive_left` |-> `left_upper`,
+          `negative_right` |-> `right_lower`,
+          `first_result` |-> `rounded_lower_left`,
+          `second_result` |-> `rounded_lower_right`]
+         bounded_scaled_mul_floor64_decimal_cross_reverse_order)
+  >> impl_tac
+  >- (simp [] >> intLib.ARITH_TAC)
+  >> disch_tac
+  >> mp_tac
+       (Q.INST
+         [`negative_left` |-> `left_lower`,
+          `positive_right` |-> `right_upper`,
+          `positive_left` |-> `left_upper`,
+          `negative_right` |-> `right_lower`,
+          `first_result` |-> `rounded_upper_left`,
+          `second_result` |-> `rounded_upper_right`]
+         bounded_scaled_mul_ceil64_decimal_same_sign_reverse_order)
+  >> impl_tac
+  >- (simp [] >> intLib.ARITH_TAC)
+  >> disch_tac
+  >> `bounded_signed64_min rounded_lower_left rounded_lower_right =
+        rounded_lower_right` by
+       (irule bounded_signed64_min_reverse_order >> simp [])
+  >> `bounded_signed64_max rounded_upper_left rounded_upper_right =
+        rounded_upper_left` by
+       (irule bounded_signed64_max_reverse_order >> simp [])
+  >> fs
+       [bounded_object_int_min_def,
+        bounded_object_int_max_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_min_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_max_def,
+        bounded_signed64_min_reverse_order,
+        bounded_signed64_max_reverse_order]
+  >> irule
+       (Q.INST
+         [`selected_lower_left` |-> `left_upper`,
+          `selected_lower_right` |-> `right_lower`,
+          `selected_upper_left` |-> `left_lower`,
+          `selected_upper_right` |-> `right_lower`,
+          `object_lower` |-> `object_lower`,
+          `object_upper` |-> `object_upper`,
+          `result` |->
+            `BoundedInterval64 rounded_lower_right rounded_upper_left`]
+         bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+  >> fs
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedIntervalDecimalTheory.bounded_interval64_product_from_pairs_decimal_def]
+QED
+
 val _ = export_theory ();
