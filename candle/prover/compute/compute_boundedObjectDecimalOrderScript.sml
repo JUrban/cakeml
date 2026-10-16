@@ -82,6 +82,32 @@ Proof
   >> simp [bounded_object_fs_raw_max_def]
 QED
 
+Theorem bounded_object_fs_raw_min_signed_value:
+  bounded_object_signed_int left = SOME left_value /\
+  bounded_object_signed_int right = SOME right_value /\
+  bounded_object_fs_raw_min left right = SOME result ==>
+  bounded_object_signed_int result =
+    SOME (if left_value <= right_value then left_value else right_value)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_object_fs_raw_min_signed_ints
+  >> Cases_on `left_value <= right_value`
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_raw_max_signed_value:
+  bounded_object_signed_int left = SOME left_value /\
+  bounded_object_signed_int right = SOME right_value /\
+  bounded_object_fs_raw_max left right = SOME result ==>
+  bounded_object_signed_int result =
+    SOME (if left_value <= right_value then right_value else left_value)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_object_fs_raw_max_signed_ints
+  >> Cases_on `left_value <= right_value`
+  >> gvs []
+QED
+
 Theorem bounded_object_fs_raw_le_object_cv:
   bounded_object_fs_raw_le
       (bounded_signed64_object_cv left)
