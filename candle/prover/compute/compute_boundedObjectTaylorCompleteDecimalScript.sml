@@ -1129,4 +1129,155 @@ Proof
         bounded_signed192_ceil64_two_decimal_squared_object_exact]
 QED
 
+Theorem bounded_signed64_scale_two_decimal_squared192_value:
+  bounded_signed64_scale_two_decimal_squared192 source = SOME result ==>
+  bounded_signed192_to_int result =
+    (&2000000000000000000000000:int) * bounded_signed64_to_int source
+Proof
+  Cases_on `source`
+  >> rw
+       [compute_boundedTaylorCompleteDecimalTheory.bounded_signed64_scale_two_decimal_squared192_def]
+  >> every_case_tac
+  >> gvs [compute_boundedTheory.bounded192_add_words_refines]
+  >> imp_res_tac
+       compute_boundedWideTheory.bounded128_mul_word64_to_192_words_some
+  >> imp_res_tac compute_boundedTheory.bounded192_add_some
+  >> simp
+       [compute_boundedWideSignedTheory.bounded_signed192_make_value,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def,
+        compute_boundedCertificateDecimalTheory.bounded_decimal_scale_squared128_value]
+  >> Cases_on `b`
+  >> simp []
+  >> PURE_REWRITE_TAC [GSYM integerTheory.INT_OF_NUM_MUL]
+  >> INT_RING_TAC
+QED
+
+Definition bounded_object_fs_taylor_value_complete_def:
+  bounded_object_fs_taylor_value_complete
+      radii center_value center_gradient hessian_rows =
+    case bounded_object_fs_taylor_error
+      radii center_gradient hessian_rows of
+    | NONE => NONE
+    | SOME error =>
+      case center_value of
+      | BoundedInterval64 center_lower center_upper =>
+        case bounded_object_fs_raw_scale 2000000000000000000000000
+          (bounded_signed64_object_cv center_lower) of
+        | NONE => NONE
+        | SOME scaled_lower =>
+          case bounded_object_fs_raw_scale 2000000000000000000000000
+            (bounded_signed64_object_cv center_upper) of
+          | NONE => NONE
+          | SOME scaled_upper =>
+            case bounded_object_fs_raw_neg error of
+            | NONE => NONE
+            | SOME negative_error =>
+              case bounded_object_fs_raw_interval_add
+                (Pair scaled_lower scaled_upper)
+                (Pair negative_error error) of
+              | NONE => NONE
+              | SOME raw =>
+                  bounded_object_fs_raw_interval_round
+                    2000000000000000000000000 raw
+End
+
+Theorem bounded_object_fs_taylor_value_complete_exact:
+  bounded_hessian64_rows hessian = SOME hessian_rows /\
+  bounded_taylor_value_complete_decimal
+      radii center_value center_gradient hessian = SOME result ==>
+  bounded_object_fs_taylor_value_complete
+      radii center_value center_gradient hessian_rows =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  Cases_on `center_value`
+  >> rw
+       [compute_boundedTaylorCompleteDecimalTheory.bounded_taylor_value_complete_decimal_def]
+  >> Cases_on `bounded_taylor_error_decimal radii center_gradient hessian`
+  >> gvs []
+  >> Cases_on `bounded_signed64_scale_two_decimal_squared192 b`
+  >> gvs []
+  >> Cases_on `bounded_signed64_scale_two_decimal_squared192 b0`
+  >> gvs []
+  >> Cases_on
+       `bounded_signed192_add x'
+          (bounded_signed192_make T x)`
+  >> gvs []
+  >> Cases_on
+       `bounded_signed192_add x''
+          (bounded_signed192_make F x)`
+  >> gvs []
+  >> Cases_on `bounded_signed192_floor64_two_decimal_squared x'''`
+  >> gvs []
+  >> Cases_on `bounded_signed192_ceil64_two_decimal_squared x''''`
+  >> gvs []
+  >> rename1
+       `bounded_signed192_floor64_two_decimal_squared word_lower =
+          SOME result_lower`
+  >> rename1
+       `bounded_signed192_ceil64_two_decimal_squared word_upper =
+          SOME result_upper`
+  >> mp_tac
+       (Q.INST
+         [`hessian` |-> `hessian`, `hessian_rows` |-> `hessian_rows`,
+          `radii` |-> `radii`, `center_gradient` |-> `center_gradient`,
+          `result` |-> `x`]
+         bounded_object_fs_taylor_error_exact)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `object_error` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`factor` |-> `2000000000000000000000000`, `value` |-> `b`]
+         bounded_object_fs_raw_scale_object_cv)
+  >> disch_then (qx_choose_then `object_scaled_lower` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`factor` |-> `2000000000000000000000000`, `value` |-> `b0`]
+         bounded_object_fs_raw_scale_object_cv)
+  >> disch_then (qx_choose_then `object_scaled_upper` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`source` |-> `object_error`,
+          `value` |-> `(&(bounded192_to_num x):int)`]
+         bounded_object_fs_raw_neg_signed_exists)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `negative_error` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left_lower` |-> `object_scaled_lower`,
+          `left_upper` |-> `object_scaled_upper`,
+          `right_lower` |-> `negative_error`,
+          `right_upper` |-> `object_error`,
+          `left_lower_value` |->
+            `(&2000000000000000000000000:int) * bounded_signed64_to_int b`,
+          `left_upper_value` |->
+            `(&2000000000000000000000000:int) * bounded_signed64_to_int b0`,
+          `right_lower_value` |->
+            `(0:int) - &(bounded192_to_num x)`,
+          `right_upper_value` |-> `(&(bounded192_to_num x):int)`]
+         compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_interval_add_signed_values)
+  >> impl_tac
+  >- simp []
+  >> disch_then
+       (qx_choose_then `object_lower`
+         (qx_choose_then `object_upper` strip_assume_tac))
+  >> imp_res_tac bounded_signed64_scale_two_decimal_squared192_value
+  >> imp_res_tac
+       compute_boundedWideSignedTheory.bounded_signed192_add_value
+  >> fs [bounded_object_fs_taylor_value_complete_def]
+  >> irule
+       bounded_object_fs_raw_interval_round_signed192_two_decimal_squared_exact
+  >> simp []
+  >> conj_tac
+  >- (qexists_tac `word_lower`
+      >> simp []
+      >> simp
+           [compute_boundedWideSignedTheory.bounded_signed192_make_value])
+  >> qexists_tac `word_upper`
+  >> simp []
+  >> simp
+       [compute_boundedWideSignedTheory.bounded_signed192_make_value]
+QED
+
 val _ = export_theory ();
