@@ -1027,4 +1027,106 @@ Proof
         integerTheory.INT_OF_NUM_MUL]
 QED
 
+Theorem bounded_object_q_ceil_div_two_decimal_squared:
+  bounded_object_q_ceil_div numerator 2000000000000000000000000 =
+    (numerator + 1999999999999999999999999) DIV
+      2000000000000000000000000
+Proof
+  simp
+    [compute_boundedObjectDecimalArithmeticTheory.bounded_object_q_ceil_div_def]
+  >> rpt strip_tac
+  >> mp_tac (Q.SPEC `2000000000000000000000000`
+       arithmeticTheory.CEILING_DIV)
+  >> simp [arithmeticTheory.CEILING_DIV_def, MIN_DEF]
+QED
+
+Theorem bounded_signed192_floor64_two_decimal_squared_object_exact:
+  bounded_signed192_floor64_two_decimal_squared source = SOME result ==>
+  bounded_object_fs_floor_div
+      (bounded_signed192_object_cv source)
+      2000000000000000000000000 =
+    SOME (bounded_signed64_object_cv result)
+Proof
+  Cases_on `source`
+  >> Cases_on `b`
+  >> rw
+       [compute_boundedTaylorCompleteDecimalTheory.bounded_signed192_floor64_two_decimal_squared_def]
+  >> every_case_tac
+  >> gvs
+       [compute_boundedObjectDecimalFusedTheory.bounded_signed192_object_cv_def,
+        compute_boundedObjectDecimalArithmeticTheory.bounded_object_fs_floor_div_def,
+        bounded_object_q_ceil_div_two_decimal_squared,
+        compute_boundedTaylorCompleteDecimalTheory.bounded192_floor64_two_decimal_squared_def,
+        compute_boundedTaylorCompleteDecimalTheory.bounded192_ceil64_two_decimal_squared_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_make_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+        LET_THM]
+  >> fs [compute_boundedTheory.bounded_word_base_eq, LESS_MOD,
+         GSYM arithmeticTheory.NOT_ZERO_LT_ZERO]
+  >> Cases_on `bounded192_to_num b0 = 0`
+  >> simp [arithmeticTheory.DIV_EQ_0]
+QED
+
+Theorem bounded_signed192_ceil64_two_decimal_squared_object_exact:
+  bounded_signed192_ceil64_two_decimal_squared source = SOME result ==>
+  bounded_object_fs_ceil_div
+      (bounded_signed192_object_cv source)
+      2000000000000000000000000 =
+    SOME (bounded_signed64_object_cv result)
+Proof
+  Cases_on `source`
+  >> Cases_on `b`
+  >> rw
+       [compute_boundedTaylorCompleteDecimalTheory.bounded_signed192_ceil64_two_decimal_squared_def]
+  >> every_case_tac
+  >> gvs
+       [compute_boundedObjectDecimalFusedTheory.bounded_signed192_object_cv_def,
+        compute_boundedObjectDecimalArithmeticTheory.bounded_object_fs_ceil_div_def,
+        bounded_object_q_ceil_div_two_decimal_squared,
+        compute_boundedTaylorCompleteDecimalTheory.bounded192_floor64_two_decimal_squared_def,
+        compute_boundedTaylorCompleteDecimalTheory.bounded192_ceil64_two_decimal_squared_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_make_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+        LET_THM]
+  >> fs [compute_boundedTheory.bounded_word_base_eq, LESS_MOD,
+         GSYM arithmeticTheory.NOT_ZERO_LT_ZERO]
+  >> Cases_on `bounded192_to_num b0 = 0`
+  >> Cases_on
+       `bounded192_to_num b0 DIV 2000000000000000000000000 = 0`
+  >> simp []
+QED
+
+Theorem bounded_object_fs_raw_interval_round_signed192_two_decimal_squared_exact:
+  bounded_object_signed_int object_lower =
+      SOME (bounded_signed192_to_int word_lower) /\
+  bounded_object_signed_int object_upper =
+      SOME (bounded_signed192_to_int word_upper) /\
+  bounded_signed192_floor64_two_decimal_squared word_lower =
+      SOME result_lower /\
+  bounded_signed192_ceil64_two_decimal_squared word_upper =
+      SOME result_upper ==>
+  bounded_object_fs_raw_interval_round 2000000000000000000000000
+      (Pair object_lower object_upper) =
+    SOME
+      (bounded_interval64_object_cv
+        (BoundedInterval64 result_lower result_upper))
+Proof
+  strip_tac
+  >> `bounded_object_fs_raw_interval_round 2000000000000000000000000
+        (Pair object_lower object_upper) =
+      bounded_object_fs_raw_interval_round 2000000000000000000000000
+        (Pair
+          (bounded_signed192_object_cv word_lower)
+          (bounded_signed192_object_cv word_upper))` by
+       (irule
+          compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_round_extensional
+        >> simp [])
+  >> pop_assum SUBST1_TAC
+  >> irule
+       compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_round_exact
+  >> simp
+       [bounded_signed192_floor64_two_decimal_squared_object_exact,
+        bounded_signed192_ceil64_two_decimal_squared_object_exact]
+QED
+
 val _ = export_theory ();
