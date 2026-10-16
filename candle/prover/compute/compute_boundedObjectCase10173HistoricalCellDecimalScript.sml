@@ -418,4 +418,59 @@ Proof
   >> metis_tac []
 QED
 
+Theorem bounded_object_case10173_checked_cell_accepts_decimal_exact:
+  bounded_case10173_checked_cell_accepts_decimal radii center_environment
+      box_environment coordinate_sqrt_certificates
+      center_root_delta center_root_four_x0
+      [center_root_derivative;center_root_four_reciprocal;
+       center_u_reciprocal;center_special_root_reciprocal;
+       center_b_reciprocal]
+      box_root_delta box_root_four_x0
+      [box_root_derivative;box_root_logarithmic;
+       box_root_four_reciprocal;box_diagonal_reciprocal;
+       box_u_reciprocal;box_special_root_reciprocal;
+       box_b_reciprocal;box_u126_reciprocal;box_u135_reciprocal] ==>
+  ?center_value center_gradient value_bound gradient_bounds hessian
+   hessian_rows.
+    bounded_case10173_checked_cell64_decimal radii center_environment
+      box_environment coordinate_sqrt_certificates
+      center_root_delta center_root_four_x0
+      [center_root_derivative;center_root_four_reciprocal;
+       center_u_reciprocal;center_special_root_reciprocal;
+       center_b_reciprocal]
+      box_root_delta box_root_four_x0
+      [box_root_derivative;box_root_logarithmic;
+       box_root_four_reciprocal;box_diagonal_reciprocal;
+       box_u_reciprocal;box_special_root_reciprocal;
+       box_b_reciprocal;box_u126_reciprocal;box_u135_reciprocal] =
+        SOME
+          (BoundedTaylor64 T center_value center_gradient value_bound
+            gradient_bounds hessian) /\
+    bounded_object_case10173_checked_cell64_decimal radii
+      center_environment box_environment coordinate_sqrt_certificates
+      center_root_delta center_root_four_x0
+      [center_root_derivative;center_root_four_reciprocal;
+       center_u_reciprocal;center_special_root_reciprocal;
+       center_b_reciprocal]
+      box_root_delta box_root_four_x0
+      [box_root_derivative;box_root_logarithmic;
+       box_root_four_reciprocal;box_diagonal_reciprocal;
+       box_u_reciprocal;box_special_root_reciprocal;
+       box_b_reciprocal;box_u126_reciprocal;box_u135_reciprocal] =
+        SOME
+          (bounded_taylor64_rows_object_cv
+            (BoundedTaylor64 T center_value center_gradient value_bound
+              gradient_bounds hessian) hessian_rows) /\
+    bounded_signed64_strict_negative
+      (bounded_interval64_upper value_bound)
+Proof
+  strip_tac
+  >> drule
+       compute_boundedCase10173HistoricalCellDecimalTheory.bounded_case10173_checked_cell_accepts_decimal_contract
+  >> strip_tac
+  >> drule bounded_object_case10173_checked_cell64_decimal_exact
+  >> strip_tac
+  >> metis_tac []
+QED
+
 val _ = export_theory ();
