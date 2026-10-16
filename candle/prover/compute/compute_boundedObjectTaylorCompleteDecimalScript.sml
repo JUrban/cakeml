@@ -758,4 +758,117 @@ Proof
         compute_boundedWideTheory.bounded192_zero_def]
 QED
 
+Theorem bounded_object_fs_raw_mul_signed_values:
+  bounded_object_signed_int left = SOME left_value /\
+  bounded_object_signed_int right = SOME right_value ==>
+  ?raw.
+    bounded_object_fs_raw_mul left right = SOME raw /\
+    bounded_object_signed_int raw = SOME (left_value * right_value)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> Cases_on `c`
+  >> Cases_on `c0`
+  >> Cases_on `c'`
+  >> Cases_on `c0'`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def,
+        compute_boundedObjectDecimalArithmeticTheory.bounded_object_fs_raw_mul_def]
+  >> rpt strip_tac
+  >> gvs []
+  >> PURE_REWRITE_TAC
+       [GSYM integerTheory.INT_OF_NUM_ADD,
+        GSYM integerTheory.INT_OF_NUM_MUL]
+  >> INT_RING_TAC
+QED
+
+Definition bounded_weighted_rows_abs_upper_num_def:
+  bounded_weighted_rows_abs_upper_num radii [] rows = SOME 0 /\
+  bounded_weighted_rows_abs_upper_num radii (_::_) [] = SOME 0 /\
+  bounded_weighted_rows_abs_upper_num radii (weight::weights) (row::rows) =
+    case bounded_dot_abs_upper_num radii row of
+    | NONE => NONE
+    | SOME row_total =>
+      case bounded_weighted_rows_abs_upper_num radii weights rows of
+      | NONE => NONE
+      | SOME rest => SOME (w2n weight * row_total + rest)
+End
+
+Definition bounded_object_fs_weighted_rows_abs_upper_def:
+  bounded_object_fs_weighted_rows_abs_upper radii [] rows =
+    SOME (Pair (Num 0) (Num 0) : cv) /\
+  bounded_object_fs_weighted_rows_abs_upper radii (_::_) [] =
+    SOME (Pair (Num 0) (Num 0) : cv) /\
+  bounded_object_fs_weighted_rows_abs_upper radii
+      (weight::weights) (row::rows) =
+    case bounded_object_fs_dot_abs_upper radii row of
+    | NONE => NONE
+    | SOME row_total =>
+      case bounded_object_fs_raw_mul
+        (bounded_word64_object_cv weight) row_total of
+      | NONE => NONE
+      | SOME product =>
+        case bounded_object_fs_weighted_rows_abs_upper
+          radii weights rows of
+        | NONE => NONE
+        | SOME rest => bounded_object_fs_raw_add product rest
+End
+
+Theorem bounded_object_fs_weighted_rows_abs_upper_num:
+  !rows total.
+    bounded_weighted_rows_abs_upper_num radii weights rows = SOME total ==>
+    ?raw.
+      bounded_object_fs_weighted_rows_abs_upper radii weights rows =
+        SOME raw /\
+      bounded_object_signed_int raw = SOME (&total:int)
+Proof
+  Induct_on `weights`
+  >> Cases_on `rows`
+  >> rw
+       [bounded_weighted_rows_abs_upper_num_def,
+        bounded_object_fs_weighted_rows_abs_upper_def]
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> Cases_on `bounded_dot_abs_upper_num radii h`
+  >> gvs []
+  >> Cases_on
+       `bounded_weighted_rows_abs_upper_num radii weights t`
+  >> gvs []
+  >> res_tac
+  >> imp_res_tac bounded_object_fs_dot_abs_upper_num
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `bounded_word64_object_cv h'`,
+          `right` |-> `raw'`,
+          `left_value` |-> `(&(w2n (h':word64)):int)`,
+          `right_value` |-> `(&x:int)`]
+         bounded_object_fs_raw_mul_signed_values)
+  >> impl_tac
+  >- simp
+       [bounded_word64_object_cv_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> disch_then (qx_choose_then `product` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `product`, `right` |-> `raw`,
+          `left_value` |-> `(&(w2n (h':word64) * x):int)`,
+          `right_value` |-> `(&x':int)`]
+         compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_add_signed_value)
+  >> impl_tac
+  >- simp [integerTheory.INT_OF_NUM_MUL]
+  >> disch_then (qx_choose_then `result` strip_assume_tac)
+  >> qexists_tac `result`
+  >> simp
+       [bounded_object_fs_weighted_rows_abs_upper_def,
+        integerTheory.INT_OF_NUM_MUL,
+        integerTheory.INT_OF_NUM_ADD,
+        arithmeticTheory.ADD_COMM,
+        arithmeticTheory.MULT_COMM,
+        integerTheory.INT_ADD_COMM,
+        integerTheory.INT_MUL_COMM]
+  >> fs [bounded_word64_object_cv_as_signed64]
+QED
+
 val _ = export_theory ();
