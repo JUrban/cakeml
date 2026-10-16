@@ -393,6 +393,27 @@ Proof
   >> gvs []
 QED
 
+Theorem bounded_object_fs_raw_interval_extrema_exists:
+  bounded_object_signed_int first_raw = SOME first_value /\
+  bounded_object_signed_int second_raw = SOME second_value /\
+  bounded_object_signed_int third_raw = SOME third_value /\
+  bounded_object_signed_int fourth_raw = SOME fourth_value ==>
+  ?lower upper.
+    bounded_object_fs_raw_interval_extrema
+      first_raw second_raw third_raw fourth_raw =
+      SOME (Pair lower upper)
+Proof
+  strip_tac
+  >> simp [bounded_object_fs_raw_interval_extrema_def]
+  >> imp_res_tac
+       compute_boundedObjectDecimalOrderTheory.bounded_object_fs_raw_min_signed_ints
+  >> imp_res_tac
+       compute_boundedObjectDecimalOrderTheory.bounded_object_fs_raw_max_signed_ints
+  >> Cases_on `first_value <= second_value`
+  >> Cases_on `third_value <= fourth_value`
+  >> gvs []
+QED
+
 Definition bounded_object_fs_raw_interval_mul_def:
   bounded_object_fs_raw_interval_mul
       (Pair left_lower left_upper : cv)
@@ -413,6 +434,21 @@ Definition bounded_object_fs_raw_interval_mul_def:
                lower_lower lower_upper upper_lower upper_upper) /\
   bounded_object_fs_raw_interval_mul _ _ = NONE
 End
+
+Theorem bounded_object_fs_raw_mul_object_cv_exists:
+  ?raw.
+    bounded_object_fs_raw_mul
+      (bounded_signed64_object_cv left)
+      (bounded_signed64_object_cv right) = SOME raw
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `b`
+  >> Cases_on `b'`
+  >> simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+        compute_boundedObjectDecimalArithmeticTheory.bounded_object_fs_raw_mul_def]
+QED
 
 Theorem bounded_object_fs_raw_interval_mul_signed_values:
   bounded_object_fs_raw_interval_mul
@@ -471,6 +507,38 @@ Proof
        compute_boundedObjectDecimalOrderTheory.bounded_object_fs_raw_mul_signed_value
   >> imp_res_tac bounded_object_fs_raw_interval_extrema_signed_values
   >> gvs []
+QED
+
+Theorem bounded_object_fs_raw_interval_mul_object_cv_exists:
+  ?lower upper.
+    bounded_object_fs_raw_interval_mul
+      (bounded_interval64_object_cv
+        (BoundedInterval64 left_lower left_upper))
+      (bounded_interval64_object_cv
+        (BoundedInterval64 right_lower right_upper)) =
+      SOME (Pair lower upper)
+Proof
+  mp_tac
+    (Q.INST [`left` |-> `left_lower`, `right` |-> `right_lower`]
+      bounded_object_fs_raw_mul_object_cv_exists)
+  >> disch_then (qx_choose_then `lower_lower` assume_tac)
+  >> mp_tac
+    (Q.INST [`left` |-> `left_lower`, `right` |-> `right_upper`]
+      bounded_object_fs_raw_mul_object_cv_exists)
+  >> disch_then (qx_choose_then `lower_upper` assume_tac)
+  >> mp_tac
+    (Q.INST [`left` |-> `left_upper`, `right` |-> `right_lower`]
+      bounded_object_fs_raw_mul_object_cv_exists)
+  >> disch_then (qx_choose_then `upper_lower` assume_tac)
+  >> mp_tac
+    (Q.INST [`left` |-> `left_upper`, `right` |-> `right_upper`]
+      bounded_object_fs_raw_mul_object_cv_exists)
+  >> disch_then (qx_choose_then `upper_upper` assume_tac)
+  >> imp_res_tac
+       compute_boundedObjectDecimalOrderTheory.bounded_object_fs_raw_mul_signed_value
+  >> fs [bounded_object_fs_raw_interval_mul_def,
+         compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def]
+  >> metis_tac [bounded_object_fs_raw_interval_extrema_exists]
 QED
 
 Definition bounded_object_fs_raw_interval_round_def:
