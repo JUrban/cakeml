@@ -439,4 +439,25 @@ Proof
   >> metis_tac [bounded_object_fs_fused_products_decimal_from_word]
 QED
 
+Definition bounded_object_fs_fused_products_decimal_def:
+  bounded_object_fs_fused_products_decimal products =
+    case bounded_object_fs_raw_products_acc products
+      (Pair (Pair (Num 0) (Num 0)) (Pair (Num 0) (Num 0))) of
+    | NONE => NONE
+    | SOME raw =>
+        bounded_object_fs_raw_interval_round 1000000000000 raw
+End
+
+Theorem bounded_object_fs_fused_products_decimal_exact:
+  bounded_interval64_fused_products_decimal products = SOME result ==>
+  bounded_object_fs_fused_products_decimal products =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> drule bounded_object_fs_fused_products_decimal_object_exact
+  >> rw [bounded_object_fs_fused_products_decimal_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
 val _ = export_theory ();
