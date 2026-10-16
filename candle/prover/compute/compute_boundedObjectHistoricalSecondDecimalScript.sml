@@ -524,4 +524,191 @@ Proof
        [compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact]
 QED
 
+Definition bounded_object_fs_historical_second_hessian_entry_decimal_def:
+  bounded_object_fs_historical_second_hessian_entry_decimal delta_x4 b
+      reciprocal_u delta_x4_gradient b_gradient result_gradient
+      logarithmic_u_gradient (row:num) (column:num) delta_x4_hessian
+      b_hessian =
+    case bounded_object_cv_list_nth row delta_x4_gradient of
+    | NONE => NONE
+    | SOME delta_x4_row =>
+      case bounded_object_cv_list_nth column delta_x4_gradient of
+      | NONE => NONE
+      | SOME delta_x4_column =>
+        case bounded_object_cv_list_nth row b_gradient of
+        | NONE => NONE
+        | SOME b_row =>
+          case bounded_object_cv_list_nth column b_gradient of
+          | NONE => NONE
+          | SOME b_column =>
+            case bounded_object_cv_list_nth row result_gradient of
+            | NONE => NONE
+            | SOME result_row =>
+              case bounded_object_cv_list_nth column logarithmic_u_gradient of
+              | NONE => NONE
+              | SOME logarithmic_column =>
+                case bounded_object_fs_interval_mul_decimal
+                  b delta_x4_hessian of
+                | NONE => NONE
+                | SOME first_term =>
+                  case bounded_object_fs_interval_mul_decimal
+                    delta_x4 b_hessian of
+                  | NONE => NONE
+                  | SOME final_term =>
+                    case
+                      (if row = column then
+                         case bounded_object_fs_interval_neg first_term of
+                         | NONE => NONE
+                         | SOME negative_first =>
+                             bounded_object_fs_interval_add
+                               negative_first final_term
+                       else
+                         case bounded_object_fs_interval_mul_decimal
+                           delta_x4_row b_column of
+                         | NONE => NONE
+                         | SOME second_term =>
+                           case bounded_object_fs_interval_mul_decimal
+                             delta_x4_column b_row of
+                           | NONE => NONE
+                           | SOME third_term =>
+                             case bounded_object_fs_interval_neg first_term of
+                             | NONE => NONE
+                             | SOME negative_first =>
+                               case bounded_object_fs_interval_neg second_term of
+                               | NONE => NONE
+                               | SOME negative_second =>
+                                   bounded_object_fs_interval_sum
+                                     (Pair negative_first
+                                       (Pair negative_second
+                                         (Pair third_term
+                                           (Pair final_term (Num 0)))))) of
+                    | NONE => NONE
+                    | SOME identity =>
+                      case bounded_object_fs_interval_mul_decimal
+                        reciprocal_u identity of
+                      | NONE => NONE
+                      | SOME scaled_identity =>
+                        case bounded_object_fs_interval_mul_decimal
+                          result_row logarithmic_column of
+                        | NONE => NONE
+                        | SOME logarithmic_term =>
+                          case bounded_object_fs_interval_neg logarithmic_term of
+                          | NONE => NONE
+                          | SOME negative_logarithmic =>
+                              bounded_object_fs_interval_add scaled_identity
+                                negative_logarithmic
+End
+
+Theorem bounded_object_fs_historical_second_hessian_entry_decimal_exact:
+  bounded_historical_second_hessian_entry_decimal delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      row column delta_x4_hessian b_hessian = SOME result ==>
+  bounded_object_fs_historical_second_hessian_entry_decimal
+      (bounded_interval64_object_cv delta_x4)
+      (bounded_interval64_object_cv b)
+      (bounded_interval64_object_cv reciprocal_u)
+      (bounded_interval64_object_cv_list delta_x4_gradient)
+      (bounded_interval64_object_cv_list b_gradient)
+      (bounded_interval64_object_cv_list result_gradient)
+      (bounded_interval64_object_cv_list logarithmic_u_gradient)
+      row column
+      (bounded_interval64_object_cv delta_x4_hessian)
+      (bounded_interval64_object_cv b_hessian) =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_second_hessian_entry_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_cv_list_nth_exact
+  >> imp_res_tac
+       compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact
+  >> imp_res_tac
+       compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_add_object_cv_exact
+  >> imp_res_tac
+       compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_sum_exact
+  >> gvs
+       [bounded_object_fs_historical_second_hessian_entry_decimal_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact,
+        compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
+Definition bounded_object_fs_historical_second_hessian_decimal_def:
+  bounded_object_fs_historical_second_hessian_decimal delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      [] (Num 0) (Num 0) = SOME (Num 0 : cv) /\
+  bounded_object_fs_historical_second_hessian_decimal delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      [] (Num 0) (Num (SUC malformed)) = NONE /\
+  bounded_object_fs_historical_second_hessian_decimal delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      [] (Num 0) (Pair entry rest) = NONE /\
+  bounded_object_fs_historical_second_hessian_decimal delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      [] (Num (SUC malformed)) right = NONE /\
+  bounded_object_fs_historical_second_hessian_decimal delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      [] (Pair entry rest) right = NONE /\
+  bounded_object_fs_historical_second_hessian_decimal delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      (_::_) (Num malformed) right = NONE /\
+  bounded_object_fs_historical_second_hessian_decimal delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      (_::_) left (Num malformed) = NONE /\
+  bounded_object_fs_historical_second_hessian_decimal delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      ((row,column)::indices) (Pair delta_entry delta_entries)
+      (Pair b_entry b_entries) =
+    case bounded_object_fs_historical_second_hessian_entry_decimal
+      delta_x4 b reciprocal_u delta_x4_gradient b_gradient
+      result_gradient logarithmic_u_gradient row column delta_entry b_entry of
+    | NONE => NONE
+    | SOME value =>
+      case bounded_object_fs_historical_second_hessian_decimal
+        delta_x4 b reciprocal_u delta_x4_gradient b_gradient
+        result_gradient logarithmic_u_gradient indices delta_entries b_entries of
+      | NONE => NONE
+      | SOME rest => SOME (Pair value rest)
+End
+
+Theorem bounded_object_fs_historical_second_hessian_decimal_exact:
+  !delta_hessian b_hessian result.
+    bounded_historical_second_hessian_decimal delta_x4 b reciprocal_u
+      delta_x4_gradient b_gradient result_gradient logarithmic_u_gradient
+      indices delta_hessian b_hessian = SOME result ==>
+    bounded_object_fs_historical_second_hessian_decimal
+      (bounded_interval64_object_cv delta_x4)
+      (bounded_interval64_object_cv b)
+      (bounded_interval64_object_cv reciprocal_u)
+      (bounded_interval64_object_cv_list delta_x4_gradient)
+      (bounded_interval64_object_cv_list b_gradient)
+      (bounded_interval64_object_cv_list result_gradient)
+      (bounded_interval64_object_cv_list logarithmic_u_gradient)
+      indices (bounded_interval64_object_cv_list delta_hessian)
+      (bounded_interval64_object_cv_list b_hessian) =
+    SOME (bounded_interval64_object_cv_list result)
+Proof
+  Induct_on `indices`
+  >- (Cases_on `delta_hessian`
+      >> Cases_on `b_hessian`
+      >> simp
+           [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_second_hessian_decimal_def,
+            bounded_object_fs_historical_second_hessian_decimal_def,
+            compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def])
+  >> Cases_on `h`
+  >> Cases_on `delta_hessian`
+  >> Cases_on `b_hessian`
+  >> rw
+       [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_second_hessian_decimal_def,
+        bounded_object_fs_historical_second_hessian_decimal_def,
+        compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       bounded_object_fs_historical_second_hessian_entry_decimal_exact
+  >> res_tac
+  >> gvs
+       [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
 val _ = export_theory ();
