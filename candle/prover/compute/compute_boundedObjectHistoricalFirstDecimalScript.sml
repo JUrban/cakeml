@@ -2020,6 +2020,331 @@ Proof
         compute_boundedIntervalTheory.bounded_interval64_upper_def]
 QED
 
+Definition bounded_object_fs_historical_dihedral_first64_decimal_def:
+  bounded_object_fs_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0 reciprocal_certificates =
+    case reciprocal_certificates of
+    | root_derivative::root_four_reciprocal::u_reciprocal::
+        special_root_reciprocal::b_reciprocal::[] =>
+      (case bounded_historical_delta64_value_decimal environment of
+      | NONE => NONE
+      | SOME delta_interval =>
+        case bounded_object_fs_historical_delta64_value_decimal environment of
+        | NONE => NONE
+        | SOME object_delta_interval =>
+          if bounded_object_fs_hist_positive_root_certificate
+            object_delta_interval
+            (bounded_interval64_object_cv root_delta) <> Num 1
+          then NONE
+          else
+            case bounded_interval64_nth environment 0 of
+            | NONE => NONE
+            | SOME x0 =>
+              case bounded_interval64_scale4 x0 of
+              | NONE => NONE
+              | SOME four_x0 =>
+                case bounded_object_fs_interval_scale4
+                  (bounded_interval64_object_cv x0) of
+                | NONE => NONE
+                | SOME object_four_x0 =>
+                    if bounded_object_fs_hist_positive_root_certificate
+                      object_four_x0
+                      (bounded_interval64_object_cv root_four_x0) <> Num 1
+                    then NONE
+                    else
+                      case bounded_historical_scale2 root_delta of
+                      | NONE => NONE
+                      | SOME twice_root_delta =>
+                        case bounded_object_fs_interval_scale2
+                          (bounded_interval64_object_cv root_delta) of
+                        | NONE => NONE
+                        | SOME object_twice_root_delta =>
+                          case bounded_object_fs_hist_positive_inv
+                            object_twice_root_delta of
+                          | NONE => NONE
+                          | SOME object_root_derivative =>
+                            case bounded_object_fs_hist_positive_inv
+                              object_twice_root_delta of
+                            | NONE => NONE
+                            | SOME object_special_root_reciprocal =>
+                              case bounded_object_fs_hist_positive_inv
+                                (bounded_interval64_object_cv root_four_x0) of
+                              | NONE => NONE
+                              | SOME object_root_four_reciprocal =>
+                                case bounded_delta64_pair_products_decimal
+                                  environment of
+                                | NONE => NONE
+                                | SOME delta_products =>
+                                  case
+                                    bounded_object_fs_delta64_pair_products_decimal
+                                      environment of
+                                  | NONE => NONE
+                                  | SOME object_delta_products =>
+                                    case bounded_delta64_gradient_from_products
+                                      delta_products of
+                                    | NONE => NONE
+                                    | SOME delta_gradient =>
+                                      case
+                                        bounded_object_fs_delta64_gradient_from_products
+                                          delta_products of
+                                      | NONE => NONE
+                                      | SOME object_delta_gradient =>
+                                        case
+                                          bounded_interval64_list_scale_decimal
+                                            root_derivative delta_gradient of
+                                        | NONE => NONE
+                                        | SOME root_gradient =>
+                                          case
+                                            bounded_object_fs_interval_list_scale_decimal
+                                              root_derivative delta_gradient of
+                                          | NONE => NONE
+                                          | SOME object_root_gradient =>
+                                            case
+                                              bounded_historical_delta_x4_value_decimal
+                                                environment of
+                                            | NONE => NONE
+                                            | SOME delta_x4 =>
+                                              case
+                                                bounded_object_fs_historical_delta_x4_value_decimal
+                                                  environment of
+                                              | NONE => NONE
+                                              | SOME object_delta_x4 =>
+                                                case
+                                                  bounded_historical_delta_x4_gradient
+                                                    environment of
+                                                | NONE => NONE
+                                                | SOME delta_x4_gradient =>
+                                                  case
+                                                    bounded_object_fs_historical_delta_x4_gradient
+                                                      environment of
+                                                  | NONE => NONE
+                                                  | SOME object_delta_x4_gradient =>
+                                                    case
+                                                      bounded_historical_u126_decimal
+                                                        environment of
+                                                    | NONE => NONE
+                                                    | SOME (u126,u126_gradient) =>
+                                                      case
+                                                        bounded_object_fs_historical_u126_decimal
+                                                          environment of
+                                                      | NONE => NONE
+                                                      | SOME
+                                                          (Pair object_u126
+                                                            object_u126_gradient) =>
+                                                        case
+                                                          bounded_historical_u135_decimal
+                                                            environment of
+                                                        | NONE => NONE
+                                                        | SOME
+                                                            (u135,u135_gradient) =>
+                                                          case
+                                                            bounded_object_fs_historical_u135_decimal
+                                                              environment of
+                                                          | NONE => NONE
+                                                          | SOME
+                                                              (Pair object_u135
+                                                                object_u135_gradient) =>
+                                                            case
+                                                              bounded_interval64_mul_decimal
+                                                                root_delta
+                                                                root_four_x0 of
+                                                            | NONE => NONE
+                                                            | SOME b =>
+                                                              case
+                                                                bounded_object_fs_interval_mul_decimal
+                                                                  (bounded_interval64_object_cv
+                                                                    root_delta)
+                                                                  (bounded_interval64_object_cv
+                                                                    root_four_x0) of
+                                                              | NONE => NONE
+                                                              | SOME object_b =>
+                                                                case
+                                                                  bounded_object_fs_hist_positive_inv
+                                                                    object_b of
+                                                                | NONE => NONE
+                                                                | SOME
+                                                                    object_b_reciprocal =>
+                                                                  case
+                                                                    bounded_interval64_mul_decimal
+                                                                      u126 u135 of
+                                                                  | NONE => NONE
+                                                                  | SOME u_product =>
+                                                                    case
+                                                                      bounded_object_fs_interval_mul_decimal
+                                                                        object_u126
+                                                                        object_u135 of
+                                                                    | NONE => NONE
+                                                                    | SOME
+                                                                        object_u_product =>
+                                                                      case
+                                                                        bounded_object_fs_hist_positive_inv
+                                                                          object_u_product of
+                                                                      | NONE => NONE
+                                                                      | SOME
+                                                                          object_u_reciprocal =>
+                                                                        case
+                                                                          bounded_historical_scale2
+                                                                            bounded_atan_one_decimal of
+                                                                        | NONE => NONE
+                                                                        | SOME two =>
+                                                                          case
+                                                                            bounded_object_fs_interval_scale2
+                                                                              (bounded_interval64_object_cv
+                                                                                bounded_atan_one_decimal) of
+                                                                          | NONE => NONE
+                                                                          | SOME object_two =>
+                                                                            case
+                                                                              bounded_interval64_mul_decimal
+                                                                                two
+                                                                                root_four_reciprocal of
+                                                                            | NONE => NONE
+                                                                            | SOME
+                                                                                two_over_root_four =>
+                                                                              case
+                                                                                bounded_object_fs_interval_mul_decimal
+                                                                                  object_two
+                                                                                  object_root_four_reciprocal of
+                                                                              | NONE => NONE
+                                                                              | SOME
+                                                                                  object_two_over_root_four =>
+                                                                                case
+                                                                                  bounded_interval64_list_scale_decimal
+                                                                                    root_four_x0
+                                                                                    root_gradient of
+                                                                                | NONE => NONE
+                                                                                | SOME
+                                                                                    b_gradient_base =>
+                                                                                  case
+                                                                                    bounded_object_fs_interval_list_scale_decimal
+                                                                                      root_four_x0
+                                                                                      root_gradient of
+                                                                                  | NONE => NONE
+                                                                                  | SOME
+                                                                                      object_b_gradient_base =>
+                                                                                    case
+                                                                                      bounded_interval64_mul_decimal
+                                                                                        root_delta
+                                                                                        two_over_root_four of
+                                                                                    | NONE => NONE
+                                                                                    | SOME b_correction =>
+                                                                                      case
+                                                                                        bounded_object_fs_interval_mul_decimal
+                                                                                          (bounded_interval64_object_cv
+                                                                                            root_delta)
+                                                                                          object_two_over_root_four of
+                                                                                      | NONE => NONE
+                                                                                      | SOME
+                                                                                          object_b_correction =>
+                                                                                        case
+                                                                                          bounded_interval64_list_add_at
+                                                                                            b_correction 0
+                                                                                            b_gradient_base of
+                                                                                        | NONE => NONE
+                                                                                        | SOME b_gradient =>
+                                                                                          case
+                                                                                            bounded_object_fs_interval_list_add_at
+                                                                                              object_b_correction 0
+                                                                                              object_b_gradient_base of
+                                                                                          | NONE => NONE
+                                                                                          | SOME object_b_gradient =>
+                                                                                            case
+                                                                                              bounded_historical_c_vector_decimal
+                                                                                                delta_x4 b
+                                                                                                delta_x4_gradient
+                                                                                                b_gradient of
+                                                                                            | NONE => NONE
+                                                                                            | SOME c =>
+                                                                                              case
+                                                                                                bounded_object_fs_historical_c_vector_decimal
+                                                                                                  object_delta_x4
+                                                                                                  object_b
+                                                                                                  object_delta_x4_gradient
+                                                                                                  object_b_gradient of
+                                                                                              | NONE => NONE
+                                                                                              | SOME object_c =>
+                                                                                                case
+                                                                                                  bounded_interval64_list_scale_decimal
+                                                                                                    u_reciprocal c of
+                                                                                                | NONE => NONE
+                                                                                                | SOME gradient_base =>
+                                                                                                  case
+                                                                                                    bounded_object_fs_interval_list_scale_decimal
+                                                                                                      u_reciprocal c of
+                                                                                                  | NONE => NONE
+                                                                                                  | SOME object_gradient_base =>
+                                                                                                    case
+                                                                                                      bounded_interval64_mul_decimal
+                                                                                                        root_four_x0
+                                                                                                        special_root_reciprocal of
+                                                                                                    | NONE => NONE
+                                                                                                    | SOME special_gradient =>
+                                                                                                      case
+                                                                                                        bounded_object_fs_interval_mul_decimal
+                                                                                                          (bounded_interval64_object_cv
+                                                                                                            root_four_x0)
+                                                                                                          object_special_root_reciprocal of
+                                                                                                      | NONE => NONE
+                                                                                                      | SOME object_special_gradient =>
+                                                                                                        case
+                                                                                                          bounded_historical_replace_three
+                                                                                                            gradient_base
+                                                                                                            special_gradient of
+                                                                                                        | NONE => NONE
+                                                                                                        | SOME gradient =>
+                                                                                                          case
+                                                                                                            bounded_object_fs_historical_replace_three
+                                                                                                              object_gradient_base
+                                                                                                              object_special_gradient of
+                                                                                                          | NONE => NONE
+                                                                                                          | SOME object_gradient =>
+                                                                                                            case
+                                                                                                              bounded_object_fs_interval_neg
+                                                                                                                object_delta_x4 of
+                                                                                                            | NONE => NONE
+                                                                                                            | SOME
+                                                                                                                object_negative_delta_x4 =>
+                                                                                                              case
+                                                                                                                bounded_interval64_mul_decimal
+                                                                                                                  (bounded_interval64_neg
+                                                                                                                    delta_x4)
+                                                                                                                  b_reciprocal of
+                                                                                                              | NONE => NONE
+                                                                                                              | SOME quotient =>
+                                                                                                                case
+                                                                                                                  bounded_object_fs_interval_mul_decimal
+                                                                                                                    object_negative_delta_x4
+                                                                                                                    object_b_reciprocal of
+                                                                                                                | NONE => NONE
+                                                                                                                | SOME object_quotient =>
+                                                                                                                  case
+                                                                                                                    bounded_interval64_atan_range_decimal
+                                                                                                                      quotient NONE NONE of
+                                                                                                                  | NONE => NONE
+                                                                                                                  | SOME angle =>
+                                                                                                                    case
+                                                                                                                      bounded_object_fs_interval64_atan_range_none_decimal
+                                                                                                                        quotient of
+                                                                                                                    | NONE => NONE
+                                                                                                                    | SOME object_angle =>
+                                                                                                                      case
+                                                                                                                        bounded_interval64_add
+                                                                                                                          bounded_atan_pi_half_decimal
+                                                                                                                          angle of
+                                                                                                                      | NONE => NONE
+                                                                                                                      | SOME value =>
+                                                                                                                        case
+                                                                                                                          bounded_object_fs_interval_add
+                                                                                                                            (bounded_interval64_object_cv
+                                                                                                                              bounded_atan_pi_half_decimal)
+                                                                                                                            object_angle of
+                                                                                                                        | NONE => NONE
+                                                                                                                        | SOME object_value =>
+                                                                                                                            SOME
+                                                                                                                              (Pair object_value
+                                                                                                                                object_gradient))
+    | _ => NONE
+End
+
 Theorem bounded_historical_dihedral_first64_decimal_delta_root_object_trace:
   bounded_historical_dihedral_first64_decimal environment root_delta
       root_four_x0
@@ -2390,6 +2715,222 @@ Proof
   >> qexists_tac `angle`
   >> simp
        [compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact]
+QED
+
+Theorem bounded_object_fs_historical_dihedral_first64_decimal_exact:
+  bounded_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ==>
+  bounded_object_fs_historical_dihedral_first64_decimal environment
+      root_delta root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME
+      (Pair (bounded_interval64_object_cv value)
+        (bounded_interval64_object_cv_list gradient))
+Proof
+  strip_tac
+  >> drule bounded_historical_dihedral_first64_decimal_source_trace
+  >> strip_tac
+  >> `bounded_object_fs_historical_delta64_value_decimal environment =
+      SOME (bounded_interval64_object_cv delta_interval)` by
+       metis_tac [bounded_object_fs_historical_delta64_value_decimal_exact]
+  >> `bounded_object_fs_hist_positive_root_certificate
+        (bounded_interval64_object_cv delta_interval)
+        (bounded_interval64_object_cv root_delta) = Num 1` by
+       metis_tac
+         [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_sqrt_certificate_decimal_object_exact]
+  >> `bounded_object_fs_interval_scale4
+        (bounded_interval64_object_cv x0) =
+      SOME (bounded_interval64_object_cv four_x0)` by
+       metis_tac
+         [compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_scale4_exact]
+  >> `bounded_object_fs_hist_positive_root_certificate
+        (bounded_interval64_object_cv four_x0)
+        (bounded_interval64_object_cv root_four_x0) = Num 1` by
+       metis_tac
+         [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_sqrt_certificate_decimal_object_exact]
+  >> `bounded_object_fs_interval_scale2
+        (bounded_interval64_object_cv root_delta) =
+      SOME (bounded_interval64_object_cv twice_root_delta)` by
+       metis_tac
+         [compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_scale2_exact]
+  >> `bounded_object_fs_hist_positive_inv
+        (bounded_interval64_object_cv twice_root_delta) =
+      SOME (bounded_interval64_object_cv root_derivative)` by
+       metis_tac
+         [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_object_exact]
+  >> `bounded_object_fs_hist_positive_inv
+        (bounded_interval64_object_cv twice_root_delta) =
+      SOME (bounded_interval64_object_cv special_root_reciprocal)` by
+       metis_tac
+         [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_object_exact]
+  >> `bounded_object_fs_hist_positive_inv
+        (bounded_interval64_object_cv root_four_x0) =
+      SOME (bounded_interval64_object_cv root_four_reciprocal)` by
+       metis_tac
+         [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_object_exact]
+  >> `bounded_object_fs_delta64_pair_products_decimal environment =
+      SOME (bounded_interval64_object_cv_list delta_products)` by
+       metis_tac [bounded_object_fs_delta64_pair_products_decimal_exact]
+  >> `bounded_object_fs_delta64_gradient_from_products delta_products =
+      SOME (bounded_interval64_object_cv_list delta_gradient)` by
+       metis_tac [bounded_object_fs_delta64_gradient_from_products_exact]
+  >> `bounded_object_fs_interval_list_scale_decimal
+        root_derivative delta_gradient =
+      SOME (bounded_interval64_object_cv_list root_gradient)` by
+       metis_tac
+         [compute_boundedObjectTaylorProductDecimalTheory.bounded_object_fs_interval_list_scale_decimal_exact]
+  >> `bounded_object_fs_historical_delta_x4_value_decimal environment =
+      SOME (bounded_interval64_object_cv delta_x4)` by
+       metis_tac [bounded_object_fs_historical_delta_x4_value_decimal_exact]
+  >> `bounded_object_fs_historical_delta_x4_gradient environment =
+      SOME (bounded_interval64_object_cv_list delta_x4_gradient)` by
+       metis_tac [bounded_object_fs_historical_delta_x4_gradient_exact]
+  >> `bounded_object_fs_historical_u126_decimal environment =
+      SOME
+        (Pair (bounded_interval64_object_cv u126)
+          (bounded_interval64_object_cv_list u126_gradient))` by
+       metis_tac [bounded_object_fs_historical_u126_decimal_exact]
+  >> `bounded_object_fs_historical_u135_decimal environment =
+      SOME
+        (Pair (bounded_interval64_object_cv u135)
+          (bounded_interval64_object_cv_list u135_gradient))` by
+       metis_tac [bounded_object_fs_historical_u135_decimal_exact]
+  >> `bounded_object_fs_interval_mul_decimal
+        (bounded_interval64_object_cv root_delta)
+        (bounded_interval64_object_cv root_four_x0) =
+      SOME (bounded_interval64_object_cv b)` by
+       metis_tac
+         [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact]
+  >> `bounded_object_fs_hist_positive_inv
+        (bounded_interval64_object_cv b) =
+      SOME (bounded_interval64_object_cv b_reciprocal)` by
+       metis_tac
+         [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_object_exact]
+  >> `bounded_object_fs_interval_mul_decimal
+        (bounded_interval64_object_cv u126)
+        (bounded_interval64_object_cv u135) =
+      SOME (bounded_interval64_object_cv u_product)` by
+       metis_tac
+         [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact]
+  >> `bounded_object_fs_hist_positive_inv
+        (bounded_interval64_object_cv u_product) =
+      SOME (bounded_interval64_object_cv u_reciprocal)` by
+       metis_tac
+         [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_object_exact]
+  >> `bounded_object_fs_interval_scale2
+        (bounded_interval64_object_cv bounded_atan_one_decimal) =
+      SOME (bounded_interval64_object_cv two)` by
+       metis_tac
+         [compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_scale2_exact]
+  >> `bounded_object_fs_interval_mul_decimal
+        (bounded_interval64_object_cv two)
+        (bounded_interval64_object_cv root_four_reciprocal) =
+      SOME (bounded_interval64_object_cv two_over_root_four)` by
+       metis_tac
+         [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact]
+  >> `bounded_object_fs_interval_list_scale_decimal
+        root_four_x0 root_gradient =
+      SOME (bounded_interval64_object_cv_list b_gradient_base)` by
+       metis_tac
+         [compute_boundedObjectTaylorProductDecimalTheory.bounded_object_fs_interval_list_scale_decimal_exact]
+  >> `bounded_object_fs_interval_mul_decimal
+        (bounded_interval64_object_cv root_delta)
+        (bounded_interval64_object_cv two_over_root_four) =
+      SOME (bounded_interval64_object_cv b_correction)` by
+       metis_tac
+         [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact]
+  >> `bounded_object_fs_interval_list_add_at
+        (bounded_interval64_object_cv b_correction) 0
+        (bounded_interval64_object_cv_list b_gradient_base) =
+      SOME (bounded_interval64_object_cv_list b_gradient)` by
+       metis_tac
+         [compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_list_add_at_exact]
+  >> `bounded_object_fs_historical_c_vector_decimal
+        (bounded_interval64_object_cv delta_x4)
+        (bounded_interval64_object_cv b)
+        (bounded_interval64_object_cv_list delta_x4_gradient)
+        (bounded_interval64_object_cv_list b_gradient) =
+      SOME (bounded_interval64_object_cv_list c)` by
+       metis_tac
+         [compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_historical_c_vector_decimal_exact]
+  >> `bounded_object_fs_interval_list_scale_decimal u_reciprocal c =
+      SOME (bounded_interval64_object_cv_list gradient_base)` by
+       metis_tac
+         [compute_boundedObjectTaylorProductDecimalTheory.bounded_object_fs_interval_list_scale_decimal_exact]
+  >> `bounded_object_fs_interval_mul_decimal
+        (bounded_interval64_object_cv root_four_x0)
+        (bounded_interval64_object_cv special_root_reciprocal) =
+      SOME (bounded_interval64_object_cv special_gradient)` by
+       metis_tac
+         [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact]
+  >> `bounded_object_fs_historical_replace_three
+        (bounded_interval64_object_cv_list gradient_base)
+        (bounded_interval64_object_cv special_gradient) =
+      SOME (bounded_interval64_object_cv_list gradient)` by
+       metis_tac
+         [compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_historical_replace_three_exact]
+  >> `bounded_object_fs_interval_mul_decimal
+        (bounded_interval64_object_cv (bounded_interval64_neg delta_x4))
+        (bounded_interval64_object_cv b_reciprocal) =
+      SOME (bounded_interval64_object_cv quotient)` by
+       metis_tac
+         [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact]
+  >> `bounded_object_fs_interval64_atan_range_none_decimal quotient =
+      SOME (bounded_interval64_object_cv angle)` by
+       metis_tac [bounded_object_fs_interval64_atan_range_none_decimal_exact]
+  >> `bounded_object_fs_interval_add
+        (bounded_interval64_object_cv bounded_atan_pi_half_decimal)
+        (bounded_interval64_object_cv angle) =
+      SOME (bounded_interval64_object_cv value)` by
+       metis_tac
+         [compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_add_object_cv_exact]
+  >> qpat_x_assum
+       `bounded_historical_scale2 bounded_atan_one_decimal = SOME _`
+       (fn source_two =>
+  qpat_x_assum
+       `bounded_object_fs_interval_scale2
+          (bounded_interval64_object_cv bounded_atan_one_decimal) = SOME _`
+       (fn object_two =>
+  qpat_x_assum
+       `bounded_object_fs_interval_mul_decimal
+          (bounded_interval64_object_cv two)
+          (bounded_interval64_object_cv root_four_reciprocal) = SOME _`
+       (fn object_two_over =>
+  qpat_x_assum
+       `bounded_object_fs_interval_mul_decimal
+          (bounded_interval64_object_cv root_delta)
+          (bounded_interval64_object_cv two_over_root_four) = SOME _`
+       (fn object_correction =>
+  qpat_x_assum
+       `bounded_object_fs_interval_list_add_at
+          (bounded_interval64_object_cv b_correction) 0
+          (bounded_interval64_object_cv_list b_gradient_base) = SOME _`
+       (fn object_b_gradient =>
+  qpat_x_assum
+       `bounded_object_fs_historical_c_vector_decimal
+          (bounded_interval64_object_cv delta_x4)
+          (bounded_interval64_object_cv b)
+          (bounded_interval64_object_cv_list delta_x4_gradient)
+          (bounded_interval64_object_cv_list b_gradient) = SOME _`
+       (fn object_c =>
+          gvs
+            [bounded_object_fs_historical_dihedral_first64_decimal_def,
+             source_two,
+             compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact]
+          >> once_rewrite_tac [object_two]
+          >> simp []
+          >> once_rewrite_tac [object_two_over]
+          >> simp []
+          >> once_rewrite_tac [object_correction]
+          >> simp []
+          >> once_rewrite_tac [object_b_gradient]
+          >> simp []
+          >> once_rewrite_tac [object_c]
+          >> simp []))))))
 QED
 
 val _ = export_theory ();
