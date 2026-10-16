@@ -491,6 +491,79 @@ Proof
         compute_boundedIntervalTheory.bounded_interval64_upper_def]
 QED
 
+Definition bounded_object_fs_historical_u126_decimal_def:
+  bounded_object_fs_historical_u126_decimal environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+      (case bounded_object_fs_historical_u_three_decimal x0 x1 x5 of
+      | SOME (Pair value (Pair g0 (Pair g1 (Pair g2 (Num 0))))) =>
+          SOME
+            (Pair value
+              (Pair g0
+                (Pair g1
+                  (Pair (bounded_interval64_object_cv bounded_interval64_zero)
+                    (Pair
+                      (bounded_interval64_object_cv bounded_interval64_zero)
+                      (Pair
+                        (bounded_interval64_object_cv bounded_interval64_zero)
+                        (Pair g2 (Num 0))))))))
+      | _ => NONE)
+    | _ => NONE
+End
+
+Theorem bounded_object_fs_historical_u126_decimal_exact:
+  bounded_historical_u126_decimal environment = SOME (value,gradient) ==>
+  bounded_object_fs_historical_u126_decimal environment =
+    SOME
+      (Pair (bounded_interval64_object_cv value)
+        (bounded_interval64_object_cv_list gradient))
+Proof
+  rw [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_u126_decimal_def,
+      bounded_object_fs_historical_u126_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_fs_historical_u_three_decimal_exact
+  >> gvs
+       [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
+Definition bounded_object_fs_historical_u135_decimal_def:
+  bounded_object_fs_historical_u135_decimal environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+      (case bounded_object_fs_historical_u_three_decimal x0 x2 x4 of
+      | SOME (Pair value (Pair g0 (Pair g1 (Pair g2 (Num 0))))) =>
+          SOME
+            (Pair value
+              (Pair g0
+                (Pair (bounded_interval64_object_cv bounded_interval64_zero)
+                  (Pair g1
+                    (Pair
+                      (bounded_interval64_object_cv bounded_interval64_zero)
+                      (Pair g2
+                        (Pair
+                          (bounded_interval64_object_cv bounded_interval64_zero)
+                          (Num 0))))))))
+      | _ => NONE)
+    | _ => NONE
+End
+
+Theorem bounded_object_fs_historical_u135_decimal_exact:
+  bounded_historical_u135_decimal environment = SOME (value,gradient) ==>
+  bounded_object_fs_historical_u135_decimal environment =
+    SOME
+      (Pair (bounded_interval64_object_cv value)
+        (bounded_interval64_object_cv_list gradient))
+Proof
+  rw [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_u135_decimal_def,
+      bounded_object_fs_historical_u135_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_fs_historical_u_three_decimal_exact
+  >> gvs
+       [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
 Definition bounded_object_fs_delta64_gradient_component_from_products_def:
   bounded_object_fs_delta64_gradient_component_from_products (coordinate:num)
       products =
