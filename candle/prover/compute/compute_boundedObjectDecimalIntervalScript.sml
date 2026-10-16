@@ -66,6 +66,36 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded_object_int_min_is_member:
+  bounded_object_int_min left right = left \/
+  bounded_object_int_min left right = right
+Proof
+  rw [bounded_object_int_min_def]
+QED
+
+Theorem bounded_object_int_max_is_member:
+  bounded_object_int_max left right = left \/
+  bounded_object_int_max left right = right
+Proof
+  rw [bounded_object_int_max_def]
+QED
+
+Theorem bounded_object_int_min_le_from_disj:
+  ((left:int) <= value \/ right <= value) ==>
+  bounded_object_int_min left right <= value
+Proof
+  rw [bounded_object_int_min_def]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_object_int_le_max_from_disj:
+  ((value:int) <= left \/ value <= right) ==>
+  value <= bounded_object_int_max left right
+Proof
+  rw [bounded_object_int_max_def]
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_object_int_product_extrema_from_bounds:
   left_lower <= left_upper /\
   right_lower <= right_upper /\
@@ -271,6 +301,41 @@ Proof
   >> mp_tac
        compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_nonpositive
   >> simp []
+QED
+
+Theorem bounded_object_int_product_extrema_mixed_mixed:
+  left_lower <= left_upper /\ right_lower <= right_upper /\
+  left_lower <= 0 /\ 0 <= left_upper /\
+  right_lower <= 0 /\ 0 <= right_upper ==>
+  bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        bounded_object_int_min
+          (left_lower * right_upper) (left_upper * right_lower) /\
+  bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        bounded_object_int_max
+          (left_lower * right_lower) (left_upper * right_upper)
+Proof
+  strip_tac
+  >> irule bounded_object_int_product_extrema_from_bounds
+  >> simp [bounded_object_int_min_is_member,
+           bounded_object_int_max_is_member]
+  >> conj_tac
+  >- (rpt gen_tac
+      >> disch_tac
+      >> mp_tac
+           compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_mixed
+      >> impl_tac
+      >- simp []
+      >> disch_tac
+      >> conj_tac
+      >- (irule bounded_object_int_min_le_from_disj
+          >> simp [])
+      >> irule bounded_object_int_le_max_from_disj
+      >> simp [])
+  >> rw [bounded_object_int_min_def, bounded_object_int_max_def]
 QED
 
 Definition bounded_object_fs_raw_interval_extrema_def:
