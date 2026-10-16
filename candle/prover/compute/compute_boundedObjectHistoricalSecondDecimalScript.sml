@@ -932,4 +932,159 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_signed64_zero_le_iff_nonnegative:
+  bounded_signed64_le (BoundedSigned64 F 0w) value =
+    bounded_signed64_nonnegative value
+Proof
+  Cases_on `value`
+  >> Cases_on `b`
+  >> Cases_on `w = 0w`
+  >> simp
+       [compute_boundedSignedEndpointTheory.bounded_signed64_le_def,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def,
+        wordsTheory.WORD_LO]
+QED
+
+Theorem bounded_signed64_le_zero_iff_nonpositive:
+  bounded_signed64_le value (BoundedSigned64 F 0w) =
+    bounded_signed64_nonpositive value
+Proof
+  Cases_on `value`
+  >> Cases_on `b`
+  >> Cases_on `w = 0w`
+  >> simp
+       [compute_boundedSignedEndpointTheory.bounded_signed64_le_def,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def,
+        wordsTheory.WORD_LO]
+QED
+
+Definition bounded_object_fs_historical_monotone_coordinate_def:
+  bounded_object_fs_historical_monotone_coordinate value derivative upper =
+    case bounded_object_fs_raw_le
+      (bounded_signed64_object_cv (BoundedSigned64 F 0w))
+      (bounded_signed64_object_cv (bounded_interval64_lower derivative)) of
+    | NONE => NONE
+    | SOME nonnegative =>
+      if nonnegative then
+        let endpoint =
+          if upper then bounded_interval64_upper value
+          else bounded_interval64_lower value in
+        SOME
+          (Pair (bounded_signed64_object_cv endpoint)
+            (bounded_signed64_object_cv endpoint))
+      else
+        case bounded_object_fs_raw_le
+          (bounded_signed64_object_cv (bounded_interval64_upper derivative))
+          (bounded_signed64_object_cv (BoundedSigned64 F 0w)) of
+        | NONE => NONE
+        | SOME nonpositive =>
+          if nonpositive then
+            let endpoint =
+              if upper then bounded_interval64_lower value
+              else bounded_interval64_upper value in
+            SOME
+              (Pair (bounded_signed64_object_cv endpoint)
+                (bounded_signed64_object_cv endpoint))
+          else SOME (bounded_interval64_object_cv value)
+End
+
+Theorem bounded_object_fs_historical_monotone_coordinate_exact:
+  bounded_object_fs_historical_monotone_coordinate value derivative upper =
+    SOME
+      (bounded_interval64_object_cv
+        (bounded_historical_monotone_coordinate value derivative upper))
+Proof
+  Cases_on `value`
+  >> Cases_on `derivative`
+  >> Cases_on `upper`
+  >> Cases_on `bounded_signed64_nonnegative b'`
+  >> Cases_on `bounded_signed64_nonpositive b''`
+  >> simp
+       [bounded_object_fs_historical_monotone_coordinate_def,
+        compute_boundedObjectDecimalOrderTheory.bounded_object_fs_raw_le_object_cv,
+        bounded_signed64_zero_le_iff_nonnegative,
+        bounded_signed64_le_zero_iff_nonpositive,
+        compute_boundedHistoricalDihedralSecondTheory.bounded_historical_monotone_coordinate_def,
+        compute_boundedHistoricalDihedralFirstTheory.bounded_historical_point_lower_def,
+        compute_boundedHistoricalDihedralFirstTheory.bounded_historical_point_upper_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> every_case_tac
+  >> simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+QED
+
+Definition bounded_object_fs_historical_monotone_environment_def:
+  bounded_object_fs_historical_monotone_environment [] [] upper =
+      SOME (Num 0 : cv) /\
+  bounded_object_fs_historical_monotone_environment (value::values)
+      (derivative::derivatives) upper =
+    (case bounded_object_fs_historical_monotone_coordinate
+      value derivative upper of
+    | NONE => NONE
+    | SOME coordinate =>
+      case bounded_object_fs_historical_monotone_environment
+        values derivatives upper of
+      | NONE => NONE
+      | SOME rest => SOME (Pair coordinate rest)) /\
+  bounded_object_fs_historical_monotone_environment _ _ upper = NONE
+End
+
+Theorem bounded_object_fs_historical_monotone_environment_exact:
+  !derivatives upper result.
+    bounded_historical_monotone_environment values derivatives upper =
+      SOME result ==>
+    bounded_object_fs_historical_monotone_environment
+      values derivatives upper =
+    SOME (bounded_interval64_object_cv_list result)
+Proof
+  Induct_on `values`
+  >> Cases_on `derivatives`
+  >> rw
+       [compute_boundedHistoricalDihedralSecondTheory.bounded_historical_monotone_environment_def,
+        bounded_object_fs_historical_monotone_environment_def,
+        compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+  >> every_case_tac
+  >> gvs [bounded_object_fs_historical_monotone_coordinate_exact]
+  >> res_tac
+  >> gvs
+       [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
+Definition bounded_object_fs_historical_extreme_interval_def:
+  bounded_object_fs_historical_extreme_interval lower_value upper_value =
+    case bounded_object_fs_interval_endpoints
+      (bounded_interval64_object_cv lower_value) of
+    | NONE => NONE
+    | SOME (lower,_) =>
+      case bounded_object_fs_interval_endpoints
+        (bounded_interval64_object_cv upper_value) of
+      | NONE => NONE
+      | SOME (_,upper) => SOME (Pair lower upper)
+End
+
+Theorem bounded_object_fs_historical_extreme_interval_exact:
+  bounded_object_fs_historical_extreme_interval lower_value upper_value =
+    SOME
+      (bounded_interval64_object_cv
+        (bounded_historical_extreme_interval lower_value upper_value))
+Proof
+  Cases_on `lower_value`
+  >> Cases_on `upper_value`
+  >> simp
+       [bounded_object_fs_historical_extreme_interval_def,
+        bounded_object_fs_interval_endpoints_exact,
+        compute_boundedHistoricalDihedralSecondTheory.bounded_historical_extreme_interval_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+QED
+
 val _ = export_theory ();
