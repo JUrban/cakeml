@@ -574,6 +574,14 @@ Proof
   >> gvs []
 QED
 
+Definition bounded_object_fs_interval_mul_decimal_def:
+  bounded_object_fs_interval_mul_decimal left right =
+    case bounded_object_fs_raw_interval_mul left right of
+    | NONE => NONE
+    | SOME raw =>
+        bounded_object_fs_raw_interval_round 1000000000000 raw
+End
+
 Theorem bounded_interval64_product_from_pairs_decimal_object_exact:
   bounded_signed64_normalized lower_left /\
   bounded_signed64_normalized lower_right /\
@@ -621,6 +629,72 @@ Proof
   >> qexists_tac `raw_upper`
   >> simp [bounded_object_fs_raw_interval_round_def,
            compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def]
+QED
+
+Theorem bounded_object_fs_interval_mul_decimal_from_pairs_exact:
+  bounded_signed64_normalized left_lower /\
+  bounded_signed64_normalized left_upper /\
+  bounded_signed64_normalized right_lower /\
+  bounded_signed64_normalized right_upper /\
+  bounded_signed64_normalized selected_lower_left /\
+  bounded_signed64_normalized selected_lower_right /\
+  bounded_signed64_normalized selected_upper_left /\
+  bounded_signed64_normalized selected_upper_right /\
+  bounded_object_fs_raw_interval_mul
+      (bounded_interval64_object_cv
+        (BoundedInterval64 left_lower left_upper))
+      (bounded_interval64_object_cv
+        (BoundedInterval64 right_lower right_upper)) =
+      SOME (Pair object_lower object_upper) /\
+  bounded_object_int_min4
+      (bounded_signed64_to_int left_lower *
+        bounded_signed64_to_int right_lower)
+      (bounded_signed64_to_int left_lower *
+        bounded_signed64_to_int right_upper)
+      (bounded_signed64_to_int left_upper *
+        bounded_signed64_to_int right_lower)
+      (bounded_signed64_to_int left_upper *
+        bounded_signed64_to_int right_upper) =
+    bounded_signed64_to_int selected_lower_left *
+      bounded_signed64_to_int selected_lower_right /\
+  bounded_object_int_max4
+      (bounded_signed64_to_int left_lower *
+        bounded_signed64_to_int right_lower)
+      (bounded_signed64_to_int left_lower *
+        bounded_signed64_to_int right_upper)
+      (bounded_signed64_to_int left_upper *
+        bounded_signed64_to_int right_lower)
+      (bounded_signed64_to_int left_upper *
+        bounded_signed64_to_int right_upper) =
+    bounded_signed64_to_int selected_upper_left *
+      bounded_signed64_to_int selected_upper_right /\
+  bounded_interval64_product_from_pairs_decimal
+      selected_lower_left selected_lower_right
+      selected_upper_left selected_upper_right = SOME result ==>
+  bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv
+        (BoundedInterval64 left_lower left_upper))
+      (bounded_interval64_object_cv
+        (BoundedInterval64 right_lower right_upper)) =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`lower_left` |-> `selected_lower_left`,
+          `lower_right` |-> `selected_lower_right`,
+          `upper_left` |-> `selected_upper_left`,
+          `upper_right` |-> `selected_upper_right`,
+          `result` |-> `result`]
+         bounded_interval64_product_from_pairs_decimal_object_exact)
+  >> impl_tac
+  >- simp []
+  >> disch_then
+       (qx_choose_then `raw_lower`
+         (qx_choose_then `raw_upper` strip_assume_tac))
+  >> fs [bounded_object_fs_interval_mul_decimal_def,
+         compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def]
+  >> metis_tac [bounded_object_fs_raw_interval_mul_round_selected]
 QED
 
 val _ = export_theory ();
