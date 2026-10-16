@@ -393,6 +393,86 @@ Proof
   >> gvs []
 QED
 
+Definition bounded_object_fs_raw_interval_mul_def:
+  bounded_object_fs_raw_interval_mul
+      (Pair left_lower left_upper : cv)
+      (Pair right_lower right_upper : cv) =
+    (case bounded_object_fs_raw_mul left_lower right_lower of
+     | NONE => NONE
+     | SOME lower_lower =>
+       case bounded_object_fs_raw_mul left_lower right_upper of
+       | NONE => NONE
+       | SOME lower_upper =>
+         case bounded_object_fs_raw_mul left_upper right_lower of
+         | NONE => NONE
+         | SOME upper_lower =>
+           case bounded_object_fs_raw_mul left_upper right_upper of
+           | NONE => NONE
+           | SOME upper_upper =>
+             bounded_object_fs_raw_interval_extrema
+               lower_lower lower_upper upper_lower upper_upper) /\
+  bounded_object_fs_raw_interval_mul _ _ = NONE
+End
+
+Theorem bounded_object_fs_raw_interval_mul_signed_values:
+  bounded_object_fs_raw_interval_mul
+      (Pair
+        (bounded_signed64_object_cv left_lower)
+        (bounded_signed64_object_cv left_upper))
+      (Pair
+        (bounded_signed64_object_cv right_lower)
+        (bounded_signed64_object_cv right_upper)) =
+      SOME (Pair lower upper) ==>
+  bounded_object_signed_int lower =
+    SOME
+      (bounded_object_int_min4
+        (bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower)
+        (bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper)
+        (bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower)
+        (bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper)) /\
+  bounded_object_signed_int upper =
+    SOME
+      (bounded_object_int_max4
+        (bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower)
+        (bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper)
+        (bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower)
+        (bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper))
+Proof
+  rw [bounded_object_fs_raw_interval_mul_def]
+  >> Cases_on
+       `bounded_object_fs_raw_mul
+          (bounded_signed64_object_cv left_lower)
+          (bounded_signed64_object_cv right_lower)`
+  >> gvs []
+  >> Cases_on
+       `bounded_object_fs_raw_mul
+          (bounded_signed64_object_cv left_lower)
+          (bounded_signed64_object_cv right_upper)`
+  >> gvs []
+  >> Cases_on
+       `bounded_object_fs_raw_mul
+          (bounded_signed64_object_cv left_upper)
+          (bounded_signed64_object_cv right_lower)`
+  >> gvs []
+  >> Cases_on
+       `bounded_object_fs_raw_mul
+          (bounded_signed64_object_cv left_upper)
+          (bounded_signed64_object_cv right_upper)`
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectDecimalOrderTheory.bounded_object_fs_raw_mul_signed_value
+  >> imp_res_tac bounded_object_fs_raw_interval_extrema_signed_values
+  >> gvs []
+QED
+
 Definition bounded_object_fs_raw_interval_round_def:
   bounded_object_fs_raw_interval_round denominator
       (Pair lower upper : cv) =
