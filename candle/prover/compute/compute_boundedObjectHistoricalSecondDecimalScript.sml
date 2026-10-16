@@ -1822,4 +1822,93 @@ Proof
         bounded_object_fs_historical_extreme_interval_exact]
 QED
 
+Definition bounded_object_fs_historical_sqrt_second_decimal_def:
+  bounded_object_fs_historical_sqrt_second_decimal value gradient hessian root
+      derivative_reciprocal logarithmic_reciprocal =
+    if ~bounded_interval64_positive_sqrt_certificate_decimal value root then
+      NONE
+    else if bounded_object_fs_hist_positive_root_certificate
+      (bounded_interval64_object_cv value)
+      (bounded_interval64_object_cv root) <> Num 1 then NONE
+    else
+      case bounded_historical_scale2 root of
+      | NONE => NONE
+      | SOME twice_root =>
+        case bounded_object_fs_interval_scale2
+          (bounded_interval64_object_cv root) of
+        | NONE => NONE
+        | SOME object_twice_root =>
+          case bounded_object_fs_hist_positive_inv object_twice_root of
+          | NONE => NONE
+          | SOME object_derivative =>
+            case bounded_historical_scale2 value of
+            | NONE => NONE
+            | SOME twice_value =>
+              case bounded_object_fs_interval_scale2
+                (bounded_interval64_object_cv value) of
+              | NONE => NONE
+              | SOME object_twice_value =>
+                case bounded_object_fs_hist_positive_inv object_twice_value of
+                | NONE => NONE
+                | SOME object_logarithmic =>
+                  case bounded_interval64_list_scale_decimal
+                    derivative_reciprocal gradient of
+                  | NONE => NONE
+                  | SOME result_gradient =>
+                    case bounded_object_fs_interval_list_scale_decimal
+                      derivative_reciprocal gradient of
+                    | NONE => NONE
+                    | SOME object_result_gradient =>
+                      case bounded_historical_sqrt_hessian_decimal
+                        derivative_reciprocal
+                        (bounded_interval64_neg logarithmic_reciprocal)
+                        gradient bounded_delta64_hessian_indices hessian of
+                      | NONE => NONE
+                      | SOME result_hessian =>
+                        case bounded_object_fs_interval_neg
+                          (bounded_interval64_object_cv
+                            logarithmic_reciprocal) of
+                        | NONE => NONE
+                        | SOME object_negative_logarithmic =>
+                          case bounded_object_fs_historical_sqrt_hessian_decimal
+                            object_derivative object_negative_logarithmic
+                            (bounded_interval64_object_cv_list gradient)
+                            bounded_delta64_hessian_indices
+                            (bounded_interval64_object_cv_list hessian) of
+                          | NONE => NONE
+                          | SOME object_result_hessian =>
+                              SOME
+                                (Pair (bounded_interval64_object_cv root)
+                                  (Pair object_result_gradient
+                                    object_result_hessian))
+End
+
+Theorem bounded_object_fs_historical_sqrt_second_decimal_exact:
+  bounded_historical_sqrt_second_decimal value gradient hessian root
+      derivative_reciprocal logarithmic_reciprocal =
+    SOME (result_root,result_gradient,result_hessian) ==>
+  bounded_object_fs_historical_sqrt_second_decimal value gradient hessian root
+      derivative_reciprocal logarithmic_reciprocal =
+    SOME
+      (Pair (bounded_interval64_object_cv result_root)
+        (Pair (bounded_interval64_object_cv_list result_gradient)
+          (bounded_interval64_object_cv_list result_hessian)))
+Proof
+  strip_tac
+  >> drule bounded_historical_sqrt_second_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_sqrt_certificate_decimal_object_exact
+  >> imp_res_tac
+       compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_object_exact
+  >> imp_res_tac
+       compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_scale2_exact
+  >> imp_res_tac
+       compute_boundedObjectTaylorProductDecimalTheory.bounded_object_fs_interval_list_scale_decimal_exact
+  >> imp_res_tac bounded_object_fs_historical_sqrt_hessian_decimal_exact
+  >> gvs
+       [bounded_object_fs_historical_sqrt_second_decimal_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact]
+QED
+
 val _ = export_theory ();
