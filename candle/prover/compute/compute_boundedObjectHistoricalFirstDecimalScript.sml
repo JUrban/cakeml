@@ -1693,4 +1693,137 @@ Proof
   >> metis_tac [bounded_object_fs_delta64_gradient_components_exact]
 QED
 
+Definition bounded_object_fs_interval_mul_add_decimal_def:
+  bounded_object_fs_interval_mul_add_decimal scalar accumulator addend =
+    case bounded_object_fs_interval_mul_decimal scalar accumulator of
+    | NONE => NONE
+    | SOME product => bounded_object_fs_interval_add addend product
+End
+
+Theorem bounded_object_fs_interval_mul_add_decimal_exact:
+  bounded_interval64_mul_add_decimal scalar accumulator addend = SOME result ==>
+  bounded_object_fs_interval_mul_add_decimal
+      (bounded_interval64_object_cv scalar)
+      (bounded_interval64_object_cv accumulator)
+      (bounded_interval64_object_cv addend) =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw [compute_boundedAtanDecimalTheory.bounded_interval64_mul_add_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact
+  >> imp_res_tac
+       compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_add_object_cv_exact
+  >> gvs [bounded_object_fs_interval_mul_add_decimal_def]
+QED
+
+Definition bounded_object_fs_interval64_atan_pos_lower_decimal_def:
+  bounded_object_fs_interval64_atan_pos_lower_decimal magnitude =
+    let point = BoundedInterval64
+      (BoundedSigned64 F magnitude) (BoundedSigned64 F magnitude) in
+    case bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv point)
+      (bounded_interval64_object_cv point) of
+    | NONE => NONE
+    | SOME square =>
+      case bounded_object_fs_interval_mul_add_decimal square
+        (bounded_interval64_object_cv bounded_atan_neg_eleventh_decimal)
+        (bounded_interval64_object_cv bounded_atan_pos_ninth_decimal) of
+      | NONE => NONE
+      | SOME step9 =>
+        case bounded_object_fs_interval_mul_add_decimal square step9
+          (bounded_interval64_object_cv bounded_atan_neg_seventh_decimal) of
+        | NONE => NONE
+        | SOME step7 =>
+          case bounded_object_fs_interval_mul_add_decimal square step7
+            (bounded_interval64_object_cv bounded_atan_pos_fifth_decimal) of
+          | NONE => NONE
+          | SOME step5 =>
+            case bounded_object_fs_interval_mul_add_decimal square step5
+              (bounded_interval64_object_cv bounded_atan_neg_third_decimal) of
+            | NONE => NONE
+            | SOME step3 =>
+              case bounded_object_fs_interval_mul_add_decimal square step3
+                (bounded_interval64_object_cv bounded_atan_one_decimal) of
+              | NONE => NONE
+              | SOME body =>
+                  bounded_object_fs_interval_mul_decimal
+                    (bounded_interval64_object_cv point) body
+End
+
+Theorem bounded_object_fs_interval64_atan_pos_lower_decimal_exact:
+  bounded_interval64_atan_pos_lower_decimal magnitude = SOME result ==>
+  bounded_object_fs_interval64_atan_pos_lower_decimal magnitude =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedAtanDecimalTheory.bounded_interval64_atan_pos_lower_decimal_def,
+     LET_THM]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact
+  >> imp_res_tac bounded_object_fs_interval_mul_add_decimal_exact
+  >> gvs
+       [bounded_object_fs_interval64_atan_pos_lower_decimal_def,
+        LET_THM]
+QED
+
+Definition bounded_object_fs_interval64_atan_pos_upper_decimal_def:
+  bounded_object_fs_interval64_atan_pos_upper_decimal magnitude =
+    let point = BoundedInterval64
+      (BoundedSigned64 F magnitude) (BoundedSigned64 F magnitude) in
+    case bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv point)
+      (bounded_interval64_object_cv point) of
+    | NONE => NONE
+    | SOME square =>
+      case bounded_object_fs_interval_mul_add_decimal square
+        (bounded_interval64_object_cv bounded_atan_pos_thirteenth_decimal)
+        (bounded_interval64_object_cv bounded_atan_neg_eleventh_decimal) of
+      | NONE => NONE
+      | SOME step11 =>
+        case bounded_object_fs_interval_mul_add_decimal square step11
+          (bounded_interval64_object_cv bounded_atan_pos_ninth_decimal) of
+        | NONE => NONE
+        | SOME step9 =>
+          case bounded_object_fs_interval_mul_add_decimal square step9
+            (bounded_interval64_object_cv bounded_atan_neg_seventh_decimal) of
+          | NONE => NONE
+          | SOME step7 =>
+            case bounded_object_fs_interval_mul_add_decimal square step7
+              (bounded_interval64_object_cv bounded_atan_pos_fifth_decimal) of
+            | NONE => NONE
+            | SOME step5 =>
+              case bounded_object_fs_interval_mul_add_decimal square step5
+                (bounded_interval64_object_cv bounded_atan_neg_third_decimal) of
+              | NONE => NONE
+              | SOME step3 =>
+                case bounded_object_fs_interval_mul_add_decimal square step3
+                  (bounded_interval64_object_cv bounded_atan_one_decimal) of
+                | NONE => NONE
+                | SOME body =>
+                    bounded_object_fs_interval_mul_decimal
+                      (bounded_interval64_object_cv point) body
+End
+
+Theorem bounded_object_fs_interval64_atan_pos_upper_decimal_exact:
+  bounded_interval64_atan_pos_upper_decimal magnitude = SOME result ==>
+  bounded_object_fs_interval64_atan_pos_upper_decimal magnitude =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedAtanDecimalTheory.bounded_interval64_atan_pos_upper_decimal_def,
+     LET_THM]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact
+  >> imp_res_tac bounded_object_fs_interval_mul_add_decimal_exact
+  >> gvs
+       [bounded_object_fs_interval64_atan_pos_upper_decimal_def,
+        LET_THM]
+QED
+
 val _ = export_theory ();
