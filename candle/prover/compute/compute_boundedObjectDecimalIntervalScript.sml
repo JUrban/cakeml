@@ -1239,4 +1239,240 @@ Proof
         compute_boundedIntervalDecimalTheory.bounded_interval64_product_from_pairs_decimal_def]
 QED
 
+fun bounded_object_int_product_extrema_tac extrema_theorem =
+  mp_tac
+    (INST
+      [``(left_lower:int)`` |->
+         ``bounded_signed64_to_int (left_lower:bounded_signed64)``,
+       ``(left_upper:int)`` |->
+         ``bounded_signed64_to_int (left_upper:bounded_signed64)``,
+       ``(right_lower:int)`` |->
+         ``bounded_signed64_to_int (right_lower:bounded_signed64)``,
+       ``(right_upper:int)`` |->
+         ``bounded_signed64_to_int (right_upper:bounded_signed64)``]
+      extrema_theorem)
+  >> impl_tac
+  >- intLib.ARITH_TAC
+  >> strip_tac
+  >> simp [];
+
+Theorem bounded_object_fs_interval_mul_unchecked_decimal_components_exact:
+  bounded_interval64_valid (BoundedInterval64 left_lower left_upper) /\
+  bounded_interval64_valid (BoundedInterval64 right_lower right_upper) /\
+  bounded_interval64_mul_unchecked_decimal
+      (BoundedInterval64 left_lower left_upper)
+      (BoundedInterval64 right_lower right_upper) = SOME result ==>
+  bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv
+        (BoundedInterval64 left_lower left_upper))
+      (bounded_interval64_object_cv
+        (BoundedInterval64 right_lower right_upper)) =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`left_lower` |-> `left_lower`,
+          `left_upper` |-> `left_upper`,
+          `right_lower` |-> `right_lower`,
+          `right_upper` |-> `right_upper`]
+         bounded_object_fs_raw_interval_mul_object_cv_exists)
+  >> disch_then
+       (qx_choose_then `object_lower`
+         (qx_choose_then `object_upper` assume_tac))
+  >> Cases_on `bounded_signed64_nonnegative left_lower`
+  >- (Cases_on `bounded_signed64_nonnegative right_lower`
+      >- (fs
+           [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_unchecked_decimal_def]
+          >> irule
+           (Q.INST
+             [`selected_lower_left` |-> `left_lower`,
+              `selected_lower_right` |-> `right_lower`,
+              `selected_upper_left` |-> `left_upper`,
+              `selected_upper_right` |-> `right_upper`,
+              `object_lower` |-> `object_lower`,
+              `object_upper` |-> `object_upper`,
+              `result` |-> `result`]
+             bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+          >> fs
+           [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+            compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+          >> bounded_object_int_product_extrema_tac
+               bounded_object_int_product_extrema_nonnegative_nonnegative)
+      >> Cases_on `bounded_signed64_nonpositive right_upper`
+      >- (fs
+           [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_unchecked_decimal_def]
+          >> irule
+           (Q.INST
+             [`selected_lower_left` |-> `left_upper`,
+              `selected_lower_right` |-> `right_lower`,
+              `selected_upper_left` |-> `left_lower`,
+              `selected_upper_right` |-> `right_upper`,
+              `object_lower` |-> `object_lower`,
+              `object_upper` |-> `object_upper`,
+              `result` |-> `result`]
+             bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+          >> fs
+           [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+            compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+          >> bounded_object_int_product_extrema_tac
+               bounded_object_int_product_extrema_nonnegative_nonpositive)
+      >> fs
+           [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_unchecked_decimal_def]
+      >> irule
+           (Q.INST
+             [`selected_lower_left` |-> `left_upper`,
+              `selected_lower_right` |-> `right_lower`,
+              `selected_upper_left` |-> `left_upper`,
+              `selected_upper_right` |-> `right_upper`,
+              `object_lower` |-> `object_lower`,
+              `object_upper` |-> `object_upper`,
+              `result` |-> `result`]
+             bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+      >> fs
+           [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+            compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> bounded_object_int_product_extrema_tac
+           bounded_object_int_product_extrema_nonnegative_mixed)
+  >> Cases_on `bounded_signed64_nonpositive left_upper`
+  >- (Cases_on `bounded_signed64_nonnegative right_lower`
+      >- (fs
+           [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_unchecked_decimal_def]
+          >> irule
+           (Q.INST
+             [`selected_lower_left` |-> `left_lower`,
+              `selected_lower_right` |-> `right_upper`,
+              `selected_upper_left` |-> `left_upper`,
+              `selected_upper_right` |-> `right_lower`,
+              `object_lower` |-> `object_lower`,
+              `object_upper` |-> `object_upper`,
+              `result` |-> `result`]
+             bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+          >> fs
+           [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+            compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+          >> bounded_object_int_product_extrema_tac
+               bounded_object_int_product_extrema_nonpositive_nonnegative)
+      >> Cases_on `bounded_signed64_nonpositive right_upper`
+      >- (fs
+           [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_unchecked_decimal_def]
+          >> irule
+           (Q.INST
+             [`selected_lower_left` |-> `left_upper`,
+              `selected_lower_right` |-> `right_upper`,
+              `selected_upper_left` |-> `left_lower`,
+              `selected_upper_right` |-> `right_lower`,
+              `object_lower` |-> `object_lower`,
+              `object_upper` |-> `object_upper`,
+              `result` |-> `result`]
+             bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+          >> fs
+           [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+            compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+          >> bounded_object_int_product_extrema_tac
+               bounded_object_int_product_extrema_nonpositive_nonpositive)
+      >> fs
+           [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_unchecked_decimal_def]
+      >> irule
+           (Q.INST
+             [`selected_lower_left` |-> `left_lower`,
+              `selected_lower_right` |-> `right_upper`,
+              `selected_upper_left` |-> `left_lower`,
+              `selected_upper_right` |-> `right_lower`,
+              `object_lower` |-> `object_lower`,
+              `object_upper` |-> `object_upper`,
+              `result` |-> `result`]
+             bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+      >> fs
+           [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+            compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+            compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> bounded_object_int_product_extrema_tac
+           bounded_object_int_product_extrema_nonpositive_mixed)
+  >> Cases_on `bounded_signed64_nonnegative right_lower`
+  >- (fs
+       [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_unchecked_decimal_def]
+      >> irule
+       (Q.INST
+         [`selected_lower_left` |-> `left_lower`,
+          `selected_lower_right` |-> `right_upper`,
+          `selected_upper_left` |-> `left_upper`,
+          `selected_upper_right` |-> `right_upper`,
+          `object_lower` |-> `object_lower`,
+          `object_upper` |-> `object_upper`,
+          `result` |-> `result`]
+         bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+      >> fs
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> bounded_object_int_product_extrema_tac
+           bounded_object_int_product_extrema_mixed_nonnegative)
+  >> Cases_on `bounded_signed64_nonpositive right_upper`
+  >- (fs
+       [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_unchecked_decimal_def]
+      >> irule
+       (Q.INST
+         [`selected_lower_left` |-> `left_upper`,
+          `selected_lower_right` |-> `right_lower`,
+          `selected_upper_left` |-> `left_lower`,
+          `selected_upper_right` |-> `right_lower`,
+          `object_lower` |-> `object_lower`,
+          `object_upper` |-> `object_upper`,
+          `result` |-> `result`]
+         bounded_object_fs_interval_mul_decimal_from_pairs_exact)
+      >> fs
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct]
+      >> bounded_object_int_product_extrema_tac
+           bounded_object_int_product_extrema_mixed_nonpositive)
+  >> fs
+       [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_unchecked_decimal_def]
+  >> irule bounded_object_fs_interval_mul_decimal_mixed_exact
+  >> simp []
+QED
+
+Theorem bounded_object_fs_interval_mul_unchecked_decimal_exact:
+  bounded_interval64_valid left /\
+  bounded_interval64_valid right /\
+  bounded_interval64_mul_unchecked_decimal left right = SOME result ==>
+  bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv left)
+      (bounded_interval64_object_cv right) =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> metis_tac
+       [bounded_object_fs_interval_mul_unchecked_decimal_components_exact]
+QED
+
+Theorem bounded_object_fs_interval_mul_decimal_exact:
+  bounded_interval64_mul_decimal left right = SOME result ==>
+  bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv left)
+      (bounded_interval64_object_cv right) =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> fs
+       [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_decimal_def]
+  >> metis_tac
+       [bounded_object_fs_interval_mul_unchecked_decimal_exact]
+QED
+
 val _ = export_theory ();
