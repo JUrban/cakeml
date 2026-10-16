@@ -411,6 +411,146 @@ Proof
         bounded_object_raw_interval_cv_list_rel_def]
 QED
 
+(* The preceding helpers are convenient for source constants.  The complete
+   checker also needs the third cubic factor to be an interval produced by an
+   earlier encoded calculation.  These variants therefore consume encoded
+   intervals directly and expose the compositional refinement needed by the
+   historical delta calculation. *)
+Definition bounded_object_fs_historical_raw_cubic_encoded_def:
+  bounded_object_fs_historical_raw_cubic_encoded first second third =
+    case bounded_object_fs_raw_interval_mul first second of
+    | NONE => NONE
+    | SOME raw_product =>
+        bounded_object_fs_raw_interval_mul raw_product third
+End
+
+Theorem bounded_object_fs_historical_raw_cubic_encoded_exact:
+  bounded_historical_raw_cubic
+      first_interval second_interval third_interval = SOME (lower,upper) ==>
+  ?object_lower object_upper.
+    bounded_object_fs_historical_raw_cubic_encoded
+      (bounded_interval64_object_cv first_interval)
+      (bounded_interval64_object_cv second_interval)
+      (bounded_interval64_object_cv third_interval) =
+      SOME (Pair object_lower object_upper) /\
+    bounded_object_signed_int object_lower =
+      SOME (bounded_signed192_to_int lower) /\
+    bounded_object_signed_int object_upper =
+      SOME (bounded_signed192_to_int upper)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_object_fs_historical_raw_cubic_exact
+  >> Cases_on
+       `~bounded_interval64_valid first_interval \/
+        ~bounded_interval64_valid second_interval \/
+        ~bounded_interval64_valid third_interval`
+  >> gvs
+       [compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubic_def,
+        bounded_object_fs_historical_raw_cubic_def,
+        bounded_object_fs_historical_raw_cubic_encoded_def]
+  >> metis_tac []
+QED
+
+Definition bounded_object_fs_historical_raw_cubic_signed_encoded_def:
+  bounded_object_fs_historical_raw_cubic_signed_encoded
+      first second third negative =
+    case bounded_object_fs_historical_raw_cubic_encoded
+      first second third of
+    | NONE => NONE
+    | SOME raw =>
+        if negative then bounded_object_fs_raw_interval_neg raw
+        else SOME raw
+End
+
+Theorem bounded_object_fs_historical_raw_cubic_signed_encoded_exact:
+  bounded_historical_raw_cubic_signed
+      first_interval second_interval third_interval negative =
+      SOME (lower,upper) ==>
+  ?object_lower object_upper.
+    bounded_object_fs_historical_raw_cubic_signed_encoded
+      (bounded_interval64_object_cv first_interval)
+      (bounded_interval64_object_cv second_interval)
+      (bounded_interval64_object_cv third_interval) negative =
+      SOME (Pair object_lower object_upper) /\
+    bounded_object_signed_int object_lower =
+      SOME (bounded_signed192_to_int lower) /\
+    bounded_object_signed_int object_upper =
+      SOME (bounded_signed192_to_int upper)
+Proof
+  rw
+    [compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubic_signed_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_fs_historical_raw_cubic_encoded_exact
+  >> imp_res_tac bounded_object_fs_raw_interval_neg_signed_exact
+  >> gvs
+       [bounded_object_fs_historical_raw_cubic_signed_encoded_def,
+        compute_boundedHistoricalDeltaTheory.bounded_signed192_neg_value]
+  >> metis_tac []
+QED
+
+Definition bounded_object_raw_cubic_input_cv_rel_def:
+  bounded_object_raw_cubic_input_cv_rel
+      (object_first,object_second,object_third,object_negative)
+      (source_first,source_second,source_third,source_negative) <=>
+    object_first = bounded_interval64_object_cv source_first /\
+    object_second = bounded_interval64_object_cv source_second /\
+    object_third = bounded_interval64_object_cv source_third /\
+    object_negative = source_negative
+End
+
+Definition bounded_object_fs_historical_raw_cubics_encoded_def:
+  bounded_object_fs_historical_raw_cubics_encoded [] =
+      SOME (Num 0 : cv) /\
+  bounded_object_fs_historical_raw_cubics_encoded
+      ((first,second,third,negative)::rest) =
+    case bounded_object_fs_historical_raw_cubic_signed_encoded
+      first second third negative of
+    | NONE => NONE
+    | SOME raw =>
+      case bounded_object_fs_historical_raw_cubics_encoded rest of
+      | NONE => NONE
+      | SOME raw_rest => SOME (Pair raw raw_rest)
+End
+
+Theorem bounded_object_fs_historical_raw_cubics_encoded_exact:
+  !object_terms source_terms results.
+    LIST_REL bounded_object_raw_cubic_input_cv_rel
+      object_terms source_terms /\
+    bounded_historical_raw_cubics source_terms = SOME results ==>
+    ?object_results.
+      bounded_object_fs_historical_raw_cubics_encoded object_terms =
+        SOME object_results /\
+      bounded_object_raw_interval_cv_list_rel object_results results
+Proof
+  Induct_on `source_terms`
+  >- (rpt gen_tac
+      >> Cases_on `object_terms`
+      >> simp
+           [compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubics_def,
+            bounded_object_fs_historical_raw_cubics_encoded_def,
+            bounded_object_raw_interval_cv_list_rel_def])
+  >> rpt gen_tac
+  >> Cases_on `object_terms`
+  >- simp [LIST_REL_def]
+  >> rename1 `object_head::object_rest`
+  >> PairCases_on `h`
+  >> PairCases_on `object_head`
+  >> rw
+       [LIST_REL_def, bounded_object_raw_cubic_input_cv_rel_def,
+        compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubics_def]
+  >> every_case_tac
+  >> gvs []
+  >> PairCases_on `x'`
+  >> imp_res_tac
+       bounded_object_fs_historical_raw_cubic_signed_encoded_exact
+  >> res_tac
+  >> qexists_tac `Pair (Pair object_lower object_upper) object_results`
+  >> gvs
+       [bounded_object_fs_historical_raw_cubics_encoded_def,
+        bounded_object_raw_interval_cv_list_rel_def]
+QED
+
 Definition bounded_object_fs_raw_interval_sum_aux_def:
   bounded_object_fs_raw_interval_sum_aux (Num 0) accumulator =
     SOME accumulator /\
