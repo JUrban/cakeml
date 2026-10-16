@@ -2020,4 +2020,90 @@ Proof
         compute_boundedIntervalTheory.bounded_interval64_upper_def]
 QED
 
+Theorem bounded_historical_dihedral_first64_decimal_delta_root_object_trace:
+  bounded_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ==>
+  ?delta_interval.
+    bounded_historical_delta64_value_decimal environment =
+      SOME delta_interval /\
+    bounded_object_fs_historical_delta64_value_decimal environment =
+      SOME (bounded_interval64_object_cv delta_interval) /\
+    bounded_object_fs_hist_positive_root_certificate
+      (bounded_interval64_object_cv delta_interval)
+      (bounded_interval64_object_cv root_delta) = Num 1
+Proof
+  simp
+    [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_dihedral_first64_decimal_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> imp_res_tac bounded_object_fs_historical_delta64_value_decimal_exact
+  >> imp_res_tac
+       compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_sqrt_certificate_decimal_object_exact
+  >> simp []
+QED
+
+Theorem bounded_historical_dihedral_first64_decimal_x0_root_object_trace:
+  bounded_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ==>
+  ?x0 four_x0.
+    bounded_interval64_nth environment 0 = SOME x0 /\
+    bounded_interval64_scale4 x0 = SOME four_x0 /\
+    bounded_object_fs_interval_scale4
+      (bounded_interval64_object_cv x0) =
+      SOME (bounded_interval64_object_cv four_x0) /\
+    bounded_object_fs_hist_positive_root_certificate
+      (bounded_interval64_object_cv four_x0)
+      (bounded_interval64_object_cv root_four_x0) = Num 1 /\
+    bounded_object_fs_hist_positive_inv
+      (bounded_interval64_object_cv root_four_x0) =
+      SOME (bounded_interval64_object_cv root_four_reciprocal)
+Proof
+  simp
+    [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_dihedral_first64_decimal_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_scale4_exact
+  >> imp_res_tac
+       compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_sqrt_certificate_decimal_object_exact
+  >> imp_res_tac
+       compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_object_exact
+  >> simp []
+QED
+
+Theorem bounded_historical_dihedral_first64_decimal_delta_reciprocal_object_trace:
+  bounded_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ==>
+  ?twice_root_delta.
+    bounded_historical_scale2 root_delta = SOME twice_root_delta /\
+    bounded_object_fs_interval_scale2
+      (bounded_interval64_object_cv root_delta) =
+      SOME (bounded_interval64_object_cv twice_root_delta) /\
+    bounded_object_fs_hist_positive_inv
+      (bounded_interval64_object_cv twice_root_delta) =
+      SOME (bounded_interval64_object_cv root_derivative) /\
+    bounded_object_fs_hist_positive_inv
+      (bounded_interval64_object_cv twice_root_delta) =
+      SOME (bounded_interval64_object_cv special_root_reciprocal)
+Proof
+  simp
+    [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_dihedral_first64_decimal_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_scale2_exact
+  >> imp_res_tac
+       compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_object_exact
+  >> gvs []
+QED
+
 val _ = export_theory ();
