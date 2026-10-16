@@ -66,6 +66,213 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded_object_int_product_extrema_from_bounds:
+  left_lower <= left_upper /\
+  right_lower <= right_upper /\
+  (lower = left_lower * right_lower \/
+   lower = left_lower * right_upper \/
+   lower = left_upper * right_lower \/
+   lower = left_upper * right_upper) /\
+  (upper = left_lower * right_lower \/
+   upper = left_lower * right_upper \/
+   upper = left_upper * right_lower \/
+   upper = left_upper * right_upper) /\
+  (!left_value right_value.
+     left_lower <= left_value /\ left_value <= left_upper /\
+     right_lower <= right_value /\ right_value <= right_upper ==>
+     lower <= left_value * right_value /\
+     left_value * right_value <= upper) ==>
+  bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) = lower /\
+  bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) = upper
+Proof
+  disch_tac
+  >> conj_tac
+  >- (irule bounded_object_int_min4_eq_member
+      >> fs [])
+  >> irule bounded_object_int_max4_eq_member
+  >> fs []
+QED
+
+Theorem bounded_object_int_product_extrema_nonnegative_nonnegative:
+  left_lower <= left_upper /\ right_lower <= right_upper /\
+  0 <= left_lower /\ 0 <= right_lower ==>
+  bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_lower * right_lower /\
+  bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_upper * right_upper
+Proof
+  strip_tac
+  >> irule bounded_object_int_product_extrema_from_bounds
+  >> simp []
+  >> rpt gen_tac
+  >> disch_tac
+  >> irule
+       compute_boundedIntervalTheory.bounded_int_product_bounds_nonnegative_nonnegative
+  >> simp []
+QED
+
+Theorem bounded_object_int_product_extrema_nonnegative_nonpositive:
+  left_lower <= left_upper /\ right_lower <= right_upper /\
+  0 <= left_lower /\ right_upper <= 0 ==>
+  bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_upper * right_lower /\
+  bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_lower * right_upper
+Proof
+  strip_tac
+  >> irule bounded_object_int_product_extrema_from_bounds
+  >> simp []
+  >> rpt gen_tac
+  >> disch_tac
+  >> irule
+       compute_boundedIntervalTheory.bounded_int_product_bounds_nonnegative_nonpositive
+  >> simp []
+QED
+
+Theorem bounded_object_int_product_extrema_nonpositive_nonnegative:
+  left_lower <= left_upper /\ right_lower <= right_upper /\
+  left_upper <= 0 /\ 0 <= right_lower ==>
+  bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_lower * right_upper /\
+  bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_upper * right_lower
+Proof
+  strip_tac
+  >> irule bounded_object_int_product_extrema_from_bounds
+  >> simp []
+  >> rpt gen_tac
+  >> disch_tac
+  >> irule
+       compute_boundedIntervalTheory.bounded_int_product_bounds_nonpositive_nonnegative
+  >> simp []
+QED
+
+Theorem bounded_object_int_product_extrema_nonpositive_nonpositive:
+  left_lower <= left_upper /\ right_lower <= right_upper /\
+  left_upper <= 0 /\ right_upper <= 0 ==>
+  bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_upper * right_upper /\
+  bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_lower * right_lower
+Proof
+  strip_tac
+  >> irule bounded_object_int_product_extrema_from_bounds
+  >> simp []
+  >> rpt gen_tac
+  >> disch_tac
+  >> irule
+       compute_boundedIntervalTheory.bounded_int_product_bounds_nonpositive_nonpositive
+  >> simp []
+QED
+
+Theorem bounded_object_int_product_extrema_nonnegative_mixed:
+  left_lower <= left_upper /\ right_lower <= right_upper /\
+  0 <= left_lower /\ right_lower <= 0 /\ 0 <= right_upper ==>
+  bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_upper * right_lower /\
+  bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_upper * right_upper
+Proof
+  strip_tac
+  >> irule bounded_object_int_product_extrema_from_bounds
+  >> simp []
+  >> rpt gen_tac
+  >> disch_tac
+  >> mp_tac
+       compute_boundedIntervalTheory.bounded_int_product_bounds_nonnegative_mixed
+  >> simp []
+QED
+
+Theorem bounded_object_int_product_extrema_nonpositive_mixed:
+  left_lower <= left_upper /\ right_lower <= right_upper /\
+  left_upper <= 0 /\ right_lower <= 0 /\ 0 <= right_upper ==>
+  bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_lower * right_upper /\
+  bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_lower * right_lower
+Proof
+  strip_tac
+  >> irule bounded_object_int_product_extrema_from_bounds
+  >> simp []
+  >> rpt gen_tac
+  >> disch_tac
+  >> mp_tac
+       compute_boundedIntervalTheory.bounded_int_product_bounds_nonpositive_mixed
+  >> simp []
+QED
+
+Theorem bounded_object_int_product_extrema_mixed_nonnegative:
+  left_lower <= left_upper /\ right_lower <= right_upper /\
+  left_lower <= 0 /\ 0 <= left_upper /\ 0 <= right_lower ==>
+  bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_lower * right_upper /\
+  bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_upper * right_upper
+Proof
+  strip_tac
+  >> irule bounded_object_int_product_extrema_from_bounds
+  >> simp []
+  >> rpt gen_tac
+  >> disch_tac
+  >> mp_tac
+       compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_nonnegative
+  >> simp []
+QED
+
+Theorem bounded_object_int_product_extrema_mixed_nonpositive:
+  left_lower <= left_upper /\ right_lower <= right_upper /\
+  left_lower <= 0 /\ 0 <= left_upper /\ right_upper <= 0 ==>
+  bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_upper * right_lower /\
+  bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) =
+        left_lower * right_lower
+Proof
+  strip_tac
+  >> irule bounded_object_int_product_extrema_from_bounds
+  >> simp []
+  >> rpt gen_tac
+  >> disch_tac
+  >> mp_tac
+       compute_boundedIntervalTheory.bounded_int_product_bounds_mixed_nonpositive
+  >> simp []
+QED
+
 Definition bounded_object_fs_raw_interval_extrema_def:
   bounded_object_fs_raw_interval_extrema first second third fourth =
     case bounded_object_fs_raw_min first second of
