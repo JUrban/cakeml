@@ -282,6 +282,81 @@ Proof
         compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def]
 QED
 
+Definition bounded_object_fs_raw_interval_neg_def:
+  bounded_object_fs_raw_interval_neg (Pair lower upper : cv) =
+    (case bounded_object_fs_raw_neg upper of
+     | NONE => NONE
+     | SOME negative_upper =>
+       case bounded_object_fs_raw_neg lower of
+       | NONE => NONE
+       | SOME negative_lower => SOME (Pair negative_upper negative_lower)) /\
+  bounded_object_fs_raw_interval_neg _ = NONE
+End
+
+Theorem bounded_object_fs_raw_interval_neg_signed_exact:
+  bounded_object_signed_int object_lower = SOME lower_value /\
+  bounded_object_signed_int object_upper = SOME upper_value ==>
+  ?negative_upper negative_lower.
+    bounded_object_fs_raw_interval_neg
+      (Pair object_lower object_upper) =
+      SOME (Pair negative_upper negative_lower) /\
+    bounded_object_signed_int negative_upper = SOME (-upper_value) /\
+    bounded_object_signed_int negative_lower = SOME (-lower_value)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST [`source` |-> `object_upper`, `value` |-> `upper_value`]
+         compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_raw_neg_signed_exists)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `negative_upper` strip_assume_tac)
+  >> mp_tac
+       (Q.INST [`source` |-> `object_lower`, `value` |-> `lower_value`]
+         compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_raw_neg_signed_exists)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `negative_lower` strip_assume_tac)
+  >> qexists_tac `negative_upper`
+  >> qexists_tac `negative_lower`
+  >> simp [bounded_object_fs_raw_interval_neg_def]
+QED
+
+Definition bounded_object_fs_historical_raw_cubic_signed_def:
+  bounded_object_fs_historical_raw_cubic_signed
+      first_interval second_interval third_interval negative =
+    case bounded_object_fs_historical_raw_cubic
+      first_interval second_interval third_interval of
+    | NONE => NONE
+    | SOME raw =>
+        if negative then bounded_object_fs_raw_interval_neg raw
+        else SOME raw
+End
+
+Theorem bounded_object_fs_historical_raw_cubic_signed_exact:
+  bounded_historical_raw_cubic_signed
+      first_interval second_interval third_interval negative =
+    SOME (lower,upper) ==>
+  ?object_lower object_upper.
+    bounded_object_fs_historical_raw_cubic_signed
+      first_interval second_interval third_interval negative =
+      SOME (Pair object_lower object_upper) /\
+    bounded_object_signed_int object_lower =
+      SOME (bounded_signed192_to_int lower) /\
+    bounded_object_signed_int object_upper =
+      SOME (bounded_signed192_to_int upper)
+Proof
+  rw
+    [compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubic_signed_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_fs_historical_raw_cubic_exact
+  >> imp_res_tac bounded_object_fs_raw_interval_neg_signed_exact
+  >> gvs
+       [bounded_object_fs_historical_raw_cubic_signed_def,
+        compute_boundedHistoricalDeltaTheory.bounded_signed192_neg_value]
+  >> metis_tac []
+QED
+
 Definition bounded_object_fs_historical_delta_x4_value_decimal_def:
   bounded_object_fs_historical_delta_x4_value_decimal environment =
     case environment of
