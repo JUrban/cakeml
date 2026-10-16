@@ -805,6 +805,23 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_object_fs_raw_interval_sum_round_decimal_exact:
+  bounded_signed192_interval_sum source_values = SOME source_raw /\
+  bounded_object_raw_interval_cv_list_rel object_values source_values /\
+  bounded_historical_raw_round_decimal source_raw = SOME result ==>
+  (case bounded_object_fs_raw_interval_sum object_values of
+   | NONE => NONE
+   | SOME object_raw =>
+       bounded_object_fs_historical_raw_round_decimal object_raw) =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  PairCases_on `source_raw`
+  >> rw []
+  >> imp_res_tac bounded_object_fs_raw_interval_sum_exact
+  >> imp_res_tac bounded_object_fs_historical_raw_round_decimal_exact
+  >> gvs []
+QED
+
 Definition bounded_object_fs_historical_delta_x4_value_decimal_def:
   bounded_object_fs_historical_delta_x4_value_decimal environment =
     case environment of
@@ -1091,6 +1108,247 @@ Proof
   strip_tac
   >> irule bounded_object_fs_interval_sum_signed_three_exact
   >> gvs []
+QED
+
+Theorem bounded_object_fs_interval_sum_signed_six_exact:
+  !negative0 x0 negative1 x1 negative2 x2
+   negative3 x3 negative4 x4 negative5 x5 result.
+  bounded_interval64_sum
+      [if negative0 then bounded_interval64_neg x0 else x0;
+       if negative1 then bounded_interval64_neg x1 else x1;
+       if negative2 then bounded_interval64_neg x2 else x2;
+       if negative3 then bounded_interval64_neg x3 else x3;
+       if negative4 then bounded_interval64_neg x4 else x4;
+       if negative5 then bounded_interval64_neg x5 else x5] = SOME result ==>
+  bounded_object_fs_interval_sum_signed
+      [(negative0,x0);(negative1,x1);(negative2,x2);
+       (negative3,x3);(negative4,x4);(negative5,x5)] =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rpt gen_tac
+  >> strip_tac
+  >> irule bounded_object_fs_interval_sum_signed_exact
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_interval_sum_negative_zero_three_exact:
+  bounded_interval64_sum
+      [bounded_interval64_neg x0;x1;x2;
+       bounded_interval64_neg x3;x4;x5] = SOME result ==>
+  bounded_object_fs_interval_sum_signed
+      [(T,x0);(F,x1);(F,x2);(T,x3);(F,x4);(F,x5)] =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> irule bounded_object_fs_interval_sum_signed_six_exact
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_interval_sum_negative_one_four_exact:
+  bounded_interval64_sum
+      [x0;bounded_interval64_neg x1;x2;x3;
+       bounded_interval64_neg x4;x5] = SOME result ==>
+  bounded_object_fs_interval_sum_signed
+      [(F,x0);(T,x1);(F,x2);(F,x3);(T,x4);(F,x5)] =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> irule bounded_object_fs_interval_sum_signed_six_exact
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_interval_sum_negative_two_five_exact:
+  bounded_interval64_sum
+      [x0;x1;bounded_interval64_neg x2;x3;x4;
+       bounded_interval64_neg x5] = SOME result ==>
+  bounded_object_fs_interval_sum_signed
+      [(F,x0);(F,x1);(T,x2);(F,x3);(F,x4);(T,x5)] =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> irule bounded_object_fs_interval_sum_signed_six_exact
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_historical_delta_raw_cubics_encoded_exact:
+  bounded_historical_raw_cubics
+      [(x0,x3,first_linear,F);
+       (x1,x4,second_linear,F);
+       (x2,x5,third_linear,F);
+       (x1,x2,x3,T);
+       (x0,x2,x4,T);
+       (x0,x1,x5,T);
+       (x3,x4,x5,T)] = SOME results ==>
+  ?object_results.
+    bounded_object_fs_historical_raw_cubics_encoded
+      [(bounded_interval64_object_cv x0,
+        bounded_interval64_object_cv x3,
+        bounded_interval64_object_cv first_linear,F);
+       (bounded_interval64_object_cv x1,
+        bounded_interval64_object_cv x4,
+        bounded_interval64_object_cv second_linear,F);
+       (bounded_interval64_object_cv x2,
+        bounded_interval64_object_cv x5,
+        bounded_interval64_object_cv third_linear,F);
+       (bounded_interval64_object_cv x1,
+        bounded_interval64_object_cv x2,
+        bounded_interval64_object_cv x3,T);
+       (bounded_interval64_object_cv x0,
+        bounded_interval64_object_cv x2,
+        bounded_interval64_object_cv x4,T);
+       (bounded_interval64_object_cv x0,
+        bounded_interval64_object_cv x1,
+        bounded_interval64_object_cv x5,T);
+       (bounded_interval64_object_cv x3,
+        bounded_interval64_object_cv x4,
+        bounded_interval64_object_cv x5,T)] =
+      SOME object_results /\
+    bounded_object_raw_interval_cv_list_rel object_results results
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.SPECL
+         [`[(bounded_interval64_object_cv x0,
+             bounded_interval64_object_cv x3,
+             bounded_interval64_object_cv first_linear,F);
+            (bounded_interval64_object_cv x1,
+             bounded_interval64_object_cv x4,
+             bounded_interval64_object_cv second_linear,F);
+            (bounded_interval64_object_cv x2,
+             bounded_interval64_object_cv x5,
+             bounded_interval64_object_cv third_linear,F);
+            (bounded_interval64_object_cv x1,
+             bounded_interval64_object_cv x2,
+             bounded_interval64_object_cv x3,T);
+            (bounded_interval64_object_cv x0,
+             bounded_interval64_object_cv x2,
+             bounded_interval64_object_cv x4,T);
+            (bounded_interval64_object_cv x0,
+             bounded_interval64_object_cv x1,
+             bounded_interval64_object_cv x5,T);
+            (bounded_interval64_object_cv x3,
+             bounded_interval64_object_cv x4,
+             bounded_interval64_object_cv x5,T)]`,
+          `[(x0,x3,first_linear,F);
+            (x1,x4,second_linear,F);
+            (x2,x5,third_linear,F);
+            (x1,x2,x3,T);
+            (x0,x2,x4,T);
+            (x0,x1,x5,T);
+            (x3,x4,x5,T)]`,
+          `results`]
+         bounded_object_fs_historical_raw_cubics_encoded_exact)
+  >> simp [bounded_object_raw_cubic_input_cv_rel_def]
+QED
+
+Definition bounded_object_fs_historical_delta64_value_six_decimal_def:
+  bounded_object_fs_historical_delta64_value_six_decimal
+      x0 x1 x2 x3 x4 x5 =
+    case bounded_object_fs_interval_sum_signed
+      [(T,x0);(F,x1);(F,x2);(T,x3);(F,x4);(F,x5)] of
+    | NONE => NONE
+    | SOME first_linear =>
+      case bounded_object_fs_interval_sum_signed
+        [(F,x0);(T,x1);(F,x2);(F,x3);(T,x4);(F,x5)] of
+      | NONE => NONE
+      | SOME second_linear =>
+        case bounded_object_fs_interval_sum_signed
+          [(F,x0);(F,x1);(T,x2);(F,x3);(F,x4);(T,x5)] of
+        | NONE => NONE
+        | SOME third_linear =>
+          case bounded_object_fs_historical_raw_cubics_encoded
+            [(bounded_interval64_object_cv x0,
+              bounded_interval64_object_cv x3,first_linear,F);
+             (bounded_interval64_object_cv x1,
+              bounded_interval64_object_cv x4,second_linear,F);
+             (bounded_interval64_object_cv x2,
+              bounded_interval64_object_cv x5,third_linear,F);
+             (bounded_interval64_object_cv x1,
+              bounded_interval64_object_cv x2,
+              bounded_interval64_object_cv x3,T);
+             (bounded_interval64_object_cv x0,
+              bounded_interval64_object_cv x2,
+              bounded_interval64_object_cv x4,T);
+             (bounded_interval64_object_cv x0,
+              bounded_interval64_object_cv x1,
+              bounded_interval64_object_cv x5,T);
+             (bounded_interval64_object_cv x3,
+              bounded_interval64_object_cv x4,
+              bounded_interval64_object_cv x5,T)] of
+          | NONE => NONE
+          | SOME raw_terms =>
+            case bounded_object_fs_raw_interval_sum raw_terms of
+            | NONE => NONE
+            | SOME raw =>
+                bounded_object_fs_historical_raw_round_decimal raw
+End
+
+Theorem bounded_object_fs_historical_delta64_value_six_decimal_exact:
+  bounded_historical_delta64_value_six_decimal x0 x1 x2 x3 x4 x5 =
+      SOME result ==>
+  bounded_object_fs_historical_delta64_value_six_decimal
+      x0 x1 x2 x3 x4 x5 =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_six_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       bounded_object_fs_interval_sum_negative_zero_three_exact
+  >> imp_res_tac
+       bounded_object_fs_interval_sum_negative_one_four_exact
+  >> imp_res_tac
+       bounded_object_fs_interval_sum_negative_two_five_exact
+  >> imp_res_tac
+       bounded_object_fs_historical_delta_raw_cubics_encoded_exact
+  >> imp_res_tac bounded_object_fs_raw_interval_sum_round_decimal_exact
+  >> gvs [bounded_object_fs_historical_delta64_value_six_decimal_def]
+QED
+
+Definition bounded_object_fs_historical_delta64_value_decimal_def:
+  bounded_object_fs_historical_delta64_value_decimal environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+        bounded_object_fs_historical_delta64_value_six_decimal
+          x0 x1 x2 x3 x4 x5
+    | _ => NONE
+End
+
+Theorem bounded_object_fs_historical_delta64_value_decimal_exact:
+  bounded_historical_delta64_value_decimal environment = SOME result ==>
+  bounded_object_fs_historical_delta64_value_decimal environment =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  Cases_on `environment`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def,
+        bounded_object_fs_historical_delta64_value_decimal_def]
+  >> Cases_on `t`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def,
+        bounded_object_fs_historical_delta64_value_decimal_def]
+  >> Cases_on `t'`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def,
+        bounded_object_fs_historical_delta64_value_decimal_def]
+  >> Cases_on `t`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def,
+        bounded_object_fs_historical_delta64_value_decimal_def]
+  >> Cases_on `t'`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def,
+        bounded_object_fs_historical_delta64_value_decimal_def]
+  >> Cases_on `t`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def,
+        bounded_object_fs_historical_delta64_value_decimal_def]
+  >> Cases_on `t'`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def,
+        bounded_object_fs_historical_delta64_value_decimal_def,
+        bounded_object_fs_historical_delta64_value_six_decimal_exact]
 QED
 
 Definition bounded_object_fs_delta64_pair_products_decimal_def:
