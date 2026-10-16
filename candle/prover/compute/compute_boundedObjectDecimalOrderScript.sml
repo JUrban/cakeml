@@ -60,6 +60,28 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded_object_fs_raw_min_signed_ints:
+  bounded_object_signed_int left = SOME left_value /\
+  bounded_object_signed_int right = SOME right_value ==>
+  bounded_object_fs_raw_min left right =
+    SOME (if left_value <= right_value then left else right)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_object_fs_raw_le_signed_ints
+  >> simp [bounded_object_fs_raw_min_def]
+QED
+
+Theorem bounded_object_fs_raw_max_signed_ints:
+  bounded_object_signed_int left = SOME left_value /\
+  bounded_object_signed_int right = SOME right_value ==>
+  bounded_object_fs_raw_max left right =
+    SOME (if left_value <= right_value then right else left)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_object_fs_raw_le_signed_ints
+  >> simp [bounded_object_fs_raw_max_def]
+QED
+
 Theorem bounded_object_fs_raw_le_object_cv:
   bounded_object_fs_raw_le
       (bounded_signed64_object_cv left)
