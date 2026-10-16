@@ -1337,4 +1337,84 @@ Proof
              bounded_object_fs_historical_extreme_interval_exact])
 QED
 
+Definition bounded_object_fs_interval_sums_signed_def:
+  bounded_object_fs_interval_sums_signed [] = SOME (Num 0 : cv) /\
+  bounded_object_fs_interval_sums_signed (values::rest) =
+    case bounded_object_fs_interval_sum_signed values of
+    | NONE => NONE
+    | SOME value =>
+      case bounded_object_fs_interval_sums_signed rest of
+      | NONE => NONE
+      | SOME values_rest => SOME (Pair value values_rest)
+End
+
+Theorem bounded_object_fs_interval_sums_signed_exact:
+  !result.
+    bounded_interval64_sums
+      (MAP
+        (MAP (\(negative,value).
+          if negative then bounded_interval64_neg value else value)) rows) =
+      SOME result ==>
+    bounded_object_fs_interval_sums_signed rows =
+      SOME (bounded_interval64_object_cv_list result)
+Proof
+  Induct_on `rows`
+  >> rw
+       [compute_boundedDeltaTaylorTheory.bounded_interval64_sums_def,
+        bounded_object_fs_interval_sums_signed_def,
+        compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_fs_interval_sum_signed_exact
+  >> res_tac
+  >> gvs
+       [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
+Definition bounded_object_fs_delta64_hessian_def:
+  bounded_object_fs_delta64_hessian environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+        bounded_object_fs_interval_sums_signed
+          [[(T,x3);(T,x3)];
+           [(F,x3);(F,x4);(T,x5)];
+           [(F,x3);(T,x4);(F,x5)];
+           [(T,x0);(T,x0);(F,x1);(F,x2);
+            (T,x3);(T,x3);(F,x4);(F,x5)];
+           [(F,x1);(T,x2);(F,x3)];
+           [(T,x1);(F,x2);(F,x3)];
+           [(T,x4);(T,x4)];
+           [(T,x3);(F,x4);(F,x5)];
+           [(F,x0);(T,x2);(F,x4)];
+           [(F,x0);(T,x1);(T,x1);(F,x2);
+            (F,x3);(T,x4);(T,x4);(F,x5)];
+           [(T,x0);(F,x2);(F,x4)];
+           [(T,x5);(T,x5)];
+           [(F,x0);(T,x1);(F,x5)];
+           [(T,x0);(F,x1);(F,x5)];
+           [(F,x0);(F,x1);(T,x2);(T,x2);
+            (F,x3);(F,x4);(T,x5);(T,x5)];
+           [(T,x0);(T,x0)];
+           [(F,x0);(F,x1);(T,x5)];
+           [(F,x0);(F,x2);(T,x4)];
+           [(T,x1);(T,x1)];
+           [(F,x1);(F,x2);(T,x3)];
+           [(T,x2);(T,x2)]]
+    | _ => NONE
+End
+
+Theorem bounded_object_fs_delta64_hessian_exact:
+  bounded_delta64_hessian environment = SOME result ==>
+  bounded_object_fs_delta64_hessian environment =
+    SOME (bounded_interval64_object_cv_list result)
+Proof
+  rw
+    [compute_boundedDeltaTaylorTheory.bounded_delta64_hessian_def,
+     bounded_object_fs_delta64_hessian_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule bounded_object_fs_interval_sums_signed_exact
+  >> gvs []
+QED
+
 val _ = export_theory ();
