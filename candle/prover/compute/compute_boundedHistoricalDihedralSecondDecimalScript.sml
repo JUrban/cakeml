@@ -248,13 +248,13 @@ Definition bounded_historical_sqrt_second_decimal_def:
       case bounded_historical_scale2 root of
       | NONE => NONE
       | SOME twice_root =>
-        if ¬bounded_interval64_inv_certificate_decimal
+        if ¬bounded_interval64_positive_inv_certificate_decimal
           twice_root derivative_reciprocal then NONE
         else
           case bounded_historical_scale2 value of
           | NONE => NONE
           | SOME twice_value =>
-            if ¬bounded_interval64_inv_certificate_decimal
+            if ¬bounded_interval64_positive_inv_certificate_decimal
               twice_value logarithmic_reciprocal then NONE
             else
               case bounded_interval64_list_scale_decimal
@@ -463,20 +463,20 @@ Definition bounded_historical_dihedral_second64_decimal_def:
                   | SOME four_x0 =>
                     if ¬bounded_interval64_sqrt_certificate_decimal
                       four_x0 root_four_x0 then NONE
-                    else if ¬bounded_interval64_inv_certificate_decimal
+                    else if ¬bounded_interval64_positive_inv_certificate_decimal
                       root_four_x0 root_four_reciprocal then NONE
                     else
                       case bounded_historical_scale2 x0 of
                       | NONE => NONE
                       | SOME twice_x0 =>
-                        if ¬bounded_interval64_inv_certificate_decimal
+                        if ¬bounded_interval64_positive_inv_certificate_decimal
                           twice_x0 diagonal_reciprocal then NONE
                         else
                           case bounded_interval64_mul_decimal
                             root_delta root_four_x0 of
                           | NONE => NONE
                           | SOME b =>
-                            if ¬bounded_interval64_inv_certificate_decimal
+                            if ¬bounded_interval64_positive_inv_certificate_decimal
                               b b_reciprocal then NONE
                             else
                               case bounded_historical_scale2
@@ -519,15 +519,15 @@ Definition bounded_historical_dihedral_second64_decimal_def:
                                               | NONE => NONE
                                               | SOME u_product =>
                                                 if
-                                                  ¬bounded_interval64_inv_certificate_decimal
+                                                  ¬bounded_interval64_positive_inv_certificate_decimal
                                                     u_product u_reciprocal
                                                 then NONE
                                                 else if
-                                                  ¬bounded_interval64_inv_certificate_decimal
+                                                  ¬bounded_interval64_positive_inv_certificate_decimal
                                                     u126 u126_reciprocal
                                                 then NONE
                                                 else if
-                                                  ¬bounded_interval64_inv_certificate_decimal
+                                                  ¬bounded_interval64_positive_inv_certificate_decimal
                                                     u135 u135_reciprocal
                                                 then NONE
                                                 else
@@ -542,7 +542,7 @@ Definition bounded_historical_dihedral_second64_decimal_def:
                                                     | NONE => NONE
                                                     | SOME twice_root_delta =>
                                                       if
-                                                        ¬bounded_interval64_inv_certificate_decimal
+                                                        ¬bounded_interval64_positive_inv_certificate_decimal
                                                           twice_root_delta
                                                           special_root_reciprocal
                                                       then NONE

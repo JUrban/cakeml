@@ -3,7 +3,7 @@
  *****************************************************************************)
 Theory compute_boundedTaylorSqrtDecimal
 Ancestors
-  compute_boundedTaylorUnaryDecimal compute_boundedCertificateDecimal
+  compute_boundedTaylorUnaryDecimal compute_boundedObjectCertificateDecimal
 Libs
   bossLib preamble
 
@@ -63,11 +63,11 @@ Definition bounded_taylor64_sqrt_decimal_def:
               case bounded_interval64_mul_decimal box_twice input_twice of
               | NONE => NONE
               | SOME box_second_denominator =>
-                if ¬bounded_interval64_inv_certificate_decimal
+                if ¬bounded_interval64_positive_inv_certificate_decimal
                       center_twice center_derivative ∨
-                   ¬bounded_interval64_inv_certificate_decimal
+                   ¬bounded_interval64_positive_inv_certificate_decimal
                       box_twice box_derivative ∨
-                   ¬bounded_interval64_inv_certificate_decimal
+                   ¬bounded_interval64_positive_inv_certificate_decimal
                       box_second_denominator box_second_reciprocal
                 then NONE
                 else

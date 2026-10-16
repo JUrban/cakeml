@@ -9,7 +9,7 @@ Theory compute_boundedHistoricalDihedralFirstDecimal
 Ancestors
   compute_boundedHistoricalDihedralFirst
   compute_boundedHistoricalDeltaDecimal compute_boundedAtanDecimal
-  compute_boundedTaylorProductDecimal
+  compute_boundedTaylorProductDecimal compute_boundedObjectCertificateDecimal
 Libs
   bossLib preamble
 
@@ -211,11 +211,11 @@ Definition bounded_historical_dihedral_first64_decimal_def:
                 case bounded_historical_scale2 root_delta of
                 | NONE => NONE
                 | SOME twice_root_delta =>
-                  if ¬bounded_interval64_inv_certificate_decimal
+                  if ¬bounded_interval64_positive_inv_certificate_decimal
                       twice_root_delta root_derivative then NONE
-                  else if ¬bounded_interval64_inv_certificate_decimal
+                  else if ¬bounded_interval64_positive_inv_certificate_decimal
                       twice_root_delta special_root_reciprocal then NONE
-                  else if ¬bounded_interval64_inv_certificate_decimal
+                  else if ¬bounded_interval64_positive_inv_certificate_decimal
                       root_four_x0 root_four_reciprocal then NONE
                   else
                     case bounded_delta64_pair_products_decimal environment of
@@ -249,14 +249,14 @@ Definition bounded_historical_dihedral_first64_decimal_def:
                                     root_delta root_four_x0 of
                                   | NONE => NONE
                                   | SOME b =>
-                                    if ¬bounded_interval64_inv_certificate_decimal
+                                    if ¬bounded_interval64_positive_inv_certificate_decimal
                                         b b_reciprocal then NONE
                                     else
                                       case bounded_interval64_mul_decimal
                                         u126 u135 of
                                       | NONE => NONE
                                       | SOME u_product =>
-                                        if ¬bounded_interval64_inv_certificate_decimal
+                                        if ¬bounded_interval64_positive_inv_certificate_decimal
                                             u_product u_reciprocal then NONE
                                         else
                                           case bounded_historical_scale2
