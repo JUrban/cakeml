@@ -141,6 +141,58 @@ Proof
   >> gvs []
 QED
 
+(* This is the complete per-job handoff exposed to the eventual fast
+ * evaluator refinement.  It does not merely align list positions: the
+ * numerical verdict has an exact object result, the source box is covered,
+ * the six coordinate roots are the canonical source conversions, and the
+ * four historical roots are byte-for-value identical to the authenticated
+ * root record. *)
+Theorem bounded_packed_chars_case10173_decimal_authenticated_head_object_contract:
+  bounded_packed_chars_case10173_decimal_authenticated_packets
+      (SUC remaining) bytes (Pair object_job object_jobs)
+      (Pair root_record root_records) current_count = SOME result ==>
+  ?packet rest source_boxes center_roots box_roots center_extra box_extra
+     box_sqrt_data center_sqrt_data.
+    bounded_packed_chars_case10173_packet bytes = SOME (packet,rest) /\
+    bounded_packed_chars_case10173_decimal_packet_object_ok packet /\
+    bounded_case10173_object_job_boxes object_job = SOME source_boxes /\
+    bounded_interval64_list_covers_object_q_decimal
+      (bounded_case10173_packet_box_environment packet) source_boxes /\
+    object_job = Pair box_sqrt_data (Pair center_sqrt_data source_boxes) /\
+    bounded_case10173_decimal_packet_sqrt_roots packet =
+      (center_roots,box_roots) /\
+    bounded_object_positive_q_interval64_decimal_list center_sqrt_data =
+      SOME (center_roots ++ [center_extra]) /\
+    bounded_object_positive_q_interval64_decimal_list box_sqrt_data =
+      SOME (box_roots ++ [box_extra]) /\
+    bounded_interval64_object_cv_list
+      (bounded_case10173_packet_root_intervals packet) = root_record /\
+    bounded_packed_chars_case10173_decimal_authenticated_packets
+      remaining rest object_jobs root_records (SUC current_count) =
+        SOME result
+Proof
+  strip_tac
+  >> drule bounded_packed_chars_case10173_decimal_authenticated_step
+  >> strip_tac
+  >> drule
+       compute_boundedCase10173PackedDecimalBatchTheory.bounded_packed_chars_case10173_decimal_packet_ok_object_sound
+  >> strip_tac
+  >> fs
+       [compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_exact_auxiliary_binding_def]
+  >> drule
+       compute_boundedCase10173HistoricalCellDecimalBoundaryTheory.bounded_case10173_decimal_packet_box_binds_object_job_components
+  >> strip_tac
+  >> drule
+       compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_sqrt_roots_binding_components
+  >> strip_tac
+  >> drule
+       compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_root_binding_exact_cv
+  >> strip_tac
+  >> gvs
+       [compute_boundedCase10173JobBindingTheory.bounded_case10173_object_job_boxes_def]
+  >> metis_tac []
+QED
+
 Theorem bounded_packed_chars_case10173_decimal_authenticated_full_numerical_sound:
   bounded_packed_chars_case10173_decimal_authenticated_full_check
       bytes encoded_jobs encoded_roots ==>
