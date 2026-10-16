@@ -711,4 +711,162 @@ Proof
        [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
 QED
 
+Definition bounded_object_fs_historical_b_hessian_decimal_def:
+  bounded_object_fs_historical_b_hessian_decimal root_delta
+      two_over_root_four diagonal_reciprocal root_gradient base_hessian =
+    case root_gradient of
+    | Pair g0 (Pair g1 (Pair g2 (Pair g3 (Pair g4 (Pair g5 (Num 0)))))) =>
+      case base_hessian of
+      | Pair base00
+          (Pair base01
+            (Pair base02
+              (Pair base03 (Pair base04 (Pair base05 base_tail))))) =>
+                case bounded_object_fs_interval_mul_decimal
+                  g0 two_over_root_four of
+                | NONE => NONE
+                | SOME first_correction =>
+                  case bounded_object_fs_interval_scale2
+                    first_correction of
+                  | NONE => NONE
+                  | SOME twice_first_correction =>
+                    case bounded_object_fs_interval_mul_decimal
+                      root_delta two_over_root_four of
+                    | NONE => NONE
+                    | SOME diagonal_numerator =>
+                      case bounded_object_fs_interval_mul_decimal
+                        diagonal_numerator diagonal_reciprocal of
+                      | NONE => NONE
+                      | SOME diagonal_subtraction =>
+                        case bounded_object_fs_interval_neg
+                          diagonal_subtraction of
+                        | NONE => NONE
+                        | SOME negative_diagonal_subtraction =>
+                          case bounded_object_fs_interval_add
+                            twice_first_correction
+                            negative_diagonal_subtraction of
+                          | NONE => NONE
+                          | SOME diagonal_correction =>
+                            case bounded_object_fs_interval_add
+                              base00 diagonal_correction of
+                            | NONE => NONE
+                            | SOME r00 =>
+                              case bounded_object_fs_interval_mul_decimal
+                                g1 two_over_root_four of
+                              | NONE => NONE
+                              | SOME c01 =>
+                                case bounded_object_fs_interval_add base01 c01 of
+                                | NONE => NONE
+                                | SOME r01 =>
+                                  case bounded_object_fs_interval_mul_decimal
+                                    g2 two_over_root_four of
+                                  | NONE => NONE
+                                  | SOME c02 =>
+                                    case bounded_object_fs_interval_add base02 c02 of
+                                    | NONE => NONE
+                                    | SOME r02 =>
+                                      case bounded_object_fs_interval_mul_decimal
+                                        g3 two_over_root_four of
+                                      | NONE => NONE
+                                      | SOME c03 =>
+                                        case bounded_object_fs_interval_add base03 c03 of
+                                        | NONE => NONE
+                                        | SOME r03 =>
+                                          case bounded_object_fs_interval_mul_decimal
+                                            g4 two_over_root_four of
+                                          | NONE => NONE
+                                          | SOME c04 =>
+                                            case bounded_object_fs_interval_add
+                                              base04 c04 of
+                                            | NONE => NONE
+                                            | SOME r04 =>
+                                              case bounded_object_fs_interval_mul_decimal
+                                                g5 two_over_root_four of
+                                              | NONE => NONE
+                                              | SOME c05 =>
+                                                case bounded_object_fs_interval_add
+                                                  base05 c05 of
+                                                | NONE => NONE
+                                                | SOME r05 =>
+                                                    SOME
+                                                      (Pair r00
+                                                        (Pair r01
+                                                          (Pair r02
+                                                            (Pair r03
+                                                              (Pair r04
+                                                                (Pair r05 base_tail))))))
+      | _ => NONE
+    | _ => NONE
+End
+
+Theorem bounded_historical_b_hessian_decimal_source_trace:
+  bounded_historical_b_hessian_decimal root_delta two_over_root_four
+      diagonal_reciprocal root_gradient base_hessian = SOME result ==>
+  ?g0 g1 g2 g3 g4 g5
+   h00 h01 h02 h03 h04 h05 h11 h12 h13 h14 h15 h22 h23 h24 h25
+   h33 h34 h35 h44 h45 h55 first_correction twice_first_correction
+   diagonal_numerator diagonal_subtraction diagonal_correction
+   r00 c01 r01 c02 r02 c03 r03 c04 r04 c05 r05.
+    root_gradient = [g0;g1;g2;g3;g4;g5] /\
+    base_hessian =
+      [h00;h01;h02;h03;h04;h05;h11;h12;h13;h14;h15;
+       h22;h23;h24;h25;h33;h34;h35;h44;h45;h55] /\
+    bounded_interval64_mul_decimal g0 two_over_root_four =
+      SOME first_correction /\
+    bounded_historical_scale2 first_correction =
+      SOME twice_first_correction /\
+    bounded_interval64_mul_decimal root_delta two_over_root_four =
+      SOME diagonal_numerator /\
+    bounded_interval64_mul_decimal diagonal_numerator diagonal_reciprocal =
+      SOME diagonal_subtraction /\
+    bounded_interval64_add twice_first_correction
+      (bounded_interval64_neg diagonal_subtraction) =
+      SOME diagonal_correction /\
+    bounded_interval64_add h00 diagonal_correction = SOME r00 /\
+    bounded_interval64_mul_decimal g1 two_over_root_four = SOME c01 /\
+    bounded_interval64_add h01 c01 = SOME r01 /\
+    bounded_interval64_mul_decimal g2 two_over_root_four = SOME c02 /\
+    bounded_interval64_add h02 c02 = SOME r02 /\
+    bounded_interval64_mul_decimal g3 two_over_root_four = SOME c03 /\
+    bounded_interval64_add h03 c03 = SOME r03 /\
+    bounded_interval64_mul_decimal g4 two_over_root_four = SOME c04 /\
+    bounded_interval64_add h04 c04 = SOME r04 /\
+    bounded_interval64_mul_decimal g5 two_over_root_four = SOME c05 /\
+    bounded_interval64_add h05 c05 = SOME r05 /\
+    result =
+      [r00;r01;r02;r03;r04;r05;h11;h12;h13;h14;h15;
+       h22;h23;h24;h25;h33;h34;h35;h44;h45;h55]
+Proof
+  simp
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_b_hessian_decimal_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_historical_b_hessian_decimal_exact:
+  bounded_historical_b_hessian_decimal root_delta two_over_root_four
+      diagonal_reciprocal root_gradient base_hessian = SOME result ==>
+  bounded_object_fs_historical_b_hessian_decimal
+      (bounded_interval64_object_cv root_delta)
+      (bounded_interval64_object_cv two_over_root_four)
+      (bounded_interval64_object_cv diagonal_reciprocal)
+      (bounded_interval64_object_cv_list root_gradient)
+      (bounded_interval64_object_cv_list base_hessian) =
+    SOME (bounded_interval64_object_cv_list result)
+Proof
+  strip_tac
+  >> drule bounded_historical_b_hessian_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact
+  >> imp_res_tac
+       compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_scale2_exact
+  >> imp_res_tac
+       compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_add_object_cv_exact
+  >> gvs
+       [bounded_object_fs_historical_b_hessian_decimal_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact,
+        compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
 val _ = export_theory ();
