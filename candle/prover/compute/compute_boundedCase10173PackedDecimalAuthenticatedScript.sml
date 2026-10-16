@@ -38,7 +38,7 @@ Definition bounded_packed_chars_case10173_decimal_authenticated_packets_def:
         if bounded_packed_chars_case10173_decimal_packet_ok packet /\
            bounded_case10173_decimal_packet_box_binds_object_job
              packet object_job /\
-           bounded_case10173_decimal_packet_exact_auxiliary_binding
+           bounded_case10173_decimal_packet_exact_input_binding
              packet object_job root_record
         then bounded_packed_chars_case10173_decimal_authenticated_packets
           remaining rest object_jobs root_records (SUC count)
@@ -130,7 +130,7 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_step:
     bounded_packed_chars_case10173_decimal_packet_ok packet /\
     bounded_case10173_decimal_packet_box_binds_object_job
       packet object_job /\
-    bounded_case10173_decimal_packet_exact_auxiliary_binding
+    bounded_case10173_decimal_packet_exact_input_binding
       packet object_job root_record /\
     bounded_packed_chars_case10173_decimal_authenticated_packets
       remaining rest object_jobs root_records (SUC current_count) =
@@ -158,6 +158,8 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_head_object_contrac
     bounded_case10173_object_job_boxes object_job = SOME source_boxes /\
     bounded_interval64_list_covers_object_q_decimal
       (bounded_case10173_packet_box_environment packet) source_boxes /\
+    bounded_object_positive_q_interval64_decimal_list source_boxes =
+      SOME (bounded_case10173_packet_box_environment packet) /\
     object_job = Pair box_sqrt_data (Pair center_sqrt_data source_boxes) /\
     bounded_case10173_decimal_packet_sqrt_roots packet =
       (center_roots,box_roots) /\
@@ -178,9 +180,13 @@ Proof
        compute_boundedCase10173PackedDecimalBatchTheory.bounded_packed_chars_case10173_decimal_packet_ok_object_sound
   >> strip_tac
   >> fs
-       [compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_exact_auxiliary_binding_def]
+       [compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_exact_input_binding_def,
+        compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_exact_auxiliary_binding_def]
   >> drule
        compute_boundedCase10173HistoricalCellDecimalBoundaryTheory.bounded_case10173_decimal_packet_box_binds_object_job_components
+  >> strip_tac
+  >> drule
+       compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_box_exact_components
   >> strip_tac
   >> drule
        compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_sqrt_roots_binding_components

@@ -72,6 +72,23 @@ Definition bounded_case10173_decimal_packet_exact_auxiliary_binding_def:
       packet root_record
 End
 
+Definition bounded_case10173_decimal_packet_box_exact_object_job_def:
+  bounded_case10173_decimal_packet_box_exact_object_job packet
+      (Pair box_sqrt_data (Pair center_sqrt_data source_boxes) : cv) =
+    (bounded_object_positive_q_interval64_decimal_list source_boxes =
+       SOME (bounded_case10173_packet_box_environment packet)) /\
+  bounded_case10173_decimal_packet_box_exact_object_job packet _ = F
+End
+
+Definition bounded_case10173_decimal_packet_exact_input_binding_def:
+  bounded_case10173_decimal_packet_exact_input_binding packet object_job
+      root_record <=>
+    bounded_case10173_decimal_packet_box_exact_object_job
+      packet object_job /\
+    bounded_case10173_decimal_packet_exact_auxiliary_binding
+      packet object_job root_record
+End
+
 Theorem bounded_case10173_decimal_packet_sqrt_roots_binding_components:
   bounded_case10173_decimal_packet_sqrt_roots_bind_object_job packet
     object_job ==>
@@ -93,6 +110,19 @@ Proof
        [bounded_case10173_decimal_packet_sqrt_roots_bind_object_job_def]
   >> PairCases_on `bounded_case10173_decimal_packet_sqrt_roots packet`
   >> gvs []
+QED
+
+Theorem bounded_case10173_decimal_packet_box_exact_components:
+  bounded_case10173_decimal_packet_box_exact_object_job packet object_job ==>
+  ?box_sqrt_data center_sqrt_data source_boxes.
+    object_job = Pair box_sqrt_data (Pair center_sqrt_data source_boxes) /\
+    bounded_object_positive_q_interval64_decimal_list source_boxes =
+      SOME (bounded_case10173_packet_box_environment packet)
+Proof
+  Cases_on `object_job`
+  >> rw [bounded_case10173_decimal_packet_box_exact_object_job_def]
+  >> Cases_on `c0`
+  >> gvs [bounded_case10173_decimal_packet_box_exact_object_job_def]
 QED
 
 Theorem bounded_case10173_decimal_packet_root_binding_exact_cv:
@@ -287,6 +317,33 @@ Proof
   >> wordsLib.WORD_EVAL_TAC
 QED
 
+Theorem bounded_case10173_decimal_packet0_source_aligned_box_exact_binding:
+  ?object_job root_record.
+    bounded_case10173_checked_call_first_job_root
+      registered_case10173_historical_chunk16_cexp =
+        SOME (Pair object_job root_record) /\
+    bounded_case10173_decimal_packet_box_exact_object_job
+      bounded_case10173_decimal_packet0_source_aligned object_job
+Proof
+  simp
+    [compute_boundedCase10173RootBindingTheory.bounded_case10173_checked_call_first_job_root_def,
+     bounded_case10173_decimal_packet_box_exact_object_job_def,
+     compute_boundedCase10173JobBindingTheory.bounded_case10173_packet_box_environment_def,
+     bounded_case10173_decimal_packet0_source_aligned_def,
+     compute_boundedObjectDecimalQTheory.bounded_object_positive_q_interval64_decimal_list_def,
+     compute_boundedObjectDecimalQTheory.bounded_object_positive_q_interval64_decimal_def,
+     compute_boundedObjectDecimalQTheory.bounded_object_positive_q_floor64_decimal_def,
+     compute_boundedObjectDecimalQTheory.bounded_object_positive_q_ceil64_decimal_def,
+     compute_boundedObjectDecimalQTheory.bounded_decimal_natural_floor64_def,
+     compute_boundedObjectDecimalQTheory.bounded_decimal_natural_ceil64_def,
+     compute_boundedCase10173HistoricalCellDecimalDataTheory.bounded_case10173_decimal_packet0_def,
+     compute_registeredCase10173HistoricalChunk16DataTheory.registered_case10173_historical_chunk16_cexp_def,
+     compute_pureFastTheory.compute_exp_to_cv_def,
+     compute_boundedIntervalTheory.bounded_interval64_valid_def]
+  >> EVAL_TAC
+  >> wordsLib.WORD_EVAL_TAC
+QED
+
 Theorem bounded_case10173_decimal_packet0_source_aligned_exact_auxiliary_binding:
   ?object_job root_record.
     bounded_case10173_checked_call_first_job_root
@@ -305,6 +362,27 @@ Proof
   >> qexists_tac `sqrt_job`
   >> qexists_tac `sqrt_root`
   >> simp [bounded_case10173_decimal_packet_exact_auxiliary_binding_def]
+  >> metis_tac []
+QED
+
+Theorem bounded_case10173_decimal_packet0_source_aligned_exact_input_binding:
+  ?object_job root_record.
+    bounded_case10173_checked_call_first_job_root
+      registered_case10173_historical_chunk16_cexp =
+        SOME (Pair object_job root_record) /\
+    bounded_case10173_decimal_packet_exact_input_binding
+      bounded_case10173_decimal_packet0_source_aligned object_job root_record
+Proof
+  qx_choose_then `box_job`
+    (qx_choose_then `box_root` strip_assume_tac)
+    bounded_case10173_decimal_packet0_source_aligned_box_exact_binding
+  >> qx_choose_then `aux_job`
+       (qx_choose_then `aux_root` strip_assume_tac)
+       bounded_case10173_decimal_packet0_source_aligned_exact_auxiliary_binding
+  >> `box_job = aux_job /\ box_root = aux_root` by gvs []
+  >> qexists_tac `box_job`
+  >> qexists_tac `box_root`
+  >> simp [bounded_case10173_decimal_packet_exact_input_binding_def]
   >> metis_tac []
 QED
 
