@@ -688,4 +688,74 @@ Proof
   >> imp_res_tac bounded_object_fs_gradient_rows_exact
 QED
 
+Definition bounded_quadratic_abs_upper_num_def:
+  bounded_quadratic_abs_upper_num [] [] = SOME 0 /\
+  bounded_quadratic_abs_upper_num [] (_::_) = NONE /\
+  bounded_quadratic_abs_upper_num (_::_) [] = NONE /\
+  bounded_quadratic_abs_upper_num
+      ((left_radius,right_radius,double)::weights)
+      (entry::entries) =
+    case bounded_quadratic_abs_upper_num weights entries of
+    | NONE => NONE
+    | SOME rest =>
+        SOME
+          ((if double then 2 else 1) *
+           w2n left_radius * w2n right_radius *
+           w2n (bounded_interval64_abs_upper entry) + rest)
+End
+
+Theorem bounded_quadratic_abs_upper_acc_num:
+  !entries accumulator result.
+    bounded_quadratic_abs_upper_acc weights entries accumulator =
+      SOME result ==>
+    ?total.
+      bounded_quadratic_abs_upper_num weights entries = SOME total /\
+      bounded192_to_num result = bounded192_to_num accumulator + total
+Proof
+  Induct_on `weights`
+  >- (Cases_on `entries`
+      >> rw
+           [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_acc_def,
+            bounded_quadratic_abs_upper_num_def])
+  >> Cases_on `entries`
+  >- rw
+       [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_acc_def,
+        bounded_quadratic_abs_upper_num_def]
+  >> rpt strip_tac
+  >> rename1
+       `bounded_quadratic_abs_upper_acc
+          (weight::weights) (entry::entries) accumulator = SOME result`
+  >> PairCases_on `weight`
+  >> fs
+       [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_acc_def,
+        bounded_quadratic_abs_upper_num_def,
+        LET_THM]
+  >> every_case_tac
+  >> gvs []
+  >> res_tac
+  >> gvs []
+  >> fs [compute_boundedTheory.bounded192_add_words_refines]
+  >> imp_res_tac
+       compute_boundedWideTheory.bounded128_mul_word64_to_192_words_some
+  >> imp_res_tac compute_boundedTheory.bounded192_add_some
+  >> gvs
+       [compute_boundedTaylorCompleteTheory.bounded_word64_product128_value]
+QED
+
+Theorem bounded_quadratic_abs_upper_num_exact:
+  bounded_quadratic_abs_upper radii hessian = SOME result ==>
+  ?weights.
+    bounded_taylor_radius_pairs radii = SOME weights /\
+    bounded_quadratic_abs_upper_num weights hessian =
+      SOME (bounded192_to_num result)
+Proof
+  rw [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_def]
+  >> every_case_tac
+  >> gvs []
+  >> drule bounded_quadratic_abs_upper_acc_num
+  >> simp
+       [compute_boundedTheory.bounded192_to_num_def,
+        compute_boundedWideTheory.bounded192_zero_def]
+QED
+
 val _ = export_theory ();
