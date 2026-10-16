@@ -10,6 +10,7 @@ Ancestors
   compute_boundedCase10173HistoricalCellDecimalData
   compute_boundedCase10173JobBinding
   compute_boundedObjectDecimalQ
+  compute_boundedObjectCase10173HistoricalCellDecimal
 Libs
   bossLib preamble wordsLib
 
@@ -80,7 +81,8 @@ Theorem bounded_historical_dihedral_first64_decimal_root_certificates:
 Proof
   simp [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_dihedral_first64_decimal_def]
   >> rpt (TOP_CASE_TAC >> gvs [])
-  >> metis_tac []
+  >> metis_tac
+       [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_sqrt_certificate_decimal_sound]
 QED
 
 Theorem bounded_historical_dihedral_second64_decimal_root_certificates:
@@ -97,7 +99,8 @@ Proof
   simp [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_dihedral_second64_decimal_def,
         compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_sqrt_second_decimal_def]
   >> rpt (TOP_CASE_TAC >> gvs [])
-  >> metis_tac []
+  >> metis_tac
+       [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_sqrt_certificate_decimal_sound]
 QED
 
 Definition bounded_case10173_decimal_packet_complete_contract_def:
@@ -175,6 +178,34 @@ Proof
           [compute_boundedCase10173HistoricalCellDecimalDataTheory.bounded_case10173_decimal_packet0_def,
            compute_boundedCase10173PacketTheory.bounded_case10173_packet_case_def]
           compute_boundedCase10173HistoricalCellDecimalDataTheory.bounded_case10173_decimal_packet0_accepts)
+QED
+
+Theorem bounded_case10173_decimal_packet0_object_verdict:
+  ?center_value center_gradient value_bound gradient_bounds hessian
+   hessian_rows.
+    case bounded_case10173_decimal_packet0 of
+    | BoundedCase10173Packet radii center_environment box_environment
+        coordinate_sqrt_certificates center_root_delta
+        center_root_four_x0 center_reciprocals box_root_delta
+        box_root_four_x0 box_reciprocals =>
+      bounded_object_case10173_checked_cell64_decimal radii
+        center_environment box_environment coordinate_sqrt_certificates
+        center_root_delta center_root_four_x0 center_reciprocals
+        box_root_delta box_root_four_x0 box_reciprocals =
+          SOME
+            (bounded_taylor64_rows_object_cv
+              (BoundedTaylor64 T center_value center_gradient value_bound
+                gradient_bounds hessian) hessian_rows) /\
+      bounded_signed64_strict_negative
+        (bounded_interval64_upper value_bound)
+Proof
+  mp_tac
+    compute_boundedCase10173HistoricalCellDecimalDataTheory.bounded_case10173_decimal_packet0_accepts
+  >> rw
+       [compute_boundedCase10173HistoricalCellDecimalDataTheory.bounded_case10173_decimal_packet0_def]
+  >> imp_res_tac
+       compute_boundedObjectCase10173HistoricalCellDecimalTheory.bounded_object_case10173_checked_cell_accepts_decimal_exact
+  >> metis_tac []
 QED
 
 Theorem bounded_case10173_decimal_packet0_complete_contract:
