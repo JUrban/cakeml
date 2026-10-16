@@ -139,6 +139,135 @@ Proof
         ml_monadBaseTheory.st_ex_return_def]
 QED
 
+Theorem registered_case10173_fs_raw_scale_fst_eval:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_raw_scale»
+        [from_cv (Num factor);
+         Uop Fst
+           (Pair
+             (from_cv (Pair (Num positive) (Num negative)))
+             (from_cv other))]) (refs:hol_refs) =
+    (M_success
+      (Pair (Num (factor * positive)) (Num (factor * negative))),refs)
+Proof
+  Cases_on `clock`
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        registered_case10173_fs_raw_scale_lookup,
+        registered_case10173_fs_raw_scale_body_def,
+        compute_execTheory.from_cv_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.compute_eval_def,
+        compute_evalTheory.subst_def,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        compute_evalTheory.do_uop_def,
+        compute_evalTheory.do_fst_def,
+        compute_evalTheory.do_snd_def,
+        compute_evalTheory.do_binop_def,
+        compute_evalTheory.do_arith_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem registered_case10173_fs_raw_scale_snd_eval:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_raw_scale»
+        [from_cv (Num factor);
+         Uop Snd
+           (Pair
+             (from_cv other)
+             (from_cv (Pair (Num positive) (Num negative))))])
+      (refs:hol_refs) =
+    (M_success
+      (Pair (Num (factor * positive)) (Num (factor * negative))),refs)
+Proof
+  Cases_on `clock`
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        registered_case10173_fs_raw_scale_lookup,
+        registered_case10173_fs_raw_scale_body_def,
+        compute_execTheory.from_cv_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.compute_eval_def,
+        compute_evalTheory.subst_def,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        compute_evalTheory.do_uop_def,
+        compute_evalTheory.do_fst_def,
+        compute_evalTheory.do_snd_def,
+        compute_evalTheory.do_binop_def,
+        compute_evalTheory.do_arith_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem registered_case10173_fs_angle_interval_scale_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_angle_interval_scale»
+        [from_cv factor;from_cv value]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst
+        [(«factor»,from_cv factor);(«value»,from_cv value)]
+        registered_case10173_fs_angle_interval_scale_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173AnalyticSqrtEvalTheory.compute_eval_literal_app2
+  >> simp [registered_case10173_fs_angle_interval_scale_lookup]
+QED
+
+Theorem registered_case10173_fs_angle_interval_scale_eval:
+  1 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_angle_interval_scale»
+        [from_cv (Num factor);
+         from_cv
+           (Pair
+             (Pair (Num lower_positive) (Num lower_negative))
+             (Pair (Num upper_positive) (Num upper_negative)))])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair
+          (Pair
+            (Num (factor * lower_positive))
+            (Num (factor * lower_negative)))
+          (Pair
+            (Num (factor * upper_positive))
+            (Num (factor * upper_negative))))),refs)
+Proof
+  strip_tac
+  >> simp [registered_case10173_fs_angle_interval_scale_unfold]
+  >> simp
+       [registered_case10173_fs_angle_interval_scale_body_def,
+        compute_evalTheory.subst_def]
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        registered_case10173_fs_raw_scale_lookup,
+        registered_case10173_fs_raw_scale_body_def,
+        compute_execTheory.from_cv_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.compute_eval_def,
+        compute_evalTheory.subst_def,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        compute_evalTheory.do_uop_def,
+        compute_evalTheory.do_fst_def,
+        compute_evalTheory.do_snd_def,
+        compute_evalTheory.do_binop_def,
+        compute_evalTheory.do_arith_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
 Theorem registered_case10173_fs_hist_second_value_eval:
   0 < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
