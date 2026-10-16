@@ -411,6 +411,128 @@ Proof
         bounded_object_raw_interval_cv_list_rel_def]
 QED
 
+Definition bounded_object_fs_raw_interval_sum_aux_def:
+  bounded_object_fs_raw_interval_sum_aux (Num 0) accumulator =
+    SOME accumulator /\
+  bounded_object_fs_raw_interval_sum_aux (Num (SUC malformed)) accumulator =
+    NONE /\
+  bounded_object_fs_raw_interval_sum_aux (Pair entry rest) accumulator =
+    case bounded_object_fs_raw_interval_add accumulator entry of
+    | NONE => NONE
+    | SOME next => bounded_object_fs_raw_interval_sum_aux rest next
+End
+
+Definition bounded_object_fs_raw_interval_sum_def:
+  bounded_object_fs_raw_interval_sum values =
+    bounded_object_fs_raw_interval_sum_aux values
+      (Pair (Pair (Num 0) (Num 0)) (Pair (Num 0) (Num 0)))
+End
+
+Theorem bounded_object_fs_raw_interval_sum_aux_exact:
+  !source_values object_values source_lower source_upper
+   object_lower object_upper result_lower result_upper.
+    bounded_object_raw_interval_cv_list_rel object_values source_values /\
+    bounded_object_signed_int object_lower =
+      SOME (bounded_signed192_to_int source_lower) /\
+    bounded_object_signed_int object_upper =
+      SOME (bounded_signed192_to_int source_upper) /\
+    bounded_signed192_interval_sum_aux
+      source_values source_lower source_upper =
+        SOME (result_lower,result_upper) ==>
+    ?object_result_lower object_result_upper.
+      bounded_object_fs_raw_interval_sum_aux object_values
+        (Pair object_lower object_upper) =
+          SOME (Pair object_result_lower object_result_upper) /\
+      bounded_object_signed_int object_result_lower =
+        SOME (bounded_signed192_to_int result_lower) /\
+      bounded_object_signed_int object_result_upper =
+        SOME (bounded_signed192_to_int result_upper)
+Proof
+  Induct_on `source_values`
+  >- (rpt gen_tac
+      >> Cases_on `object_values`
+      >- (Cases_on `n`
+          >> gvs
+               [bounded_object_raw_interval_cv_list_rel_def,
+                compute_boundedHistoricalDeltaTheory.bounded_signed192_interval_sum_aux_def,
+                bounded_object_fs_raw_interval_sum_aux_def])
+      >> Cases_on `c`
+      >> gvs
+           [bounded_object_raw_interval_cv_list_rel_def,
+            compute_boundedHistoricalDeltaTheory.bounded_signed192_interval_sum_aux_def])
+  >> rpt gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `object_values`
+  >- (Cases_on `n`
+      >> gvs [bounded_object_raw_interval_cv_list_rel_def])
+  >> Cases_on `c`
+  >- gvs [bounded_object_raw_interval_cv_list_rel_def]
+  >> rw [bounded_object_raw_interval_cv_list_rel_def]
+  >> fs
+       [compute_boundedHistoricalDeltaTheory.bounded_signed192_interval_sum_aux_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac compute_boundedWideSignedTheory.bounded_signed192_add_value
+  >> mp_tac
+       (Q.INST
+         [`left_lower` |-> `object_lower`,
+          `left_upper` |-> `object_upper`,
+          `right_lower` |-> `c'`, `right_upper` |-> `c0'`,
+          `left_lower_value` |-> `bounded_signed192_to_int source_lower`,
+          `left_upper_value` |-> `bounded_signed192_to_int source_upper`,
+          `right_lower_value` |-> `bounded_signed192_to_int h0`,
+          `right_upper_value` |-> `bounded_signed192_to_int h1`]
+         compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_interval_add_signed_values)
+  >> simp []
+  >> disch_then
+       (qx_choose_then `next_object_lower`
+         (qx_choose_then `next_object_upper` strip_assume_tac))
+  >> qpat_x_assum
+       `!object_values source_lower source_upper object_lower object_upper
+          result_lower result_upper. _`
+       (mp_tac o
+        Q.SPECL
+          [`c0`, `x'`, `x`, `next_object_lower`, `next_object_upper`,
+           `result_lower`, `result_upper`])
+  >> simp []
+  >> disch_then
+       (qx_choose_then `object_result_lower`
+         (qx_choose_then `object_result_upper` strip_assume_tac))
+  >> qexists_tac `object_result_lower`
+  >> qexists_tac `object_result_upper`
+  >> gvs [bounded_object_fs_raw_interval_sum_aux_def]
+QED
+
+Theorem bounded_object_fs_raw_interval_sum_exact:
+  bounded_signed192_interval_sum source_values =
+    SOME (result_lower,result_upper) /\
+  bounded_object_raw_interval_cv_list_rel object_values source_values ==>
+  ?object_result_lower object_result_upper.
+    bounded_object_fs_raw_interval_sum object_values =
+      SOME (Pair object_result_lower object_result_upper) /\
+    bounded_object_signed_int object_result_lower =
+      SOME (bounded_signed192_to_int result_lower) /\
+    bounded_object_signed_int object_result_upper =
+      SOME (bounded_signed192_to_int result_upper)
+Proof
+  rw
+    [compute_boundedHistoricalDeltaTheory.bounded_signed192_interval_sum_def,
+     bounded_object_fs_raw_interval_sum_def]
+  >> mp_tac
+       (Q.SPECL
+         [`source_values`, `object_values`,
+          `bounded_signed192_make F bounded192_zero`,
+          `bounded_signed192_make F bounded192_zero`,
+          `Pair (Num 0) (Num 0)`, `Pair (Num 0) (Num 0)`,
+          `result_lower`, `result_upper`]
+         bounded_object_fs_raw_interval_sum_aux_exact)
+  >> simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def,
+        compute_boundedWideSignedTheory.bounded_signed192_make_value,
+        compute_boundedWideTheory.bounded192_zero_def,
+        compute_boundedTheory.bounded192_to_num_def]
+QED
+
 Definition bounded_object_fs_historical_delta_x4_value_decimal_def:
   bounded_object_fs_historical_delta_x4_value_decimal environment =
     case environment of
