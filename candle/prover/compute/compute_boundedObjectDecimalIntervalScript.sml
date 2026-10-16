@@ -611,6 +611,74 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_object_fs_raw_interval_mul_general_exists:
+  bounded_object_signed_int left_lower = SOME left_lower_value /\
+  bounded_object_signed_int left_upper = SOME left_upper_value /\
+  bounded_object_signed_int right_lower = SOME right_lower_value /\
+  bounded_object_signed_int right_upper = SOME right_upper_value ==>
+  ?lower upper.
+    bounded_object_fs_raw_interval_mul
+      (Pair left_lower left_upper) (Pair right_lower right_upper) =
+    SOME (Pair lower upper)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_lower`, `right` |-> `right_lower`,
+          `left_value` |-> `left_lower_value`,
+          `right_value` |-> `right_lower_value`]
+         bounded_object_fs_raw_mul_general_signed_values)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `lower_lower` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_lower`, `right` |-> `right_upper`,
+          `left_value` |-> `left_lower_value`,
+          `right_value` |-> `right_upper_value`]
+         bounded_object_fs_raw_mul_general_signed_values)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `lower_upper` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_upper`, `right` |-> `right_lower`,
+          `left_value` |-> `left_upper_value`,
+          `right_value` |-> `right_lower_value`]
+         bounded_object_fs_raw_mul_general_signed_values)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `upper_lower` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `left_upper`, `right` |-> `right_upper`,
+          `left_value` |-> `left_upper_value`,
+          `right_value` |-> `right_upper_value`]
+         bounded_object_fs_raw_mul_general_signed_values)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `upper_upper` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`first_raw` |-> `lower_lower`,
+          `second_raw` |-> `lower_upper`,
+          `third_raw` |-> `upper_lower`,
+          `fourth_raw` |-> `upper_upper`,
+          `first_value` |-> `left_lower_value * right_lower_value`,
+          `second_value` |-> `left_lower_value * right_upper_value`,
+          `third_value` |-> `left_upper_value * right_lower_value`,
+          `fourth_value` |-> `left_upper_value * right_upper_value`]
+         bounded_object_fs_raw_interval_extrema_exists)
+  >> impl_tac
+  >- simp []
+  >> disch_then
+       (qx_choose_then `lower`
+         (qx_choose_then `upper` assume_tac))
+  >> qexists_tac `lower`
+  >> qexists_tac `upper`
+  >> simp [bounded_object_fs_raw_interval_mul_def]
+QED
+
 Theorem bounded_object_fs_raw_interval_mul_object_cv_exists:
   ?lower upper.
     bounded_object_fs_raw_interval_mul
