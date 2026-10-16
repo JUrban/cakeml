@@ -282,6 +282,28 @@ Proof
        [compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_list_pairwise_mul_decimal_exact]
 QED
 
+Definition bounded_object_fs_historical_u_block_decimal_def:
+  bounded_object_fs_historical_u_block_decimal n0 n1 n2 p0 p1 p2 =
+    bounded_object_fs_fused_products_decimal
+      [(bounded_interval64_neg n0,n0);
+       (bounded_interval64_neg n1,n1);
+       (bounded_interval64_neg n2,n2);
+       (p0,p1);(p0,p1);
+       (p1,p2);(p1,p2);
+       (p2,p0);(p2,p0)]
+End
+
+Theorem bounded_object_fs_historical_u_block_decimal_exact:
+  bounded_historical_u_block_decimal n0 n1 n2 p0 p1 p2 = SOME result ==>
+  bounded_object_fs_historical_u_block_decimal n0 n1 n2 p0 p1 p2 =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_u_block_decimal_def,
+      bounded_object_fs_historical_u_block_decimal_def]
+  >> metis_tac
+       [compute_boundedObjectDecimalFusedTheory.bounded_object_fs_fused_products_decimal_exact]
+QED
+
 Definition bounded_object_fs_delta64_gradient_component_from_products_def:
   bounded_object_fs_delta64_gradient_component_from_products (coordinate:num)
       products =
