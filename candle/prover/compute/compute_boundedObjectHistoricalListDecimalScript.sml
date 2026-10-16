@@ -235,4 +235,38 @@ Proof
         compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
 QED
 
+Definition bounded_object_fs_historical_replace_three_def:
+  bounded_object_fs_historical_replace_three values replacement =
+    case values of
+    | Pair v0
+        (Pair v1
+          (Pair v2
+            (Pair v3
+              (Pair v4
+                (Pair v5 (Num 0)))))) =>
+        SOME
+          (Pair v0
+            (Pair v1
+              (Pair v2
+                (Pair replacement
+                  (Pair v4
+                    (Pair v5 (Num 0)))))))
+    | _ => NONE
+End
+
+Theorem bounded_object_fs_historical_replace_three_exact:
+  bounded_historical_replace_three values replacement = SOME result ==>
+  bounded_object_fs_historical_replace_three
+    (bounded_interval64_object_cv_list values)
+    (bounded_interval64_object_cv replacement) =
+  SOME (bounded_interval64_object_cv_list result)
+Proof
+  rw
+    [compute_boundedHistoricalDihedralFirstTheory.bounded_historical_replace_three_def]
+  >> every_case_tac
+  >> gvs
+       [bounded_object_fs_historical_replace_three_def,
+        compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+QED
+
 val _ = export_theory ();
