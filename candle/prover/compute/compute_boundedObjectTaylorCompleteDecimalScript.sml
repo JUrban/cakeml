@@ -698,10 +698,12 @@ Definition bounded_quadratic_abs_upper_num_def:
     case bounded_quadratic_abs_upper_num weights entries of
     | NONE => NONE
     | SOME rest =>
+        let contribution =
+          w2n left_radius * w2n right_radius *
+          w2n (bounded_interval64_abs_upper entry) in
         SOME
-          ((if double then 2 else 1) *
-           w2n left_radius * w2n right_radius *
-           w2n (bounded_interval64_abs_upper entry) + rest)
+          ((if double then contribution + contribution else contribution) +
+           rest)
 End
 
 Theorem bounded_quadratic_abs_upper_acc_num:
@@ -869,6 +871,60 @@ Proof
         integerTheory.INT_ADD_COMM,
         integerTheory.INT_MUL_COMM]
   >> fs [bounded_word64_object_cv_as_signed64]
+QED
+
+Theorem bounded_weighted_rows_abs_upper_num_symmetric6:
+  bounded_weighted_rows_abs_upper_num
+      [r0;r1;r2;r3;r4;r5]
+      [r0;r1;r2;r3;r4;r5]
+      [[h00;h01;h02;h03;h04;h05];
+       [h01;h11;h12;h13;h14;h15];
+       [h02;h12;h22;h23;h24;h25];
+       [h03;h13;h23;h33;h34;h35];
+       [h04;h14;h24;h34;h44;h45];
+       [h05;h15;h25;h35;h45;h55]] =
+  bounded_quadratic_abs_upper_num
+      [(r0,r0,F);
+       (r0,r1,T);(r0,r2,T);(r0,r3,T);(r0,r4,T);(r0,r5,T);
+       (r1,r1,F);
+       (r1,r2,T);(r1,r3,T);(r1,r4,T);(r1,r5,T);
+       (r2,r2,F);
+       (r2,r3,T);(r2,r4,T);(r2,r5,T);
+       (r3,r3,F);
+       (r3,r4,T);(r3,r5,T);
+       (r4,r4,F);
+       (r4,r5,T);
+       (r5,r5,F)]
+      [h00;h01;h02;h03;h04;h05;
+       h11;h12;h13;h14;h15;
+       h22;h23;h24;h25;
+       h33;h34;h35;
+       h44;h45;
+       h55]
+Proof
+  simp
+    [bounded_weighted_rows_abs_upper_num_def,
+     bounded_dot_abs_upper_num_def,
+     bounded_quadratic_abs_upper_num_def]
+  >> irule (iffLR integerTheory.INT_OF_NUM_EQ)
+  >> PURE_REWRITE_TAC
+       [GSYM integerTheory.INT_OF_NUM_ADD,
+        GSYM integerTheory.INT_OF_NUM_MUL,
+        GSYM integerTheory.INT_OF_NUM_POW]
+  >> INT_RING_TAC
+QED
+
+Theorem bounded_weighted_rows_abs_upper_num_quadratic_exact:
+  bounded_taylor_radius_pairs radii = SOME weights /\
+  bounded_hessian64_rows hessian = SOME rows ==>
+  bounded_weighted_rows_abs_upper_num radii radii rows =
+    bounded_quadratic_abs_upper_num weights hessian
+Proof
+  rw
+    [compute_boundedTaylorCompleteTheory.bounded_taylor_radius_pairs_def,
+     compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >> every_case_tac
+  >> gvs [bounded_weighted_rows_abs_upper_num_symmetric6]
 QED
 
 val _ = export_theory ();
