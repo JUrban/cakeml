@@ -66,6 +66,88 @@ Definition bounded_object_fs_ceil_div_def:
   bounded_object_fs_ceil_div _ denominator = NONE
 End
 
+Theorem bounded_object_fs_floor_div_pair_extensional:
+  (&left_positive:int) - &left_negative =
+      &right_positive - &right_negative ==>
+  bounded_object_fs_floor_div
+      (Pair (Num left_positive) (Num left_negative)) denominator =
+    bounded_object_fs_floor_div
+      (Pair (Num right_positive) (Num right_negative)) denominator
+Proof
+  Cases_on `left_positive < left_negative`
+  >> Cases_on `right_positive < right_negative`
+  >> simp [bounded_object_fs_floor_div_def]
+  >> strip_tac
+  >> `left_negative - left_positive =
+        right_negative - right_positive` by intLib.ARITH_TAC
+  >> `left_positive - left_negative =
+        right_positive - right_negative` by intLib.ARITH_TAC
+  >> simp []
+QED
+
+Theorem bounded_object_fs_ceil_div_pair_extensional:
+  (&left_positive:int) - &left_negative =
+      &right_positive - &right_negative ==>
+  bounded_object_fs_ceil_div
+      (Pair (Num left_positive) (Num left_negative)) denominator =
+    bounded_object_fs_ceil_div
+      (Pair (Num right_positive) (Num right_negative)) denominator
+Proof
+  Cases_on `left_positive < left_negative`
+  >> Cases_on `right_positive < right_negative`
+  >> simp [bounded_object_fs_ceil_div_def]
+  >> strip_tac
+  >> `left_negative - left_positive =
+        right_negative - right_positive` by intLib.ARITH_TAC
+  >> `left_positive - left_negative =
+        right_positive - right_negative` by intLib.ARITH_TAC
+  >> simp []
+QED
+
+Theorem bounded_object_fs_floor_div_extensional:
+  bounded_object_signed_int left = SOME value /\
+  bounded_object_signed_int right = SOME value ==>
+  bounded_object_fs_floor_div left denominator =
+    bounded_object_fs_floor_div right denominator
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> gvs [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> rename1
+       `bounded_object_signed_int (Pair left_first left_second) = SOME value`
+  >> Cases_on `left_first`
+  >> Cases_on `left_second`
+  >> gvs [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> rename1
+       `bounded_object_signed_int (Pair right_first right_second) = SOME value`
+  >> Cases_on `right_first`
+  >> Cases_on `right_second`
+  >> gvs [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> metis_tac [bounded_object_fs_floor_div_pair_extensional]
+QED
+
+Theorem bounded_object_fs_ceil_div_extensional:
+  bounded_object_signed_int left = SOME value /\
+  bounded_object_signed_int right = SOME value ==>
+  bounded_object_fs_ceil_div left denominator =
+    bounded_object_fs_ceil_div right denominator
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> gvs [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> rename1
+       `bounded_object_signed_int (Pair left_first left_second) = SOME value`
+  >> Cases_on `left_first`
+  >> Cases_on `left_second`
+  >> gvs [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> rename1
+       `bounded_object_signed_int (Pair right_first right_second) = SOME value`
+  >> Cases_on `right_first`
+  >> Cases_on `right_second`
+  >> gvs [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> metis_tac [bounded_object_fs_ceil_div_pair_extensional]
+QED
+
 Theorem bounded_object_q_ceil_div_decimal:
   bounded_object_q_ceil_div numerator 1000000000000 =
     (numerator + 999999999999) DIV 1000000000000
