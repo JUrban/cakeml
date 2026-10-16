@@ -1233,4 +1233,108 @@ Proof
              compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def])
 QED
 
+Theorem bounded_historical_delta_x4_second_decimal_source_trace:
+  bounded_historical_delta_x4_second_decimal environment =
+    SOME (value,gradient,hessian) ==>
+  ?lower_environment upper_environment lower_value upper_value.
+    bounded_historical_delta_x4_gradient environment = SOME gradient /\
+    bounded_historical_delta_x4_hessian_decimal = SOME hessian /\
+    bounded_historical_monotone_environment environment gradient F =
+      SOME lower_environment /\
+    bounded_historical_monotone_environment environment gradient T =
+      SOME upper_environment /\
+    bounded_historical_delta_x4_value_block_decimal lower_environment =
+      SOME lower_value /\
+    bounded_historical_delta_x4_value_block_decimal upper_environment =
+      SOME upper_value /\
+    value = bounded_historical_extreme_interval lower_value upper_value
+Proof
+  simp
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_x4_second_decimal_def]
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> strip_tac
+  >> gvs []
+QED
+
+Definition bounded_object_fs_historical_delta_x4_second_decimal_def:
+  bounded_object_fs_historical_delta_x4_second_decimal environment =
+    case bounded_historical_delta_x4_gradient environment of
+    | NONE => NONE
+    | SOME gradient =>
+      case bounded_object_fs_historical_delta_x4_gradient environment of
+      | NONE => NONE
+      | SOME object_gradient =>
+        case bounded_object_fs_historical_delta_x4_hessian_decimal of
+        | NONE => NONE
+        | SOME object_hessian =>
+            case bounded_historical_monotone_environment
+              environment gradient F of
+            | NONE => NONE
+            | SOME lower_environment =>
+              case bounded_object_fs_historical_monotone_environment
+                environment gradient F of
+              | NONE => NONE
+              | SOME object_lower_environment =>
+                case bounded_historical_monotone_environment
+                  environment gradient T of
+                | NONE => NONE
+                | SOME upper_environment =>
+                  case bounded_object_fs_historical_monotone_environment
+                    environment gradient T of
+                  | NONE => NONE
+                  | SOME object_upper_environment =>
+                    case bounded_historical_delta_x4_value_block_decimal
+                      lower_environment of
+                    | NONE => NONE
+                    | SOME lower_value =>
+                      case bounded_object_fs_historical_delta_x4_value_block_decimal
+                        lower_environment of
+                      | NONE => NONE
+                      | SOME object_lower_value =>
+                        case bounded_historical_delta_x4_value_block_decimal
+                          upper_environment of
+                        | NONE => NONE
+                        | SOME upper_value =>
+                          case bounded_object_fs_historical_delta_x4_value_block_decimal
+                            upper_environment of
+                          | NONE => NONE
+                          | SOME object_upper_value =>
+                            case bounded_object_fs_historical_extreme_interval
+                              lower_value upper_value of
+                            | NONE => NONE
+                            | SOME object_value =>
+                                SOME
+                                  (Pair object_value
+                                    (Pair object_gradient object_hessian))
+End
+
+Theorem bounded_object_fs_historical_delta_x4_second_decimal_exact:
+  bounded_historical_delta_x4_second_decimal environment =
+    SOME (value,gradient,hessian) ==>
+  bounded_object_fs_historical_delta_x4_second_decimal environment =
+    SOME
+      (Pair (bounded_interval64_object_cv value)
+        (Pair (bounded_interval64_object_cv_list gradient)
+          (bounded_interval64_object_cv_list hessian)))
+Proof
+  strip_tac
+  >> drule bounded_historical_delta_x4_second_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac bounded_object_fs_historical_delta_x4_gradient_exact
+  >> imp_res_tac bounded_object_fs_historical_delta_x4_hessian_decimal_exact
+  >> imp_res_tac bounded_object_fs_historical_monotone_environment_exact
+  >> imp_res_tac
+       bounded_object_fs_historical_delta_x4_value_block_decimal_exact
+  >> `bounded_object_fs_historical_delta_x4_hessian_decimal =
+      SOME (bounded_interval64_object_cv_list hessian)` by
+       metis_tac [bounded_object_fs_historical_delta_x4_hessian_decimal_exact]
+  >> qpat_x_assum
+       `bounded_object_fs_historical_delta_x4_hessian_decimal = _`
+       (fn object_hessian =>
+          gvs
+            [bounded_object_fs_historical_delta_x4_second_decimal_def,
+             object_hessian,
+             bounded_object_fs_historical_extreme_interval_exact])
+QED
+
 val _ = export_theory ();
