@@ -1826,4 +1826,198 @@ Proof
         LET_THM]
 QED
 
+Definition bounded_object_fs_interval_make_valid_def:
+  bounded_object_fs_interval_make_valid lower upper =
+    case bounded_object_fs_raw_le lower upper of
+    | NONE => NONE
+    | SOME ordered => if ordered then SOME (Pair lower upper) else NONE
+End
+
+Theorem bounded_object_fs_interval_make_valid_exact:
+  bounded_interval64_valid (BoundedInterval64 lower upper) ==>
+  bounded_object_fs_interval_make_valid
+      (bounded_signed64_object_cv lower)
+      (bounded_signed64_object_cv upper) =
+    SOME
+      (bounded_interval64_object_cv
+        (BoundedInterval64 lower upper))
+Proof
+  simp
+    [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+     bounded_object_fs_interval_make_valid_def,
+     compute_boundedObjectDecimalOrderTheory.bounded_object_fs_raw_le_object_cv,
+     compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def]
+QED
+
+Definition bounded_object_fs_interval64_atan_unit_lower_decimal_def:
+  bounded_object_fs_interval64_atan_unit_lower_decimal endpoint =
+    let magnitude = bounded_signed64_magnitude endpoint in
+    if ~word_lo magnitude bounded_atan_scale_decimal then NONE
+    else if bounded_signed64_effective_negative endpoint then
+      case bounded_object_fs_interval64_atan_pos_upper_decimal magnitude of
+      | NONE => NONE
+      | SOME enclosure =>
+        case bounded_object_fs_interval_endpoints enclosure of
+        | NONE => NONE
+        | SOME (_,upper) => bounded_object_fs_neg upper
+    else
+      case bounded_object_fs_interval64_atan_pos_lower_decimal magnitude of
+      | NONE => NONE
+      | SOME enclosure =>
+        case bounded_object_fs_interval_endpoints enclosure of
+        | NONE => NONE
+        | SOME (lower,_) => SOME lower
+End
+
+Theorem bounded_object_fs_interval64_atan_unit_lower_decimal_exact:
+  bounded_interval64_atan_unit_lower_decimal endpoint = SOME result ==>
+  bounded_object_fs_interval64_atan_unit_lower_decimal endpoint =
+    SOME (bounded_signed64_object_cv result)
+Proof
+  rw
+    [compute_boundedAtanDecimalTheory.bounded_interval64_atan_unit_lower_decimal_def,
+     LET_THM]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_fs_interval64_atan_pos_lower_decimal_exact
+  >> imp_res_tac bounded_object_fs_interval64_atan_pos_upper_decimal_exact
+  >> gvs
+       [bounded_object_fs_interval64_atan_unit_lower_decimal_def,
+        bounded_object_fs_interval_endpoints_exact,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_neg_object_cv_exact,
+        LET_THM]
+QED
+
+Definition bounded_object_fs_interval64_atan_unit_upper_decimal_def:
+  bounded_object_fs_interval64_atan_unit_upper_decimal endpoint =
+    let magnitude = bounded_signed64_magnitude endpoint in
+    if ~word_lo magnitude bounded_atan_scale_decimal then NONE
+    else if bounded_signed64_effective_negative endpoint then
+      case bounded_object_fs_interval64_atan_pos_lower_decimal magnitude of
+      | NONE => NONE
+      | SOME enclosure =>
+        case bounded_object_fs_interval_endpoints enclosure of
+        | NONE => NONE
+        | SOME (lower,_) => bounded_object_fs_neg lower
+    else
+      case bounded_object_fs_interval64_atan_pos_upper_decimal magnitude of
+      | NONE => NONE
+      | SOME enclosure =>
+        case bounded_object_fs_interval_endpoints enclosure of
+        | NONE => NONE
+        | SOME (_,upper) => SOME upper
+End
+
+Theorem bounded_object_fs_interval64_atan_unit_upper_decimal_exact:
+  bounded_interval64_atan_unit_upper_decimal endpoint = SOME result ==>
+  bounded_object_fs_interval64_atan_unit_upper_decimal endpoint =
+    SOME (bounded_signed64_object_cv result)
+Proof
+  rw
+    [compute_boundedAtanDecimalTheory.bounded_interval64_atan_unit_upper_decimal_def,
+     LET_THM]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_fs_interval64_atan_pos_lower_decimal_exact
+  >> imp_res_tac bounded_object_fs_interval64_atan_pos_upper_decimal_exact
+  >> gvs
+       [bounded_object_fs_interval64_atan_unit_upper_decimal_def,
+        bounded_object_fs_interval_endpoints_exact,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_neg_object_cv_exact,
+        LET_THM]
+QED
+
+Definition bounded_object_fs_interval64_atan_unit_decimal_def:
+  bounded_object_fs_interval64_atan_unit_decimal input =
+    if ~bounded_interval64_valid input then NONE
+    else
+      case bounded_object_fs_interval64_atan_unit_lower_decimal
+        (bounded_interval64_lower input) of
+      | NONE => NONE
+      | SOME lower =>
+        case bounded_object_fs_interval64_atan_unit_upper_decimal
+          (bounded_interval64_upper input) of
+        | NONE => NONE
+        | SOME upper =>
+            bounded_object_fs_interval_make_valid lower upper
+End
+
+Theorem bounded_object_fs_interval64_atan_unit_decimal_exact:
+  bounded_interval64_atan_unit_decimal input = SOME result ==>
+  bounded_object_fs_interval64_atan_unit_decimal input =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw [compute_boundedAtanDecimalTheory.bounded_interval64_atan_unit_decimal_def]
+  >> every_case_tac
+  >> gvs [LET_THM]
+  >> imp_res_tac bounded_object_fs_interval64_atan_unit_lower_decimal_exact
+  >> imp_res_tac bounded_object_fs_interval64_atan_unit_upper_decimal_exact
+  >> imp_res_tac bounded_object_fs_interval_make_valid_exact
+  >> gvs [bounded_object_fs_interval64_atan_unit_decimal_def]
+QED
+
+Definition bounded_object_fs_interval64_atan_range_point_none_decimal_def:
+  bounded_object_fs_interval64_atan_range_point_none_decimal endpoint =
+    let magnitude = bounded_signed64_magnitude endpoint in
+    if word_lo magnitude bounded_atan_scale_decimal then
+      bounded_object_fs_interval64_atan_unit_decimal
+        (BoundedInterval64 endpoint endpoint)
+    else NONE
+End
+
+Theorem bounded_object_fs_interval64_atan_range_point_none_decimal_exact:
+  bounded_interval64_atan_range_point_decimal endpoint NONE = SOME result ==>
+  bounded_object_fs_interval64_atan_range_point_none_decimal endpoint =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedAtanDecimalTheory.bounded_interval64_atan_range_point_decimal_def,
+     LET_THM]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_fs_interval64_atan_unit_decimal_exact
+  >> gvs
+       [bounded_object_fs_interval64_atan_range_point_none_decimal_def,
+        LET_THM]
+QED
+
+Definition bounded_object_fs_interval64_atan_range_none_decimal_def:
+  bounded_object_fs_interval64_atan_range_none_decimal input =
+    if ~bounded_interval64_valid input then NONE
+    else
+      case bounded_object_fs_interval64_atan_range_point_none_decimal
+        (bounded_interval64_lower input) of
+      | NONE => NONE
+      | SOME lower_enclosure =>
+        case bounded_object_fs_interval64_atan_range_point_none_decimal
+          (bounded_interval64_upper input) of
+        | NONE => NONE
+        | SOME upper_enclosure =>
+          case bounded_object_fs_interval_endpoints lower_enclosure of
+          | NONE => NONE
+          | SOME (lower,_) =>
+            case bounded_object_fs_interval_endpoints upper_enclosure of
+            | NONE => NONE
+            | SOME (_,upper) =>
+                bounded_object_fs_interval_make_valid lower upper
+End
+
+Theorem bounded_object_fs_interval64_atan_range_none_decimal_exact:
+  bounded_interval64_atan_range_decimal input NONE NONE = SOME result ==>
+  bounded_object_fs_interval64_atan_range_none_decimal input =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  rw [compute_boundedAtanDecimalTheory.bounded_interval64_atan_range_decimal_def]
+  >> every_case_tac
+  >> gvs [LET_THM]
+  >> imp_res_tac
+       bounded_object_fs_interval64_atan_range_point_none_decimal_exact
+  >> imp_res_tac bounded_object_fs_interval_make_valid_exact
+  >> gvs
+       [bounded_object_fs_interval64_atan_range_none_decimal_def,
+        bounded_object_fs_interval_endpoints_exact,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+QED
+
 val _ = export_theory ();
