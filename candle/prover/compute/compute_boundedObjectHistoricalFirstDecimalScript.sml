@@ -2179,4 +2179,217 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_historical_dihedral_first64_decimal_delta_gradient_object_trace:
+  bounded_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ==>
+  ?delta_products delta_gradient root_gradient.
+    bounded_object_fs_delta64_pair_products_decimal environment =
+      SOME (bounded_interval64_object_cv_list delta_products) /\
+    bounded_object_fs_delta64_gradient_from_products delta_products =
+      SOME (bounded_interval64_object_cv_list delta_gradient) /\
+    bounded_object_fs_interval_list_scale_decimal
+      root_derivative delta_gradient =
+      SOME (bounded_interval64_object_cv_list root_gradient)
+Proof
+  strip_tac
+  >> drule bounded_historical_dihedral_first64_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac bounded_object_fs_delta64_pair_products_decimal_exact
+  >> imp_res_tac bounded_object_fs_delta64_gradient_from_products_exact
+  >> imp_res_tac
+       compute_boundedObjectTaylorProductDecimalTheory.bounded_object_fs_interval_list_scale_decimal_exact
+  >> qexists_tac `delta_products`
+  >> qexists_tac `delta_gradient`
+  >> qexists_tac `root_gradient`
+  >> simp []
+QED
+
+Theorem bounded_historical_dihedral_first64_decimal_aux_object_trace:
+  bounded_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ==>
+  ?delta_x4 delta_x4_gradient u126 u126_gradient u135 u135_gradient.
+    bounded_object_fs_historical_delta_x4_value_decimal environment =
+      SOME (bounded_interval64_object_cv delta_x4) /\
+    bounded_object_fs_historical_delta_x4_gradient environment =
+      SOME (bounded_interval64_object_cv_list delta_x4_gradient) /\
+    bounded_object_fs_historical_u126_decimal environment =
+      SOME
+        (Pair (bounded_interval64_object_cv u126)
+          (bounded_interval64_object_cv_list u126_gradient)) /\
+    bounded_object_fs_historical_u135_decimal environment =
+      SOME
+        (Pair (bounded_interval64_object_cv u135)
+          (bounded_interval64_object_cv_list u135_gradient))
+Proof
+  strip_tac
+  >> drule bounded_historical_dihedral_first64_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac bounded_object_fs_historical_delta_x4_value_decimal_exact
+  >> imp_res_tac bounded_object_fs_historical_delta_x4_gradient_exact
+  >> imp_res_tac bounded_object_fs_historical_u126_decimal_exact
+  >> imp_res_tac bounded_object_fs_historical_u135_decimal_exact
+  >> qexists_tac `delta_x4`
+  >> qexists_tac `delta_x4_gradient`
+  >> qexists_tac `u126`
+  >> qexists_tac `u126_gradient`
+  >> qexists_tac `u135`
+  >> qexists_tac `u135_gradient`
+  >> simp []
+QED
+
+Theorem bounded_historical_dihedral_first64_decimal_product_object_trace:
+  bounded_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ==>
+  ?u126 u135 b u_product two two_over_root_four.
+    bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv root_delta)
+      (bounded_interval64_object_cv root_four_x0) =
+      SOME (bounded_interval64_object_cv b) /\
+    bounded_object_fs_hist_positive_inv
+      (bounded_interval64_object_cv b) =
+      SOME (bounded_interval64_object_cv b_reciprocal) /\
+    bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv u126)
+      (bounded_interval64_object_cv u135) =
+      SOME (bounded_interval64_object_cv u_product) /\
+    bounded_object_fs_hist_positive_inv
+      (bounded_interval64_object_cv u_product) =
+      SOME (bounded_interval64_object_cv u_reciprocal) /\
+    bounded_object_fs_interval_scale2
+      (bounded_interval64_object_cv bounded_atan_one_decimal) =
+      SOME (bounded_interval64_object_cv two) /\
+    bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv two)
+      (bounded_interval64_object_cv root_four_reciprocal) =
+      SOME (bounded_interval64_object_cv two_over_root_four)
+Proof
+  strip_tac
+  >> drule bounded_historical_dihedral_first64_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact
+  >> imp_res_tac
+       compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_scale2_exact
+  >> imp_res_tac
+       compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_object_exact
+  >> qexists_tac `u126`
+  >> qexists_tac `u135`
+  >> qexists_tac `b`
+  >> qexists_tac `u_product`
+  >> qexists_tac `two`
+  >> qexists_tac `two_over_root_four`
+  >> simp []
+QED
+
+Theorem bounded_historical_dihedral_first64_decimal_vector_object_trace:
+  bounded_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ==>
+  ?root_gradient delta_x4 delta_x4_gradient b two_over_root_four
+   b_gradient_base b_correction b_gradient c gradient_base
+   special_gradient.
+    bounded_object_fs_interval_list_scale_decimal
+      root_four_x0 root_gradient =
+      SOME (bounded_interval64_object_cv_list b_gradient_base) /\
+    bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv root_delta)
+      (bounded_interval64_object_cv two_over_root_four) =
+      SOME (bounded_interval64_object_cv b_correction) /\
+    bounded_object_fs_interval_list_add_at
+      (bounded_interval64_object_cv b_correction) 0
+      (bounded_interval64_object_cv_list b_gradient_base) =
+      SOME (bounded_interval64_object_cv_list b_gradient) /\
+    bounded_object_fs_historical_c_vector_decimal
+      (bounded_interval64_object_cv delta_x4)
+      (bounded_interval64_object_cv b)
+      (bounded_interval64_object_cv_list delta_x4_gradient)
+      (bounded_interval64_object_cv_list b_gradient) =
+      SOME (bounded_interval64_object_cv_list c) /\
+    bounded_object_fs_interval_list_scale_decimal u_reciprocal c =
+      SOME (bounded_interval64_object_cv_list gradient_base) /\
+    bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv root_four_x0)
+      (bounded_interval64_object_cv special_root_reciprocal) =
+      SOME (bounded_interval64_object_cv special_gradient) /\
+    bounded_object_fs_historical_replace_three
+      (bounded_interval64_object_cv_list gradient_base)
+      (bounded_interval64_object_cv special_gradient) =
+      SOME (bounded_interval64_object_cv_list gradient)
+Proof
+  strip_tac
+  >> drule bounded_historical_dihedral_first64_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedObjectTaylorProductDecimalTheory.bounded_object_fs_interval_list_scale_decimal_exact
+  >> imp_res_tac
+       compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact
+  >> imp_res_tac
+       compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_interval_list_add_at_exact
+  >> imp_res_tac
+       compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_historical_c_vector_decimal_exact
+  >> imp_res_tac
+       compute_boundedObjectHistoricalListDecimalTheory.bounded_object_fs_historical_replace_three_exact
+  >> qexists_tac `root_gradient`
+  >> qexists_tac `delta_x4`
+  >> qexists_tac `delta_x4_gradient`
+  >> qexists_tac `b`
+  >> qexists_tac `two_over_root_four`
+  >> qexists_tac `b_gradient_base`
+  >> qexists_tac `b_correction`
+  >> qexists_tac `b_gradient`
+  >> qexists_tac `c`
+  >> qexists_tac `gradient_base`
+  >> qexists_tac `special_gradient`
+  >> simp []
+QED
+
+Theorem bounded_historical_dihedral_first64_decimal_final_object_trace:
+  bounded_historical_dihedral_first64_decimal environment root_delta
+      root_four_x0
+      [root_derivative;root_four_reciprocal;u_reciprocal;
+       special_root_reciprocal;b_reciprocal] =
+    SOME (value,gradient) ==>
+  ?delta_x4 quotient angle.
+    bounded_object_fs_interval_neg
+      (bounded_interval64_object_cv delta_x4) =
+      SOME
+        (bounded_interval64_object_cv
+          (bounded_interval64_neg delta_x4)) /\
+    bounded_object_fs_interval_mul_decimal
+      (bounded_interval64_object_cv (bounded_interval64_neg delta_x4))
+      (bounded_interval64_object_cv b_reciprocal) =
+      SOME (bounded_interval64_object_cv quotient) /\
+    bounded_object_fs_interval64_atan_range_none_decimal quotient =
+      SOME (bounded_interval64_object_cv angle) /\
+    bounded_object_fs_interval_add
+      (bounded_interval64_object_cv bounded_atan_pi_half_decimal)
+      (bounded_interval64_object_cv angle) =
+      SOME (bounded_interval64_object_cv value)
+Proof
+  strip_tac
+  >> drule bounded_historical_dihedral_first64_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_exact
+  >> imp_res_tac bounded_object_fs_interval64_atan_range_none_decimal_exact
+  >> imp_res_tac
+       compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_add_object_cv_exact
+  >> qexists_tac `delta_x4`
+  >> qexists_tac `quotient`
+  >> qexists_tac `angle`
+  >> simp
+       [compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact]
+QED
+
 val _ = export_theory ();
