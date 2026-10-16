@@ -563,4 +563,21 @@ Proof
         ml_monadBaseTheory.st_ex_return_def]
 QED
 
+Theorem registered_case10173_fso_variable_jobs_canonical_eval_authenticated:
+  bounded_packed_chars_case10173_decimal_authenticated_full_check bytes
+      encoded_jobs encoded_roots /\
+  cv_size encoded_jobs + 6 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fso_variable_jobs_canonical»
+        [from_cv encoded_jobs]) (refs:hol_refs) =
+    (M_success (from_cv encoded_jobs),refs)
+Proof
+  strip_tac
+  >> irule registered_case10173_fso_variable_jobs_canonical_eval_fixed
+  >> conj_tac
+  >- fs []
+  >> metis_tac
+       [compute_boundedCase10173ObjectJobCanonicalTheory.bounded_packed_chars_case10173_decimal_authenticated_full_jobs_canonical]
+QED
+
 val _ = export_theory ();
