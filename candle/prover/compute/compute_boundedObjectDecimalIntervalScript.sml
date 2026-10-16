@@ -765,4 +765,80 @@ Proof
   >> metis_tac [bounded_object_fs_raw_interval_mul_round_selected]
 QED
 
+Theorem bounded_scaled_mul_floor64_decimal_cross_order:
+  ~bounded_signed64_nonnegative negative_left /\
+  ~bounded_signed64_nonpositive positive_right /\
+  ~bounded_signed64_nonpositive positive_left /\
+  ~bounded_signed64_nonnegative negative_right /\
+  bounded_signed64_to_int negative_left *
+      bounded_signed64_to_int positive_right <=
+    bounded_signed64_to_int positive_left *
+      bounded_signed64_to_int negative_right /\
+  bounded_scaled_mul_floor64_decimal negative_left positive_right =
+      SOME first_result /\
+  bounded_scaled_mul_floor64_decimal positive_left negative_right =
+      SOME second_result ==>
+  bounded_signed64_le first_result second_result
+Proof
+  Cases_on `negative_left`
+  >> Cases_on `positive_right`
+  >> Cases_on `positive_left`
+  >> Cases_on `negative_right`
+  >> Cases_on `b`
+  >> Cases_on `b'`
+  >> Cases_on `b''`
+  >> Cases_on `b'''`
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalDecimalTheory.bounded_scaled_mul_floor64_decimal_value
+  >> gvs
+       [compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct,
+        compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def]
+  >> fs [integerTheory.INT_MUL_LNEG,
+         integerTheory.INT_MUL_RNEG,
+         integerTheory.INT_MUL]
+  >> irule arithmeticTheory.DIV_LE_MONOTONE
+  >> simp []
+QED
+
+Theorem bounded_scaled_mul_ceil64_decimal_same_sign_order:
+  ~bounded_signed64_nonnegative negative_left /\
+  ~bounded_signed64_nonpositive positive_right /\
+  ~bounded_signed64_nonpositive positive_left /\
+  ~bounded_signed64_nonnegative negative_right /\
+  bounded_signed64_to_int negative_left *
+      bounded_signed64_to_int negative_right <=
+    bounded_signed64_to_int positive_left *
+      bounded_signed64_to_int positive_right /\
+  bounded_scaled_mul_ceil64_decimal negative_left negative_right =
+      SOME first_result /\
+  bounded_scaled_mul_ceil64_decimal positive_left positive_right =
+      SOME second_result ==>
+  bounded_signed64_le first_result second_result
+Proof
+  Cases_on `negative_left`
+  >> Cases_on `positive_right`
+  >> Cases_on `positive_left`
+  >> Cases_on `negative_right`
+  >> Cases_on `b`
+  >> Cases_on `b'`
+  >> Cases_on `b''`
+  >> Cases_on `b'''`
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalDecimalTheory.bounded_scaled_mul_ceil64_decimal_value
+  >> gvs
+       [compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct,
+        compute_boundedIntervalTheory.bounded_signed64_nonpositive_correct,
+        compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def]
+  >> fs [integerTheory.INT_MUL_LNEG,
+         integerTheory.INT_MUL_RNEG,
+         integerTheory.INT_MUL]
+  >> irule arithmeticTheory.DIV_LE_MONOTONE
+  >> simp []
+QED
+
 val _ = export_theory ();
