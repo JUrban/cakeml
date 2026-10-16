@@ -196,7 +196,7 @@ Definition bounded_historical_dihedral_first64_decimal_def:
       (case bounded_historical_delta64_value_decimal environment of
       | NONE => NONE
       | SOME delta_interval =>
-        if ¬bounded_interval64_sqrt_certificate_decimal delta_interval root_delta
+        if ¬bounded_interval64_positive_sqrt_certificate_decimal delta_interval root_delta
         then NONE
         else
           case bounded_interval64_nth environment 0 of
@@ -205,7 +205,7 @@ Definition bounded_historical_dihedral_first64_decimal_def:
             case bounded_interval64_scale4 x0 of
             | NONE => NONE
             | SOME four_x0 =>
-              if ¬bounded_interval64_sqrt_certificate_decimal
+              if ¬bounded_interval64_positive_sqrt_certificate_decimal
                   four_x0 root_four_x0 then NONE
               else
                 case bounded_historical_scale2 root_delta of

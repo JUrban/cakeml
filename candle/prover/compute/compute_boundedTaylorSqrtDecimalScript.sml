@@ -46,9 +46,9 @@ Definition bounded_taylor64_sqrt_decimal_def:
     case source of
     | BoundedTaylor64 source_domain center_value center_gradient
         value_bound gradient_bounds hessian =>
-      if ¬bounded_interval64_sqrt_certificate_decimal
+      if ¬bounded_interval64_positive_sqrt_certificate_decimal
             center_value center_sqrt ∨
-         ¬bounded_interval64_sqrt_certificate_decimal value_bound box_sqrt
+         ¬bounded_interval64_positive_sqrt_certificate_decimal value_bound box_sqrt
       then NONE
       else
         case bounded_interval64_add center_sqrt center_sqrt of

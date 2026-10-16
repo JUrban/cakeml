@@ -243,7 +243,7 @@ End
 Definition bounded_historical_sqrt_second_decimal_def:
   bounded_historical_sqrt_second_decimal value gradient hessian root
       derivative_reciprocal logarithmic_reciprocal =
-    if ¬bounded_interval64_sqrt_certificate_decimal value root then NONE
+    if ¬bounded_interval64_positive_sqrt_certificate_decimal value root then NONE
     else
       case bounded_historical_scale2 root of
       | NONE => NONE
@@ -461,7 +461,7 @@ Definition bounded_historical_dihedral_second64_decimal_def:
                   case bounded_interval64_scale4 x0 of
                   | NONE => NONE
                   | SOME four_x0 =>
-                    if ¬bounded_interval64_sqrt_certificate_decimal
+                    if ¬bounded_interval64_positive_sqrt_certificate_decimal
                       four_x0 root_four_x0 then NONE
                     else if ¬bounded_interval64_positive_inv_certificate_decimal
                       root_four_x0 root_four_reciprocal then NONE
