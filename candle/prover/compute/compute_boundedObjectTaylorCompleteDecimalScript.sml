@@ -927,4 +927,104 @@ Proof
   >> gvs [bounded_weighted_rows_abs_upper_num_symmetric6]
 QED
 
+Theorem bounded_object_fs_raw_scale_signed_exists:
+  bounded_object_signed_int source = SOME value ==>
+  ?result.
+    bounded_object_fs_raw_scale factor source = SOME result /\
+    bounded_object_signed_int result = SOME ((&factor:int) * value)
+Proof
+  Cases_on `source`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> Cases_on `c`
+  >> Cases_on `c0`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def,
+        bounded_object_fs_raw_scale_def]
+  >> rpt strip_tac
+  >> gvs []
+  >> PURE_REWRITE_TAC [GSYM integerTheory.INT_OF_NUM_MUL]
+  >> INT_RING_TAC
+QED
+
+Theorem bounded_taylor_error_decimal_num_exact:
+  bounded_taylor_error_decimal radii center_gradient hessian = SOME result ==>
+  ?linear quadratic weights.
+    bounded_dot_abs_upper_num radii center_gradient = SOME linear /\
+    bounded_taylor_radius_pairs radii = SOME weights /\
+    bounded_quadratic_abs_upper_num weights hessian = SOME quadratic /\
+    bounded192_to_num result = 2000000000000 * linear + quadratic
+Proof
+  rw
+    [compute_boundedTaylorCompleteDecimalTheory.bounded_taylor_error_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_dot_abs_upper_num_exact
+  >> imp_res_tac bounded_quadratic_abs_upper_num_exact
+  >> fs [compute_boundedTheory.bounded192_add_words_refines]
+  >> imp_res_tac
+       compute_boundedWideTheory.bounded128_mul_word64_to_192_words_some
+  >> imp_res_tac compute_boundedTheory.bounded192_add_some
+  >> gvs []
+  >> wordsLib.WORD_EVAL_TAC
+QED
+
+Definition bounded_object_fs_taylor_error_def:
+  bounded_object_fs_taylor_error radii center_gradient hessian_rows =
+    case bounded_object_fs_dot_abs_upper radii center_gradient of
+    | NONE => NONE
+    | SOME linear =>
+      case bounded_object_fs_raw_scale 2000000000000 linear of
+      | NONE => NONE
+      | SOME scaled_linear =>
+        case bounded_object_fs_weighted_rows_abs_upper
+          radii radii hessian_rows of
+        | NONE => NONE
+        | SOME quadratic =>
+            bounded_object_fs_raw_add scaled_linear quadratic
+End
+
+Theorem bounded_object_fs_taylor_error_exact:
+  bounded_hessian64_rows hessian = SOME hessian_rows /\
+  bounded_taylor_error_decimal radii center_gradient hessian = SOME result ==>
+  ?raw.
+    bounded_object_fs_taylor_error
+      radii center_gradient hessian_rows = SOME raw /\
+    bounded_object_signed_int raw =
+      SOME (&(bounded192_to_num result):int)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_taylor_error_decimal_num_exact
+  >> `bounded_weighted_rows_abs_upper_num radii radii hessian_rows =
+        bounded_quadratic_abs_upper_num weights hessian` by
+       (irule bounded_weighted_rows_abs_upper_num_quadratic_exact
+        >> simp [])
+  >> `bounded_weighted_rows_abs_upper_num
+        radii radii hessian_rows = SOME quadratic` by simp []
+  >> imp_res_tac bounded_object_fs_dot_abs_upper_num
+  >> imp_res_tac bounded_object_fs_weighted_rows_abs_upper_num
+  >> mp_tac
+       (Q.INST
+         [`source` |-> `raw`, `factor` |-> `2000000000000`,
+          `value` |-> `(&linear:int)`]
+         bounded_object_fs_raw_scale_signed_exists)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `scaled_linear` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `scaled_linear`, `right` |-> `raw'`,
+          `left_value` |-> `(&(2000000000000 * linear):int)`,
+          `right_value` |-> `(&quadratic:int)`]
+         compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_add_signed_value)
+  >> impl_tac
+  >- simp [integerTheory.INT_OF_NUM_MUL]
+  >> disch_then (qx_choose_then `object_result` strip_assume_tac)
+  >> qexists_tac `object_result`
+  >> simp
+       [bounded_object_fs_taylor_error_def,
+        integerTheory.INT_OF_NUM_ADD,
+        integerTheory.INT_OF_NUM_MUL]
+QED
+
 val _ = export_theory ();
