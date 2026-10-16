@@ -1280,4 +1280,70 @@ Proof
        [compute_boundedWideSignedTheory.bounded_signed192_make_value]
 QED
 
+Definition bounded_bool_object_cv_def:
+  bounded_bool_object_cv value : cv = if value then Num 1 else Num 0
+End
+
+Definition bounded_interval64_object_cv_matrix_def:
+  bounded_interval64_object_cv_matrix [] = (Num 0 : cv) /\
+  bounded_interval64_object_cv_matrix (row::rows) =
+    Pair (bounded_interval64_object_cv_list row)
+      (bounded_interval64_object_cv_matrix rows)
+End
+
+Definition bounded_taylor64_rows_object_cv_def:
+  bounded_taylor64_rows_object_cv
+      (BoundedTaylor64 domain center_value center_gradient
+        value_bound gradient_bounds hessian) hessian_rows =
+    Pair (bounded_bool_object_cv domain)
+      (Pair
+        (Pair (bounded_interval64_object_cv center_value)
+          (bounded_interval64_object_cv_list center_gradient))
+        (Pair (bounded_interval64_object_cv value_bound)
+          (Pair (bounded_interval64_object_cv_list gradient_bounds)
+            (bounded_interval64_object_cv_matrix hessian_rows))))
+End
+
+Definition bounded_object_fs_taylor_complete_def:
+  bounded_object_fs_taylor_complete radii domain center_value
+      center_gradient hessian hessian_rows =
+    case bounded_object_fs_taylor_value_complete
+      radii center_value center_gradient hessian_rows of
+    | NONE => NONE
+    | SOME value_bound =>
+      case bounded_object_fs_gradient_complete
+        radii center_gradient hessian of
+      | NONE => NONE
+      | SOME gradient_bounds =>
+        SOME
+          (Pair (bounded_bool_object_cv domain)
+            (Pair
+              (Pair (bounded_interval64_object_cv center_value)
+                (bounded_interval64_object_cv_list center_gradient))
+              (Pair value_bound
+                (Pair gradient_bounds
+                  (bounded_interval64_object_cv_matrix hessian_rows)))))
+End
+
+Theorem bounded_object_fs_taylor_complete_exact:
+  bounded_hessian64_rows hessian = SOME hessian_rows /\
+  bounded_taylor64_complete_decimal radii result_domain center_value
+      center_gradient hessian = SOME result ==>
+  bounded_object_fs_taylor_complete radii result_domain center_value
+      center_gradient hessian hessian_rows =
+    SOME (bounded_taylor64_rows_object_cv result hessian_rows)
+Proof
+  rw
+    [compute_boundedTaylorCompleteDecimalTheory.bounded_taylor64_complete_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_fs_taylor_value_complete_exact
+  >> imp_res_tac bounded_object_fs_gradient_complete_exact
+  >> gvs
+       [bounded_object_fs_taylor_complete_def,
+        bounded_taylor64_rows_object_cv_def,
+        compute_boundedTaylorStateTheory.bounded_taylor64_make_def,
+        LET_THM]
+QED
+
 val _ = export_theory ();
