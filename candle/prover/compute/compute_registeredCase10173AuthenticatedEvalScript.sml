@@ -15,7 +15,8 @@ Libs
   bossLib preamble
 
 Definition registered_case10173_decimal_authenticated_head_refines_def:
-  registered_case10173_decimal_authenticated_head_refines source_program <=>
+  registered_case10173_decimal_authenticated_head_refines
+      head_clock_bound source_program <=>
     !packet object_job root_record.
       bounded_packed_chars_case10173_decimal_packet_ok packet /\
       bounded_case10173_decimal_packet_box_binds_object_job
@@ -27,7 +28,7 @@ Definition registered_case10173_decimal_authenticated_head_refines_def:
         object_job =
           Pair box_sqrt_data (Pair center_sqrt_data boxes) /\
         !clock refs.
-          2 < clock ==>
+          head_clock_bound < clock ==>
           registered_case10173_hist_checked_job_head_eval_ok clock
             source_program box_sqrt_data center_sqrt_data boxes root_record
             box_remainder box_program center_remainder center_program refs
@@ -37,8 +38,9 @@ Theorem registered_case10173_decimal_authenticated_packets_eval:
   !remaining bytes encoded_jobs encoded_roots current_count result clock refs.
     bounded_packed_chars_case10173_decimal_authenticated_packets
       remaining bytes encoded_jobs encoded_roots current_count = SOME result /\
-    registered_case10173_decimal_authenticated_head_refines source_program /\
-    3 * remaining < clock ==>
+    registered_case10173_decimal_authenticated_head_refines
+      head_clock_bound source_program /\
+    3 * remaining + head_clock_bound < clock ==>
     compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_checked_jobs_check»
         [from_cv source_program;from_cv encoded_jobs;from_cv encoded_roots])
@@ -97,8 +99,9 @@ QED
 Theorem registered_case10173_decimal_authenticated_full_eval:
   bounded_packed_chars_case10173_decimal_authenticated_full_check bytes
       encoded_jobs encoded_roots /\
-  registered_case10173_decimal_authenticated_head_refines source_program /\
-  12519 < clock ==>
+  registered_case10173_decimal_authenticated_head_refines
+    head_clock_bound source_program /\
+  12519 + head_clock_bound < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_checked_jobs_check»
         [from_cv source_program;from_cv encoded_jobs;from_cv encoded_roots])
@@ -109,9 +112,9 @@ Proof
   >> every_case_tac
   >> gvs []
   >> irule registered_case10173_decimal_authenticated_packets_eval
-  >> conj_tac >- simp []
   >> qexists_tac `x`
   >> qexists_tac `0`
+  >> qexists_tac `head_clock_bound`
   >> qexists_tac `4173`
   >> qexists_tac `4173`
   >> simp []
