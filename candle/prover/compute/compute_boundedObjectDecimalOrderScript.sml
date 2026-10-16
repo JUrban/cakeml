@@ -36,6 +36,30 @@ Definition bounded_object_fs_raw_max_def:
     | SOME left_le_right => SOME (if left_le_right then right else left)
 End
 
+Theorem bounded_object_fs_raw_le_signed_ints:
+  bounded_object_signed_int left = SOME left_value /\
+  bounded_object_signed_int right = SOME right_value ==>
+  bounded_object_fs_raw_le left right = SOME (left_value <= right_value)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> gvs [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> rename1
+       `bounded_object_signed_int (Pair left_first left_second) =
+          SOME left_value`
+  >> Cases_on `left_first`
+  >> Cases_on `left_second`
+  >> gvs [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> rename1
+       `bounded_object_signed_int (Pair right_first right_second) =
+          SOME right_value`
+  >> Cases_on `right_first`
+  >> Cases_on `right_second`
+  >> gvs [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def,
+          bounded_object_fs_raw_le_def]
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_object_fs_raw_le_object_cv:
   bounded_object_fs_raw_le
       (bounded_signed64_object_cv left)
