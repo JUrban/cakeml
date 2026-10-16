@@ -303,4 +303,121 @@ Proof
   >> fs []
 QED
 
+Definition registered_case10173_hist_root_inputs_body_def:
+  registered_case10173_hist_root_inputs_body =
+    Let «center_boxes»
+      (App «candle_cv_q_center_environment_list» [Var «boxes»])
+      (Let «center_environment»
+        (App «candle_cv_fs_interval_list_of_q» [Var «center_boxes»])
+        (Let «box_environment»
+          (App «candle_cv_fs_interval_list_of_q» [Var «boxes»])
+          (Pair
+            (App «candle_cv_fs_angle_delta_value»
+              [Var «center_environment»])
+            (Pair
+              (App «candle_cv_fs_angle_interval_scale»
+                [Num 4;
+                 App «candle_cv_fs_interval_lookup»
+                   [Num 0;Var «center_environment»]])
+              (Pair
+                (App «candle_cv_fs_hist_second_value»
+                  [App «candle_cv_fs_hist_delta_second»
+                    [Var «box_environment»]])
+                (Pair
+                  (App «candle_cv_fs_angle_interval_scale»
+                    [Num 4;
+                     App «candle_cv_fs_interval_lookup»
+                       [Num 0;Var «box_environment»]])
+                  (Num 0)))))))
+End
+
+Definition registered_case10173_hist_root_record_check_body_def:
+  registered_case10173_hist_root_record_check_body =
+    App «candle_cv_fs_hist_root_list_check»
+      [App «candle_cv_case10173_hist_root_inputs» [Var «boxes»];
+       Var «roots»]
+End
+
+Theorem registered_case10173_hist_root_inputs_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_case10173_hist_root_inputs» =
+    SOME ([«boxes»],registered_case10173_hist_root_inputs_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_hist_root_record_check_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_case10173_hist_root_record_check» =
+    SOME
+      ([«boxes»;«roots»],
+       registered_case10173_hist_root_record_check_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_hist_root_inputs_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_case10173_hist_root_inputs» [from_cv boxes])
+      (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«boxes»,from_cv boxes)]
+        registered_case10173_hist_root_inputs_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173CanonicalEvalTheory.compute_eval_literal_app1
+  >> simp [registered_case10173_hist_root_inputs_lookup]
+QED
+
+Theorem registered_case10173_hist_root_record_check_eval:
+  1 < clock /\
+  compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_case10173_hist_root_inputs» [from_cv boxes])
+      (refs:hol_refs) = (M_success (from_cv inputs),refs) /\
+  compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_root_list_check»
+        [from_cv inputs;from_cv roots]) refs =
+      (M_success (Num 1),refs) ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_case10173_hist_root_record_check»
+        [from_cv boxes;from_cv roots]) refs =
+    (M_success (Num 1),refs)
+Proof
+  strip_tac
+  >> `compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_case10173_hist_root_record_check»
+          [from_cv boxes;from_cv roots]) refs =
+      compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (subst
+          [(«boxes»,from_cv boxes);(«roots»,from_cv roots)]
+          registered_case10173_hist_root_record_check_body) refs` by
+       (irule
+          compute_registeredCase10173AnalyticSqrtEvalTheory.compute_eval_literal_app2
+        >> simp [registered_case10173_hist_root_record_check_lookup])
+  >> pop_assum SUBST1_TAC
+  >> simp
+       [registered_case10173_hist_root_record_check_body_def,
+        compute_evalTheory.subst_def]
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_hist_root_list_check»
+          [App «candle_cv_case10173_hist_root_inputs» [from_cv boxes];
+           from_cv roots]) refs =
+      compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_hist_root_list_check»
+          [from_cv inputs;from_cv roots]) refs` by
+       (irule
+          compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_app2_argument_results
+        >> simp
+             [compute_execProofTheory.compute_eval_from_cv])
+  >> fs []
+QED
+
 val _ = export_theory ();
