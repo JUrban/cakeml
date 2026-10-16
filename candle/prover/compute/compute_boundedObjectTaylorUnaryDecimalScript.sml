@@ -67,6 +67,85 @@ Proof
   >> gvs [bounded_object_cv_list_append_interval_lists]
 QED
 
+Theorem bounded_taylor64_complete_decimal_hessian_rows:
+  bounded_taylor64_complete_decimal radii result_domain center_value center_gradient
+      hessian = SOME result ==>
+  ?hessian_rows. bounded_hessian64_rows hessian = SOME hessian_rows
+Proof
+  rw
+    [compute_boundedTaylorCompleteDecimalTheory.bounded_taylor64_complete_decimal_def,
+     compute_boundedTaylorCompleteDecimalTheory.bounded_taylor_gradient_complete_decimal_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
+Definition bounded_object_fs_taylor64_unary_complete_decimal_def:
+  bounded_object_fs_taylor64_unary_complete_decimal radii result_domain
+      center_result center_derivative box_derivative box_second source =
+    if ~bounded_taylor64_well_formed source \/
+       ~bounded_interval64_valid center_result \/
+       ~bounded_interval64_valid center_derivative \/
+       ~bounded_interval64_valid box_derivative \/
+       ~bounded_interval64_valid box_second
+    then NONE
+    else
+      case source of
+      | BoundedTaylor64 source_domain source_center source_center_gradient
+          source_value source_gradient_bounds source_hessian =>
+        case bounded_interval64_list_scale_decimal
+          center_derivative source_center_gradient of
+        | NONE => NONE
+        | SOME center_gradient =>
+          case bounded_object_fs_interval_list_scale_decimal
+            center_derivative source_center_gradient of
+          | NONE => NONE
+          | SOME object_center_gradient =>
+            case bounded_interval64_self_outer_decimal
+              source_gradient_bounds of
+            | NONE => NONE
+            | SOME gradient_outer =>
+              case bounded_object_fs_interval_self_outer_decimal
+                source_gradient_bounds of
+              | NONE => NONE
+              | SOME object_gradient_outer =>
+                case bounded_interval64_list_scale_decimal
+                  box_second gradient_outer of
+                | NONE => NONE
+                | SOME outer_hessian =>
+                  case bounded_object_fs_interval_list_scale_decimal
+                    box_second gradient_outer of
+                  | NONE => NONE
+                  | SOME object_outer_hessian =>
+                    case bounded_interval64_list_scale_decimal
+                      box_derivative source_hessian of
+                    | NONE => NONE
+                    | SOME source_hessian_scaled =>
+                      case bounded_object_fs_interval_list_scale_decimal
+                        box_derivative source_hessian of
+                      | NONE => NONE
+                      | SOME object_source_hessian_scaled =>
+                        case bounded_interval64_list_add
+                          outer_hessian source_hessian_scaled of
+                        | NONE => NONE
+                        | SOME hessian =>
+                          case bounded_object_fs_interval_list_add
+                            outer_hessian source_hessian_scaled of
+                          | NONE => NONE
+                          | SOME object_hessian =>
+                            case bounded_taylor64_complete_decimal radii
+                              (source_domain /\ result_domain) center_result
+                              center_gradient hessian of
+                            | NONE => NONE
+                            | SOME result =>
+                              case bounded_hessian64_rows hessian of
+                              | NONE => NONE
+                              | SOME hessian_rows =>
+                                  bounded_object_fs_taylor_complete radii
+                                    (source_domain /\ result_domain)
+                                    center_result center_gradient hessian
+                                    hessian_rows
+End
+
 Theorem bounded_taylor64_unary_complete_decimal_object_trace:
   bounded_taylor64_unary_complete_decimal radii result_domain center_result
       center_derivative box_derivative box_second source = SOME result ==>
@@ -120,6 +199,34 @@ Proof
   >> rw []
   >> metis_tac
        [compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_taylor_complete_exact]
+QED
+
+Theorem bounded_object_fs_taylor64_unary_complete_decimal_exact:
+  bounded_taylor64_unary_complete_decimal radii result_domain center_result
+      center_derivative box_derivative box_second source = SOME result ==>
+  ?hessian_rows.
+    bounded_object_fs_taylor64_unary_complete_decimal radii result_domain
+      center_result center_derivative box_derivative box_second source =
+    SOME (bounded_taylor64_rows_object_cv result hessian_rows)
+Proof
+  strip_tac
+  >> drule bounded_taylor64_unary_complete_decimal_object_trace
+  >> strip_tac
+  >> `bounded_taylor64_complete_decimal radii
+        (source_domain /\ result_domain) center_result center_gradient
+        hessian = SOME result` by
+       (fs
+          [compute_boundedTaylorUnaryDecimalTheory.bounded_taylor64_unary_complete_decimal_def]
+        >> every_case_tac
+        >> gvs [])
+  >> drule bounded_taylor64_complete_decimal_hessian_rows
+  >> strip_tac
+  >> qexists_tac `hessian_rows`
+  >> imp_res_tac
+       compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_taylor_complete_exact
+  >> gvs
+       [bounded_object_fs_taylor64_unary_complete_decimal_def,
+        compute_boundedTaylorUnaryDecimalTheory.bounded_taylor64_unary_complete_decimal_def]
 QED
 
 val _ = export_theory ();
