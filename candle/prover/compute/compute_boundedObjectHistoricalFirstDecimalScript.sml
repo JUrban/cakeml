@@ -5,7 +5,7 @@ Theory compute_boundedObjectHistoricalFirstDecimal
 Ancestors
   compute_boundedObjectHistoricalListDecimal
 Libs
-  bossLib preamble
+  bossLib preamble intLib
 
 Theorem bounded_raw128_interval_mul64_corner_members:
   bounded_raw128_interval_mul64_unchecked
@@ -134,6 +134,152 @@ Proof
             compute_boundedIntervalTheory.bounded_interval64_valid_def,
             compute_boundedSignedEndpointTheory.bounded_signed64_le_correct])
   >> simp []
+QED
+
+Theorem bounded_interval64_raw_mul_bounds_normalized_ordered:
+  bounded_interval64_valid left /\
+  bounded_interval64_valid right ==>
+  let bounds = bounded_interval64_raw_mul_bounds_unchecked left right in
+  bounded_signed128_normalized (FST bounds) /\
+  bounded_signed128_normalized (SND bounds) /\
+  bounded_signed128_to_int (FST bounds) <=
+    bounded_signed128_to_int (SND bounds)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> strip_tac
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `BoundedInterval64 b b0`,
+          `right` |-> `BoundedInterval64 b' b0'`,
+          `left_value` |-> `bounded_signed64_to_int b`,
+          `right_value` |-> `bounded_signed64_to_int b'`]
+         compute_boundedTaylorMulTheory.bounded_interval64_raw_mul_bounds_contains_product)
+  >> impl_tac
+  >- fs
+       [compute_boundedIntervalTheory.bounded_interval64_contains_int_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def,
+        compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+  >> strip_tac
+  >> fs [LET_THM]
+  >> intLib.ARITH_TAC
+QED
+
+Definition bounded_object_fs_historical_raw_cubic_def:
+  bounded_object_fs_historical_raw_cubic first second third =
+    if ~bounded_interval64_valid first \/
+       ~bounded_interval64_valid second \/
+       ~bounded_interval64_valid third
+    then NONE
+    else
+      case bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv first)
+        (bounded_interval64_object_cv second) of
+      | NONE => NONE
+      | SOME raw_product =>
+          bounded_object_fs_raw_interval_mul raw_product
+            (bounded_interval64_object_cv third)
+End
+
+Theorem bounded_object_fs_historical_raw_cubic_exact:
+  bounded_historical_raw_cubic first_interval second_interval third_interval =
+    SOME (lower,upper) ==>
+  ?object_lower object_upper.
+    bounded_object_fs_historical_raw_cubic
+      first_interval second_interval third_interval =
+      SOME (Pair object_lower object_upper) /\
+    bounded_object_signed_int object_lower =
+      SOME (bounded_signed192_to_int lower) /\
+    bounded_object_signed_int object_upper =
+      SOME (bounded_signed192_to_int upper)
+Proof
+  Cases_on `third_interval`
+  >> rw
+       [compute_boundedHistoricalDeltaTheory.bounded_historical_raw_cubic_def]
+  >> every_case_tac
+  >> gvs []
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `first_interval`, `right` |-> `second_interval`]
+         compute_boundedObjectDecimalFusedTheory.bounded_interval64_raw_mul_bounds_object_values)
+  >> impl_tac
+  >- simp []
+  >> simp [LET_THM]
+  >> disch_then
+       (qx_choose_then `object_first_lower`
+         (qx_choose_then `object_first_upper` strip_assume_tac))
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `first_interval`, `right` |-> `second_interval`]
+         bounded_interval64_raw_mul_bounds_normalized_ordered)
+  >> impl_tac
+  >- simp []
+  >> simp [LET_THM]
+  >> strip_tac
+  >> mp_tac
+       (Q.INST
+         [`left_lower` |-> `object_first_lower`,
+          `left_upper` |-> `object_first_upper`,
+          `right_lower` |-> `bounded_signed64_object_cv b`,
+          `right_upper` |-> `bounded_signed64_object_cv b0`,
+          `left_lower_value` |->
+            `bounded_signed128_to_int
+              (FST (bounded_interval64_raw_mul_bounds_unchecked
+                first_interval second_interval))`,
+          `left_upper_value` |->
+            `bounded_signed128_to_int
+              (SND (bounded_interval64_raw_mul_bounds_unchecked
+                first_interval second_interval))`,
+          `right_lower_value` |-> `bounded_signed64_to_int b`,
+          `right_upper_value` |-> `bounded_signed64_to_int b0`]
+         compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_mul_general_exists)
+  >> impl_tac
+  >- simp []
+  >> disch_then
+       (qx_choose_then `object_lower`
+         (qx_choose_then `object_upper` assume_tac))
+  >> mp_tac
+       (Q.INST
+         [`left_lower` |-> `object_first_lower`,
+          `left_upper` |-> `object_first_upper`,
+          `right_lower` |-> `bounded_signed64_object_cv b`,
+          `right_upper` |-> `bounded_signed64_object_cv b0`,
+          `left_lower_value` |->
+            `bounded_signed128_to_int
+              (FST (bounded_interval64_raw_mul_bounds_unchecked
+                first_interval second_interval))`,
+          `left_upper_value` |->
+            `bounded_signed128_to_int
+              (SND (bounded_interval64_raw_mul_bounds_unchecked
+                first_interval second_interval))`,
+          `right_lower_value` |-> `bounded_signed64_to_int b`,
+          `right_upper_value` |-> `bounded_signed64_to_int b0`,
+          `lower` |-> `object_lower`, `upper` |-> `object_upper`]
+         compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_mul_general_signed_values)
+  >> impl_tac
+  >- simp []
+  >> strip_tac
+  >> mp_tac
+       (Q.INST
+         [`left_lower` |->
+            `FST (bounded_interval64_raw_mul_bounds_unchecked
+              first_interval second_interval)`,
+          `left_upper` |->
+            `SND (bounded_interval64_raw_mul_bounds_unchecked
+              first_interval second_interval)`,
+          `right_lower` |-> `b`, `right_upper` |-> `b0`,
+          `lower` |-> `lower`, `upper` |-> `upper`]
+         bounded_raw128_interval_mul64_object_extrema)
+  >> impl_tac
+  >- simp []
+  >> strip_tac
+  >> qexists_tac `object_lower`
+  >> qexists_tac `object_upper`
+  >> gvs
+       [bounded_object_fs_historical_raw_cubic_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def]
 QED
 
 Definition bounded_object_fs_historical_delta_x4_value_decimal_def:
