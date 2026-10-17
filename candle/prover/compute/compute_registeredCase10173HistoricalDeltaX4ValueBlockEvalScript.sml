@@ -928,6 +928,47 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem bounded_object_fs_raw_products_endpoint_values:
+  !products raw.
+    bounded_object_fs_raw_products_acc products
+        (Pair (Pair (Num 0) (Num 0)) (Pair (Num 0) (Num 0))) = SOME raw ==>
+    bounded_object_interval_ints raw =
+      SOME (registered_case10173_raw_products_ints_sum products)
+Proof
+  rpt gen_tac
+  >> strip_tac
+  >> mp_tac
+       (Q.SPECL
+         [`Pair (Pair (Num 0) (Num 0)) (Pair (Num 0) (Num 0))`,
+          `0`,`0`]
+         (Q.INST [`products` |-> `products`]
+            bounded_object_fs_raw_products_acc_endpoint_values))
+  >> impl_tac
+  >- simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> disch_then (qx_choose_then `computed_raw` strip_assume_tac)
+  >> gvs []
+QED
+
+Theorem bounded_object_fs_raw_interval_round_ints_extensional:
+  !raw_left raw_right lower upper denominator.
+    bounded_object_interval_ints raw_left = SOME (lower,upper) /\
+    bounded_object_interval_ints raw_right = SOME (lower,upper) ==>
+    bounded_object_fs_raw_interval_round denominator raw_left =
+    bounded_object_fs_raw_interval_round denominator raw_right
+Proof
+  rpt gen_tac
+  >> strip_tac
+  >> Cases_on `raw_left`
+  >> Cases_on `raw_right`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+  >> irule
+       compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_round_extensional
+  >> simp []
+QED
+
 Theorem registered_case10173_hist_raw_sum_endpoint_values:
   !x0 x1 x2 x3 x4 x5 linear
    p12 negative_p12 p03 negative_p03 p14 p25 p45 negative_p45 p0l raw.
