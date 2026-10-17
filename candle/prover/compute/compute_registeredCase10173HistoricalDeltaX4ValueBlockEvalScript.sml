@@ -616,6 +616,33 @@ Proof
   >> simp []
 QED
 
+Theorem registered_case10173_interval_sum_object_target_exact:
+  !value values result.
+    registered_case10173_interval_ints_sum (value::values) =
+      SOME
+        (bounded_signed64_to_int (bounded_interval64_lower result),
+         bounded_signed64_to_int (bounded_interval64_upper result)) /\
+    bounded_interval64_valid result ==>
+    registered_case10173_fs_interval_sum_object (value::values) =
+      SOME (bounded_interval64_object_cv result)
+Proof
+  rpt gen_tac
+  >> strip_tac
+  >> fs [registered_case10173_interval_ints_sum_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac registered_case10173_interval_sum_object_signed_values
+  >> fs
+       [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_fs_interval_sum_object_def]
+  >> Cases_on `result`
+  >> fs
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> irule bounded_object_fs_interval_add_target_object_cv
+  >> simp []
+QED
+
 Theorem bounded_object_fs_interval_neg_signed_values_exists:
   !source lower upper.
     bounded_object_interval_ints source = SOME (lower,upper) ==>
@@ -1355,6 +1382,48 @@ Proof
         compute_registeredCase10173HistoricalDeltaX4GradientEvalTheory.registered_case10173_fs_interval_raw_scale_object_def,
         compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
         compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_def]
+QED
+
+Theorem registered_case10173_interval_scale_neg_two_object_ints_exists:
+  !source.
+    ?result.
+      registered_case10173_fs_interval_scale_neg_two_object
+          (bounded_interval64_object_cv source) = SOME result /\
+      bounded_object_interval_ints result =
+        SOME
+          (-2 *
+             bounded_signed64_to_int (bounded_interval64_upper source),
+           -2 *
+             bounded_signed64_to_int (bounded_interval64_lower source))
+Proof
+  gen_tac
+  >> Cases_on `source`
+  >> mp_tac
+       (Q.INST [`factor` |-> `2`, `value` |-> `b`]
+          compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_raw_scale_object_cv)
+  >> disch_then (qx_choose_then `scaled_lower` strip_assume_tac)
+  >> mp_tac
+       (Q.INST [`factor` |-> `2`, `value` |-> `b0`]
+          compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_raw_scale_object_cv)
+  >> disch_then (qx_choose_then `scaled_upper` strip_assume_tac)
+  >> mp_tac
+       (Q.SPECL
+         [`Pair scaled_lower scaled_upper`,
+          `2 * bounded_signed64_to_int b`,
+          `2 * bounded_signed64_to_int b0`]
+         bounded_object_fs_interval_neg_signed_values_exists)
+  >> impl_tac
+  >- simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+  >> disch_then (qx_choose_then `negative_twice` strip_assume_tac)
+  >> qexists_tac `negative_twice`
+  >> simp
+       [compute_registeredCase10173HistoricalDeltaX4GradientEvalTheory.registered_case10173_fs_interval_scale_neg_two_object_def,
+        compute_registeredCase10173HistoricalDeltaX4GradientEvalTheory.registered_case10173_fs_interval_raw_scale_object_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> intLib.ARITH_TAC
 QED
 
 val _ = export_theory ();
