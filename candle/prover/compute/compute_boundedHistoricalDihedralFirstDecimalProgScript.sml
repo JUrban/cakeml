@@ -51,6 +51,7 @@ val _ = translate bounded_historical_u126_decimal_def;
 val _ = translate bounded_historical_u135_decimal_def;
 val _ = translate bounded_historical_delta_x4_value_decimal_def;
 val _ = translate bounded_historical_c_vector_decimal_def;
+val _ = translate bounded_historical_pi_half_decimal_def;
 val _ = translate bounded_historical_dihedral_first64_decimal_def;
 
 val _ = export_theory ();

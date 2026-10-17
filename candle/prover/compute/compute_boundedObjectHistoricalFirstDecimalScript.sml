@@ -2328,14 +2328,14 @@ Definition bounded_object_fs_historical_dihedral_first64_decimal_def:
                                                                                                                     | SOME object_angle =>
                                                                                                                       case
                                                                                                                         bounded_interval64_add
-                                                                                                                          bounded_atan_pi_half_decimal
+                                                                                                                          bounded_historical_pi_half_decimal
                                                                                                                           angle of
                                                                                                                       | NONE => NONE
                                                                                                                       | SOME value =>
                                                                                                                         case
                                                                                                                           bounded_object_fs_interval_add
                                                                                                                             (bounded_interval64_object_cv
-                                                                                                                              bounded_atan_pi_half_decimal)
+                                                                                                                              bounded_historical_pi_half_decimal)
                                                                                                                             object_angle of
                                                                                                                         | NONE => NONE
                                                                                                                         | SOME object_value =>
@@ -2495,7 +2495,7 @@ Theorem bounded_historical_dihedral_first64_decimal_source_trace:
     bounded_interval64_mul_decimal
       (bounded_interval64_neg delta_x4) b_reciprocal = SOME quotient /\
     bounded_interval64_atan_range_decimal quotient NONE NONE = SOME angle /\
-    bounded_interval64_add bounded_atan_pi_half_decimal angle = SOME value
+    bounded_interval64_add bounded_historical_pi_half_decimal angle = SOME value
 Proof
   simp
     [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_dihedral_first64_decimal_def]
@@ -2698,7 +2698,7 @@ Theorem bounded_historical_dihedral_first64_decimal_final_object_trace:
     bounded_object_fs_interval64_atan_range_none_decimal quotient =
       SOME (bounded_interval64_object_cv angle) /\
     bounded_object_fs_interval_add
-      (bounded_interval64_object_cv bounded_atan_pi_half_decimal)
+      (bounded_interval64_object_cv bounded_historical_pi_half_decimal)
       (bounded_interval64_object_cv angle) =
       SOME (bounded_interval64_object_cv value)
 Proof
@@ -2883,7 +2883,7 @@ Proof
       SOME (bounded_interval64_object_cv angle)` by
        metis_tac [bounded_object_fs_interval64_atan_range_none_decimal_exact]
   >> `bounded_object_fs_interval_add
-        (bounded_interval64_object_cv bounded_atan_pi_half_decimal)
+        (bounded_interval64_object_cv bounded_historical_pi_half_decimal)
         (bounded_interval64_object_cv angle) =
       SOME (bounded_interval64_object_cv value)` by
        metis_tac

@@ -13,6 +13,17 @@ Ancestors
 Libs
   bossLib preamble
 
+(* Exact scale-10^12 conversion of the rational interval used by the
+ * registered historical source's [q_pi_half_interval].  This is wider than
+ * the independently chosen analytic atan constant; the historical dihedral
+ * refinement must preserve the source interval byte-for-value. *)
+Definition bounded_historical_pi_half_decimal_def:
+  bounded_historical_pi_half_decimal =
+    BoundedInterval64
+      (BoundedSigned64 F 1570796326734w)
+      (BoundedSigned64 F 1570796326967w)
+End
+
 Definition bounded_interval64_list_pairwise_mul_decimal_def:
   bounded_interval64_list_pairwise_mul_decimal [] [] = SOME [] /\
   bounded_interval64_list_pairwise_mul_decimal (left::left_rest)
@@ -320,7 +331,7 @@ Definition bounded_historical_dihedral_first64_decimal_def:
                                                               | SOME angle =>
                                                                 case
                                                                   bounded_interval64_add
-                                                                    bounded_atan_pi_half_decimal
+                                                                    bounded_historical_pi_half_decimal
                                                                     angle of
                                                                 | NONE => NONE
                                                                 | SOME value =>

@@ -604,7 +604,7 @@ Definition bounded_historical_dihedral_second64_decimal_def:
                                                                       | SOME angle =>
                                                                         case
                                                                           bounded_interval64_add
-                                                                            bounded_atan_pi_half_decimal
+                                                                            bounded_historical_pi_half_decimal
                                                                             angle of
                                                                         | NONE => NONE
                                                                         | SOME value =>
