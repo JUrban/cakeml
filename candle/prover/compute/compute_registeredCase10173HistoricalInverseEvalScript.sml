@@ -173,4 +173,49 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem registered_case10173_fs_hist_positive_inv_certificate_eval:
+  bounded_interval64_positive_inv_certificate_decimal input output /\
+  7 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_positive_inv»
+        [from_cv (bounded_interval64_object_cv input)])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv output)),refs)
+Proof
+  Cases_on `input`
+  >> Cases_on `output`
+  >> rpt strip_tac
+  >> `bounded_object_fs_hist_positive_inv
+        (bounded_interval64_object_cv
+          (BoundedInterval64 b b0)) =
+      SOME
+        (bounded_interval64_object_cv
+          (BoundedInterval64 b' b0'))` by
+       metis_tac
+         [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_object_exact]
+  >> fs
+       [compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_def]
+  >> imp_res_tac
+       compute_boundedCertificateDecimalTheory.bounded_interval64_inv_certificate_decimal_positive_signs
+  >> Cases_on `b`
+  >> Cases_on `b0`
+  >> Cases_on `b'`
+  >> Cases_on `b0'`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+        compute_boundedReciprocalCertificateTheory.bounded_signed64_strict_positive_def,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def]
+  >> drule registered_case10173_fs_hist_positive_inv_object_eval
+  >> simp [compute_execTheory.from_cv_def]
+  >> strip_tac
+  >> last_x_assum (qspecl_then [`clock`,`refs`] mp_tac)
+  >> simp []
+  >> strip_tac
+  >> last_x_assum irule
+  >> simp [GSYM arithmeticTheory.NOT_ZERO_LT_ZERO,w2n_eq_0]
+QED
+
 val _ = export_theory ();
