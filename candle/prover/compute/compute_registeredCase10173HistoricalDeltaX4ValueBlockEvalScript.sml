@@ -721,4 +721,146 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Definition registered_case10173_raw_product_ints_def:
+  registered_case10173_raw_product_ints
+      (BoundedInterval64 left_lower left_upper)
+      (BoundedInterval64 right_lower right_upper) =
+    (bounded_object_int_min4
+       (bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower)
+       (bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper)
+       (bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower)
+       (bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper),
+     bounded_object_int_max4
+       (bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower)
+       (bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper)
+       (bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower)
+       (bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper))
+End
+
+Definition registered_case10173_raw_products_ints_sum_def:
+  registered_case10173_raw_products_ints_sum
+      ([]:(bounded_interval64 # bounded_interval64) list) = (0:int,0:int) /\
+  registered_case10173_raw_products_ints_sum ((left,right)::products) =
+    let current = registered_case10173_raw_product_ints left right;
+        rest = registered_case10173_raw_products_ints_sum products
+    in
+      (FST current + FST rest,SND current + SND rest)
+End
+
+Theorem bounded_object_fs_raw_interval_add_ints_exists:
+  !left right left_lower left_upper right_lower right_upper.
+    bounded_object_interval_ints left = SOME (left_lower,left_upper) /\
+    bounded_object_interval_ints right = SOME (right_lower,right_upper) ==>
+    ?result.
+      bounded_object_fs_raw_interval_add left right = SOME result /\
+      bounded_object_interval_ints result =
+        SOME (left_lower + right_lower,left_upper + right_upper)
+Proof
+  rpt gen_tac
+  >> Cases_on `left`
+  >> Cases_on `right`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+  >> rename1
+       `bounded_object_fs_raw_interval_add
+          (Pair left_lower_object left_upper_object)
+          (Pair right_lower_object right_upper_object) = _`
+  >> strip_tac
+  >> mp_tac
+       (Q.SPECL
+         [`right_upper`,`right_upper_object`,
+          `right_lower`,`right_lower_object`,
+          `left_upper`,`left_upper_object`,
+          `left_lower`,`left_lower_object`]
+         (GEN_ALL
+           compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_interval_add_signed_values))
+  >> impl_tac >- simp []
+  >> disch_then
+       (qx_choose_then `result_lower`
+         (qx_choose_then `result_upper` strip_assume_tac))
+  >> qexists_tac `Pair result_lower result_upper`
+  >> simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+QED
+
+Theorem bounded_object_fs_raw_products_acc_endpoint_values:
+  !accumulator accumulator_lower accumulator_upper.
+    bounded_object_interval_ints accumulator =
+      SOME (accumulator_lower,accumulator_upper) ==>
+    ?result.
+      bounded_object_fs_raw_products_acc products accumulator = SOME result /\
+      bounded_object_interval_ints result =
+        SOME
+          (accumulator_lower +
+             FST (registered_case10173_raw_products_ints_sum products),
+           accumulator_upper +
+             SND (registered_case10173_raw_products_ints_sum products))
+Proof
+  Induct_on `products`
+  >- (rpt gen_tac
+      >> strip_tac
+      >> qexists_tac `accumulator`
+      >> simp
+           [compute_boundedObjectDecimalFusedTheory.bounded_object_fs_raw_products_acc_def,
+            registered_case10173_raw_products_ints_sum_def])
+  >> gen_tac
+  >> PairCases_on `h`
+  >> rpt gen_tac
+  >> strip_tac
+  >> mp_tac
+       (Q.SPECL
+         [`bounded_interval64_object_cv h0`,
+          `bounded_interval64_object_cv h1`,
+          `bounded_signed64_to_int (bounded_interval64_lower h0)`,
+          `bounded_signed64_to_int (bounded_interval64_upper h0)`,
+          `bounded_signed64_to_int (bounded_interval64_lower h1)`,
+          `bounded_signed64_to_int (bounded_interval64_upper h1)`]
+         bounded_object_fs_raw_interval_mul_ints_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `raw_product` strip_assume_tac)
+  >> mp_tac
+       (Q.SPECL
+         [`accumulator`,`raw_product`,
+          `accumulator_lower`,`accumulator_upper`,
+          `FST (registered_case10173_raw_product_ints h0 h1)`,
+          `SND (registered_case10173_raw_product_ints h0 h1)`]
+         bounded_object_fs_raw_interval_add_ints_exists)
+  >> impl_tac
+  >- (simp
+       [registered_case10173_raw_product_ints_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+      >> Cases_on `h0`
+      >> Cases_on `h1`
+      >> fs
+           [registered_case10173_raw_product_ints_def,
+            compute_boundedIntervalTheory.bounded_interval64_lower_def,
+            compute_boundedIntervalTheory.bounded_interval64_upper_def])
+  >> disch_then (qx_choose_then `next` strip_assume_tac)
+  >> qpat_x_assum
+       `!accumulator accumulator_lower accumulator_upper. _`
+       (mp_tac o Q.SPECL
+         [`next`,
+          `accumulator_lower +
+             FST (registered_case10173_raw_product_ints h0 h1)`,
+          `accumulator_upper +
+             SND (registered_case10173_raw_product_ints h0 h1)`])
+  >> simp []
+  >> disch_then (qx_choose_then `result` strip_assume_tac)
+  >> qexists_tac `result`
+  >> simp
+       [compute_boundedObjectDecimalFusedTheory.bounded_object_fs_raw_products_acc_def,
+        registered_case10173_raw_products_ints_sum_def,
+        LET_THM]
+  >> intLib.ARITH_TAC
+QED
+
 val _ = export_theory ();
