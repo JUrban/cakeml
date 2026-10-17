@@ -445,4 +445,259 @@ Proof
   >> simp []
 QED
 
+Theorem registered_case10173_fs_hist_atan_pos_upper_trace_eval:
+  bounded_object_fs_interval_mul_decimal
+      (registered_case10173_hist_positive_point_object magnitude)
+      (registered_case10173_hist_positive_point_object magnitude) =
+    SOME square /\
+  bounded_object_fs_interval_mul_add_decimal square
+      (bounded_interval64_object_cv bounded_atan_pos_thirteenth_decimal)
+      (bounded_interval64_object_cv bounded_atan_neg_eleventh_decimal) =
+    SOME step11 /\
+  bounded_object_fs_interval_mul_add_decimal square step11
+      (bounded_interval64_object_cv bounded_atan_pos_ninth_decimal) =
+    SOME step9 /\
+  bounded_object_fs_interval_mul_add_decimal square step9
+      (bounded_interval64_object_cv bounded_atan_neg_seventh_decimal) =
+    SOME step7 /\
+  bounded_object_fs_interval_mul_add_decimal square step7
+      (bounded_interval64_object_cv bounded_atan_pos_fifth_decimal) =
+    SOME step5 /\
+  bounded_object_fs_interval_mul_add_decimal square step5
+      (bounded_interval64_object_cv bounded_atan_neg_third_decimal) =
+    SOME step3 /\
+  bounded_object_fs_interval_mul_add_decimal square step3
+      (bounded_interval64_object_cv bounded_atan_one_decimal) =
+    SOME body /\
+  bounded_object_fs_interval_mul_decimal
+      (registered_case10173_hist_positive_point_object magnitude) body =
+    SOME result /\
+  25 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_atan_pos_upper»
+        [from_cv
+          (registered_case10173_hist_positive_endpoint_object magnitude)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> simp [registered_case10173_fs_hist_atan_pos_upper_unfold]
+  >> simp
+       [registered_case10173_fs_hist_atan_pos_upper_body_def,
+        compute_evalTheory.subst_def]
+  >> irule
+       compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_let_success_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac
+       `from_cv (registered_case10173_hist_positive_point_object magnitude)`
+  >> conj_tac
+  >- (simp
+       [registered_case10173_hist_positive_endpoint_object_def,
+        registered_case10173_hist_positive_point_object_def]
+      >> irule
+           compute_registeredCase10173HistoricalTupleEvalTheory.registered_case10173_fs_hist_point_eval
+      >> intLib.ARITH_TAC)
+  >> simp [compute_evalTheory.subst_def]
+  >> irule
+       compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_let_success_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `from_cv square`
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173HistoricalIntervalEvalTheory.registered_case10173_fs_angle_interval_mul_eval
+      >> simp []
+      >> intLib.ARITH_TAC)
+  >> simp [compute_evalTheory.subst_def]
+  >> irule
+       compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_let_success_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac
+       `from_cv
+          (bounded_interval64_object_cv
+            bounded_atan_pos_thirteenth_decimal)`
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173HistoricalAtanConstantEvalTheory.registered_case10173_fs_hist_rational_pos_thirteenth_eval
+      >> intLib.ARITH_TAC)
+  >> simp [compute_evalTheory.subst_def]
+  >> irule
+       compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_let_success_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `from_cv step11`
+  >> conj_tac
+  >- (irule
+        (Q.INST
+          [`scalar` |-> `square`,
+           `accumulator` |->
+             `bounded_interval64_object_cv
+                bounded_atan_pos_thirteenth_decimal`,
+           `addend` |->
+             `bounded_interval64_object_cv
+                bounded_atan_neg_eleventh_decimal`,
+           `result` |-> `step11`]
+          registered_case10173_fs_interval_mul_add_argument_results)
+      >> simp
+           [compute_execProofTheory.compute_eval_from_cv,
+            compute_registeredCase10173HistoricalAtanConstantEvalTheory.registered_case10173_fs_hist_rational_neg_eleventh_eval]
+      >> qexists_tac `square`
+      >> simp
+           [compute_execProofTheory.subst_from_cv,
+            compute_execProofTheory.compute_eval_from_cv])
+  >> simp [compute_evalTheory.subst_def]
+  >> irule
+       compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_let_success_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `from_cv step9`
+  >> conj_tac
+  >- (irule
+        (Q.INST
+          [`scalar` |-> `square`, `accumulator` |-> `step11`,
+           `addend` |->
+             `bounded_interval64_object_cv bounded_atan_pos_ninth_decimal`,
+           `result` |-> `step9`]
+          registered_case10173_fs_interval_mul_add_argument_results)
+      >> simp
+           [compute_execProofTheory.compute_eval_from_cv,
+            compute_registeredCase10173HistoricalAtanConstantEvalTheory.registered_case10173_fs_hist_rational_pos_ninth_eval]
+      >> qexists_tac `square`
+      >> qexists_tac `step11`
+      >> simp
+           [compute_execProofTheory.subst_from_cv,
+            compute_execProofTheory.compute_eval_from_cv])
+  >> simp [compute_evalTheory.subst_def]
+  >> irule
+       compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_let_success_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `from_cv step7`
+  >> conj_tac
+  >- (irule
+        (Q.INST
+          [`scalar` |-> `square`, `accumulator` |-> `step9`,
+           `addend` |->
+             `bounded_interval64_object_cv bounded_atan_neg_seventh_decimal`,
+           `result` |-> `step7`]
+          registered_case10173_fs_interval_mul_add_argument_results)
+      >> simp
+           [compute_execProofTheory.compute_eval_from_cv,
+            compute_registeredCase10173HistoricalAtanConstantEvalTheory.registered_case10173_fs_hist_rational_neg_seventh_eval]
+      >> qexists_tac `square`
+      >> qexists_tac `step9`
+      >> simp
+           [compute_execProofTheory.subst_from_cv,
+            compute_execProofTheory.compute_eval_from_cv])
+  >> simp [compute_evalTheory.subst_def]
+  >> irule
+       compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_let_success_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `from_cv step5`
+  >> conj_tac
+  >- (irule
+        (Q.INST
+          [`scalar` |-> `square`, `accumulator` |-> `step7`,
+           `addend` |->
+             `bounded_interval64_object_cv bounded_atan_pos_fifth_decimal`,
+           `result` |-> `step5`]
+          registered_case10173_fs_interval_mul_add_argument_results)
+      >> simp
+           [compute_execProofTheory.compute_eval_from_cv,
+            compute_registeredCase10173HistoricalAtanConstantEvalTheory.registered_case10173_fs_hist_rational_pos_fifth_eval]
+      >> qexists_tac `square`
+      >> qexists_tac `step7`
+      >> simp
+           [compute_execProofTheory.subst_from_cv,
+            compute_execProofTheory.compute_eval_from_cv])
+  >> simp [compute_evalTheory.subst_def]
+  >> irule
+       compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_let_success_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `from_cv step3`
+  >> conj_tac
+  >- (irule
+        (Q.INST
+          [`scalar` |-> `square`, `accumulator` |-> `step5`,
+           `addend` |->
+             `bounded_interval64_object_cv bounded_atan_neg_third_decimal`,
+           `result` |-> `step3`]
+          registered_case10173_fs_interval_mul_add_argument_results)
+      >> simp
+           [compute_execProofTheory.compute_eval_from_cv,
+            compute_registeredCase10173HistoricalAtanConstantEvalTheory.registered_case10173_fs_hist_rational_neg_third_eval]
+      >> qexists_tac `square`
+      >> qexists_tac `step5`
+      >> simp
+           [compute_execProofTheory.subst_from_cv,
+            compute_execProofTheory.compute_eval_from_cv])
+  >> simp [compute_evalTheory.subst_def]
+  >> irule registered_case10173_fs_angle_interval_mul_argument_results
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac
+       `registered_case10173_hist_positive_point_object magnitude`
+  >> qexists_tac `body`
+  >> simp
+       [compute_execProofTheory.subst_from_cv,
+        compute_execProofTheory.compute_eval_from_cv]
+  >> irule
+       (Q.INST
+         [`scalar` |-> `square`, `accumulator` |-> `step3`,
+          `addend` |->
+            `bounded_interval64_object_cv bounded_atan_one_decimal`,
+          `result` |-> `body`]
+         registered_case10173_fs_interval_mul_add_argument_results)
+  >> simp [compute_execProofTheory.compute_eval_from_cv]
+  >> conj_tac
+  >- (mp_tac
+       (Q.INST [`clock` |-> `clock - 9`, `refs` |-> `refs`]
+         compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_fs_interval_one_eval)
+      >> simp
+           [compute_boundedAtanDecimalTheory.bounded_atan_one_decimal_def,
+            compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+            compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def]
+      >> intLib.ARITH_TAC)
+  >> qexists_tac `square`
+  >> qexists_tac `step3`
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_hist_atan_pos_lower_eval:
+  bounded_object_fs_interval64_atan_pos_lower_decimal magnitude =
+      SOME result /\
+  24 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_atan_pos_lower»
+        [from_cv
+          (registered_case10173_hist_positive_endpoint_object magnitude)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs
+       [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_interval64_atan_pos_lower_decimal_def,
+        LET_THM]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_atan_pos_lower_trace_eval
+  >> simp [registered_case10173_hist_positive_point_object_def]
+QED
+
+Theorem registered_case10173_fs_hist_atan_pos_upper_eval:
+  bounded_object_fs_interval64_atan_pos_upper_decimal magnitude =
+      SOME result /\
+  25 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_atan_pos_upper»
+        [from_cv
+          (registered_case10173_hist_positive_endpoint_object magnitude)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs
+       [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_interval64_atan_pos_upper_decimal_def,
+        LET_THM]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_atan_pos_upper_trace_eval
+  >> simp [registered_case10173_hist_positive_point_object_def]
+QED
+
 val _ = export_theory ();
