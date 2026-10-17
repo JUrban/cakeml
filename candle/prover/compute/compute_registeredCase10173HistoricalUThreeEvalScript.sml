@@ -116,6 +116,44 @@ Definition registered_case10173_fs_hist_u_after_gradients_object_def:
                                             [g0;g1;g2]))
 End
 
+Definition registered_case10173_fs_hist_u_three_object_def:
+  registered_case10173_fs_hist_u_three_object x0 x1 x2 =
+    case bounded_object_fs_interval_neg x0 of
+    | NONE => NONE
+    | SOME negative_x0 =>
+      case registered_case10173_fs_interval_sum_object
+          [negative_x0;x1;x2] of
+      | NONE => NONE
+      | SOME g0_half =>
+        case registered_case10173_fs_interval_raw_scale_object 2 g0_half of
+        | NONE => NONE
+        | SOME g0 =>
+          case bounded_object_fs_interval_neg x1 of
+          | NONE => NONE
+          | SOME negative_x1 =>
+            case registered_case10173_fs_interval_sum_object
+                [x0;negative_x1;x2] of
+            | NONE => NONE
+            | SOME g1_half =>
+              case registered_case10173_fs_interval_raw_scale_object
+                  2 g1_half of
+              | NONE => NONE
+              | SOME g1 =>
+                case bounded_object_fs_interval_neg x2 of
+                | NONE => NONE
+                | SOME negative_x2 =>
+                  case registered_case10173_fs_interval_sum_object
+                      [x0;x1;negative_x2] of
+                  | NONE => NONE
+                  | SOME g2_half =>
+                    case registered_case10173_fs_interval_raw_scale_object
+                        2 g2_half of
+                    | NONE => NONE
+                    | SOME g2 =>
+                      registered_case10173_fs_hist_u_after_gradients_object
+                        x0 x1 x2 g0 g1 g2
+End
+
 Theorem registered_case10173_fs_hist_u_after_gradients_trace_eval:
   bounded_object_fs_raw_le (Pair (Num 0) (Num 0)) g0_lower =
       SOME g0_lower_nonnegative /\
@@ -356,6 +394,22 @@ Proof
   >> irule registered_case10173_fs_hist_u_after_gradients_any_object_eval
   >> simp []
   >> intLib.ARITH_TAC
+QED
+
+Theorem registered_case10173_fs_hist_u_three_compact_object_eval:
+  registered_case10173_fs_hist_u_three_object x0 x1 x2 = SOME result /\
+  80 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_u_three»
+        [from_cv x0;from_cv x1;from_cv x2]) (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs [registered_case10173_fs_hist_u_three_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_u_three_object_eval
+  >> simp []
 QED
 
 val _ = export_theory ();
