@@ -22,6 +22,12 @@ Definition registered_case10173_fs_canonical_body_def:
         (Num 0))
 End
 
+Definition registered_case10173_fs_raw_min_body_def:
+  registered_case10173_fs_raw_min_body =
+    If (App «candle_cv_fs_raw_le» [Var «x»;Var «y»])
+      (Var «x») (Var «y»)
+End
+
 Definition registered_case10173_fs_add_body_def:
   registered_case10173_fs_add_body =
     App «candle_cv_fs_canonical»
@@ -53,6 +59,14 @@ Theorem registered_case10173_fs_canonical_lookup:
   ALOOKUP registered_case10173_historical_chunk16_ceqs
       «candle_cv_fs_canonical» =
     SOME ([«x»],registered_case10173_fs_canonical_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_raw_min_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_raw_min» =
+    SOME ([«x»;«y»],registered_case10173_fs_raw_min_body)
 Proof
   EVAL_TAC
 QED
@@ -103,6 +117,22 @@ Proof
   >> irule
        compute_registeredCase10173CanonicalEvalTheory.compute_eval_literal_app1
   >> simp [registered_case10173_fs_canonical_lookup]
+QED
+
+Theorem registered_case10173_fs_raw_min_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_raw_min» [from_cv left;from_cv right])
+      (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«x»,from_cv left);(«y»,from_cv right)]
+        registered_case10173_fs_raw_min_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173AnalyticSqrtEvalTheory.compute_eval_literal_app2
+  >> simp [registered_case10173_fs_raw_min_lookup]
 QED
 
 Theorem registered_case10173_fs_add_unfold:
@@ -206,6 +236,44 @@ Proof
         ml_monadBaseTheory.st_ex_bind_def,
         ml_monadBaseTheory.st_ex_ignore_bind_def,
         ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem registered_case10173_fs_raw_min_eval:
+  bounded_object_fs_raw_min left right = SOME result /\
+  1 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_raw_min» [from_cv left;from_cv right])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  Cases_on `bounded_object_fs_raw_le left right`
+  >> fs [compute_boundedObjectDecimalOrderTheory.bounded_object_fs_raw_min_def]
+  >> strip_tac
+  >> gvs [compute_boundedObjectDecimalOrderTheory.bounded_object_fs_raw_min_def]
+  >> simp [registered_case10173_fs_raw_min_unfold]
+  >> simp
+       [registered_case10173_fs_raw_min_body_def,
+        compute_evalTheory.subst_def]
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_le» [from_cv left;from_cv right]) refs =
+      (M_success (Num (if x then 1 else 0)),refs)` by
+       (irule
+          compute_registeredCase10173TaylorOrderEvalTheory.registered_case10173_fs_raw_le_eval
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (If (App «candle_cv_fs_raw_le» [from_cv left;from_cv right])
+          (from_cv left) (from_cv right)) refs =
+      compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (if x then from_cv left else from_cv right) refs` by
+       (irule
+          compute_registeredCase10173TaylorOrderEvalTheory.registered_case10173_compute_eval_if_bool
+        >> simp [])
+  >> Cases_on `x`
+  >> fs [compute_execProofTheory.compute_eval_from_cv]
 QED
 
 Theorem registered_case10173_fs_add_eval:
