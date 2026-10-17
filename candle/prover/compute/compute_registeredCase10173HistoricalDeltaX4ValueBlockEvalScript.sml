@@ -1233,4 +1233,128 @@ Proof
   >> gvs []
 QED
 
+Theorem registered_case10173_raw_scale_neg_endpoint_exact:
+  !value target.
+    bounded_signed64_add
+        (bounded_signed64_neg value) (bounded_signed64_neg value) =
+      SOME target ==>
+    ?scaled.
+      bounded_object_fs_raw_scale 2
+          (bounded_signed64_object_cv value) = SOME scaled /\
+      bounded_object_fs_neg scaled =
+        SOME (bounded_signed64_object_cv target)
+Proof
+  rpt gen_tac
+  >> Cases_on `value`
+  >> rename1 `BoundedSigned64 negative magnitude`
+  >> Cases_on `negative`
+  >- (simp
+       [compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_raw_scale_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_neg_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_neg_def,
+        compute_boundedSignedEndpointAddTheory.bounded_signed64_neg_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_make_def]
+      >> strip_tac
+      >> imp_res_tac
+           compute_boundedSignedEndpointAddTheory.bounded_signed64_add_value
+      >> Cases_on `target`
+      >> rename1 `BoundedSigned64 target_negative target_magnitude`
+      >> Cases_on `target_negative`
+      >- (fs
+           [compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+            compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def,
+            compute_boundedSignedEndpointTheory.bounded_signed64_normalized_def]
+          >> `0 < w2n target_magnitude` by
+             simp
+               [GSYM arithmeticTheory.NOT_ZERO_LT_ZERO,
+                wordsTheory.w2n_eq_0]
+          >> intLib.ARITH_TAC)
+      >> fs
+           [compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+            compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def,
+            integerTheory.INT_OF_NUM_EQ]
+      >> irule (iffLR integerTheory.INT_OF_NUM_EQ)
+      >> simp [integerTheory.INT_OF_NUM_MUL]
+      >> intLib.ARITH_TAC)
+  >> simp
+       [compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_raw_scale_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_neg_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_neg_def,
+        compute_boundedSignedEndpointAddTheory.bounded_signed64_neg_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_make_def]
+  >> Cases_on `magnitude = 0w`
+  >- (pop_assum SUBST_ALL_TAC
+      >> simp []
+      >> EVAL_TAC
+      >> simp
+           [compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def])
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedSignedEndpointAddTheory.bounded_signed64_add_value
+  >> Cases_on `target`
+  >> rename1 `BoundedSigned64 target_negative target_magnitude`
+  >> Cases_on `target_negative`
+  >- (qpat_x_assum `magnitude <> 0w`
+       (fn nonzero =>
+          fs
+            [nonzero,
+             compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+             compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def])
+      >> irule (iffLR integerTheory.INT_OF_NUM_EQ)
+      >> simp [integerTheory.INT_OF_NUM_MUL]
+      >> intLib.ARITH_TAC)
+  >> `0 < w2n magnitude` by
+       simp
+         [GSYM arithmeticTheory.NOT_ZERO_LT_ZERO,
+          wordsTheory.w2n_eq_0]
+  >> qpat_x_assum `magnitude <> 0w`
+       (fn nonzero =>
+          fs
+            [nonzero,
+             compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+             compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def])
+  >> intLib.ARITH_TAC
+QED
+
+Theorem registered_case10173_interval_scale_neg_two_object_typed_exact:
+  !source result.
+    bounded_interval64_add
+        (bounded_interval64_neg source)
+        (bounded_interval64_neg source) = SOME result ==>
+    registered_case10173_fs_interval_scale_neg_two_object
+        (bounded_interval64_object_cv source) =
+      SOME (bounded_interval64_object_cv result)
+Proof
+  rpt gen_tac
+  >> Cases_on `source`
+  >> Cases_on `result`
+  >> rw
+       [compute_boundedIntervalAddTheory.bounded_interval64_add_def,
+        compute_boundedIntervalAddTheory.bounded_interval64_add_unchecked_def]
+  >> every_case_tac
+  >> gvs []
+  >> fs
+       [compute_boundedIntervalAddTheory.bounded_interval64_add_unchecked_def,
+        compute_boundedIntervalAddTheory.bounded_interval64_neg_def]
+  >> every_case_tac
+  >> gvs []
+  >> mp_tac
+       (Q.SPECL [`b0`,`b'`]
+          registered_case10173_raw_scale_neg_endpoint_exact)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `scaled_upper` strip_assume_tac)
+  >> mp_tac
+       (Q.SPECL [`b`,`b0'`]
+          registered_case10173_raw_scale_neg_endpoint_exact)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `scaled_lower` strip_assume_tac)
+  >> simp
+       [compute_registeredCase10173HistoricalDeltaX4GradientEvalTheory.registered_case10173_fs_interval_scale_neg_two_object_def,
+        compute_registeredCase10173HistoricalDeltaX4GradientEvalTheory.registered_case10173_fs_interval_raw_scale_object_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_def]
+QED
+
 val _ = export_theory ();
