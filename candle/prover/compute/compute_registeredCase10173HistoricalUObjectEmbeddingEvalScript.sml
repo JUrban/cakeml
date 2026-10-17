@@ -183,4 +183,58 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem registered_case10173_fs_hist_u126_complete_object_eval:
+  registered_case10173_fs_hist_u126_object x0 x1 x2 x3 x4 x5 =
+      SOME result /\
+  100 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_u126»
+        [from_cv
+          (registered_case10173_cv_list [x0;x1;x2;x3;x4;x5])])
+      (refs:hol_refs) = (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> Cases_on
+       `registered_case10173_fs_hist_u_three_object x0 x1 x5`
+  >> gvs [registered_case10173_fs_hist_u126_object_def]
+  >> Cases_on `x`
+  >> gvs [registered_case10173_fs_hist_u126_embed_local_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> simp
+       [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def]
+  >> irule
+       (SIMP_RULE (srw_ss())
+          [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def]
+          registered_case10173_fs_hist_u126_object_eval)
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_hist_u135_complete_object_eval:
+  registered_case10173_fs_hist_u135_object x0 x1 x2 x3 x4 x5 =
+      SOME result /\
+  100 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_u135»
+        [from_cv
+          (registered_case10173_cv_list [x0;x1;x2;x3;x4;x5])])
+      (refs:hol_refs) = (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> Cases_on
+       `registered_case10173_fs_hist_u_three_object x0 x2 x4`
+  >> gvs [registered_case10173_fs_hist_u135_object_def]
+  >> Cases_on `x`
+  >> gvs [registered_case10173_fs_hist_u135_embed_local_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> simp
+       [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def]
+  >> irule
+       (SIMP_RULE (srw_ss())
+          [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def]
+          registered_case10173_fs_hist_u135_object_eval)
+  >> simp []
+QED
+
 val _ = export_theory ();
