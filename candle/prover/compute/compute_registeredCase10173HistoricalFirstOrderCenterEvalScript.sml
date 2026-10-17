@@ -217,6 +217,55 @@ Proof
         registered_case10173_historical_center_delta_gradient_object_expected]
 QED
 
+Theorem registered_case10173_historical_center_delta_source_values:
+  ?delta_interval delta_products delta_gradient.
+    bounded_historical_delta64_value_decimal
+      registered_case10173_historical_center_environment_decimal =
+      SOME delta_interval /\
+    bounded_delta64_pair_products_decimal
+      registered_case10173_historical_center_environment_decimal =
+      SOME delta_products /\
+    bounded_delta64_gradient_from_products delta_products =
+      SOME delta_gradient
+Proof
+  mp_tac registered_case10173_historical_center_specialized_first_named
+  >> simp
+       [registered_case10173_historical_center_reciprocals_def,
+        compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet0_source_aligned_def,
+        compute_boundedCase10173HistoricalCellDecimalDataTheory.bounded_case10173_decimal_packet0_def]
+  >> strip_tac
+  >> qpat_x_assum
+       `SOME (value,gradient) =
+        bounded_historical_dihedral_first64_decimal _ _ _ _`
+       (fn th => assume_tac (GSYM th))
+  >> drule
+       compute_boundedObjectHistoricalFirstDecimalTheory.bounded_historical_dihedral_first64_decimal_source_trace
+  >> strip_tac
+  >> metis_tac []
+QED
+
+Theorem registered_case10173_historical_center_delta_gradient_exact_eval:
+  100 < clock ==>
+  ?gradient.
+    compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_angle_delta_gradient»
+        [from_cv registered_case10173_historical_center_environment_object])
+      (refs:hol_refs) =
+      (M_success
+        (from_cv (bounded_interval64_object_cv_list gradient)),refs)
+Proof
+  strip_tac
+  >> mp_tac registered_case10173_historical_center_delta_source_values
+  >> strip_tac
+  >> qexists_tac `delta_gradient`
+  >> irule
+       compute_registeredCase10173HistoricalDeltaCenterEvalTheory.registered_case10173_historical_center_delta_gradient_eval
+  >> conj_tac
+  >- simp []
+  >> irule registered_case10173_historical_center_delta_gradient_matches
+  >> simp []
+QED
+
 Theorem registered_case10173_historical_center_delta_value_closed_eval:
   100 < clock ==>
   ?value.
