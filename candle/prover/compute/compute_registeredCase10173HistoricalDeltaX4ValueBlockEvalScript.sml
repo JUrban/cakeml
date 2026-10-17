@@ -285,4 +285,73 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Definition registered_case10173_fs_hist_delta_x4_value_block_object_def:
+  registered_case10173_fs_hist_delta_x4_value_block_object environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+      (case bounded_object_fs_interval_neg x0 of
+      | NONE => NONE
+      | SOME negative_x0 =>
+        case bounded_object_fs_interval_neg x3 of
+        | NONE => NONE
+        | SOME negative_x3 =>
+          case registered_case10173_fs_interval_sum_object
+              [negative_x0;x1;x2;negative_x3;x4;x5] of
+          | NONE => NONE
+          | SOME linear =>
+            case bounded_object_fs_raw_interval_mul x1 x2 of
+            | NONE => NONE
+            | SOME p12 =>
+              case bounded_object_fs_interval_neg p12 of
+              | NONE => NONE
+              | SOME negative_p12 =>
+                case bounded_object_fs_raw_interval_mul x0 x3 of
+                | NONE => NONE
+                | SOME p03 =>
+                  case bounded_object_fs_interval_neg p03 of
+                  | NONE => NONE
+                  | SOME negative_p03 =>
+                    case bounded_object_fs_raw_interval_mul x1 x4 of
+                    | NONE => NONE
+                    | SOME p14 =>
+                      case bounded_object_fs_raw_interval_mul x2 x5 of
+                      | NONE => NONE
+                      | SOME p25 =>
+                        case bounded_object_fs_raw_interval_mul x4 x5 of
+                        | NONE => NONE
+                        | SOME p45 =>
+                          case bounded_object_fs_interval_neg p45 of
+                          | NONE => NONE
+                          | SOME negative_p45 =>
+                            case bounded_object_fs_raw_interval_mul x0 linear of
+                            | NONE => NONE
+                            | SOME p0l =>
+                              case registered_case10173_fs_interval_sum_object
+                                  [negative_p12;negative_p03;p14;p25;
+                                   negative_p45;p0l] of
+                              | NONE => NONE
+                              | SOME raw =>
+                                  bounded_object_fs_raw_interval_round
+                                    1000000000000 raw)
+    | _ => NONE
+End
+
+Theorem registered_case10173_fs_hist_delta_x4_value_block_object_eval:
+  registered_case10173_fs_hist_delta_x4_value_block_object environment =
+      SOME result /\
+  29 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_x4_value_block»
+        [from_cv (registered_case10173_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs [registered_case10173_fs_hist_delta_x4_value_block_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_delta_x4_value_block_trace_eval
+  >> simp []
+QED
+
 val _ = export_theory ();
