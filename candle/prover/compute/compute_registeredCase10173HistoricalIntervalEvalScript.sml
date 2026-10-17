@@ -55,6 +55,40 @@ Definition registered_case10173_fs_interval_add_body_def:
         [Uop Snd (Var «x»);Uop Snd (Var «y»)])
 End
 
+Definition registered_case10173_fs_raw_interval_mul_body_def:
+  registered_case10173_fs_raw_interval_mul_body =
+    Pair
+      (App «candle_cv_fs_raw_min»
+        [App «candle_cv_fs_raw_min»
+          [App «candle_cv_fs_raw_mul»
+            [Uop Fst (Var «x»);Uop Fst (Var «y»)];
+           App «candle_cv_fs_raw_mul»
+            [Uop Fst (Var «x»);Uop Snd (Var «y»)]];
+         App «candle_cv_fs_raw_min»
+          [App «candle_cv_fs_raw_mul»
+            [Uop Snd (Var «x»);Uop Fst (Var «y»)];
+           App «candle_cv_fs_raw_mul»
+            [Uop Snd (Var «x»);Uop Snd (Var «y»)]]])
+      (App «candle_cv_fs_raw_max»
+        [App «candle_cv_fs_raw_max»
+          [App «candle_cv_fs_raw_mul»
+            [Uop Fst (Var «x»);Uop Fst (Var «y»)];
+           App «candle_cv_fs_raw_mul»
+            [Uop Fst (Var «x»);Uop Snd (Var «y»)]];
+         App «candle_cv_fs_raw_max»
+          [App «candle_cv_fs_raw_mul»
+            [Uop Snd (Var «x»);Uop Fst (Var «y»)];
+           App «candle_cv_fs_raw_mul»
+            [Uop Snd (Var «x»);Uop Snd (Var «y»)]]])
+End
+
+Definition registered_case10173_fs_angle_interval_mul_body_def:
+  registered_case10173_fs_angle_interval_mul_body =
+    App «candle_cv_fs_raw_interval_round»
+      [App «candle_cv_fs_scale» [];
+       App «candle_cv_fs_raw_interval_mul» [Var «left»;Var «right»]]
+End
+
 Theorem registered_case10173_fs_canonical_lookup:
   ALOOKUP registered_case10173_historical_chunk16_ceqs
       «candle_cv_fs_canonical» =
@@ -99,6 +133,23 @@ Theorem registered_case10173_fs_interval_add_lookup:
   ALOOKUP registered_case10173_historical_chunk16_ceqs
       «candle_cv_fs_interval_add» =
     SOME ([«x»;«y»],registered_case10173_fs_interval_add_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_raw_interval_mul_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_raw_interval_mul» =
+    SOME ([«x»;«y»],registered_case10173_fs_raw_interval_mul_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_angle_interval_mul_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_angle_interval_mul» =
+    SOME
+      ([«left»;«right»],registered_case10173_fs_angle_interval_mul_body)
 Proof
   EVAL_TAC
 QED
@@ -198,6 +249,38 @@ Proof
   >> simp [registered_case10173_fs_interval_add_lookup]
 QED
 
+Theorem registered_case10173_fs_raw_interval_mul_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_raw_interval_mul» [from_cv left;from_cv right])
+      (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«x»,from_cv left);(«y»,from_cv right)]
+        registered_case10173_fs_raw_interval_mul_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173AnalyticSqrtEvalTheory.compute_eval_literal_app2
+  >> simp [registered_case10173_fs_raw_interval_mul_lookup]
+QED
+
+Theorem registered_case10173_fs_angle_interval_mul_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_angle_interval_mul»
+        [from_cv left;from_cv right]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«left»,from_cv left);(«right»,from_cv right)]
+        registered_case10173_fs_angle_interval_mul_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173AnalyticSqrtEvalTheory.compute_eval_literal_app2
+  >> simp [registered_case10173_fs_angle_interval_mul_lookup]
+QED
+
 Theorem registered_case10173_fs_canonical_eval:
   bounded_object_fs_canonical source = SOME result /\
   0 < clock ==>
@@ -274,6 +357,304 @@ Proof
         >> simp [])
   >> Cases_on `x`
   >> fs [compute_execProofTheory.compute_eval_from_cv]
+QED
+
+Theorem registered_case10173_fs_raw_mul_composed_eval:
+  bounded_object_fs_raw_mul left right = SOME result /\
+  0 < clock /\
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      left_exp (refs:hol_refs) = (M_success (from_cv left),refs) /\
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      right_exp refs = (M_success (from_cv right),refs) ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_raw_mul» [left_exp;right_exp]) refs =
+    (M_success (from_cv result),refs)
+Proof
+  strip_tac
+  >> `compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_mul» [left_exp;right_exp]) refs =
+      compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_mul» [from_cv left;from_cv right]) refs` by
+       (irule
+          compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_app2_argument_results
+        >> simp [])
+  >> rw []
+  >> irule
+       compute_registeredCase10173TaylorPrimitiveEvalTheory.registered_case10173_fs_raw_mul_eval
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_raw_min_composed_eval:
+  bounded_object_fs_raw_min left right = SOME result /\
+  1 < clock /\
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      left_exp (refs:hol_refs) = (M_success (from_cv left),refs) /\
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      right_exp refs = (M_success (from_cv right),refs) ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_raw_min» [left_exp;right_exp]) refs =
+    (M_success (from_cv result),refs)
+Proof
+  strip_tac
+  >> `compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_min» [left_exp;right_exp]) refs =
+      compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_min» [from_cv left;from_cv right]) refs` by
+       (irule
+          compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_app2_argument_results
+        >> simp [])
+  >> rw []
+  >> irule registered_case10173_fs_raw_min_eval
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_raw_max_composed_eval:
+  bounded_object_fs_raw_max left right = SOME result /\
+  1 < clock /\
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      left_exp (refs:hol_refs) = (M_success (from_cv left),refs) /\
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      right_exp refs = (M_success (from_cv right),refs) ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_raw_max» [left_exp;right_exp]) refs =
+    (M_success (from_cv result),refs)
+Proof
+  strip_tac
+  >> `compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_max» [left_exp;right_exp]) refs =
+      compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_max» [from_cv left;from_cv right]) refs` by
+       (irule
+          compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_app2_argument_results
+        >> simp [])
+  >> rw []
+  >> irule
+       compute_registeredCase10173TaylorOrderEvalTheory.registered_case10173_fs_raw_max_eval
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_raw_interval_extrema_composed_eval:
+  bounded_object_fs_raw_interval_extrema
+      first_value second_value third_value fourth_value =
+      SOME (Pair lower upper) /\
+  1 < clock /\
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      first_exp (refs:hol_refs) =
+        (M_success (from_cv first_value),refs) /\
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      second_exp refs = (M_success (from_cv second_value),refs) /\
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      third_exp refs = (M_success (from_cv third_value),refs) /\
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      fourth_exp refs = (M_success (from_cv fourth_value),refs) ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (Pair
+        (App «candle_cv_fs_raw_min»
+          [App «candle_cv_fs_raw_min» [first_exp;second_exp];
+           App «candle_cv_fs_raw_min» [third_exp;fourth_exp]])
+        (App «candle_cv_fs_raw_max»
+          [App «candle_cv_fs_raw_max» [first_exp;second_exp];
+           App «candle_cv_fs_raw_max» [third_exp;fourth_exp]])) refs =
+    (M_success (from_cv (Pair lower upper)),refs)
+Proof
+  Cases_on `bounded_object_fs_raw_min first_value second_value`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_extrema_def]
+  >> Cases_on `bounded_object_fs_raw_min third_value fourth_value`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_extrema_def]
+  >> Cases_on `bounded_object_fs_raw_min x x'`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_extrema_def]
+  >> Cases_on `bounded_object_fs_raw_max first_value second_value`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_extrema_def]
+  >> Cases_on `bounded_object_fs_raw_max third_value fourth_value`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_extrema_def]
+  >> Cases_on `bounded_object_fs_raw_max x''' x''''`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_extrema_def]
+  >> strip_tac
+  >> gvs []
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         compute_registeredCase10173CanonicalEvalTheory.compute_eval_pair_from_results)
+  >> conj_tac
+  >- (irule registered_case10173_fs_raw_min_composed_eval
+      >> simp []
+      >> qexists_tac `x`
+      >> qexists_tac `x'`
+      >> simp []
+      >> conj_tac
+      >- (irule registered_case10173_fs_raw_min_composed_eval
+          >> simp []
+          >> qexists_tac `first_value`
+          >> qexists_tac `second_value`
+          >> simp [])
+      >> irule registered_case10173_fs_raw_min_composed_eval
+      >> simp []
+      >> qexists_tac `third_value`
+      >> qexists_tac `fourth_value`
+      >> simp [])
+  >> irule registered_case10173_fs_raw_max_composed_eval
+  >> simp []
+  >> qexists_tac `x'''`
+  >> qexists_tac `x''''`
+  >> simp []
+  >> conj_tac
+  >- (irule registered_case10173_fs_raw_max_composed_eval
+      >> simp []
+      >> qexists_tac `first_value`
+      >> qexists_tac `second_value`
+      >> simp [])
+  >> irule registered_case10173_fs_raw_max_composed_eval
+  >> simp []
+  >> qexists_tac `third_value`
+  >> qexists_tac `fourth_value`
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_raw_interval_mul_eval:
+  bounded_object_fs_raw_interval_mul left right =
+      SOME (Pair lower upper) /\
+  2 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_raw_interval_mul» [from_cv left;from_cv right])
+      (refs:hol_refs) =
+    (M_success (from_cv (Pair lower upper)),refs)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_mul_def]
+  >> Cases_on `bounded_object_fs_raw_mul c c'`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_mul_def]
+  >> Cases_on `bounded_object_fs_raw_mul c c0'`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_mul_def]
+  >> Cases_on `bounded_object_fs_raw_mul c0 c'`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_mul_def]
+  >> Cases_on `bounded_object_fs_raw_mul c0 c0'`
+  >> fs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_mul_def]
+  >> strip_tac
+  >> gvs []
+  >> simp
+       [(SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+          (Q.INST
+            [`left` |-> `(Pair c c0:cv)`,
+             `right` |-> `(Pair c' c0':cv)`]
+            registered_case10173_fs_raw_interval_mul_unfold))]
+  >> simp
+       [registered_case10173_fs_raw_interval_mul_body_def,
+        compute_evalTheory.subst_def]
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         registered_case10173_fs_raw_interval_extrema_composed_eval)
+  >> simp []
+  >> qexists_tac `x`
+  >> qexists_tac `x'''`
+  >> qexists_tac `x'`
+  >> qexists_tac `x''`
+  >> simp []
+  >> rpt conj_tac
+  >- (irule registered_case10173_fs_raw_mul_composed_eval
+      >> simp []
+      >> qexists_tac `c`
+      >> qexists_tac `c'`
+      >> simp
+           [compute_registeredCase10173CanonicalEvalTheory.compute_eval_uop_fst_from_cv_components])
+  >- (irule registered_case10173_fs_raw_mul_composed_eval
+      >> simp []
+      >> qexists_tac `c0`
+      >> qexists_tac `c0'`
+      >> simp
+           [compute_registeredCase10173CanonicalEvalTheory.compute_eval_uop_snd_from_cv_components])
+  >- (irule registered_case10173_fs_raw_mul_composed_eval
+      >> simp []
+      >> qexists_tac `c`
+      >> qexists_tac `c0'`
+      >> simp
+           [compute_registeredCase10173CanonicalEvalTheory.compute_eval_uop_fst_from_cv_components,
+            compute_registeredCase10173CanonicalEvalTheory.compute_eval_uop_snd_from_cv_components])
+  >> irule registered_case10173_fs_raw_mul_composed_eval
+  >> simp []
+  >> qexists_tac `c0`
+  >> qexists_tac `c'`
+  >> simp
+       [compute_registeredCase10173CanonicalEvalTheory.compute_eval_uop_fst_from_cv_components,
+        compute_registeredCase10173CanonicalEvalTheory.compute_eval_uop_snd_from_cv_components]
+QED
+
+Theorem registered_case10173_fs_angle_interval_mul_eval:
+  bounded_object_fs_interval_mul_decimal left right = SOME result /\
+  11 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_angle_interval_mul»
+        [from_cv left;from_cv right]) (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rw
+    [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_interval_mul_decimal_def]
+  >> Cases_on `bounded_object_fs_raw_interval_mul left right`
+  >> gvs []
+  >> Cases_on `x`
+  >> gvs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_round_def]
+  >> Cases_on `bounded_object_fs_floor_div c 1000000000000`
+  >> gvs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_round_def]
+  >> Cases_on `bounded_object_fs_ceil_div c0 1000000000000`
+  >> gvs
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_round_def]
+  >> simp [registered_case10173_fs_angle_interval_mul_unfold]
+  >> simp
+       [registered_case10173_fs_angle_interval_mul_body_def,
+        compute_evalTheory.subst_def]
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_scale» []) refs =
+      (M_success (Num 1000000000000),refs)` by
+       (irule
+          compute_registeredCase10173TaylorPrimitiveEvalTheory.registered_case10173_fs_scale_eval
+        >> intLib.ARITH_TAC)
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_interval_mul»
+          [from_cv left;from_cv right]) refs =
+      (M_success (from_cv (Pair c c0)),refs)` by
+       (irule registered_case10173_fs_raw_interval_mul_eval
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_interval_round»
+          [App «candle_cv_fs_scale» [];
+           App «candle_cv_fs_raw_interval_mul»
+             [from_cv left;from_cv right]]) refs =
+      compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_interval_round»
+          [from_cv (Num 1000000000000);
+           from_cv (Pair c c0)]) refs` by
+       (irule
+          compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_app2_argument_results
+        >> simp [compute_execTheory.from_cv_def])
+  >> rw []
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         (Q.INST
+           [`denominator` |-> `1000000000000`,
+            `interval` |-> `(Pair c c0:cv)`,
+            `result` |-> `(Pair x x':cv)`,
+            `clock` |-> `clock - 1`]
+           compute_registeredCase10173TaylorRoundEvalTheory.registered_case10173_fs_raw_interval_round_eval))
+  >> conj_tac >- intLib.ARITH_TAC
+  >> simp
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_round_def]
 QED
 
 Theorem registered_case10173_fs_add_eval:
