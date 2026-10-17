@@ -366,4 +366,265 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem registered_case10173_fs_hist_atan_upper_point_nonnegative_eval:
+  ~bounded_signed64_effective_negative endpoint /\
+  bounded_object_fs_interval64_atan_pos_upper_decimal
+      (bounded_signed64_magnitude endpoint) =
+    SOME (Pair lower upper) /\
+  30 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_atan_upper_point»
+        [from_cv (bounded_signed64_object_cv endpoint)])
+      (refs:hol_refs) =
+    (M_success (from_cv upper),refs)
+Proof
+  rpt strip_tac
+  >> `bounded_signed64_object_cv endpoint =
+      registered_case10173_hist_positive_endpoint_object
+        (bounded_signed64_magnitude endpoint)` by
+       (Cases_on `endpoint`
+        >> rename1 `BoundedSigned64 negative magnitude`
+        >> Cases_on `negative`
+        >> Cases_on `magnitude = 0w`
+        >> gvs
+             [compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def,
+              compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def,
+              compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+              registered_case10173_hist_positive_endpoint_object_def,
+              wordsTheory.w2n_eq_0])
+  >> simp [registered_case10173_fs_hist_atan_upper_point_unfold]
+  >> simp
+       [registered_case10173_fs_hist_atan_upper_point_body_def,
+        compute_evalTheory.subst_def]
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_le»
+          [App «candle_cv_fs_zero» [];
+           from_cv (bounded_signed64_object_cv endpoint)]) refs =
+      (M_success (Num 1),refs)` by
+       (mp_tac
+          (Q.INST [`clock` |-> `clock - 1`, `refs` |-> `refs`]
+            registered_case10173_fs_zero_le_endpoint_eval)
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_le»
+          [App «candle_cv_fs_zero» [];
+           from_cv
+             (registered_case10173_hist_positive_endpoint_object
+               (bounded_signed64_magnitude endpoint))]) refs =
+      (M_success (Num 1),refs)` by metis_tac []
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> irule registered_case10173_compute_eval_uop_snd_argument_result
+  >> qexists_tac `lower`
+  >> mp_tac
+       (Q.INST
+         [`clock` |-> `clock - 1`,
+          `magnitude` |-> `bounded_signed64_magnitude endpoint`,
+          `result` |-> `Pair lower upper`, `refs` |-> `refs`]
+         compute_registeredCase10173HistoricalAtanEvalTheory.registered_case10173_fs_hist_atan_pos_upper_eval)
+  >> simp [compute_execTheory.from_cv_def]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem registered_case10173_fs_hist_atan_upper_point_negative_eval:
+  bounded_signed64_effective_negative endpoint /\
+  bounded_object_fs_interval64_atan_pos_lower_decimal
+      (bounded_signed64_magnitude endpoint) =
+    SOME (Pair lower upper) /\
+  bounded_object_fs_raw_neg lower = SOME result /\
+  31 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_atan_upper_point»
+        [from_cv (bounded_signed64_object_cv endpoint)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> `bounded_signed64_object_cv (bounded_signed64_neg endpoint) =
+      registered_case10173_hist_positive_endpoint_object
+        (bounded_signed64_magnitude endpoint)` by
+       (Cases_on `endpoint`
+        >> rename1 `BoundedSigned64 negative magnitude`
+        >> Cases_on `negative`
+        >> Cases_on `magnitude = 0w`
+        >> gvs
+             [compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def,
+              compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def,
+              compute_boundedSignedEndpointAddTheory.bounded_signed64_neg_def,
+              compute_boundedSignedEndpointTheory.bounded_signed64_make_def,
+              compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+              registered_case10173_hist_positive_endpoint_object_def,
+              wordsTheory.w2n_eq_0])
+  >> simp [registered_case10173_fs_hist_atan_upper_point_unfold]
+  >> simp
+       [registered_case10173_fs_hist_atan_upper_point_body_def,
+        compute_evalTheory.subst_def]
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_le»
+          [App «candle_cv_fs_zero» [];
+           from_cv (bounded_signed64_object_cv endpoint)]) refs =
+      (M_success (Num 0),refs)` by
+       (mp_tac
+          (Q.INST [`clock` |-> `clock - 1`, `refs` |-> `refs`]
+            registered_case10173_fs_zero_le_endpoint_eval)
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> `25 < clock - 1` by intLib.ARITH_TAC
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_neg»
+          [from_cv (bounded_signed64_object_cv endpoint)]) refs =
+      (M_success
+        (from_cv
+          (registered_case10173_hist_positive_endpoint_object
+            (bounded_signed64_magnitude endpoint))),refs)` by
+       (mp_tac
+          (Q.INST
+            [`clock` |-> `clock - 1`,
+             `value` |-> `bounded_signed64_object_cv endpoint`,
+             `result` |->
+               `bounded_signed64_object_cv
+                 (bounded_signed64_neg endpoint)`,
+             `refs` |-> `refs`]
+            compute_registeredCase10173TaylorPrimitiveEvalTheory.registered_case10173_fs_raw_neg_eval)
+        >> simp
+             [compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_neg_object_cv]
+        >> intLib.ARITH_TAC)
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_hist_atan_pos_lower»
+          [App «candle_cv_fs_raw_neg»
+            [from_cv (bounded_signed64_object_cv endpoint)]]) refs =
+      compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_hist_atan_pos_lower»
+          [from_cv
+            (registered_case10173_hist_positive_endpoint_object
+              (bounded_signed64_magnitude endpoint))]) refs` by
+       (irule
+          compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+        >> simp [])
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_hist_atan_pos_lower»
+          [from_cv
+            (registered_case10173_hist_positive_endpoint_object
+              (bounded_signed64_magnitude endpoint))]) refs =
+      (M_success (from_cv (Pair lower upper)),refs)` by
+       (match_mp_tac
+          (Q.INST
+            [`clock` |-> `clock - 1`,
+             `magnitude` |-> `bounded_signed64_magnitude endpoint`,
+             `result` |-> `Pair lower upper`, `refs` |-> `refs`]
+            compute_registeredCase10173HistoricalAtanEvalTheory.registered_case10173_fs_hist_atan_pos_lower_eval)
+        >> simp [])
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_hist_atan_pos_lower»
+          [App «candle_cv_fs_raw_neg»
+            [from_cv (bounded_signed64_object_cv endpoint)]]) refs =
+      (M_success (from_cv (Pair lower upper)),refs)` by
+       simp []
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (Uop Fst
+          (App «candle_cv_fs_hist_atan_pos_lower»
+            [App «candle_cv_fs_raw_neg»
+              [from_cv (bounded_signed64_object_cv endpoint)]])) refs =
+      (M_success (from_cv lower),refs)` by
+       (irule registered_case10173_compute_eval_uop_fst_argument_result
+        >> qexists_tac `upper`
+        >> simp [])
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_neg»
+          [Uop Fst
+            (App «candle_cv_fs_hist_atan_pos_lower»
+              [App «candle_cv_fs_raw_neg»
+                [from_cv (bounded_signed64_object_cv endpoint)]])]) refs =
+      compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_raw_neg» [from_cv lower]) refs` by
+       (irule
+          compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+        >> conj_tac >- intLib.ARITH_TAC
+        >> simp [])
+  >> rw []
+  >> irule
+       compute_registeredCase10173TaylorPrimitiveEvalTheory.registered_case10173_fs_raw_neg_eval
+  >> simp []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem registered_case10173_fs_interval_endpoints_some:
+  bounded_object_fs_interval_endpoints enclosure = SOME (lower,upper) ==>
+  enclosure = Pair lower upper
+Proof
+  Cases_on `enclosure`
+  >> simp
+       [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_interval_endpoints_def]
+QED
+
+Theorem registered_case10173_fs_hist_atan_lower_point_eval:
+  bounded_object_fs_interval64_atan_unit_lower_decimal endpoint =
+      SOME result /\
+  31 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_atan_lower_point»
+        [from_cv (bounded_signed64_object_cv endpoint)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs
+       [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_interval64_atan_unit_lower_decimal_def,
+        LET_THM]
+  >> Cases_on `bounded_signed64_effective_negative endpoint`
+  >> gvs []
+  >> every_case_tac
+  >> gvs [compute_boundedObjectDecimalAddTheory.bounded_object_fs_neg_def]
+  >> imp_res_tac registered_case10173_fs_interval_endpoints_some
+  >> gvs [compute_boundedObjectDecimalAddTheory.bounded_object_fs_neg_def]
+  >> `30 < clock` by intLib.ARITH_TAC
+  >> metis_tac
+       [registered_case10173_fs_hist_atan_lower_point_nonnegative_eval,
+        registered_case10173_fs_hist_atan_lower_point_negative_eval]
+QED
+
+Theorem registered_case10173_fs_hist_atan_upper_point_eval:
+  bounded_object_fs_interval64_atan_unit_upper_decimal endpoint =
+      SOME result /\
+  31 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_atan_upper_point»
+        [from_cv (bounded_signed64_object_cv endpoint)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs
+       [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_interval64_atan_unit_upper_decimal_def,
+        LET_THM]
+  >> Cases_on `bounded_signed64_effective_negative endpoint`
+  >> gvs []
+  >> every_case_tac
+  >> gvs [compute_boundedObjectDecimalAddTheory.bounded_object_fs_neg_def]
+  >> imp_res_tac registered_case10173_fs_interval_endpoints_some
+  >> gvs [compute_boundedObjectDecimalAddTheory.bounded_object_fs_neg_def]
+  >> `30 < clock` by intLib.ARITH_TAC
+  >> metis_tac
+       [registered_case10173_fs_hist_atan_upper_point_nonnegative_eval,
+        registered_case10173_fs_hist_atan_upper_point_negative_eval]
+QED
+
 val _ = export_theory ();
