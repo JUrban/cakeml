@@ -745,6 +745,71 @@ Definition registered_case10173_raw_product_ints_def:
           bounded_signed64_to_int right_upper))
 End
 
+Theorem registered_case10173_raw_product_endpoint_values:
+  !left right raw_product.
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv left)
+        (bounded_interval64_object_cv right) = SOME raw_product ==>
+    bounded_object_interval_ints raw_product =
+      SOME (registered_case10173_raw_product_ints left right)
+Proof
+  rpt gen_tac
+  >> strip_tac
+  >> mp_tac
+       (Q.SPECL
+         [`bounded_interval64_object_cv left`,
+          `bounded_interval64_object_cv right`,
+          `bounded_signed64_to_int (bounded_interval64_lower left)`,
+          `bounded_signed64_to_int (bounded_interval64_upper left)`,
+          `bounded_signed64_to_int (bounded_interval64_lower right)`,
+          `bounded_signed64_to_int (bounded_interval64_upper right)`]
+         bounded_object_fs_raw_interval_mul_ints_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `computed_raw_product` strip_assume_tac)
+  >> gvs []
+  >> Cases_on `left`
+  >> Cases_on `right`
+  >> fs
+       [registered_case10173_raw_product_ints_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+QED
+
+Theorem registered_case10173_negated_raw_product_endpoint_values:
+  !left right raw_product negative_product.
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv left)
+        (bounded_interval64_object_cv right) = SOME raw_product /\
+    bounded_object_fs_interval_neg raw_product = SOME negative_product ==>
+    bounded_object_interval_ints negative_product =
+      SOME
+        (registered_case10173_raw_product_ints
+          (bounded_interval64_neg left) right)
+Proof
+  rpt gen_tac
+  >> strip_tac
+  >> imp_res_tac registered_case10173_raw_product_endpoint_values
+  >> mp_tac
+       (Q.SPECL
+         [`raw_product`,
+          `FST (registered_case10173_raw_product_ints left right)`,
+          `SND (registered_case10173_raw_product_ints left right)`]
+         bounded_object_fs_interval_neg_signed_values_exists)
+  >> impl_tac >- simp []
+  >> disch_then
+       (qx_choose_then `computed_negative_product` strip_assume_tac)
+  >> gvs []
+  >> Cases_on `left`
+  >> Cases_on `right`
+  >> fs
+       [registered_case10173_raw_product_ints_def,
+        compute_boundedIntervalAddTheory.bounded_interval64_neg_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def,
+        compute_boundedSignedEndpointAddTheory.bounded_signed64_neg_value,
+        bounded_object_int_negated_left_product_extrema]
+QED
+
 Definition registered_case10173_raw_products_ints_sum_def:
   registered_case10173_raw_products_ints_sum
       ([]:(bounded_interval64 # bounded_interval64) list) = (0:int,0:int) /\
