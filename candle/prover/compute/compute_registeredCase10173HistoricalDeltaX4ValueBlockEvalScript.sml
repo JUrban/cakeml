@@ -810,6 +810,48 @@ Proof
         bounded_object_int_negated_left_product_extrema]
 QED
 
+Theorem registered_case10173_raw_product_exists:
+  !left right.
+    ?raw.
+      bounded_object_fs_raw_interval_mul
+          (bounded_interval64_object_cv left)
+          (bounded_interval64_object_cv right) = SOME raw
+Proof
+  rpt gen_tac
+  >> Cases_on `left`
+  >> Cases_on `right`
+  >> metis_tac
+       [compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_mul_object_cv_exists]
+QED
+
+Theorem registered_case10173_negated_raw_product_exists:
+  !left right.
+    ?raw negative_raw.
+      bounded_object_fs_raw_interval_mul
+          (bounded_interval64_object_cv left)
+          (bounded_interval64_object_cv right) = SOME raw /\
+      bounded_object_fs_interval_neg raw = SOME negative_raw
+Proof
+  rpt gen_tac
+  >> mp_tac
+       (Q.SPECL [`left`,`right`]
+          registered_case10173_raw_product_exists)
+  >> disch_then (qx_choose_then `raw` assume_tac)
+  >> mp_tac
+       (Q.SPECL [`left`,`right`,`raw`]
+          registered_case10173_raw_product_endpoint_values)
+  >> impl_tac >- simp []
+  >> strip_tac
+  >> mp_tac
+       (Q.SPECL
+         [`raw`,
+          `FST (registered_case10173_raw_product_ints left right)`,
+          `SND (registered_case10173_raw_product_ints left right)`]
+         bounded_object_fs_interval_neg_signed_values_exists)
+  >> impl_tac >- simp []
+  >> metis_tac []
+QED
+
 Definition registered_case10173_raw_products_ints_sum_def:
   registered_case10173_raw_products_ints_sum
       ([]:(bounded_interval64 # bounded_interval64) list) = (0:int,0:int) /\
@@ -1056,6 +1098,138 @@ Proof
            registered_case10173_interval_sum_object_signed_values))
   >> impl_tac >- simp []
   >> disch_then (qx_choose_then `computed_raw` strip_assume_tac)
+  >> gvs []
+QED
+
+Theorem registered_case10173_fs_hist_delta_x4_value_block_object_typed_exact:
+  !environment result.
+    bounded_historical_delta_x4_value_block_decimal environment = SOME result ==>
+    registered_case10173_fs_hist_delta_x4_value_block_object
+        (MAP bounded_interval64_object_cv environment) =
+      SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_delta_x4_value_block_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> rename1
+       `bounded_interval64_sum
+          [bounded_interval64_neg x0;x1;x2;
+           bounded_interval64_neg x3;x4;x5] = SOME linear`
+  >> mp_tac
+       (Q.INST
+         [`value` |-> `bounded_interval64_neg x0`,
+          `values` |-> `[x1;x2;bounded_interval64_neg x3;x4;x5]`,
+          `result` |-> `linear`]
+         registered_case10173_interval_sum_object_typed_exact)
+  >> impl_tac >- simp []
+  >> strip_tac
+  >> mp_tac
+       (Q.SPECL [`x1`,`x2`]
+          registered_case10173_negated_raw_product_exists)
+  >> disch_then
+       (qx_choose_then `p12`
+         (qx_choose_then `negative_p12` strip_assume_tac))
+  >> mp_tac
+       (Q.SPECL [`x0`,`x3`]
+          registered_case10173_negated_raw_product_exists)
+  >> disch_then
+       (qx_choose_then `p03`
+         (qx_choose_then `negative_p03` strip_assume_tac))
+  >> mp_tac
+       (Q.SPECL [`x1`,`x4`] registered_case10173_raw_product_exists)
+  >> disch_then (qx_choose_then `p14` strip_assume_tac)
+  >> mp_tac
+       (Q.SPECL [`x2`,`x5`] registered_case10173_raw_product_exists)
+  >> disch_then (qx_choose_then `p25` strip_assume_tac)
+  >> mp_tac
+       (Q.SPECL [`x4`,`x5`]
+          registered_case10173_negated_raw_product_exists)
+  >> disch_then
+       (qx_choose_then `p45`
+         (qx_choose_then `negative_p45` strip_assume_tac))
+  >> mp_tac
+       (Q.SPECL [`x0`,`linear`] registered_case10173_raw_product_exists)
+  >> disch_then (qx_choose_then `p0l` strip_assume_tac)
+  >> imp_res_tac registered_case10173_negated_raw_product_endpoint_values
+  >> imp_res_tac registered_case10173_raw_product_endpoint_values
+  >> mp_tac
+       (Q.SPECL
+         [`FST
+             (registered_case10173_raw_products_ints_sum
+               [(bounded_interval64_neg x1,x2);
+                (bounded_interval64_neg x0,x3);
+                (x1,x4);(x2,x5);
+                (bounded_interval64_neg x4,x5);
+                (x0,linear)])`,
+          `SND
+             (registered_case10173_raw_products_ints_sum
+               [(bounded_interval64_neg x1,x2);
+                (bounded_interval64_neg x0,x3);
+                (x1,x4);(x2,x5);
+                (bounded_interval64_neg x4,x5);
+                (x0,linear)])`]
+         (Q.INST
+           [`values` |->
+              `[negative_p12;negative_p03;p14;p25;negative_p45;p0l]`]
+           registered_case10173_interval_sum_object_signed_values))
+  >> impl_tac
+  >- (simp
+       [registered_case10173_interval_ints_sum_def,
+        registered_case10173_raw_products_ints_sum_def,LET_THM]
+      >> Cases_on
+           `registered_case10173_raw_product_ints
+              (bounded_interval64_neg x1) x2`
+      >> Cases_on
+           `registered_case10173_raw_product_ints
+              (bounded_interval64_neg x0) x3`
+      >> Cases_on `registered_case10173_raw_product_ints x1 x4`
+      >> Cases_on `registered_case10173_raw_product_ints x2 x5`
+      >> Cases_on
+           `registered_case10173_raw_product_ints
+              (bounded_interval64_neg x4) x5`
+      >> Cases_on `registered_case10173_raw_product_ints x0 linear`
+      >> simp [])
+  >> disch_then (qx_choose_then `source_raw` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`products` |->
+            `[(bounded_interval64_neg x1,x2);
+              (bounded_interval64_neg x0,x3);
+              (x1,x4);(x2,x5);
+              (bounded_interval64_neg x4,x5);
+              (x0,linear)]`,
+          `result` |-> `result`]
+         compute_boundedObjectDecimalFusedTheory.bounded_object_fs_fused_products_decimal_object_exact)
+  >> impl_tac >- simp []
+  >> disch_then
+       (qx_choose_then `compact_lower`
+         (qx_choose_then `compact_upper` strip_assume_tac))
+  >> imp_res_tac bounded_object_fs_raw_products_endpoint_values
+  >> mp_tac
+       (Q.SPECL
+         [`source_raw`,`Pair compact_lower compact_upper`,
+          `FST
+             (registered_case10173_raw_products_ints_sum
+               [(bounded_interval64_neg x1,x2);
+                (bounded_interval64_neg x0,x3);
+                (x1,x4);(x2,x5);
+                (bounded_interval64_neg x4,x5);
+                (x0,linear)])`,
+          `SND
+             (registered_case10173_raw_products_ints_sum
+               [(bounded_interval64_neg x1,x2);
+                (bounded_interval64_neg x0,x3);
+                (x1,x4);(x2,x5);
+                (bounded_interval64_neg x4,x5);
+                (x0,linear)])`,
+          `1000000000000`]
+         bounded_object_fs_raw_interval_round_ints_extensional)
+  >> impl_tac >- simp []
+  >> strip_tac
+  >> simp
+       [registered_case10173_fs_hist_delta_x4_value_block_object_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact]
   >> gvs []
 QED
 
