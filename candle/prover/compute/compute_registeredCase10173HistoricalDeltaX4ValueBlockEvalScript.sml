@@ -460,4 +460,160 @@ Proof
   >> metis_tac []
 QED
 
+Theorem bounded_interval64_sum_aux_endpoint_values:
+  !accumulator result.
+    bounded_interval64_sum_aux values accumulator = SOME result ==>
+    ?lower upper.
+      registered_case10173_interval_ints_sum
+        (MAP bounded_interval64_object_cv values) = SOME (lower,upper) /\
+      bounded_signed64_to_int (bounded_interval64_lower result) =
+        bounded_signed64_to_int (bounded_interval64_lower accumulator) + lower /\
+      bounded_signed64_to_int (bounded_interval64_upper result) =
+        bounded_signed64_to_int (bounded_interval64_upper accumulator) + upper
+Proof
+  Induct_on `values`
+  >- (rw
+       [compute_boundedDeltaTaylorTheory.bounded_interval64_sum_aux_def,
+        registered_case10173_interval_ints_sum_def]
+      >> qexistsl_tac [`0`,`0`]
+      >> simp [])
+  >> rpt gen_tac
+  >> rw [compute_boundedDeltaTaylorTheory.bounded_interval64_sum_aux_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_add_value
+  >> res_tac
+  >> qexistsl_tac
+       [`bounded_signed64_to_int (bounded_interval64_lower h) + lower`,
+        `bounded_signed64_to_int (bounded_interval64_upper h) + upper`]
+  >> simp
+       [registered_case10173_interval_ints_sum_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_object_cv]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_sum_endpoint_values:
+  bounded_interval64_sum values = SOME result ==>
+  registered_case10173_interval_ints_sum
+      (MAP bounded_interval64_object_cv values) =
+    SOME
+      (bounded_signed64_to_int (bounded_interval64_lower result),
+       bounded_signed64_to_int (bounded_interval64_upper result))
+Proof
+  rw [compute_boundedDeltaTaylorTheory.bounded_interval64_sum_def]
+  >> imp_res_tac bounded_interval64_sum_aux_endpoint_values
+  >> fs
+       [compute_boundedIntervalListTheory.bounded_interval64_zero_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def]
+QED
+
+Theorem bounded_interval64_sum_aux_valid:
+  !accumulator result.
+    bounded_interval64_valid accumulator /\
+    bounded_interval64_sum_aux values accumulator = SOME result ==>
+    bounded_interval64_valid result
+Proof
+  Induct_on `values`
+  >> rw [compute_boundedDeltaTaylorTheory.bounded_interval64_sum_aux_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_add_value
+  >> res_tac
+QED
+
+Theorem bounded_interval64_sum_valid:
+  bounded_interval64_sum values = SOME result ==>
+  bounded_interval64_valid result
+Proof
+  rw [compute_boundedDeltaTaylorTheory.bounded_interval64_sum_def]
+  >> match_mp_tac
+       (Q.SPECL [`bounded_interval64_zero`,`result`]
+         (Q.INST [`values` |-> `values`]
+            bounded_interval64_sum_aux_valid))
+  >> simp
+       [compute_boundedIntervalListTheory.bounded_interval64_zero_valid]
+QED
+
+Theorem bounded_object_fs_interval_add_target_object_cv:
+  !left right left_lower left_upper right_lower right_upper
+   target_lower target_upper.
+    bounded_object_interval_ints left = SOME (left_lower,left_upper) /\
+    bounded_object_interval_ints right = SOME (right_lower,right_upper) /\
+    bounded_signed64_normalized target_lower /\
+    bounded_signed64_normalized target_upper /\
+    bounded_signed64_to_int target_lower = left_lower + right_lower /\
+    bounded_signed64_to_int target_upper = left_upper + right_upper ==>
+    bounded_object_fs_interval_add left right =
+      SOME
+        (bounded_interval64_object_cv
+          (BoundedInterval64 target_lower target_upper))
+Proof
+  rpt gen_tac
+  >> Cases_on `left`
+  >> Cases_on `right`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+  >> strip_tac
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `c`, `right` |-> `c'`,
+          `left_value` |-> `left_lower`,
+          `right_value` |-> `right_lower`]
+         compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_add_signed_value)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `raw_lower` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `c0`, `right` |-> `c0'`,
+          `left_value` |-> `left_upper`,
+          `right_value` |-> `right_upper`]
+         compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_add_signed_value)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `raw_upper` strip_assume_tac)
+  >> `bounded_object_fs_canonical raw_lower =
+        SOME (bounded_signed64_object_cv target_lower)` by
+       (irule
+          compute_boundedObjectDecimalAddTheory.bounded_object_fs_canonical_object_cv
+        >> simp [])
+  >> `bounded_object_fs_canonical raw_upper =
+        SOME (bounded_signed64_object_cv target_upper)` by
+       (irule
+          compute_boundedObjectDecimalAddTheory.bounded_object_fs_canonical_object_cv
+        >> simp [])
+  >> simp
+       [compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_add_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_add_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def]
+QED
+
+Theorem registered_case10173_interval_sum_object_typed_exact:
+  bounded_interval64_sum (value::values) = SOME result ==>
+  registered_case10173_fs_interval_sum_object
+      (MAP bounded_interval64_object_cv (value::values)) =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> imp_res_tac bounded_interval64_sum_endpoint_values
+  >> imp_res_tac bounded_interval64_sum_valid
+  >> fs
+       [registered_case10173_interval_ints_sum_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_object_cv]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac registered_case10173_interval_sum_object_signed_values
+  >> fs
+       [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_fs_interval_sum_object_def]
+  >> Cases_on `result`
+  >> fs
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> irule bounded_object_fs_interval_add_target_object_cv
+  >> simp []
+QED
+
 val _ = export_theory ();
