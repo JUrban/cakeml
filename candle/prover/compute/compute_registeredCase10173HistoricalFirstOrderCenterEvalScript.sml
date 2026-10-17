@@ -43,6 +43,31 @@ Definition registered_case10173_historical_center_reciprocals_def:
         box_root_four_x0 box_reciprocals => center_reciprocals
 End
 
+Definition registered_case10173_historical_center_root_derivative_def:
+  registered_case10173_historical_center_root_derivative =
+    EL 0 registered_case10173_historical_center_reciprocals
+End
+
+Definition registered_case10173_historical_center_root_four_reciprocal_def:
+  registered_case10173_historical_center_root_four_reciprocal =
+    EL 1 registered_case10173_historical_center_reciprocals
+End
+
+Definition registered_case10173_historical_center_u_reciprocal_def:
+  registered_case10173_historical_center_u_reciprocal =
+    EL 2 registered_case10173_historical_center_reciprocals
+End
+
+Definition registered_case10173_historical_center_special_root_reciprocal_def:
+  registered_case10173_historical_center_special_root_reciprocal =
+    EL 3 registered_case10173_historical_center_reciprocals
+End
+
+Definition registered_case10173_historical_center_b_reciprocal_def:
+  registered_case10173_historical_center_b_reciprocal =
+    EL 4 registered_case10173_historical_center_reciprocals
+End
+
 Definition registered_case10173_historical_center_delta_products_def:
   registered_case10173_historical_center_delta_products =
     THE
@@ -120,6 +145,17 @@ Proof
         registered_case10173_historical_center_reciprocals_def,
         compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_packet_center_environment_def]
   >> metis_tac []
+QED
+
+Theorem registered_case10173_historical_center_reciprocals_components:
+  registered_case10173_historical_center_reciprocals =
+    [registered_case10173_historical_center_root_derivative;
+     registered_case10173_historical_center_root_four_reciprocal;
+     registered_case10173_historical_center_u_reciprocal;
+     registered_case10173_historical_center_special_root_reciprocal;
+     registered_case10173_historical_center_b_reciprocal]
+Proof
+  EVAL_TAC
 QED
 
 Theorem registered_case10173_historical_center_delta_products_eval:
