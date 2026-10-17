@@ -868,4 +868,87 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem registered_case10173_historical_center_root_reciprocal_trace:
+  ?twice_root_delta.
+    bounded_historical_scale2
+      registered_case10173_historical_center_root_delta =
+      SOME twice_root_delta /\
+    bounded_interval64_positive_inv_certificate_decimal
+      twice_root_delta
+      registered_case10173_historical_center_root_derivative /\
+    bounded_interval64_positive_inv_certificate_decimal
+      twice_root_delta
+      registered_case10173_historical_center_special_root_reciprocal /\
+    bounded_interval64_positive_inv_certificate_decimal
+      registered_case10173_historical_center_root_four_x0
+      registered_case10173_historical_center_root_four_reciprocal
+Proof
+  mp_tac registered_case10173_historical_center_specialized_first_named
+  >> simp [registered_case10173_historical_center_reciprocals_components]
+  >> strip_tac
+  >> qpat_x_assum
+       `SOME (value,gradient) =
+        bounded_historical_dihedral_first64_decimal _ _ _ _`
+       (fn th => assume_tac (GSYM th))
+  >> drule
+       compute_boundedObjectHistoricalFirstDecimalTheory.bounded_historical_dihedral_first64_decimal_source_trace
+  >> strip_tac
+  >> metis_tac []
+QED
+
+Theorem registered_case10173_historical_center_root_derivative_eval:
+  120 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_positive_inv»
+        [App «candle_cv_fs_angle_interval_scale»
+          [Num 2;
+           from_cv
+             (bounded_interval64_object_cv
+               registered_case10173_historical_center_root_delta)]])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (bounded_interval64_object_cv
+          registered_case10173_historical_center_root_derivative)),refs)
+Proof
+  strip_tac
+  >> mp_tac registered_case10173_historical_center_root_scale2_object_exact
+  >> mp_tac registered_case10173_historical_center_root_reciprocal_trace
+  >> strip_tac
+  >> strip_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_positive_inv_after_scale2_eval
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `twice_root_delta`
+  >> simp []
+QED
+
+Theorem registered_case10173_historical_center_special_root_reciprocal_eval:
+  120 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_positive_inv»
+        [App «candle_cv_fs_angle_interval_scale»
+          [Num 2;
+           from_cv
+             (bounded_interval64_object_cv
+               registered_case10173_historical_center_root_delta)]])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (bounded_interval64_object_cv
+          registered_case10173_historical_center_special_root_reciprocal)),
+     refs)
+Proof
+  strip_tac
+  >> mp_tac registered_case10173_historical_center_root_scale2_object_exact
+  >> mp_tac registered_case10173_historical_center_root_reciprocal_trace
+  >> strip_tac
+  >> strip_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_positive_inv_after_scale2_eval
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `twice_root_delta`
+  >> simp []
+QED
+
 val _ = export_theory ();
