@@ -796,4 +796,76 @@ Proof
   >> metis_tac []
 QED
 
+Theorem registered_case10173_historical_center_root_scale2_object_exact:
+  ?twice_root_delta.
+    bounded_historical_scale2
+      registered_case10173_historical_center_root_delta =
+      SOME twice_root_delta /\
+    registered_case10173_fs_interval_raw_scale_object 2
+      (bounded_interval64_object_cv
+        registered_case10173_historical_center_root_delta) =
+      SOME (bounded_interval64_object_cv twice_root_delta)
+Proof
+  simp
+    [registered_case10173_historical_center_root_delta_def,
+     compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet0_source_aligned_def,
+     compute_boundedCase10173HistoricalCellDecimalDataTheory.bounded_case10173_decimal_packet0_def,
+     compute_boundedHistoricalDihedralFirstTheory.bounded_historical_scale2_def,
+     compute_boundedIntervalAddTheory.bounded_interval64_add_def,
+     compute_boundedIntervalAddTheory.bounded_interval64_add_unchecked_def,
+     compute_boundedIntervalTheory.bounded_interval64_valid_def,
+     compute_boundedSignedEndpointAddTheory.bounded_signed64_add_def,
+     compute_boundedSignedEndpointTheory.bounded_signed64_widen128_def,
+     compute_boundedSignedEndpointTheory.bounded_signed128_narrow64_def,
+     compute_boundedSignedEndpointTheory.bounded_signed64_normalized_def,
+     compute_boundedSignedEndpointTheory.bounded_signed64_le_def,
+     compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def,
+     compute_registeredCase10173HistoricalDeltaX4GradientEvalTheory.registered_case10173_fs_interval_raw_scale_object_def,
+     compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_raw_scale_def,
+     compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+     compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def]
+  >> EVAL_TAC
+  >> qexists_tac
+       `BoundedInterval64
+          (BoundedSigned64 F 23875893153484w)
+          (BoundedSigned64 F 23875893153552w)`
+  >> simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def]
+QED
+
+Theorem registered_case10173_fs_hist_positive_inv_after_scale2_eval:
+  registered_case10173_fs_interval_raw_scale_object 2
+      (bounded_interval64_object_cv input) =
+      SOME (bounded_interval64_object_cv twice) /\
+  bounded_interval64_positive_inv_certificate_decimal twice output /\
+  12 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_positive_inv»
+        [App «candle_cv_fs_angle_interval_scale»
+          [Num 2;from_cv (bounded_interval64_object_cv input)]])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv output)),refs)
+Proof
+  rpt strip_tac
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval clock registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_fs_hist_positive_inv»
+            [from_cv (bounded_interval64_object_cv twice)]) refs`
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+      >> conj_tac >- intLib.ARITH_TAC
+      >> irule
+           (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+             compute_registeredCase10173HistoricalDeltaX4GradientEvalTheory.registered_case10173_fs_angle_interval_scale_object_eval)
+      >> simp []
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_registeredCase10173HistoricalInverseEvalTheory.registered_case10173_fs_hist_positive_inv_certificate_eval
+  >> simp []
+  >> intLib.ARITH_TAC
+QED
+
 val _ = export_theory ();
