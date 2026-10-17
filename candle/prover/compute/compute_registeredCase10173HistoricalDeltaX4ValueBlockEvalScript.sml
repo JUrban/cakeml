@@ -616,4 +616,109 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_object_fs_interval_neg_signed_values_exists:
+  !source lower upper.
+    bounded_object_interval_ints source = SOME (lower,upper) ==>
+    ?result.
+      bounded_object_fs_interval_neg source = SOME result /\
+      bounded_object_interval_ints result = SOME (-upper,-lower)
+Proof
+  rpt gen_tac
+  >> Cases_on `source`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+  >> strip_tac
+  >> mp_tac
+       (Q.INST [`source` |-> `c0`, `value` |-> `upper`]
+          compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_raw_neg_signed_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `negative_upper` strip_assume_tac)
+  >> mp_tac
+       (Q.INST [`source` |-> `c`, `value` |-> `lower`]
+          compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_raw_neg_signed_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `negative_lower` strip_assume_tac)
+  >> qexists_tac `Pair negative_upper negative_lower`
+  >> simp
+       [compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_neg_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+QED
+
+Theorem bounded_object_fs_raw_interval_mul_ints_exists:
+  !left right left_lower left_upper right_lower right_upper.
+    bounded_object_interval_ints left = SOME (left_lower,left_upper) /\
+    bounded_object_interval_ints right = SOME (right_lower,right_upper) ==>
+    ?result.
+      bounded_object_fs_raw_interval_mul left right = SOME result /\
+      bounded_object_interval_ints result =
+        SOME
+          (bounded_object_int_min4
+             (left_lower * right_lower) (left_lower * right_upper)
+             (left_upper * right_lower) (left_upper * right_upper),
+           bounded_object_int_max4
+             (left_lower * right_lower) (left_lower * right_upper)
+             (left_upper * right_lower) (left_upper * right_upper))
+Proof
+  rpt gen_tac
+  >> Cases_on `left`
+  >> Cases_on `right`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+  >> rename1
+       `bounded_object_fs_raw_interval_mul
+          (Pair left_lower_object left_upper_object)
+          (Pair right_lower_object right_upper_object) = _`
+  >> strip_tac
+  >> mp_tac
+       (Q.SPECL
+         [`right_upper`,`right_upper_object`,
+          `right_lower`,`right_lower_object`,
+          `left_upper`,`left_upper_object`,
+          `left_lower`,`left_lower_object`]
+         (GEN_ALL
+           compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_mul_general_exists))
+  >> impl_tac >- simp []
+  >> disch_then
+       (qx_choose_then `result_lower`
+         (qx_choose_then `result_upper` assume_tac))
+  >> qexists_tac `Pair result_lower result_upper`
+  >> conj_tac >- simp []
+  >> mp_tac
+       (Q.SPECL
+         [`result_upper`,`right_upper`,`right_upper_object`,
+          `right_lower`,`right_lower_object`,`result_lower`,
+          `left_upper`,`left_upper_object`,
+          `left_lower`,`left_lower_object`]
+         (GEN_ALL
+           compute_boundedObjectDecimalIntervalTheory.bounded_object_fs_raw_interval_mul_general_signed_values))
+  >> impl_tac >- simp []
+  >> simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+QED
+
+Theorem bounded_object_int_negated_left_product_extrema:
+  bounded_object_int_min4
+      ((-left_upper) * right_lower) ((-left_upper) * right_upper)
+      ((-left_lower) * right_lower) ((-left_lower) * right_upper) =
+    -bounded_object_int_max4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper) /\
+  bounded_object_int_max4
+      ((-left_upper) * right_lower) ((-left_upper) * right_upper)
+      ((-left_lower) * right_lower) ((-left_lower) * right_upper) =
+    -bounded_object_int_min4
+      (left_lower * right_lower) (left_lower * right_upper)
+      (left_upper * right_lower) (left_upper * right_upper)
+Proof
+  rw
+    [compute_boundedObjectDecimalIntervalTheory.bounded_object_int_min4_def,
+     compute_boundedObjectDecimalIntervalTheory.bounded_object_int_max4_def,
+     compute_boundedObjectDecimalIntervalTheory.bounded_object_int_min_def,
+     compute_boundedObjectDecimalIntervalTheory.bounded_object_int_max_def]
+  >> every_case_tac
+  >> simp [integerTheory.INT_NEG_MUL2]
+  >> intLib.ARITH_TAC
+QED
+
 val _ = export_theory ();
