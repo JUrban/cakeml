@@ -303,6 +303,157 @@ Proof
   >> simp []
 QED
 
+Theorem registered_case10173_historical_center_u126_object_source_exact:
+  registered_case10173_fs_hist_u126_object
+      registered_case10173_historical_center_x0
+      registered_case10173_historical_center_x1
+      registered_case10173_historical_center_x2
+      registered_case10173_historical_center_x3
+      registered_case10173_historical_center_x4
+      registered_case10173_historical_center_x5 =
+    bounded_object_fs_historical_u126_decimal
+      registered_case10173_historical_center_environment_decimal
+Proof
+  simp
+    [compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x0_def,
+     compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x1_def,
+     compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x2_def,
+     compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x3_def,
+     compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x4_def,
+     compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x5_def,
+     registered_case10173_historical_center_environment_decimal_def,
+     compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_packet_center_environment_def,
+     compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet0_source_aligned_def,
+     compute_boundedCase10173HistoricalCellDecimalDataTheory.bounded_case10173_decimal_packet0_def,
+     compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+     compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def]
+  >> EVAL_TAC
+  >> simp []
+QED
+
+Theorem registered_case10173_historical_center_u135_object_source_exact:
+  registered_case10173_fs_hist_u135_object
+      registered_case10173_historical_center_x0
+      registered_case10173_historical_center_x1
+      registered_case10173_historical_center_x2
+      registered_case10173_historical_center_x3
+      registered_case10173_historical_center_x4
+      registered_case10173_historical_center_x5 =
+    bounded_object_fs_historical_u135_decimal
+      registered_case10173_historical_center_environment_decimal
+Proof
+  simp
+    [compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x0_def,
+     compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x1_def,
+     compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x2_def,
+     compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x3_def,
+     compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x4_def,
+     compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_x5_def,
+     registered_case10173_historical_center_environment_decimal_def,
+     compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_packet_center_environment_def,
+     compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet0_source_aligned_def,
+     compute_boundedCase10173HistoricalCellDecimalDataTheory.bounded_case10173_decimal_packet0_def,
+     compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+     compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def]
+  >> EVAL_TAC
+  >> simp []
+QED
+
+Theorem registered_case10173_historical_center_u_source_values:
+  ?u126 u126_gradient u135 u135_gradient.
+    bounded_historical_u126_decimal
+      registered_case10173_historical_center_environment_decimal =
+      SOME (u126,u126_gradient) /\
+    bounded_historical_u135_decimal
+      registered_case10173_historical_center_environment_decimal =
+      SOME (u135,u135_gradient)
+Proof
+  mp_tac registered_case10173_historical_center_specialized_first_named
+  >> simp
+       [registered_case10173_historical_center_reciprocals_def,
+        compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet0_source_aligned_def,
+        compute_boundedCase10173HistoricalCellDecimalDataTheory.bounded_case10173_decimal_packet0_def]
+  >> strip_tac
+  >> qpat_x_assum
+       `SOME (value,gradient) =
+        bounded_historical_dihedral_first64_decimal _ _ _ _`
+       (fn th => assume_tac (GSYM th))
+  >> drule
+       compute_boundedObjectHistoricalFirstDecimalTheory.bounded_historical_dihedral_first64_decimal_source_trace
+  >> strip_tac
+  >> metis_tac []
+QED
+
+Theorem registered_case10173_historical_center_u126_exact_eval:
+  100 < clock ==>
+  ?value gradient.
+    bounded_historical_u126_decimal
+      registered_case10173_historical_center_environment_decimal =
+      SOME (value,gradient) /\
+    compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_u126»
+        [from_cv registered_case10173_historical_center_environment_object])
+      (refs:hol_refs) =
+      (M_success
+        (from_cv
+          (Pair (bounded_interval64_object_cv value)
+            (bounded_interval64_object_cv_list gradient))),refs)
+Proof
+  strip_tac
+  >> mp_tac registered_case10173_historical_center_u_source_values
+  >> strip_tac
+  >> qexists_tac `u126`
+  >> qexists_tac `u126_gradient`
+  >> conj_tac >- simp []
+  >> `bounded_object_fs_historical_u126_decimal
+        registered_case10173_historical_center_environment_decimal =
+      SOME
+        (Pair (bounded_interval64_object_cv u126)
+          (bounded_interval64_object_cv_list u126_gradient))` by
+       metis_tac
+         [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_historical_u126_decimal_exact]
+  >> once_rewrite_tac
+       [compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_environment_object_def]
+  >> irule
+       compute_registeredCase10173HistoricalUObjectEmbeddingEvalTheory.registered_case10173_fs_hist_u126_complete_object_eval
+  >> simp [registered_case10173_historical_center_u126_object_source_exact]
+QED
+
+Theorem registered_case10173_historical_center_u135_exact_eval:
+  100 < clock ==>
+  ?value gradient.
+    bounded_historical_u135_decimal
+      registered_case10173_historical_center_environment_decimal =
+      SOME (value,gradient) /\
+    compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_u135»
+        [from_cv registered_case10173_historical_center_environment_object])
+      (refs:hol_refs) =
+      (M_success
+        (from_cv
+          (Pair (bounded_interval64_object_cv value)
+            (bounded_interval64_object_cv_list gradient))),refs)
+Proof
+  strip_tac
+  >> mp_tac registered_case10173_historical_center_u_source_values
+  >> strip_tac
+  >> qexists_tac `u135`
+  >> qexists_tac `u135_gradient`
+  >> conj_tac >- simp []
+  >> `bounded_object_fs_historical_u135_decimal
+        registered_case10173_historical_center_environment_decimal =
+      SOME
+        (Pair (bounded_interval64_object_cv u135)
+          (bounded_interval64_object_cv_list u135_gradient))` by
+       metis_tac
+         [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_historical_u135_decimal_exact]
+  >> once_rewrite_tac
+       [compute_registeredCase10173HistoricalUCenterEvalTheory.registered_case10173_historical_center_environment_object_def]
+  >> irule
+       compute_registeredCase10173HistoricalUObjectEmbeddingEvalTheory.registered_case10173_fs_hist_u135_complete_object_eval
+  >> simp [registered_case10173_historical_center_u135_object_source_exact]
+QED
+
 Theorem registered_case10173_historical_center_delta_x4_value_local_trace:
   ?negative_x0 negative_x3 linear p12 p03 p14 p25 p45 p0l
    negative_p12 negative_p03 negative_p45 result source_value.
