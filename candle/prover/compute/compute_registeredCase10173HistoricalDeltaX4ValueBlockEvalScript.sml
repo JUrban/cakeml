@@ -928,4 +928,94 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem registered_case10173_hist_raw_sum_endpoint_values:
+  !x0 x1 x2 x3 x4 x5 linear
+   p12 negative_p12 p03 negative_p03 p14 p25 p45 negative_p45 p0l raw.
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv x1)
+        (bounded_interval64_object_cv x2) = SOME p12 /\
+    bounded_object_fs_interval_neg p12 = SOME negative_p12 /\
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv x0)
+        (bounded_interval64_object_cv x3) = SOME p03 /\
+    bounded_object_fs_interval_neg p03 = SOME negative_p03 /\
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv x1)
+        (bounded_interval64_object_cv x4) = SOME p14 /\
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv x2)
+        (bounded_interval64_object_cv x5) = SOME p25 /\
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv x4)
+        (bounded_interval64_object_cv x5) = SOME p45 /\
+    bounded_object_fs_interval_neg p45 = SOME negative_p45 /\
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv x0)
+        (bounded_interval64_object_cv linear) = SOME p0l /\
+    registered_case10173_fs_interval_sum_object
+        [negative_p12;negative_p03;p14;p25;negative_p45;p0l] = SOME raw ==>
+    bounded_object_interval_ints raw =
+      SOME
+        (registered_case10173_raw_products_ints_sum
+          [(bounded_interval64_neg x1,x2);
+           (bounded_interval64_neg x0,x3);
+           (x1,x4);(x2,x5);
+           (bounded_interval64_neg x4,x5);
+           (x0,linear)])
+Proof
+  rpt gen_tac
+  >> strip_tac
+  >> imp_res_tac
+       registered_case10173_negated_raw_product_endpoint_values
+  >> imp_res_tac registered_case10173_raw_product_endpoint_values
+  >> `registered_case10173_interval_ints_sum
+        [negative_p12;negative_p03;p14;p25;negative_p45;p0l] =
+      SOME
+        (registered_case10173_raw_products_ints_sum
+          [(bounded_interval64_neg x1,x2);
+           (bounded_interval64_neg x0,x3);
+           (x1,x4);(x2,x5);
+           (bounded_interval64_neg x4,x5);
+           (x0,linear)])` by
+       (simp
+          [registered_case10173_interval_ints_sum_def,
+           registered_case10173_raw_products_ints_sum_def,LET_THM]
+        >> Cases_on
+             `registered_case10173_raw_product_ints
+                (bounded_interval64_neg x1) x2`
+        >> Cases_on
+             `registered_case10173_raw_product_ints
+                (bounded_interval64_neg x0) x3`
+        >> Cases_on `registered_case10173_raw_product_ints x1 x4`
+        >> Cases_on `registered_case10173_raw_product_ints x2 x5`
+        >> Cases_on
+             `registered_case10173_raw_product_ints
+                (bounded_interval64_neg x4) x5`
+        >> Cases_on `registered_case10173_raw_product_ints x0 linear`
+        >> simp [])
+  >> mp_tac
+       (Q.SPECL
+         [`FST
+             (registered_case10173_raw_products_ints_sum
+               [(bounded_interval64_neg x1,x2);
+                (bounded_interval64_neg x0,x3);
+                (x1,x4);(x2,x5);
+                (bounded_interval64_neg x4,x5);
+                (x0,linear)])`,
+          `SND
+             (registered_case10173_raw_products_ints_sum
+               [(bounded_interval64_neg x1,x2);
+                (bounded_interval64_neg x0,x3);
+                (x1,x4);(x2,x5);
+                (bounded_interval64_neg x4,x5);
+                (x0,linear)])`]
+         (Q.INST
+           [`values` |->
+              `[negative_p12;negative_p03;p14;p25;negative_p45;p0l]`]
+           registered_case10173_interval_sum_object_signed_values))
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `computed_raw` strip_assume_tac)
+  >> gvs []
+QED
+
 val _ = export_theory ();
