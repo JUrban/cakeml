@@ -354,4 +354,110 @@ Proof
   >> simp []
 QED
 
+Definition registered_case10173_interval_ints_sum_def:
+  registered_case10173_interval_ints_sum ([]:cv list) = SOME (0:int,0:int) /\
+  registered_case10173_interval_ints_sum (value::values) =
+    case bounded_object_interval_ints value of
+    | NONE => NONE
+    | SOME (lower,upper) =>
+      case registered_case10173_interval_ints_sum values of
+      | NONE => NONE
+      | SOME (rest_lower,rest_upper) =>
+          SOME (lower + rest_lower,upper + rest_upper)
+End
+
+Theorem bounded_object_fs_canonical_signed_value_exists:
+  !raw value.
+  bounded_object_signed_int raw = SOME value ==>
+  ?result.
+    bounded_object_fs_canonical raw = SOME result /\
+    bounded_object_signed_int result = SOME value
+Proof
+  rpt gen_tac
+  >> Cases_on `raw`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> Cases_on `c`
+  >> Cases_on `c0`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_canonical_def]
+  >> Cases_on `n < n'`
+  >> simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_object_fs_add_signed_value_exists:
+  !left right left_value right_value.
+  bounded_object_signed_int left = SOME left_value /\
+  bounded_object_signed_int right = SOME right_value ==>
+  ?result.
+    bounded_object_fs_add left right = SOME result /\
+    bounded_object_signed_int result = SOME (left_value + right_value)
+Proof
+  rpt gen_tac
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedObjectDecimalAddTheory.bounded_object_fs_raw_add_signed_value
+  >> imp_res_tac bounded_object_fs_canonical_signed_value_exists
+  >> fs [compute_boundedObjectDecimalAddTheory.bounded_object_fs_add_def]
+QED
+
+Theorem bounded_object_fs_interval_add_signed_values_exists:
+  !left right left_lower left_upper right_lower right_upper.
+  bounded_object_interval_ints left = SOME (left_lower,left_upper) /\
+  bounded_object_interval_ints right = SOME (right_lower,right_upper) ==>
+  ?result.
+    bounded_object_fs_interval_add left right = SOME result /\
+    bounded_object_interval_ints result =
+      SOME (left_lower + right_lower,left_upper + right_upper)
+Proof
+  rpt gen_tac
+  >> Cases_on `left`
+  >> Cases_on `right`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+  >> strip_tac
+  >> mp_tac
+       (Q.SPECL [`c`,`c'`,`left_lower`,`right_lower`]
+          bounded_object_fs_add_signed_value_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `lower_result` strip_assume_tac)
+  >> mp_tac
+       (Q.SPECL [`c0`,`c0'`,`left_upper`,`right_upper`]
+          bounded_object_fs_add_signed_value_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `upper_result` strip_assume_tac)
+  >> qexists_tac `Pair lower_result upper_result`
+  >> simp
+       [compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_add_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+QED
+
+Theorem registered_case10173_interval_sum_object_signed_values:
+  !lower upper.
+    registered_case10173_interval_ints_sum values = SOME (lower,upper) ==>
+    ?result.
+      registered_case10173_fs_interval_sum_object values = SOME result /\
+      bounded_object_interval_ints result = SOME (lower,upper)
+Proof
+  Induct_on `values`
+  >- simp
+       [registered_case10173_interval_ints_sum_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_fs_interval_sum_object_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_interval_zero_cv_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+  >> rpt gen_tac
+  >> rw
+       [registered_case10173_interval_ints_sum_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_fs_interval_sum_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> res_tac
+  >> imp_res_tac bounded_object_fs_interval_add_signed_values_exists
+  >> metis_tac []
+QED
+
 val _ = export_theory ();
