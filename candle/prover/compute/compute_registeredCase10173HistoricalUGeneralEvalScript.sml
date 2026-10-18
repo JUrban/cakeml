@@ -703,4 +703,52 @@ Proof
         compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def]
 QED
 
+Theorem registered_case10173_historical_u126_typed_eval:
+  bounded_historical_u126_decimal [x0;x1;x2;x3;x4;x5] =
+      SOME (value,gradient) /\
+  100 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_u126»
+        [from_cv
+          (bounded_interval64_object_cv_list [x0;x1;x2;x3;x4;x5])])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair (bounded_interval64_object_cv value)
+          (bounded_interval64_object_cv_list gradient))),refs)
+Proof
+  rpt strip_tac
+  >> once_rewrite_tac
+       [compute_registeredCase10173HistoricalDeltaX4GeneralEvalTheory.registered_case10173_bounded_interval64_object_cv_list_six]
+  >> irule
+       compute_registeredCase10173HistoricalUObjectEmbeddingEvalTheory.registered_case10173_fs_hist_u126_complete_object_eval
+  >> simp []
+  >> irule registered_case10173_historical_u126_object_typed_exact
+  >> first_assum ACCEPT_TAC
+QED
+
+Theorem registered_case10173_historical_u135_typed_eval:
+  bounded_historical_u135_decimal [x0;x1;x2;x3;x4;x5] =
+      SOME (value,gradient) /\
+  100 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_u135»
+        [from_cv
+          (bounded_interval64_object_cv_list [x0;x1;x2;x3;x4;x5])])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair (bounded_interval64_object_cv value)
+          (bounded_interval64_object_cv_list gradient))),refs)
+Proof
+  rpt strip_tac
+  >> once_rewrite_tac
+       [compute_registeredCase10173HistoricalDeltaX4GeneralEvalTheory.registered_case10173_bounded_interval64_object_cv_list_six]
+  >> irule
+       compute_registeredCase10173HistoricalUObjectEmbeddingEvalTheory.registered_case10173_fs_hist_u135_complete_object_eval
+  >> simp []
+  >> irule registered_case10173_historical_u135_object_typed_exact
+  >> first_assum ACCEPT_TAC
+QED
+
 val _ = export_theory ();
