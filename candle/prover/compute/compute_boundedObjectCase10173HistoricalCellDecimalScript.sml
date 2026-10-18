@@ -207,8 +207,9 @@ Theorem bounded_case10173_checked_cell64_decimal_source_trace:
       box_environment coordinate_sqrt_certificates
       center_root_delta center_root_four_x0 center_reciprocals
       box_root_delta box_root_four_x0 box_reciprocals = SOME result ==>
-  ?source_constant initial roots_and_constant center_result box_result angle
-   deferred_angle scaled_angle complete_source.
+  ?source_constant initial roots_and_constant center_value center_gradient
+   box_value box_gradient hessian historical_item angle deferred_angle
+   scaled_angle complete_source.
     bounded_case10173_geometry_ok
       box_environment center_environment radii 0 /\
     bounded_case10173_positive_environment center_environment /\
@@ -224,11 +225,15 @@ Theorem bounded_case10173_checked_cell64_decimal_source_trace:
         SOME roots_and_constant /\
     bounded_historical_dihedral_first64_decimal center_environment
       center_root_delta center_root_four_x0 center_reciprocals =
-        SOME center_result /\
+        SOME (center_value,center_gradient) /\
     bounded_historical_dihedral_second64_decimal box_environment
       box_root_delta box_root_four_x0 box_reciprocals =
-        SOME box_result /\
-    bounded_case10173_angle_state center_result box_result = SOME angle /\
+        SOME (box_value,box_gradient,hessian) /\
+    bounded_taylor64_complete_decimal radii T center_value center_gradient
+      hessian = SOME historical_item /\
+    bounded_case10173_angle_state
+      (center_value,center_gradient) (box_value,box_gradient,hessian) =
+        SOME angle /\
     bounded_case10173_defer angle = SOME deferred_angle /\
     bounded_case10173_deferred_scale_decimal
       bounded_case10173_angle_coefficient_decimal deferred_angle =
@@ -393,8 +398,6 @@ Proof
   strip_tac
   >> drule bounded_case10173_checked_cell64_decimal_source_trace
   >> strip_tac
-  >> PairCases_on `center_result`
-  >> PairCases_on `box_result`
   >> Cases_on `complete_source`
   >> imp_res_tac bounded_object_fs_taylor64_constant_exact
   >> imp_res_tac

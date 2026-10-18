@@ -188,29 +188,34 @@ Definition bounded_case10173_checked_cell64_decimal_def:
             case bounded_historical_dihedral_first64_decimal center_environment
               center_root_delta center_root_four_x0 center_reciprocals of
             | NONE => NONE
-            | SOME center_result =>
+            | SOME (center_value,center_gradient) =>
               case bounded_historical_dihedral_second64_decimal box_environment
                 box_root_delta box_root_four_x0 box_reciprocals of
               | NONE => NONE
-              | SOME box_result =>
-                case bounded_case10173_angle_state
-                  center_result box_result of
+              | SOME (box_value,box_gradient,hessian) =>
+                case bounded_taylor64_complete_decimal radii T
+                  center_value center_gradient hessian of
                 | NONE => NONE
-                | SOME angle =>
-                  case bounded_case10173_defer angle of
+                | SOME historical_item =>
+                  case bounded_case10173_angle_state
+                    (center_value,center_gradient)
+                    (box_value,box_gradient,hessian) of
                   | NONE => NONE
-                  | SOME deferred_angle =>
-                    case bounded_case10173_deferred_scale_decimal
-                      bounded_case10173_angle_coefficient_decimal
-                      deferred_angle of
+                  | SOME angle =>
+                    case bounded_case10173_defer angle of
                     | NONE => NONE
-                    | SOME scaled_angle =>
-                      case bounded_case10173_deferred_add
-                        roots_and_constant scaled_angle of
+                    | SOME deferred_angle =>
+                      case bounded_case10173_deferred_scale_decimal
+                        bounded_case10173_angle_coefficient_decimal
+                        deferred_angle of
                       | NONE => NONE
-                      | SOME complete_source =>
-                          bounded_case10173_complete_deferred_decimal
-                            radii complete_source
+                      | SOME scaled_angle =>
+                        case bounded_case10173_deferred_add
+                          roots_and_constant scaled_angle of
+                        | NONE => NONE
+                        | SOME complete_source =>
+                            bounded_case10173_complete_deferred_decimal
+                              radii complete_source
 End
 
 Definition bounded_case10173_checked_cell_accepts_decimal_def:
