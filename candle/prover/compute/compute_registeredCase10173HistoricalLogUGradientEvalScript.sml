@@ -7,6 +7,164 @@ Ancestors
 Libs
   bossLib preamble intLib
 
+(* The registered historical source writes the gradient factor before the
+ * reciprocal, while the compact semantic trace uses list-scale and hence
+ * writes the reciprocal first.  Establish exact algorithmic commutativity,
+ * including directed rounding and the mixed-sign endpoint selection, rather
+ * than treating the two source orders as an informal arithmetic identity. *)
+Theorem registered_case10173_word_mul_div_floor_decimal_comm:
+  bounded_word64_mul_div_floor_decimal left right =
+    bounded_word64_mul_div_floor_decimal right left
+Proof
+  simp
+    [compute_boundedTheory.bounded_word64_mul_div_floor_decimal_def,
+     wordsTheory.WORD_MULT_COMM, arithmeticTheory.MULT_COMM]
+QED
+
+Theorem registered_case10173_word_mul_div_ceil_decimal_comm:
+  bounded_word64_mul_div_ceil_decimal left right =
+    bounded_word64_mul_div_ceil_decimal right left
+Proof
+  simp
+    [compute_boundedTheory.bounded_word64_mul_div_ceil_decimal_def,
+     wordsTheory.WORD_MULT_COMM, arithmeticTheory.MULT_COMM]
+QED
+
+Theorem registered_case10173_signed_mul_floor_decimal_comm:
+  bounded_signed_word64_mul_floor_decimal left right =
+    bounded_signed_word64_mul_floor_decimal right left
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> simp
+       [compute_boundedSignedTheory.bounded_signed_word64_mul_floor_decimal_def,
+        registered_case10173_word_mul_div_floor_decimal_comm,
+        registered_case10173_word_mul_div_ceil_decimal_comm, EQ_SYM_EQ]
+QED
+
+Theorem registered_case10173_signed_mul_ceil_decimal_comm:
+  bounded_signed_word64_mul_ceil_decimal left right =
+    bounded_signed_word64_mul_ceil_decimal right left
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> simp
+       [compute_boundedSignedTheory.bounded_signed_word64_mul_ceil_decimal_def,
+        registered_case10173_word_mul_div_floor_decimal_comm,
+        registered_case10173_word_mul_div_ceil_decimal_comm, EQ_SYM_EQ]
+QED
+
+Theorem registered_case10173_scaled_mul_floor_decimal_comm:
+  bounded_scaled_mul_floor64_decimal left right =
+    bounded_scaled_mul_floor64_decimal right left
+Proof
+  simp
+    [compute_boundedIntervalDecimalTheory.bounded_scaled_mul_floor64_decimal_def,
+     registered_case10173_signed_mul_floor_decimal_comm]
+QED
+
+Theorem registered_case10173_scaled_mul_ceil_decimal_comm:
+  bounded_scaled_mul_ceil64_decimal left right =
+    bounded_scaled_mul_ceil64_decimal right left
+Proof
+  simp
+    [compute_boundedIntervalDecimalTheory.bounded_scaled_mul_ceil64_decimal_def,
+     registered_case10173_signed_mul_ceil_decimal_comm]
+QED
+
+Theorem registered_case10173_product_from_pairs_decimal_comm:
+  bounded_interval64_product_from_pairs_decimal ll rl lu ru =
+    bounded_interval64_product_from_pairs_decimal rl ll ru lu
+Proof
+  simp
+    [compute_boundedIntervalDecimalTheory.bounded_interval64_product_from_pairs_decimal_def,
+     registered_case10173_scaled_mul_floor_decimal_comm,
+     registered_case10173_scaled_mul_ceil_decimal_comm]
+QED
+
+Theorem registered_case10173_signed64_min_comm_normalized:
+  bounded_signed64_normalized left /\
+  bounded_signed64_normalized right ==>
+  bounded_signed64_min left right = bounded_signed64_min right left
+Proof
+  strip_tac
+  >> Cases_on `bounded_signed64_le left right`
+  >> Cases_on `bounded_signed64_le right left`
+  >> fs [compute_boundedSignedEndpointTheory.bounded_signed64_min_def]
+  >> metis_tac
+       [compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+        compute_boundedObjectDecimalIntervalTheory.bounded_signed64_to_int_injective_normalized,
+        integerTheory.INT_LE_TOTAL, integerTheory.INT_LE_ANTISYM]
+QED
+
+Theorem registered_case10173_product_mixed_decimal_comm:
+  bounded_interval64_product_mixed_decimal ll lu rl ru =
+    bounded_interval64_product_mixed_decimal rl ru ll lu
+Proof
+  simp
+    [compute_boundedIntervalDecimalTheory.bounded_interval64_product_mixed_decimal_def,
+     registered_case10173_scaled_mul_floor_decimal_comm,
+     registered_case10173_scaled_mul_ceil_decimal_comm]
+  >> Cases_on `bounded_scaled_mul_floor64_decimal ll ru`
+  >> Cases_on `bounded_scaled_mul_floor64_decimal lu rl`
+  >> simp []
+  >> imp_res_tac
+       compute_boundedIntervalDecimalTheory.bounded_scaled_mul_floor64_decimal_normalized
+  >> simp [registered_case10173_signed64_min_comm_normalized]
+QED
+
+Theorem registered_case10173_interval_mul_decimal_comm:
+  bounded_interval64_mul_decimal left right =
+    bounded_interval64_mul_decimal right left
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> simp
+       [compute_boundedIntervalDecimalTheory.bounded_interval64_mul_decimal_def,
+        compute_boundedIntervalDecimalTheory.bounded_interval64_mul_unchecked_decimal_def,
+        registered_case10173_product_from_pairs_decimal_comm,
+        registered_case10173_product_mixed_decimal_comm, CONJ_COMM]
+  >> Cases_on `bounded_signed64_nonnegative b`
+  >> Cases_on `bounded_signed64_nonpositive b0`
+  >> Cases_on `bounded_signed64_nonnegative b'`
+  >> Cases_on `bounded_signed64_nonpositive b0'`
+  >> simp
+       [registered_case10173_product_from_pairs_decimal_comm,
+        registered_case10173_product_mixed_decimal_comm]
+QED
+
+Theorem registered_case10173_list_scale_decimal_el:
+  !values result index.
+    bounded_interval64_list_scale_decimal scalar values = SOME result /\
+    index < LENGTH values ==>
+    bounded_interval64_mul_decimal scalar (EL index values) =
+      SOME (EL index result)
+Proof
+  Induct
+  >> rw
+       [compute_boundedTaylorProductDecimalTheory.bounded_interval64_list_scale_decimal_def]
+  >> Cases_on `index`
+  >> BasicProvers.every_case_tac
+  >> gvs []
+  >> res_tac
+QED
+
+Theorem registered_case10173_list_add_el:
+  !left right result index.
+    bounded_interval64_list_add left right = SOME result /\
+    index < LENGTH left ==>
+    bounded_interval64_add (EL index left) (EL index right) =
+      SOME (EL index result)
+Proof
+  Induct
+  >> Cases_on `right`
+  >> rw [compute_boundedIntervalListTheory.bounded_interval64_list_add_def]
+  >> Cases_on `index`
+  >> BasicProvers.every_case_tac
+  >> gvs []
+  >> res_tac
+QED
+
 Definition registered_case10173_log_u_gradient_entry_decimal_def:
   registered_case10173_log_u_gradient_entry_decimal u126_gradient
       reciprocal_u126 u135_gradient reciprocal_u135 coordinate =
@@ -311,6 +469,51 @@ Proof
           compute_execTheory.from_cv_def]
          compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_fs_angle_six_eval)
   >> intLib.ARITH_TAC
+QED
+
+Theorem registered_case10173_log_u_gradient_decimal_compact:
+  LENGTH u126_gradient = 6 /\
+  LENGTH u135_gradient = 6 /\
+  bounded_interval64_list_scale_decimal reciprocal_u126 u126_gradient =
+    SOME logarithmic_126 /\
+  bounded_interval64_list_scale_decimal reciprocal_u135 u135_gradient =
+    SOME logarithmic_135 /\
+  bounded_interval64_list_add logarithmic_126 logarithmic_135 = SOME result ==>
+  registered_case10173_log_u_gradient_decimal u126_gradient reciprocal_u126
+    u135_gradient reciprocal_u135 = SOME result
+Proof
+  rpt strip_tac
+  >> `LENGTH logarithmic_126 = 6` by
+       metis_tac
+         [compute_boundedTaylorProductDecimalTheory.bounded_interval64_list_scale_decimal_length]
+  >> `LENGTH logarithmic_135 = 6` by
+       metis_tac
+         [compute_boundedTaylorProductDecimalTheory.bounded_interval64_list_scale_decimal_length]
+  >> `LENGTH result = 6` by
+       metis_tac
+         [compute_boundedIntervalListTheory.bounded_interval64_list_add_length]
+  >> `!coordinate. coordinate < 6 ==>
+        registered_case10173_log_u_gradient_entry_decimal u126_gradient
+          reciprocal_u126 u135_gradient reciprocal_u135 coordinate =
+        SOME (EL coordinate result)` by
+       (rpt strip_tac
+        >> `bounded_interval64_mul_decimal reciprocal_u126
+              (EL coordinate u126_gradient) =
+            SOME (EL coordinate logarithmic_126)` by
+             metis_tac [registered_case10173_list_scale_decimal_el]
+        >> `bounded_interval64_mul_decimal reciprocal_u135
+              (EL coordinate u135_gradient) =
+            SOME (EL coordinate logarithmic_135)` by
+             metis_tac [registered_case10173_list_scale_decimal_el]
+        >> `bounded_interval64_add (EL coordinate logarithmic_126)
+              (EL coordinate logarithmic_135) =
+            SOME (EL coordinate result)` by
+             metis_tac [registered_case10173_list_add_el]
+        >> fs
+             [registered_case10173_log_u_gradient_entry_decimal_def,
+              registered_case10173_interval_mul_decimal_comm])
+  >> fs [registered_case10173_log_u_gradient_decimal_def]
+  >> fs [listTheory.LENGTH_EQ_NUM_compute]
 QED
 
 val _ = export_theory ();
