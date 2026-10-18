@@ -628,4 +628,192 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Definition registered_case10173_sqrt_hessian_rows_decimal_def:
+  registered_case10173_sqrt_hessian_rows_decimal derivative
+      logarithmic_derivative gradient hessian_rows =
+    case registered_case10173_sqrt_hessian_row_rows_decimal derivative
+      logarithmic_derivative gradient hessian_rows 0 of
+    | NONE => NONE
+    | SOME r0 =>
+      case registered_case10173_sqrt_hessian_row_rows_decimal derivative
+        logarithmic_derivative gradient hessian_rows 1 of
+      | NONE => NONE
+      | SOME r1 =>
+        case registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 2 of
+        | NONE => NONE
+        | SOME r2 =>
+          case registered_case10173_sqrt_hessian_row_rows_decimal derivative
+            logarithmic_derivative gradient hessian_rows 3 of
+          | NONE => NONE
+          | SOME r3 =>
+            case registered_case10173_sqrt_hessian_row_rows_decimal derivative
+              logarithmic_derivative gradient hessian_rows 4 of
+            | NONE => NONE
+            | SOME r4 =>
+              case registered_case10173_sqrt_hessian_row_rows_decimal derivative
+                logarithmic_derivative gradient hessian_rows 5 of
+              | NONE => NONE
+              | SOME r5 => SOME [r0;r1;r2;r3;r4;r5]
+End
+
+Definition registered_case10173_fs_hist_sqrt_hessian_body_def:
+  registered_case10173_fs_hist_sqrt_hessian_body =
+    App «candle_cv_fs_angle_six»
+      [App «candle_cv_fs_hist_sqrt_hessian_row»
+         [Num 0;Var «derivative_value»;Var «logarithmic_derivative»;
+          Var «input_gradient»;Var «input_hessian»];
+       App «candle_cv_fs_hist_sqrt_hessian_row»
+         [Num 1;Var «derivative_value»;Var «logarithmic_derivative»;
+          Var «input_gradient»;Var «input_hessian»];
+       App «candle_cv_fs_hist_sqrt_hessian_row»
+         [Num 2;Var «derivative_value»;Var «logarithmic_derivative»;
+          Var «input_gradient»;Var «input_hessian»];
+       App «candle_cv_fs_hist_sqrt_hessian_row»
+         [Num 3;Var «derivative_value»;Var «logarithmic_derivative»;
+          Var «input_gradient»;Var «input_hessian»];
+       App «candle_cv_fs_hist_sqrt_hessian_row»
+         [Num 4;Var «derivative_value»;Var «logarithmic_derivative»;
+          Var «input_gradient»;Var «input_hessian»];
+       App «candle_cv_fs_hist_sqrt_hessian_row»
+         [Num 5;Var «derivative_value»;Var «logarithmic_derivative»;
+          Var «input_gradient»;Var «input_hessian»]]
+End
+
+Theorem registered_case10173_fs_hist_sqrt_hessian_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_hist_sqrt_hessian» =
+    SOME
+      ([«derivative_value»;«logarithmic_derivative»;
+        «input_gradient»;«input_hessian»],
+       registered_case10173_fs_hist_sqrt_hessian_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_hist_sqrt_hessian_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_sqrt_hessian»
+        [from_cv derivative_value;from_cv logarithmic_derivative;
+         from_cv input_gradient;from_cv input_hessian]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst
+        [(«derivative_value»,from_cv derivative_value);
+         («logarithmic_derivative»,from_cv logarithmic_derivative);
+         («input_gradient»,from_cv input_gradient);
+         («input_hessian»,from_cv input_hessian)]
+        registered_case10173_fs_hist_sqrt_hessian_body) refs
+Proof
+  Cases_on `clock`
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        registered_case10173_fs_hist_sqrt_hessian_lookup,
+        compute_evalTheory.compute_eval_def,
+        compute_evalTheory.subst_def,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem registered_case10173_fs_hist_sqrt_hessian_typed_eval:
+  LENGTH gradient = 6 /\
+  LENGTH hessian_rows = 6 /\
+  EVERY (\row. LENGTH row = 6) hessian_rows /\
+  registered_case10173_sqrt_hessian_rows_decimal derivative
+      logarithmic_derivative gradient hessian_rows = SOME result_rows /\
+  25 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_sqrt_hessian»
+        [from_cv (bounded_interval64_object_cv derivative);
+         from_cv (bounded_interval64_object_cv logarithmic_derivative);
+         from_cv (bounded_interval64_object_cv_list gradient);
+         from_cv (bounded_interval64_object_cv_matrix hessian_rows)])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv (bounded_interval64_object_cv_matrix result_rows)),refs)
+Proof
+  rpt strip_tac
+  >> simp [registered_case10173_fs_hist_sqrt_hessian_unfold]
+  >> simp
+       [registered_case10173_fs_hist_sqrt_hessian_body_def,
+        compute_evalTheory.subst_def]
+  >> Cases_on
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 0`
+  >> gvs [registered_case10173_sqrt_hessian_rows_decimal_def]
+  >> Cases_on
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 1`
+  >> gvs []
+  >> Cases_on
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 2`
+  >> gvs []
+  >> Cases_on
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 3`
+  >> gvs []
+  >> Cases_on
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 4`
+  >> gvs []
+  >> Cases_on
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 5`
+  >> gvs []
+  >> rename1
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 0 = SOME r0`
+  >> rename1
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 1 = SOME r1`
+  >> rename1
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 2 = SOME r2`
+  >> rename1
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 3 = SOME r3`
+  >> rename1
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 4 = SOME r4`
+  >> rename1
+       `registered_case10173_sqrt_hessian_row_rows_decimal derivative
+          logarithmic_derivative gradient hessian_rows 5 = SOME r5`
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval (clock - 1)
+          registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_fs_angle_six»
+            [from_cv (bounded_interval64_object_cv_list r0);
+             from_cv (bounded_interval64_object_cv_list r1);
+             from_cv (bounded_interval64_object_cv_list r2);
+             from_cv (bounded_interval64_object_cv_list r3);
+             from_cv (bounded_interval64_object_cv_list r4);
+             from_cv (bounded_interval64_object_cv_list r5)]) refs`
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173HistoricalCombinatorEvalTheory.registered_case10173_compute_eval_app6_argument_results
+      >> simp []
+      >> rpt conj_tac
+      >> irule
+           (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+             registered_case10173_fs_hist_sqrt_hessian_row_typed_eval)
+      >> fs []
+      >> intLib.ARITH_TAC)
+  >> simp
+       [compute_boundedObjectTaylorCompleteDecimalTheory.bounded_interval64_object_cv_matrix_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def]
+  >> irule
+       (SIMP_RULE std_ss
+         [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def,
+          compute_execTheory.from_cv_def]
+         compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_fs_angle_six_eval)
+  >> intLib.ARITH_TAC
+QED
+
 val _ = export_theory ();
