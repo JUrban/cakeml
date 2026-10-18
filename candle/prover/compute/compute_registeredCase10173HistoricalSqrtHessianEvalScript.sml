@@ -657,6 +657,48 @@ Definition registered_case10173_sqrt_hessian_rows_decimal_def:
               | SOME r5 => SOME [r0;r1;r2;r3;r4;r5]
 End
 
+Theorem registered_case10173_bounded_interval64_nth_six:
+  bounded_interval64_nth [v0;v1;v2;v3;v4;v5] 0 = SOME v0 /\
+  bounded_interval64_nth [v0;v1;v2;v3;v4;v5] 1 = SOME v1 /\
+  bounded_interval64_nth [v0;v1;v2;v3;v4;v5] 2 = SOME v2 /\
+  bounded_interval64_nth [v0;v1;v2;v3;v4;v5] 3 = SOME v3 /\
+  bounded_interval64_nth [v0;v1;v2;v3;v4;v5] 4 = SOME v4 /\
+  bounded_interval64_nth [v0;v1;v2;v3;v4;v5] 5 = SOME v5
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_sqrt_hessian_rows_decimal_compact:
+  LENGTH gradient = 6 /\
+  bounded_hessian64_rows hessian = SOME hessian_rows /\
+  bounded_historical_sqrt_hessian_decimal derivative
+    logarithmic_derivative gradient bounded_delta64_hessian_indices hessian =
+    SOME result_hessian /\
+  bounded_hessian64_rows result_hessian = SOME result_rows ==>
+  registered_case10173_sqrt_hessian_rows_decimal derivative
+    logarithmic_derivative gradient hessian_rows = SOME result_rows
+Proof
+  rpt strip_tac
+  >> imp_res_tac
+       compute_registeredCase10173HistoricalFirstOrderCenterEvalTheory.length_six_cases
+  >> gvs []
+  >> fs [compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >> rpt (pop_assum mp_tac)
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> rpt strip_tac
+  >> gvs []
+  >> fs
+       [compute_boundedDeltaTaylorTheory.bounded_delta64_hessian_indices_def,
+        compute_boundedHistoricalDihedralSecondDecimalTheory.bounded_historical_sqrt_hessian_decimal_def,
+        registered_case10173_bounded_interval64_nth_six,
+        registered_case10173_sqrt_hessian_rows_decimal_def,
+        registered_case10173_sqrt_hessian_row_rows_decimal_def,
+        registered_case10173_sqrt_hessian_symmetric_entry_rows_decimal_def,
+        registered_case10173_sqrt_hessian_entry_rows_decimal_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
 Definition registered_case10173_fs_hist_sqrt_hessian_body_def:
   registered_case10173_fs_hist_sqrt_hessian_body =
     App «candle_cv_fs_angle_six»
