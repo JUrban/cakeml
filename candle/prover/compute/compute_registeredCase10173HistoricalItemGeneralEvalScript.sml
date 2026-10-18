@@ -76,9 +76,10 @@ Theorem registered_case10173_historical_item_packet_eval:
   bounded_object_positive_q_interval64_decimal_list center_boxes =
       SOME [x0;x1;x2;x3;x4;x5] /\
   bounded_object_positive_q_interval64_decimal_list boxes =
-      SOME [y0;y1;y2;y3;y4;y5] /\
-  30000 < clock ==>
+      SOME [y0;y1;y2;y3;y4;y5] ==>
   ?result.
+  !clock refs.
+    30000 < clock ==>
     compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_item»
         [from_cv center_boxes;from_cv boxes;
@@ -112,6 +113,8 @@ Proof
   >> imp_res_tac
        compute_boundedObjectTaylorCompleteDecimalTheory.bounded_object_fs_taylor_complete_exact
   >> qexists_tac `bounded_taylor64_rows_object_cv historical_item hessian_rows`
+  >> rpt gen_tac
+  >> strip_tac
   >> PURE_REWRITE_TAC
        [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
   >> PURE_REWRITE_TAC [compute_execTheory.from_cv_def]
@@ -209,9 +212,10 @@ Theorem registered_case10173_historical_item_packet_accessor_eval:
   bounded_object_positive_q_interval64_decimal_list center_boxes =
       SOME (bounded_case10173_packet_center_environment packet) /\
   bounded_object_positive_q_interval64_decimal_list boxes =
-      SOME (bounded_case10173_packet_box_environment packet) /\
-  30000 < clock ==>
+      SOME (bounded_case10173_packet_box_environment packet) ==>
   ?result.
+  !clock refs.
+    30000 < clock ==>
     compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_item»
         [from_cv center_boxes;from_cv boxes;
