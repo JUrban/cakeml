@@ -190,6 +190,35 @@ fun registered_case10173_scaled_neg_two_raw_product_tac
   >> disch_then
        (qx_choose_then product (qx_choose_then scaled strip_assume_tac));
 
+Theorem registered_case10173_fs_scale_neg_two_hist_raw_product_eval:
+  bounded_object_fs_raw_interval_mul left right = SOME product /\
+  registered_case10173_fs_interval_scale_neg_two_object product =
+      SOME result /\
+  9 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_angle_interval_scale_neg_two»
+        [App «candle_cv_fs_hist_raw_product»
+          [from_cv left;from_cv right]]) (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval clock registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_fs_angle_interval_scale_neg_two»
+            [from_cv product]) refs`
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+      >> simp
+           [compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_fs_hist_raw_product_eval]
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_registeredCase10173HistoricalDeltaX4GradientEvalTheory.registered_case10173_fs_angle_interval_scale_neg_two_object_eval
+  >> simp []
+  >> intLib.ARITH_TAC
+QED
+
 Definition registered_case10173_fs_hist_delta_gradient_block0_object_def:
   registered_case10173_fs_hist_delta_gradient_block0_object environment =
     case environment of
@@ -783,6 +812,949 @@ Proof
         >> intLib.ARITH_TAC)
   >> imp_res_tac registered_case10173_source_raw_sum_round_fused_exact
   >> fs [registered_case10173_fs_hist_delta_gradient_block5_object_def]
+QED
+
+Definition registered_case10173_fs_hist_delta_gradient_block0_body_def:
+  registered_case10173_fs_hist_delta_gradient_block0_body =
+    Let «x0»
+      (App «candle_cv_fs_interval_lookup» [Num 0;Var «environment»])
+      (Let «x1»
+        (App «candle_cv_fs_interval_lookup» [Num 1;Var «environment»])
+        (Let «x2»
+          (App «candle_cv_fs_interval_lookup» [Num 2;Var «environment»])
+          (Let «x3»
+            (App «candle_cv_fs_interval_lookup» [Num 3;Var «environment»])
+            (Let «x4»
+              (App «candle_cv_fs_interval_lookup» [Num 4;Var «environment»])
+              (Let «x5»
+                (App «candle_cv_fs_interval_lookup» [Num 5;Var «environment»])
+                (App «candle_cv_fs_hist_round_scale»
+                  [App «candle_cv_fs_angle_interval_sum»
+                    [App «candle_cv_fs_angle_ten»
+                      [App «candle_cv_fs_angle_interval_scale_neg_two»
+                        [App «candle_cv_fs_hist_raw_product»
+                          [Var «x0»;Var «x3»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x1»;Var «x3»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x1»;Var «x4»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x1»;Var «x5»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x2»;Var «x3»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x2»;Var «x4»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x2»;Var «x5»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x3»;Var «x3»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x3»;Var «x4»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x3»;Var «x5»]]]]))))))
+End
+
+Theorem registered_case10173_fs_hist_delta_gradient_block0_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_hist_delta_gradient_block_0» =
+    SOME
+      ([«environment»],
+       registered_case10173_fs_hist_delta_gradient_block0_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block0_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_0»
+        [from_cv environment]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«environment»,from_cv environment)]
+        registered_case10173_fs_hist_delta_gradient_block0_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173CanonicalEvalTheory.compute_eval_literal_app1
+  >> simp [registered_case10173_fs_hist_delta_gradient_block0_lookup]
+QED
+
+fun registered_case10173_gradient_environment_lookup_tac value =
+  irule
+    compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_let_success_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac value
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173HistoricalDeltaX4ValueEvalTheory.registered_case10173_fs_interval_lookup_cv_list_result_eval
+      >> simp []
+      >> intLib.ARITH_TAC)
+  >> simp
+       [compute_evalTheory.subst_def,
+        compute_execProofTheory.subst_from_cv];
+
+Theorem registered_case10173_fs_hist_delta_gradient_block0_trace_eval:
+  bounded_object_fs_raw_interval_mul x0 x3 = SOME p03 /\
+  registered_case10173_fs_interval_scale_neg_two_object p03 = SOME s03 /\
+  bounded_object_fs_raw_interval_mul x1 x3 = SOME p13 /\
+  bounded_object_fs_raw_interval_mul x1 x4 = SOME p14 /\
+  bounded_object_fs_raw_interval_mul x1 x5 = SOME p15 /\
+  bounded_object_fs_interval_neg p15 = SOME n15 /\
+  bounded_object_fs_raw_interval_mul x2 x3 = SOME p23 /\
+  bounded_object_fs_raw_interval_mul x2 x4 = SOME p24 /\
+  bounded_object_fs_interval_neg p24 = SOME n24 /\
+  bounded_object_fs_raw_interval_mul x2 x5 = SOME p25 /\
+  bounded_object_fs_raw_interval_mul x3 x3 = SOME p33 /\
+  bounded_object_fs_interval_neg p33 = SOME n33 /\
+  bounded_object_fs_raw_interval_mul x3 x4 = SOME p34 /\
+  bounded_object_fs_raw_interval_mul x3 x5 = SOME p35 /\
+  registered_case10173_fs_interval_sum_object
+      [s03;p13;p14;n15;p23;n24;p25;n33;p34;p35] = SOME raw /\
+  bounded_object_fs_raw_interval_round 1000000000000 raw = SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_0»
+        [from_cv
+          (registered_case10173_cv_list [x0;x1;x2;x3;x4;x5])])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> simp [registered_case10173_fs_hist_delta_gradient_block0_unfold]
+  >> simp
+       [registered_case10173_fs_hist_delta_gradient_block0_body_def,
+        compute_evalTheory.subst_def]
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x0`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x1`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x2`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x3`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x4`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x5`
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval (clock - 7)
+          registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_fs_hist_round_scale» [from_cv raw]) refs`
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+      >> conj_tac >- intLib.ARITH_TAC
+      >> irule
+           compute_registeredCase10173HistoricalDeltaGradientComponentEvalTheory.registered_case10173_fs_angle_ten_sum_argument_results
+      >> conj_tac >- intLib.ARITH_TAC
+      >> qexistsl_tac
+           [`s03`,`p13`,`p14`,`n15`,`p23`,`n24`,`p25`,`n33`,`p34`,`p35`]
+      >> simp
+           [compute_execProofTheory.compute_eval_from_cv,
+            compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_fs_hist_raw_product_eval,
+            compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_fs_interval_neg_hist_raw_product_eval,
+            registered_case10173_fs_scale_neg_two_hist_raw_product_eval]
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_registeredCase10173HistoricalDeltaBlockPrimitiveEvalTheory.registered_case10173_fs_hist_round_scale_eval
+  >> simp []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block0_object_eval:
+  registered_case10173_fs_hist_delta_gradient_block0_object environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_0»
+        [from_cv (registered_case10173_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs [registered_case10173_fs_hist_delta_gradient_block0_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_delta_gradient_block0_trace_eval
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block0_typed_eval:
+  bounded_historical_delta_gradient_component_decimal 0 environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_0»
+        [from_cv (bounded_interval64_object_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv result)),refs)
+Proof
+  rpt strip_tac
+  >> rw
+       [compute_registeredCase10173HistoricalDeltaBlockPrimitiveEvalTheory.registered_case10173_bounded_interval64_object_cv_list_as_registered]
+  >> irule registered_case10173_fs_hist_delta_gradient_block0_object_eval
+  >> simp []
+  >> metis_tac
+       [registered_case10173_fs_hist_delta_gradient_block0_object_typed_exact]
+QED
+
+fun registered_case10173_gradient_block_finish_tac results =
+  irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval (clock - 7)
+          registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_fs_hist_round_scale» [from_cv raw]) refs`
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+      >> conj_tac >- intLib.ARITH_TAC
+      >> irule
+           compute_registeredCase10173HistoricalDeltaGradientComponentEvalTheory.registered_case10173_fs_angle_ten_sum_argument_results
+      >> conj_tac >- intLib.ARITH_TAC
+      >> qexistsl_tac results
+      >> simp
+           [compute_execProofTheory.compute_eval_from_cv,
+            compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_fs_hist_raw_product_eval,
+            compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_fs_interval_neg_hist_raw_product_eval,
+            registered_case10173_fs_scale_neg_two_hist_raw_product_eval]
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_registeredCase10173HistoricalDeltaBlockPrimitiveEvalTheory.registered_case10173_fs_hist_round_scale_eval
+  >> simp []
+  >> intLib.ARITH_TAC;
+
+Definition registered_case10173_fs_hist_delta_gradient_block1_body_def:
+  registered_case10173_fs_hist_delta_gradient_block1_body =
+    Let «x0»
+      (App «candle_cv_fs_interval_lookup» [Num 0;Var «environment»])
+      (Let «x1»
+        (App «candle_cv_fs_interval_lookup» [Num 1;Var «environment»])
+        (Let «x2»
+          (App «candle_cv_fs_interval_lookup» [Num 2;Var «environment»])
+          (Let «x3»
+            (App «candle_cv_fs_interval_lookup» [Num 3;Var «environment»])
+            (Let «x4»
+              (App «candle_cv_fs_interval_lookup» [Num 4;Var «environment»])
+              (Let «x5»
+                (App «candle_cv_fs_interval_lookup» [Num 5;Var «environment»])
+                (App «candle_cv_fs_hist_round_scale»
+                  [App «candle_cv_fs_angle_interval_sum»
+                    [App «candle_cv_fs_angle_ten»
+                      [App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x3»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x4»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x0»;Var «x5»]];
+                       App «candle_cv_fs_angle_interval_scale_neg_two»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x1»;Var «x4»]];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x2»;Var «x3»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x2»;Var «x4»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x2»;Var «x5»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x3»;Var «x4»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x4»;Var «x4»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x4»;Var «x5»]]]]))))))
+End
+
+Theorem registered_case10173_fs_hist_delta_gradient_block1_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_hist_delta_gradient_block_1» =
+    SOME
+      ([«environment»],
+       registered_case10173_fs_hist_delta_gradient_block1_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block1_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_1»
+        [from_cv environment]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«environment»,from_cv environment)]
+        registered_case10173_fs_hist_delta_gradient_block1_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173CanonicalEvalTheory.compute_eval_literal_app1
+  >> simp [registered_case10173_fs_hist_delta_gradient_block1_lookup]
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block1_trace_eval:
+  bounded_object_fs_raw_interval_mul x0 x3 = SOME p03 /\
+  bounded_object_fs_raw_interval_mul x0 x4 = SOME p04 /\
+  bounded_object_fs_raw_interval_mul x0 x5 = SOME p05 /\
+  bounded_object_fs_interval_neg p05 = SOME n05 /\
+  bounded_object_fs_raw_interval_mul x1 x4 = SOME p14 /\
+  registered_case10173_fs_interval_scale_neg_two_object p14 = SOME s14 /\
+  bounded_object_fs_raw_interval_mul x2 x3 = SOME p23 /\
+  bounded_object_fs_interval_neg p23 = SOME n23 /\
+  bounded_object_fs_raw_interval_mul x2 x4 = SOME p24 /\
+  bounded_object_fs_raw_interval_mul x2 x5 = SOME p25 /\
+  bounded_object_fs_raw_interval_mul x3 x4 = SOME p34 /\
+  bounded_object_fs_raw_interval_mul x4 x4 = SOME p44 /\
+  bounded_object_fs_interval_neg p44 = SOME n44 /\
+  bounded_object_fs_raw_interval_mul x4 x5 = SOME p45 /\
+  registered_case10173_fs_interval_sum_object
+      [p03;p04;n05;s14;n23;p24;p25;p34;n44;p45] = SOME raw /\
+  bounded_object_fs_raw_interval_round 1000000000000 raw = SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_1»
+        [from_cv
+          (registered_case10173_cv_list [x0;x1;x2;x3;x4;x5])])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> simp [registered_case10173_fs_hist_delta_gradient_block1_unfold]
+  >> simp
+       [registered_case10173_fs_hist_delta_gradient_block1_body_def,
+        compute_evalTheory.subst_def]
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x0`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x1`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x2`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x3`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x4`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x5`
+  >> registered_case10173_gradient_block_finish_tac
+       [`p03`,`p04`,`n05`,`s14`,`n23`,`p24`,`p25`,`p34`,`n44`,`p45`]
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block1_object_eval:
+  registered_case10173_fs_hist_delta_gradient_block1_object environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_1»
+        [from_cv (registered_case10173_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs [registered_case10173_fs_hist_delta_gradient_block1_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_delta_gradient_block1_trace_eval
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block1_typed_eval:
+  bounded_historical_delta_gradient_component_decimal 1 environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_1»
+        [from_cv (bounded_interval64_object_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv result)),refs)
+Proof
+  rpt strip_tac
+  >> rw
+       [compute_registeredCase10173HistoricalDeltaBlockPrimitiveEvalTheory.registered_case10173_bounded_interval64_object_cv_list_as_registered]
+  >> irule registered_case10173_fs_hist_delta_gradient_block1_object_eval
+  >> simp []
+  >> metis_tac
+       [registered_case10173_fs_hist_delta_gradient_block1_object_typed_exact]
+QED
+
+Definition registered_case10173_fs_hist_delta_gradient_block2_body_def:
+  registered_case10173_fs_hist_delta_gradient_block2_body =
+    Let «x0»
+      (App «candle_cv_fs_interval_lookup» [Num 0;Var «environment»])
+      (Let «x1»
+        (App «candle_cv_fs_interval_lookup» [Num 1;Var «environment»])
+        (Let «x2»
+          (App «candle_cv_fs_interval_lookup» [Num 2;Var «environment»])
+          (Let «x3»
+            (App «candle_cv_fs_interval_lookup» [Num 3;Var «environment»])
+            (Let «x4»
+              (App «candle_cv_fs_interval_lookup» [Num 4;Var «environment»])
+              (Let «x5»
+                (App «candle_cv_fs_interval_lookup» [Num 5;Var «environment»])
+                (App «candle_cv_fs_hist_round_scale»
+                  [App «candle_cv_fs_angle_interval_sum»
+                    [App «candle_cv_fs_angle_ten»
+                      [App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x3»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x0»;Var «x4»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x5»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x1»;Var «x3»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x1»;Var «x4»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x1»;Var «x5»];
+                       App «candle_cv_fs_angle_interval_scale_neg_two»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x2»;Var «x5»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x3»;Var «x5»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x4»;Var «x5»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x5»;Var «x5»]]]]]))))))
+End
+
+Theorem registered_case10173_fs_hist_delta_gradient_block2_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_hist_delta_gradient_block_2» =
+    SOME
+      ([«environment»],
+       registered_case10173_fs_hist_delta_gradient_block2_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block2_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_2»
+        [from_cv environment]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«environment»,from_cv environment)]
+        registered_case10173_fs_hist_delta_gradient_block2_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173CanonicalEvalTheory.compute_eval_literal_app1
+  >> simp [registered_case10173_fs_hist_delta_gradient_block2_lookup]
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block2_trace_eval:
+  bounded_object_fs_raw_interval_mul x0 x3 = SOME p03 /\
+  bounded_object_fs_raw_interval_mul x0 x4 = SOME p04 /\
+  bounded_object_fs_interval_neg p04 = SOME n04 /\
+  bounded_object_fs_raw_interval_mul x0 x5 = SOME p05 /\
+  bounded_object_fs_raw_interval_mul x1 x3 = SOME p13 /\
+  bounded_object_fs_interval_neg p13 = SOME n13 /\
+  bounded_object_fs_raw_interval_mul x1 x4 = SOME p14 /\
+  bounded_object_fs_raw_interval_mul x1 x5 = SOME p15 /\
+  bounded_object_fs_raw_interval_mul x2 x5 = SOME p25 /\
+  registered_case10173_fs_interval_scale_neg_two_object p25 = SOME s25 /\
+  bounded_object_fs_raw_interval_mul x3 x5 = SOME p35 /\
+  bounded_object_fs_raw_interval_mul x4 x5 = SOME p45 /\
+  bounded_object_fs_raw_interval_mul x5 x5 = SOME p55 /\
+  bounded_object_fs_interval_neg p55 = SOME n55 /\
+  registered_case10173_fs_interval_sum_object
+      [p03;n04;p05;n13;p14;p15;s25;p35;p45;n55] = SOME raw /\
+  bounded_object_fs_raw_interval_round 1000000000000 raw = SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_2»
+        [from_cv
+          (registered_case10173_cv_list [x0;x1;x2;x3;x4;x5])])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> simp [registered_case10173_fs_hist_delta_gradient_block2_unfold]
+  >> simp
+       [registered_case10173_fs_hist_delta_gradient_block2_body_def,
+        compute_evalTheory.subst_def]
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x0`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x1`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x2`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x3`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x4`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x5`
+  >> registered_case10173_gradient_block_finish_tac
+       [`p03`,`n04`,`p05`,`n13`,`p14`,`p15`,`s25`,`p35`,`p45`,`n55`]
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block2_object_eval:
+  registered_case10173_fs_hist_delta_gradient_block2_object environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_2»
+        [from_cv (registered_case10173_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs [registered_case10173_fs_hist_delta_gradient_block2_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_delta_gradient_block2_trace_eval
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block2_typed_eval:
+  bounded_historical_delta_gradient_component_decimal 2 environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_2»
+        [from_cv (bounded_interval64_object_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv result)),refs)
+Proof
+  rpt strip_tac
+  >> rw
+       [compute_registeredCase10173HistoricalDeltaBlockPrimitiveEvalTheory.registered_case10173_bounded_interval64_object_cv_list_as_registered]
+  >> irule registered_case10173_fs_hist_delta_gradient_block2_object_eval
+  >> simp []
+  >> metis_tac
+       [registered_case10173_fs_hist_delta_gradient_block2_object_typed_exact]
+QED
+
+Definition registered_case10173_fs_hist_delta_gradient_block3_body_def:
+  registered_case10173_fs_hist_delta_gradient_block3_body =
+    Let «x0»
+      (App «candle_cv_fs_interval_lookup» [Num 0;Var «environment»])
+      (Let «x1»
+        (App «candle_cv_fs_interval_lookup» [Num 1;Var «environment»])
+        (Let «x2»
+          (App «candle_cv_fs_interval_lookup» [Num 2;Var «environment»])
+          (Let «x3»
+            (App «candle_cv_fs_interval_lookup» [Num 3;Var «environment»])
+            (Let «x4»
+              (App «candle_cv_fs_interval_lookup» [Num 4;Var «environment»])
+              (Let «x5»
+                (App «candle_cv_fs_interval_lookup» [Num 5;Var «environment»])
+                (App «candle_cv_fs_hist_round_scale»
+                  [App «candle_cv_fs_angle_interval_sum»
+                    [App «candle_cv_fs_angle_ten»
+                      [App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x0»;Var «x0»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x1»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x2»];
+                       App «candle_cv_fs_angle_interval_scale_neg_two»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x0»;Var «x3»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x4»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x5»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x1»;Var «x2»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x1»;Var «x4»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x2»;Var «x5»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x4»;Var «x5»]]]]]))))))
+End
+
+Theorem registered_case10173_fs_hist_delta_gradient_block3_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_hist_delta_gradient_block_3» =
+    SOME
+      ([«environment»],
+       registered_case10173_fs_hist_delta_gradient_block3_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block3_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_3»
+        [from_cv environment]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«environment»,from_cv environment)]
+        registered_case10173_fs_hist_delta_gradient_block3_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173CanonicalEvalTheory.compute_eval_literal_app1
+  >> simp [registered_case10173_fs_hist_delta_gradient_block3_lookup]
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block3_trace_eval:
+  bounded_object_fs_raw_interval_mul x0 x0 = SOME p00 /\
+  bounded_object_fs_interval_neg p00 = SOME n00 /\
+  bounded_object_fs_raw_interval_mul x0 x1 = SOME p01 /\
+  bounded_object_fs_raw_interval_mul x0 x2 = SOME p02 /\
+  bounded_object_fs_raw_interval_mul x0 x3 = SOME p03 /\
+  registered_case10173_fs_interval_scale_neg_two_object p03 = SOME s03 /\
+  bounded_object_fs_raw_interval_mul x0 x4 = SOME p04 /\
+  bounded_object_fs_raw_interval_mul x0 x5 = SOME p05 /\
+  bounded_object_fs_raw_interval_mul x1 x2 = SOME p12 /\
+  bounded_object_fs_interval_neg p12 = SOME n12 /\
+  bounded_object_fs_raw_interval_mul x1 x4 = SOME p14 /\
+  bounded_object_fs_raw_interval_mul x2 x5 = SOME p25 /\
+  bounded_object_fs_raw_interval_mul x4 x5 = SOME p45 /\
+  bounded_object_fs_interval_neg p45 = SOME n45 /\
+  registered_case10173_fs_interval_sum_object
+      [n00;p01;p02;s03;p04;p05;n12;p14;p25;n45] = SOME raw /\
+  bounded_object_fs_raw_interval_round 1000000000000 raw = SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_3»
+        [from_cv
+          (registered_case10173_cv_list [x0;x1;x2;x3;x4;x5])])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> simp [registered_case10173_fs_hist_delta_gradient_block3_unfold]
+  >> simp
+       [registered_case10173_fs_hist_delta_gradient_block3_body_def,
+        compute_evalTheory.subst_def]
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x0`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x1`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x2`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x3`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x4`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x5`
+  >> registered_case10173_gradient_block_finish_tac
+       [`n00`,`p01`,`p02`,`s03`,`p04`,`p05`,`n12`,`p14`,`p25`,`n45`]
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block3_object_eval:
+  registered_case10173_fs_hist_delta_gradient_block3_object environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_3»
+        [from_cv (registered_case10173_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs [registered_case10173_fs_hist_delta_gradient_block3_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_delta_gradient_block3_trace_eval
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block3_typed_eval:
+  bounded_historical_delta_gradient_component_decimal 3 environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_3»
+        [from_cv (bounded_interval64_object_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv result)),refs)
+Proof
+  rpt strip_tac
+  >> rw
+       [compute_registeredCase10173HistoricalDeltaBlockPrimitiveEvalTheory.registered_case10173_bounded_interval64_object_cv_list_as_registered]
+  >> irule registered_case10173_fs_hist_delta_gradient_block3_object_eval
+  >> simp []
+  >> metis_tac
+       [registered_case10173_fs_hist_delta_gradient_block3_object_typed_exact]
+QED
+
+Definition registered_case10173_fs_hist_delta_gradient_block4_body_def:
+  registered_case10173_fs_hist_delta_gradient_block4_body =
+    Let «x0»
+      (App «candle_cv_fs_interval_lookup» [Num 0;Var «environment»])
+      (Let «x1»
+        (App «candle_cv_fs_interval_lookup» [Num 1;Var «environment»])
+        (Let «x2»
+          (App «candle_cv_fs_interval_lookup» [Num 2;Var «environment»])
+          (Let «x3»
+            (App «candle_cv_fs_interval_lookup» [Num 3;Var «environment»])
+            (Let «x4»
+              (App «candle_cv_fs_interval_lookup» [Num 4;Var «environment»])
+              (Let «x5»
+                (App «candle_cv_fs_interval_lookup» [Num 5;Var «environment»])
+                (App «candle_cv_fs_hist_round_scale»
+                  [App «candle_cv_fs_angle_interval_sum»
+                    [App «candle_cv_fs_angle_ten»
+                      [App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x1»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x0»;Var «x2»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x3»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x1»;Var «x1»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x1»;Var «x2»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x1»;Var «x3»];
+                       App «candle_cv_fs_angle_interval_scale_neg_two»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x1»;Var «x4»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x1»;Var «x5»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x2»;Var «x5»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x3»;Var «x5»]]]]]))))))
+End
+
+Theorem registered_case10173_fs_hist_delta_gradient_block4_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_hist_delta_gradient_block_4» =
+    SOME
+      ([«environment»],
+       registered_case10173_fs_hist_delta_gradient_block4_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block4_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_4»
+        [from_cv environment]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«environment»,from_cv environment)]
+        registered_case10173_fs_hist_delta_gradient_block4_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173CanonicalEvalTheory.compute_eval_literal_app1
+  >> simp [registered_case10173_fs_hist_delta_gradient_block4_lookup]
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block4_trace_eval:
+  bounded_object_fs_raw_interval_mul x0 x1 = SOME p01 /\
+  bounded_object_fs_raw_interval_mul x0 x2 = SOME p02 /\
+  bounded_object_fs_interval_neg p02 = SOME n02 /\
+  bounded_object_fs_raw_interval_mul x0 x3 = SOME p03 /\
+  bounded_object_fs_raw_interval_mul x1 x1 = SOME p11 /\
+  bounded_object_fs_interval_neg p11 = SOME n11 /\
+  bounded_object_fs_raw_interval_mul x1 x2 = SOME p12 /\
+  bounded_object_fs_raw_interval_mul x1 x3 = SOME p13 /\
+  bounded_object_fs_raw_interval_mul x1 x4 = SOME p14 /\
+  registered_case10173_fs_interval_scale_neg_two_object p14 = SOME s14 /\
+  bounded_object_fs_raw_interval_mul x1 x5 = SOME p15 /\
+  bounded_object_fs_raw_interval_mul x2 x5 = SOME p25 /\
+  bounded_object_fs_raw_interval_mul x3 x5 = SOME p35 /\
+  bounded_object_fs_interval_neg p35 = SOME n35 /\
+  registered_case10173_fs_interval_sum_object
+      [p01;n02;p03;n11;p12;p13;s14;p15;p25;n35] = SOME raw /\
+  bounded_object_fs_raw_interval_round 1000000000000 raw = SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_4»
+        [from_cv
+          (registered_case10173_cv_list [x0;x1;x2;x3;x4;x5])])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> simp [registered_case10173_fs_hist_delta_gradient_block4_unfold]
+  >> simp
+       [registered_case10173_fs_hist_delta_gradient_block4_body_def,
+        compute_evalTheory.subst_def]
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x0`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x1`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x2`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x3`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x4`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x5`
+  >> registered_case10173_gradient_block_finish_tac
+       [`p01`,`n02`,`p03`,`n11`,`p12`,`p13`,`s14`,`p15`,`p25`,`n35`]
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block4_object_eval:
+  registered_case10173_fs_hist_delta_gradient_block4_object environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_4»
+        [from_cv (registered_case10173_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs [registered_case10173_fs_hist_delta_gradient_block4_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_delta_gradient_block4_trace_eval
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block4_typed_eval:
+  bounded_historical_delta_gradient_component_decimal 4 environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_4»
+        [from_cv (bounded_interval64_object_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv result)),refs)
+Proof
+  rpt strip_tac
+  >> rw
+       [compute_registeredCase10173HistoricalDeltaBlockPrimitiveEvalTheory.registered_case10173_bounded_interval64_object_cv_list_as_registered]
+  >> irule registered_case10173_fs_hist_delta_gradient_block4_object_eval
+  >> simp []
+  >> metis_tac
+       [registered_case10173_fs_hist_delta_gradient_block4_object_typed_exact]
+QED
+
+Definition registered_case10173_fs_hist_delta_gradient_block5_body_def:
+  registered_case10173_fs_hist_delta_gradient_block5_body =
+    Let «x0»
+      (App «candle_cv_fs_interval_lookup» [Num 0;Var «environment»])
+      (Let «x1»
+        (App «candle_cv_fs_interval_lookup» [Num 1;Var «environment»])
+        (Let «x2»
+          (App «candle_cv_fs_interval_lookup» [Num 2;Var «environment»])
+          (Let «x3»
+            (App «candle_cv_fs_interval_lookup» [Num 3;Var «environment»])
+            (Let «x4»
+              (App «candle_cv_fs_interval_lookup» [Num 4;Var «environment»])
+              (Let «x5»
+                (App «candle_cv_fs_interval_lookup» [Num 5;Var «environment»])
+                (App «candle_cv_fs_hist_round_scale»
+                  [App «candle_cv_fs_angle_interval_sum»
+                    [App «candle_cv_fs_angle_ten»
+                      [App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x0»;Var «x1»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x2»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x0»;Var «x3»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x1»;Var «x2»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x1»;Var «x4»];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x2»;Var «x2»]];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x2»;Var «x3»];
+                       App «candle_cv_fs_hist_raw_product»
+                         [Var «x2»;Var «x4»];
+                       App «candle_cv_fs_angle_interval_scale_neg_two»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x2»;Var «x5»]];
+                       App «candle_cv_fs_interval_neg»
+                         [App «candle_cv_fs_hist_raw_product»
+                           [Var «x3»;Var «x4»]]]]]))))))
+End
+
+Theorem registered_case10173_fs_hist_delta_gradient_block5_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_hist_delta_gradient_block_5» =
+    SOME
+      ([«environment»],
+       registered_case10173_fs_hist_delta_gradient_block5_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block5_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_5»
+        [from_cv environment]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«environment»,from_cv environment)]
+        registered_case10173_fs_hist_delta_gradient_block5_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173CanonicalEvalTheory.compute_eval_literal_app1
+  >> simp [registered_case10173_fs_hist_delta_gradient_block5_lookup]
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block5_trace_eval:
+  bounded_object_fs_raw_interval_mul x0 x1 = SOME p01 /\
+  bounded_object_fs_interval_neg p01 = SOME n01 /\
+  bounded_object_fs_raw_interval_mul x0 x2 = SOME p02 /\
+  bounded_object_fs_raw_interval_mul x0 x3 = SOME p03 /\
+  bounded_object_fs_raw_interval_mul x1 x2 = SOME p12 /\
+  bounded_object_fs_raw_interval_mul x1 x4 = SOME p14 /\
+  bounded_object_fs_raw_interval_mul x2 x2 = SOME p22 /\
+  bounded_object_fs_interval_neg p22 = SOME n22 /\
+  bounded_object_fs_raw_interval_mul x2 x3 = SOME p23 /\
+  bounded_object_fs_raw_interval_mul x2 x4 = SOME p24 /\
+  bounded_object_fs_raw_interval_mul x2 x5 = SOME p25 /\
+  registered_case10173_fs_interval_scale_neg_two_object p25 = SOME s25 /\
+  bounded_object_fs_raw_interval_mul x3 x4 = SOME p34 /\
+  bounded_object_fs_interval_neg p34 = SOME n34 /\
+  registered_case10173_fs_interval_sum_object
+      [n01;p02;p03;p12;p14;n22;p23;p24;s25;n34] = SOME raw /\
+  bounded_object_fs_raw_interval_round 1000000000000 raw = SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_5»
+        [from_cv
+          (registered_case10173_cv_list [x0;x1;x2;x3;x4;x5])])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> simp [registered_case10173_fs_hist_delta_gradient_block5_unfold]
+  >> simp
+       [registered_case10173_fs_hist_delta_gradient_block5_body_def,
+        compute_evalTheory.subst_def]
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x0`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x1`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x2`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x3`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x4`
+  >> registered_case10173_gradient_environment_lookup_tac `from_cv x5`
+  >> registered_case10173_gradient_block_finish_tac
+       [`n01`,`p02`,`p03`,`p12`,`p14`,`n22`,`p23`,`p24`,`s25`,`n34`]
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block5_object_eval:
+  registered_case10173_fs_hist_delta_gradient_block5_object environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_5»
+        [from_cv (registered_case10173_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs [registered_case10173_fs_hist_delta_gradient_block5_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_delta_gradient_block5_trace_eval
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_hist_delta_gradient_block5_typed_eval:
+  bounded_historical_delta_gradient_component_decimal 5 environment =
+      SOME result /\
+  45 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_gradient_block_5»
+        [from_cv (bounded_interval64_object_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv result)),refs)
+Proof
+  rpt strip_tac
+  >> rw
+       [compute_registeredCase10173HistoricalDeltaBlockPrimitiveEvalTheory.registered_case10173_bounded_interval64_object_cv_list_as_registered]
+  >> irule registered_case10173_fs_hist_delta_gradient_block5_object_eval
+  >> simp []
+  >> metis_tac
+       [registered_case10173_fs_hist_delta_gradient_block5_object_typed_exact]
 QED
 
 val _ = export_theory ();
