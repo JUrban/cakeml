@@ -42,6 +42,8 @@ Definition bounded_packed_chars_case10173_decimal_packet_ok_def:
                        delta_products of
                     | NONE => F
                     | SOME delta_gradient =>
+                        bounded_interval64_positive_sqrt_certificate_decimal
+                          source_delta center_root_delta /\
                         source_gradient = delta_gradient /\
                         bounded_case10173_checked_cell_accepts_decimal radii
                           center_environment box_environment
@@ -85,6 +87,26 @@ Proof
   >> imp_res_tac
        compute_boundedObjectCase10173HistoricalCellDecimalTheory.bounded_object_case10173_checked_cell_accepts_decimal_exact
   >> metis_tac []
+QED
+
+(* The registered historical wrapper recomputes the center delta with its
+ * literal source-shaped arithmetic before checking the supplied root record.
+ * Keep that source result inside the authenticated packet contract rather
+ * than relying on the separately rounded production delta. *)
+Theorem bounded_packed_chars_case10173_decimal_packet_ok_source_root:
+  bounded_packed_chars_case10173_decimal_packet_ok
+      (BoundedCase10173Packet radii center_environment box_environment
+        coordinate_sqrt_certificates center_root_delta center_root_four_x0
+        center_reciprocals box_root_delta box_root_four_x0 box_reciprocals) ==>
+  ?source_delta.
+    bounded_source_delta64_value_decimal center_environment =
+      SOME source_delta /\
+    bounded_interval64_positive_sqrt_certificate_decimal
+      source_delta center_root_delta
+Proof
+  rw [bounded_packed_chars_case10173_decimal_packet_ok_def]
+  >> every_case_tac
+  >> gvs []
 QED
 
 Definition bounded_packed_chars_case10173_decimal_packets_def:
