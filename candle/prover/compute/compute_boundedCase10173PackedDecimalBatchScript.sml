@@ -28,10 +28,27 @@ Definition bounded_packed_chars_case10173_decimal_packet_ok_def:
          box_root_four_reciprocal;box_diagonal_reciprocal;
          box_u_reciprocal;box_special_root_reciprocal;
          box_b_reciprocal;box_u126_reciprocal;box_u135_reciprocal] =>
-          bounded_case10173_checked_cell_accepts_decimal radii
-            center_environment box_environment coordinate_sqrt_certificates
-            center_root_delta center_root_four_x0 center_reciprocals
-            box_root_delta box_root_four_x0 box_reciprocals
+          (case bounded_source_delta64_value_decimal center_environment of
+           | NONE => F
+           | SOME source_delta =>
+             (case bounded_source_delta64_gradient_decimal center_environment of
+              | NONE => F
+              | SOME source_gradient =>
+                (case bounded_delta64_pair_products_decimal
+                    center_environment of
+                 | NONE => F
+                 | SOME delta_products =>
+                   (case bounded_delta64_gradient_from_products
+                       delta_products of
+                    | NONE => F
+                    | SOME delta_gradient =>
+                        source_gradient = delta_gradient /\
+                        bounded_case10173_checked_cell_accepts_decimal radii
+                          center_environment box_environment
+                          coordinate_sqrt_certificates
+                          center_root_delta center_root_four_x0
+                          center_reciprocals box_root_delta
+                          box_root_four_x0 box_reciprocals))))
       | _ => F)
     | _ => F
 End

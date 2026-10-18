@@ -58,6 +58,96 @@ Definition bounded_delta64_pair_products_decimal_def:
     | _ => NONE
 End
 
+(* The registered source gradient combines each doubled negative product
+ * before its right-associated ten-term sum.  The fast gradient below uses an
+ * equivalent flat signed-term sum, but successful evaluation of that form
+ * alone does not establish that the registered grouping cannot overflow.
+ * Keep this source-shaped calculation as a small explicit compatibility
+ * check; its result is related to the fast gradient in the evaluator proof. *)
+Definition bounded_source_delta64_gradient_component_decimal_def:
+  bounded_source_delta64_gradient_component_decimal (coordinate:num)
+      products =
+    case products of
+    | p00::p01::p02::p03::p04::p05::
+      p11::p12::p13::p14::p15::
+      p22::p23::p24::p25::
+      p33::p34::p35::
+      p44::p45::
+      p55::[] =>
+      if coordinate = 0 then
+        case bounded_interval64_add
+          (bounded_interval64_neg p03) (bounded_interval64_neg p03) of
+        | NONE => NONE
+        | SOME s03 => bounded_source_interval64_sum_decimal
+            [s03;p13;p14;bounded_interval64_neg p15;p23;
+             bounded_interval64_neg p24;p25;bounded_interval64_neg p33;
+             p34;p35]
+      else if coordinate = 1 then
+        case bounded_interval64_add
+          (bounded_interval64_neg p14) (bounded_interval64_neg p14) of
+        | NONE => NONE
+        | SOME s14 => bounded_source_interval64_sum_decimal
+            [p03;p04;bounded_interval64_neg p05;s14;
+             bounded_interval64_neg p23;p24;p25;p34;
+             bounded_interval64_neg p44;p45]
+      else if coordinate = 2 then
+        case bounded_interval64_add
+          (bounded_interval64_neg p25) (bounded_interval64_neg p25) of
+        | NONE => NONE
+        | SOME s25 => bounded_source_interval64_sum_decimal
+            [p03;bounded_interval64_neg p04;p05;
+             bounded_interval64_neg p13;p14;p15;s25;p35;p45;
+             bounded_interval64_neg p55]
+      else if coordinate = 3 then
+        case bounded_interval64_add
+          (bounded_interval64_neg p03) (bounded_interval64_neg p03) of
+        | NONE => NONE
+        | SOME s03 => bounded_source_interval64_sum_decimal
+            [bounded_interval64_neg p00;p01;p02;s03;p04;p05;
+             bounded_interval64_neg p12;p14;p25;
+             bounded_interval64_neg p45]
+      else if coordinate = 4 then
+        case bounded_interval64_add
+          (bounded_interval64_neg p14) (bounded_interval64_neg p14) of
+        | NONE => NONE
+        | SOME s14 => bounded_source_interval64_sum_decimal
+            [p01;bounded_interval64_neg p02;p03;
+             bounded_interval64_neg p11;p12;p13;s14;p15;p25;
+             bounded_interval64_neg p35]
+      else if coordinate = 5 then
+        case bounded_interval64_add
+          (bounded_interval64_neg p25) (bounded_interval64_neg p25) of
+        | NONE => NONE
+        | SOME s25 => bounded_source_interval64_sum_decimal
+            [bounded_interval64_neg p01;p02;p03;p12;p14;
+             bounded_interval64_neg p22;p23;p24;s25;
+             bounded_interval64_neg p34]
+      else NONE
+    | _ => NONE
+End
+
+Definition bounded_source_delta64_gradient_components_decimal_def:
+  bounded_source_delta64_gradient_components_decimal [] products = SOME [] /\
+  bounded_source_delta64_gradient_components_decimal
+      (coordinate::coordinates) products =
+    case bounded_source_delta64_gradient_component_decimal coordinate products of
+    | NONE => NONE
+    | SOME entry =>
+      case bounded_source_delta64_gradient_components_decimal
+        coordinates products of
+      | NONE => NONE
+      | SOME rest => SOME (entry::rest)
+End
+
+Definition bounded_source_delta64_gradient_decimal_def:
+  bounded_source_delta64_gradient_decimal environment =
+    case bounded_delta64_pair_products_decimal environment of
+    | NONE => NONE
+    | SOME products =>
+        bounded_source_delta64_gradient_components_decimal
+          [0;1;2;3;4;5] products
+End
+
 Definition bounded_historical_u_block_decimal_def:
   bounded_historical_u_block_decimal n0 n1 n2 p0 p1 p2 =
     bounded_interval64_fused_products_decimal

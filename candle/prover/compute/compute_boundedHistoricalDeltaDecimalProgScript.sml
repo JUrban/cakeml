@@ -7,6 +7,13 @@ Ancestors
 
 val _ = translation_extends "compute_boundedTaylorAtanDecimalProg";
 
+val _ = translate
+  compute_boundedHistoricalDeltaDecimalTheory.bounded_source_interval64_sum_decimal_def;
+val _ = translate
+  compute_boundedHistoricalDeltaDecimalTheory.bounded_source_delta64_value_six_decimal_def;
+val _ = translate
+  compute_boundedHistoricalDeltaDecimalTheory.bounded_source_delta64_value_decimal_def;
+
 (* Install the scale-independent cubic accumulator on the decimal program
  * chain.  Only the normalization and public delta entry points below are new
  * scale-specific operations. *)

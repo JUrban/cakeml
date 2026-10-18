@@ -12,7 +12,7 @@
 Theory compute_boundedCase10173PackedDecimalAuthenticated
 Ancestors
   compute_boundedCase10173PackedDecimalJobBinding
-  compute_registeredCase10173RootInputsBinding
+  compute_registeredCase10173RadiusBinding
 Libs
   bossLib preamble
 
@@ -39,7 +39,9 @@ Definition bounded_packed_chars_case10173_decimal_authenticated_packets_def:
            bounded_case10173_decimal_packet_box_binds_object_job
              packet object_job /\
            bounded_case10173_decimal_packet_root_inputs_exact
-             packet object_job root_record
+             packet object_job root_record /\
+           bounded_case10173_decimal_packet_source_radii_exact
+             packet object_job
         then bounded_packed_chars_case10173_decimal_authenticated_packets
           remaining rest object_jobs root_records (SUC count)
         else NONE
@@ -132,6 +134,8 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_step:
       packet object_job /\
     bounded_case10173_decimal_packet_root_inputs_exact
       packet object_job root_record /\
+    bounded_case10173_decimal_packet_source_radii_exact
+      packet object_job /\
     bounded_packed_chars_case10173_decimal_authenticated_packets
       remaining rest object_jobs root_records (SUC current_count) =
         SOME result
@@ -164,6 +168,8 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_head_object_contrac
       SOME center_boxes /\
     bounded_object_positive_q_interval64_decimal_list center_boxes =
       SOME (bounded_case10173_packet_center_environment packet) /\
+    bounded_case10173_source_radii64_positive_q source_boxes =
+      SOME (bounded_case10173_packet_radii packet) /\
     object_job = Pair box_sqrt_data (Pair center_sqrt_data source_boxes) /\
     bounded_case10173_decimal_packet_sqrt_roots packet =
       (center_roots,box_roots) /\
@@ -201,6 +207,9 @@ Proof
   >> strip_tac
   >> drule
        compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_decimal_packet_center_exact_components
+  >> strip_tac
+  >> drule
+       compute_registeredCase10173RadiusBindingTheory.bounded_case10173_decimal_packet_source_radii_exact_components
   >> strip_tac
   >> gvs
        [compute_boundedCase10173JobBindingTheory.bounded_case10173_object_job_boxes_def]

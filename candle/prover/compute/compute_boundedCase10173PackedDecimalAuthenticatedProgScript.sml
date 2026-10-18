@@ -170,6 +170,44 @@ val _ = translate
 val _ = translate
   compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_decimal_packet_root_inputs_exact_def;
 
+(* Exact source-radius reconstruction from the authenticated rational box. *)
+val _ = translate
+  compute_registeredCase10173RadiusBindingTheory.bounded_case10173_packet_radii_def;
+val _ = translate
+  compute_registeredCase10173RadiusBindingTheory.bounded_case10173_source_radius64_positive_q_def;
+
+Theorem bounded_case10173_source_radius64_positive_q_side_total[local]:
+  !encoded. bounded_case10173_source_radius64_positive_q_side encoded
+Proof
+  rw [fetch "-" "bounded_case10173_source_radius64_positive_q_side_def",
+      fetch "-" "bounded_decimal_natural_ceil64_side_def"]
+QED
+
+val _ = bounded_case10173_source_radius64_positive_q_side_total
+  |> update_precondition;
+
+val _ = translate_no_ind
+  compute_registeredCase10173RadiusBindingTheory.bounded_case10173_source_radii64_positive_q_def;
+
+Theorem bounded_case10173_source_radii64_positive_q_ind_translation[local]:
+  bounded_case10173_source_radii64_positive_q_ind
+Proof
+  once_rewrite_tac
+    [fetch "-" "bounded_case10173_source_radii64_positive_q_ind_def"]
+  >> gen_tac
+  >> strip_tac
+  >> qspec_then `P` irule compute_execTheory.cv_induction
+  >> rw []
+  >> first_x_assum irule
+  >> rw []
+QED
+
+val _ = bounded_case10173_source_radii64_positive_q_ind_translation
+  |> update_precondition;
+
+val _ = translate
+  compute_registeredCase10173RadiusBindingTheory.bounded_case10173_decimal_packet_source_radii_exact_def;
+
 val _ = translate
   compute_boundedCase10173PackedDecimalAuthenticatedTheory.bounded_packed_chars_case10173_decimal_authenticated_packets_def;
 val _ = translate

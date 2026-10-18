@@ -15,6 +15,96 @@ Libs
 
 val _ = numLib.temp_prefer_num ();
 
+(* The registered HOL Light source computes [delta] with ordinary decimal
+ * interval operations and a right-associated recursive sum.  The faster
+ * historical checker below uses a fused signed-192 cubic accumulation, which
+ * is deliberately tighter and therefore not byte-for-byte identical.  Keep
+ * this small source-shaped calculation so a certificate can also establish
+ * that the registered (dead) first-order binding evaluates successfully. *)
+Definition bounded_source_interval64_sum_decimal_def:
+  bounded_source_interval64_sum_decimal [] =
+      SOME bounded_interval64_zero /\
+  bounded_source_interval64_sum_decimal (value::values) =
+    case bounded_source_interval64_sum_decimal values of
+    | NONE => NONE
+    | SOME rest => bounded_interval64_add value rest
+End
+
+Definition bounded_source_delta64_value_six_decimal_def:
+  bounded_source_delta64_value_six_decimal x0 x1 x2 x3 x4 x5 =
+    case bounded_source_interval64_sum_decimal
+      [bounded_interval64_neg x0;x1;x2;
+       bounded_interval64_neg x3;x4;x5] of
+    | NONE => NONE
+    | SOME first_linear =>
+      case bounded_source_interval64_sum_decimal
+        [x0;bounded_interval64_neg x1;x2;x3;
+         bounded_interval64_neg x4;x5] of
+      | NONE => NONE
+      | SOME second_linear =>
+        case bounded_source_interval64_sum_decimal
+          [x0;x1;bounded_interval64_neg x2;x3;x4;
+           bounded_interval64_neg x5] of
+        | NONE => NONE
+        | SOME third_linear =>
+          case bounded_interval64_mul_decimal x0 x3 of
+          | NONE => NONE
+          | SOME p03 =>
+            case bounded_interval64_mul_decimal x1 x4 of
+            | NONE => NONE
+            | SOME p14 =>
+              case bounded_interval64_mul_decimal x2 x5 of
+              | NONE => NONE
+              | SOME p25 =>
+                case bounded_interval64_mul_decimal p03 first_linear of
+                | NONE => NONE
+                | SOME t0 =>
+                  case bounded_interval64_mul_decimal p14 second_linear of
+                  | NONE => NONE
+                  | SOME t1 =>
+                    case bounded_interval64_mul_decimal p25 third_linear of
+                    | NONE => NONE
+                    | SOME t2 =>
+                      case bounded_interval64_mul_decimal x1 x2 of
+                      | NONE => NONE
+                      | SOME p12 =>
+                        case bounded_interval64_mul_decimal p12 x3 of
+                        | NONE => NONE
+                        | SOME t3 =>
+                          case bounded_interval64_mul_decimal x0 x2 of
+                          | NONE => NONE
+                          | SOME p02 =>
+                            case bounded_interval64_mul_decimal p02 x4 of
+                            | NONE => NONE
+                            | SOME t4 =>
+                              case bounded_interval64_mul_decimal x0 x1 of
+                              | NONE => NONE
+                              | SOME p01 =>
+                                case bounded_interval64_mul_decimal p01 x5 of
+                                | NONE => NONE
+                                | SOME t5 =>
+                                  case bounded_interval64_mul_decimal x3 x4 of
+                                  | NONE => NONE
+                                  | SOME p34 =>
+                                    case bounded_interval64_mul_decimal p34 x5 of
+                                    | NONE => NONE
+                                    | SOME t6 =>
+                                        bounded_source_interval64_sum_decimal
+                                          [t0;t1;t2;
+                                           bounded_interval64_neg t3;
+                                           bounded_interval64_neg t4;
+                                           bounded_interval64_neg t5;
+                                           bounded_interval64_neg t6]
+End
+
+Definition bounded_source_delta64_value_decimal_def:
+  bounded_source_delta64_value_decimal environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+        bounded_source_delta64_value_six_decimal x0 x1 x2 x3 x4 x5
+    | _ => NONE
+End
+
 Definition bounded192_floor64_decimal_squared_def:
   bounded192_floor64_decimal_squared magnitude =
     let quotient =

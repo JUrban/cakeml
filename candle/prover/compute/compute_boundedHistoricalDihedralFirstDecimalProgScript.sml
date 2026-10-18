@@ -45,6 +45,9 @@ val _ = translate
 
 val _ = translate bounded_interval64_list_pairwise_mul_decimal_def;
 val _ = translate bounded_delta64_pair_products_decimal_def;
+val _ = translate bounded_source_delta64_gradient_component_decimal_def;
+val _ = translate bounded_source_delta64_gradient_components_decimal_def;
+val _ = translate bounded_source_delta64_gradient_decimal_def;
 val _ = translate bounded_historical_u_block_decimal_def;
 val _ = translate bounded_historical_u_three_decimal_def;
 val _ = translate bounded_historical_u126_decimal_def;
