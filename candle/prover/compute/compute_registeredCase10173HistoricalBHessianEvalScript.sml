@@ -980,4 +980,32 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem registered_case10173_b_hessian_rows_decimal_compact:
+  bounded_hessian64_rows base_hessian = SOME base_rows /\
+  bounded_historical_b_hessian_decimal root_delta two_over_root_four
+    diagonal_reciprocal root_gradient base_hessian =
+    SOME result_hessian /\
+  bounded_hessian64_rows result_hessian = SOME result_rows ==>
+  registered_case10173_b_hessian_rows_decimal root_delta
+    two_over_root_four diagonal_reciprocal root_gradient base_rows =
+    SOME result_rows
+Proof
+  rpt strip_tac
+  >> drule
+       compute_boundedObjectHistoricalSecondDecimalTheory.bounded_historical_b_hessian_decimal_source_trace
+  >> strip_tac
+  >> gvs []
+  >> fs [compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >> rpt (pop_assum mp_tac)
+  >> rpt (TOP_CASE_TAC >> gvs [])
+  >> rpt strip_tac
+  >> gvs []
+  >> fs
+       [registered_case10173_b_hessian_rows_decimal_def,
+        registered_case10173_b_hessian_row_rows_decimal_def,
+        registered_case10173_b_hessian_entry_rows_decimal_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
 val _ = export_theory ();
