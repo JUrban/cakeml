@@ -242,4 +242,181 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Definition registered_case10173_sqrt_hessian_entry_rows_decimal_def:
+  registered_case10173_sqrt_hessian_entry_rows_decimal derivative
+      logarithmic_derivative gradient hessian_rows rowindex colindex =
+    case bounded_interval64_mul_decimal logarithmic_derivative
+      (EL rowindex gradient) of
+    | NONE => NONE
+    | SOME scaled_row =>
+      case bounded_interval64_mul_decimal
+        (EL colindex gradient) scaled_row of
+      | NONE => NONE
+      | SOME outer =>
+        case bounded_interval64_add outer
+          (EL colindex (EL rowindex hessian_rows)) of
+        | NONE => NONE
+        | SOME inside => bounded_interval64_mul_decimal derivative inside
+End
+
+Theorem registered_case10173_fs_hist_sqrt_hessian_entry_rows_typed_eval:
+  rowindex < 6 /\
+  colindex < 6 /\
+  LENGTH gradient = 6 /\
+  LENGTH hessian_rows = 6 /\
+  EVERY (\row. LENGTH row = 6) hessian_rows /\
+  registered_case10173_sqrt_hessian_entry_rows_decimal derivative
+      logarithmic_derivative gradient hessian_rows rowindex colindex =
+    SOME result /\
+  20 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_sqrt_hessian_entry»
+        [from_cv (Num rowindex);from_cv (Num colindex);
+         from_cv (bounded_interval64_object_cv derivative);
+         from_cv (bounded_interval64_object_cv logarithmic_derivative);
+         from_cv (bounded_interval64_object_cv_list gradient);
+         from_cv (bounded_interval64_object_cv_matrix hessian_rows)])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv result)),refs)
+Proof
+  rw [registered_case10173_sqrt_hessian_entry_rows_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         registered_case10173_fs_hist_sqrt_hessian_entry_typed_eval)
+  >> simp []
+  >> gvs [EVERY_EL]
+QED
+
+Definition registered_case10173_sqrt_hessian_symmetric_entry_rows_decimal_def:
+  registered_case10173_sqrt_hessian_symmetric_entry_rows_decimal derivative
+      logarithmic_derivative gradient hessian_rows rowindex colindex =
+    if colindex < rowindex then
+      registered_case10173_sqrt_hessian_entry_rows_decimal derivative
+        logarithmic_derivative gradient hessian_rows colindex rowindex
+    else
+      registered_case10173_sqrt_hessian_entry_rows_decimal derivative
+        logarithmic_derivative gradient hessian_rows rowindex colindex
+End
+
+Definition registered_case10173_fs_hist_sqrt_hessian_symmetric_entry_body_def:
+  registered_case10173_fs_hist_sqrt_hessian_symmetric_entry_body =
+    If (Binop Less (Var «colindex») (Var «rowindex»))
+      (App «candle_cv_fs_hist_sqrt_hessian_entry»
+        [Var «colindex»;Var «rowindex»;Var «derivative_value»;
+         Var «logarithmic_derivative»;Var «input_gradient»;
+         Var «input_hessian»])
+      (App «candle_cv_fs_hist_sqrt_hessian_entry»
+        [Var «rowindex»;Var «colindex»;Var «derivative_value»;
+         Var «logarithmic_derivative»;Var «input_gradient»;
+         Var «input_hessian»])
+End
+
+Theorem registered_case10173_fs_hist_sqrt_hessian_symmetric_entry_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_hist_sqrt_hessian_symmetric_entry» =
+    SOME
+      ([«rowindex»;«colindex»;«derivative_value»;
+        «logarithmic_derivative»;«input_gradient»;«input_hessian»],
+       registered_case10173_fs_hist_sqrt_hessian_symmetric_entry_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_hist_sqrt_hessian_symmetric_entry_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_sqrt_hessian_symmetric_entry»
+        [from_cv rowindex;from_cv colindex;from_cv derivative_value;
+         from_cv logarithmic_derivative;from_cv input_gradient;
+         from_cv input_hessian]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst
+        [(«rowindex»,from_cv rowindex);
+         («colindex»,from_cv colindex);
+         («derivative_value»,from_cv derivative_value);
+         («logarithmic_derivative»,from_cv logarithmic_derivative);
+         («input_gradient»,from_cv input_gradient);
+         («input_hessian»,from_cv input_hessian)]
+        registered_case10173_fs_hist_sqrt_hessian_symmetric_entry_body) refs
+Proof
+  Cases_on `clock`
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        registered_case10173_fs_hist_sqrt_hessian_symmetric_entry_lookup,
+        compute_evalTheory.compute_eval_def,
+        compute_evalTheory.subst_def,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem registered_case10173_fs_hist_sqrt_hessian_symmetric_entry_typed_eval:
+  rowindex < 6 /\
+  colindex < 6 /\
+  LENGTH gradient = 6 /\
+  LENGTH hessian_rows = 6 /\
+  EVERY (\row. LENGTH row = 6) hessian_rows /\
+  registered_case10173_sqrt_hessian_symmetric_entry_rows_decimal derivative
+      logarithmic_derivative gradient hessian_rows rowindex colindex =
+    SOME result /\
+  21 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_sqrt_hessian_symmetric_entry»
+        [from_cv (Num rowindex);from_cv (Num colindex);
+         from_cv (bounded_interval64_object_cv derivative);
+         from_cv (bounded_interval64_object_cv logarithmic_derivative);
+         from_cv (bounded_interval64_object_cv_list gradient);
+         from_cv (bounded_interval64_object_cv_matrix hessian_rows)])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv result)),refs)
+Proof
+  rpt strip_tac
+  >> simp [registered_case10173_fs_hist_sqrt_hessian_symmetric_entry_unfold]
+  >> simp
+       [registered_case10173_fs_hist_sqrt_hessian_symmetric_entry_body_def,
+        compute_evalTheory.subst_def]
+  >> Cases_on `colindex < rowindex`
+  >- (`compute_eval (clock - 1)
+          registered_case10173_historical_chunk16_ceqs
+          (Binop Less (Num colindex) (Num rowindex)) refs =
+        (M_success (Num 1),refs)` by
+       simp
+         [compute_evalTheory.compute_eval_def,
+          compute_evalTheory.do_binop_def,
+          compute_evalTheory.do_reln_def,
+          ml_monadBaseTheory.st_ex_bind_def,
+          ml_monadBaseTheory.st_ex_return_def]
+      >> simp
+           [compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_if_success]
+      >> irule
+           (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+             registered_case10173_fs_hist_sqrt_hessian_entry_rows_typed_eval)
+      >> fs
+           [registered_case10173_sqrt_hessian_symmetric_entry_rows_decimal_def]
+      )
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (Binop Less (Num colindex) (Num rowindex)) refs =
+      (M_success (Num 0),refs)` by
+     simp
+       [compute_evalTheory.compute_eval_def,
+        compute_evalTheory.do_binop_def,
+        compute_evalTheory.do_reln_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp
+       [compute_registeredCase10173HistStepEvalTheory.registered_case10173_compute_eval_if_zero]
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         registered_case10173_fs_hist_sqrt_hessian_entry_rows_typed_eval)
+  >> fs
+       [registered_case10173_sqrt_hessian_symmetric_entry_rows_decimal_def]
+QED
+
 val _ = export_theory ();
