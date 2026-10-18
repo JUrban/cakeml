@@ -12,6 +12,7 @@ Ancestors
   compute_registeredCase10173HistoricalFirstOrderGeneralEval
   compute_registeredCase10173HistoricalSecondOrderGeneralEval
   compute_registeredCase10173HistItemCompleteObjectEval
+  compute_registeredCase10173RadiusBinding
   compute_boundedCase10173PackedDecimalBatch
 Libs
   bossLib preamble intLib
@@ -200,6 +201,65 @@ Proof
          compute_registeredCase10173HistoricalSecondOrderGeneralEvalTheory.registered_case10173_historical_second_order_general_eval)
   >> conj_tac
   >- intLib.ARITH_TAC
+  >> metis_tac []
+QED
+
+Theorem registered_case10173_historical_item_packet_accessor_eval:
+  bounded_packed_chars_case10173_decimal_packet_ok packet /\
+  bounded_object_positive_q_interval64_decimal_list center_boxes =
+      SOME (bounded_case10173_packet_center_environment packet) /\
+  bounded_object_positive_q_interval64_decimal_list boxes =
+      SOME (bounded_case10173_packet_box_environment packet) /\
+  30000 < clock ==>
+  ?result.
+    compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_case10173_hist_item»
+        [from_cv center_boxes;from_cv boxes;
+         from_cv
+           (registered_case10173_q_cv_list
+             (MAP
+               (\value.
+                 (bounded_word64_object_cv value,Num 999999999999))
+               (bounded_case10173_packet_radii packet)));
+         from_cv
+           (bounded_interval64_object_cv_list
+             (bounded_case10173_packet_root_intervals packet))])
+      (refs:hol_refs) =
+    (M_success (from_cv (Pair (Num 1) result)),refs)
+Proof
+  Cases_on `packet`
+  >> simp
+       [compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_packet_center_environment_def,
+        compute_boundedCase10173JobBindingTheory.bounded_case10173_packet_box_environment_def,
+        compute_registeredCase10173RadiusBindingTheory.bounded_case10173_packet_radii_def,
+        compute_boundedCase10173RootBindingTheory.bounded_case10173_packet_root_intervals_def]
+  >> rpt strip_tac
+  >> fs
+       [compute_boundedCase10173PackedDecimalBatchTheory.bounded_packed_chars_case10173_decimal_packet_ok_def]
+  >> every_case_tac
+  >> gvs []
+  >> drule
+       compute_boundedCase10173HistoricalCellDecimalTheory.bounded_case10173_checked_cell_accepts_decimal_contract
+  >> strip_tac
+  >> drule
+       compute_boundedObjectCase10173HistoricalCellDecimalTheory.bounded_case10173_checked_cell64_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac bounded_case10173_geometry_ok_lengths
+  >> subgoal `LENGTH l0 = 6`
+  >- intLib.ARITH_TAC
+  >> subgoal `LENGTH l1 = 6`
+  >- intLib.ARITH_TAC
+  >> qpat_x_assum `LENGTH l0 = LENGTH l` kall_tac
+  >> qpat_x_assum `LENGTH l1 = LENGTH l0` kall_tac
+  >> qpat_x_assum `LENGTH l1 + 0 = 6` kall_tac
+  >> gvs [listTheory.LENGTH_EQ_NUM_compute]
+  >> irule
+       (SIMP_RULE std_ss
+         [compute_execTheory.from_cv_def,
+          compute_boundedObjectTaylorCompleteDecimalTheory.bounded_word64_object_cv_as_signed64]
+         registered_case10173_historical_item_packet_eval)
+  >> simp
+       [compute_boundedCase10173PackedDecimalBatchTheory.bounded_packed_chars_case10173_decimal_packet_ok_def]
   >> metis_tac []
 QED
 
