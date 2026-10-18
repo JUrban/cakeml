@@ -753,4 +753,231 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Definition registered_case10173_b_hessian_rows_decimal_def:
+  registered_case10173_b_hessian_rows_decimal root_delta
+      two_over_root_four diagonal_reciprocal root_gradient base_rows =
+    case registered_case10173_b_hessian_row_rows_decimal root_delta
+      two_over_root_four diagonal_reciprocal root_gradient base_rows 0 of
+    | NONE => NONE
+    | SOME r0 =>
+      case registered_case10173_b_hessian_row_rows_decimal root_delta
+        two_over_root_four diagonal_reciprocal root_gradient base_rows 1 of
+      | NONE => NONE
+      | SOME r1 =>
+        case registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 2 of
+        | NONE => NONE
+        | SOME r2 =>
+          case registered_case10173_b_hessian_row_rows_decimal root_delta
+            two_over_root_four diagonal_reciprocal root_gradient base_rows 3 of
+          | NONE => NONE
+          | SOME r3 =>
+            case registered_case10173_b_hessian_row_rows_decimal root_delta
+              two_over_root_four diagonal_reciprocal root_gradient base_rows 4 of
+            | NONE => NONE
+            | SOME r4 =>
+              case registered_case10173_b_hessian_row_rows_decimal root_delta
+                two_over_root_four diagonal_reciprocal root_gradient base_rows 5 of
+              | NONE => NONE
+              | SOME r5 => SOME [r0;r1;r2;r3;r4;r5]
+End
+
+Definition registered_case10173_fs_hist_b_hessian_body_def:
+  registered_case10173_fs_hist_b_hessian_body =
+    Let «base_hessian»
+      (App «candle_cv_fs_hist_matrix_scale»
+        [Var «root_four_x0»;Var «root_delta_hessian»])
+      (App «candle_cv_fs_angle_six»
+        [App «candle_cv_fs_hist_b_hessian_row»
+           [Num 0;Var «base_hessian»;Var «root_delta_value»;
+            Var «root_delta_gradient»;Var «two_over_root_four_x0»;Var «x0»];
+         App «candle_cv_fs_hist_b_hessian_row»
+           [Num 1;Var «base_hessian»;Var «root_delta_value»;
+            Var «root_delta_gradient»;Var «two_over_root_four_x0»;Var «x0»];
+         App «candle_cv_fs_hist_b_hessian_row»
+           [Num 2;Var «base_hessian»;Var «root_delta_value»;
+            Var «root_delta_gradient»;Var «two_over_root_four_x0»;Var «x0»];
+         App «candle_cv_fs_hist_b_hessian_row»
+           [Num 3;Var «base_hessian»;Var «root_delta_value»;
+            Var «root_delta_gradient»;Var «two_over_root_four_x0»;Var «x0»];
+         App «candle_cv_fs_hist_b_hessian_row»
+           [Num 4;Var «base_hessian»;Var «root_delta_value»;
+            Var «root_delta_gradient»;Var «two_over_root_four_x0»;Var «x0»];
+         App «candle_cv_fs_hist_b_hessian_row»
+           [Num 5;Var «base_hessian»;Var «root_delta_value»;
+            Var «root_delta_gradient»;Var «two_over_root_four_x0»;Var «x0»]])
+End
+
+Theorem registered_case10173_fs_hist_b_hessian_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fs_hist_b_hessian» =
+    SOME
+      ([«root_four_x0»;«root_delta_value»;«root_delta_gradient»;
+        «root_delta_hessian»;«two_over_root_four_x0»;«x0»],
+       registered_case10173_fs_hist_b_hessian_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fs_hist_b_hessian_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_b_hessian»
+        [from_cv root_four_x0;from_cv root_delta_value;
+         from_cv root_delta_gradient;from_cv root_delta_hessian;
+         from_cv two_over_root_four_x0;from_cv x0]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst
+        [(«root_four_x0»,from_cv root_four_x0);
+         («root_delta_value»,from_cv root_delta_value);
+         («root_delta_gradient»,from_cv root_delta_gradient);
+         («root_delta_hessian»,from_cv root_delta_hessian);
+         («two_over_root_four_x0»,from_cv two_over_root_four_x0);
+         («x0»,from_cv x0)]
+        registered_case10173_fs_hist_b_hessian_body) refs
+Proof
+  Cases_on `clock`
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        registered_case10173_fs_hist_b_hessian_lookup,
+        compute_evalTheory.compute_eval_def,
+        compute_evalTheory.subst_def,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem registered_case10173_fs_hist_b_hessian_typed_eval:
+  LENGTH root_gradient = 6 /\
+  LENGTH root_hessian_rows = 6 /\
+  EVERY (\row. LENGTH row = 6) root_hessian_rows /\
+  bounded_interval64_matrix_scale_decimal root_four root_hessian_rows =
+    SOME base_rows /\
+  LENGTH base_rows = 6 /\
+  EVERY (\row. LENGTH row = 6) base_rows /\
+  bounded_historical_scale2 x0 = SOME twice_x0 /\
+  bounded_interval64_positive_inv_certificate_decimal twice_x0
+    diagonal_reciprocal /\
+  registered_case10173_b_hessian_rows_decimal root_delta
+    two_over_root_four diagonal_reciprocal root_gradient base_rows =
+    SOME result_rows /\
+  SUM (MAP LENGTH root_hessian_rows) + LENGTH root_hessian_rows + 12 <
+    clock - 1 /\
+  64 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_b_hessian»
+        [from_cv (bounded_interval64_object_cv root_four);
+         from_cv (bounded_interval64_object_cv root_delta);
+         from_cv (bounded_interval64_object_cv_list root_gradient);
+         from_cv
+           (bounded_interval64_object_cv_matrix root_hessian_rows);
+         from_cv (bounded_interval64_object_cv two_over_root_four);
+         from_cv (bounded_interval64_object_cv x0)])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv (bounded_interval64_object_cv_matrix result_rows)),refs)
+Proof
+  rpt strip_tac
+  >> simp [registered_case10173_fs_hist_b_hessian_unfold]
+  >> simp
+       [registered_case10173_fs_hist_b_hessian_body_def,
+        compute_evalTheory.subst_def]
+  >> irule
+       compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_let_success_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac
+       `from_cv (bounded_interval64_object_cv_matrix base_rows)`
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173HistoricalSecondOrderMatrixScaleEvalTheory.registered_case10173_fs_hist_matrix_scale_typed_eval
+      >> simp [])
+  >> simp
+       [compute_evalTheory.subst_def,
+        compute_execProofTheory.subst_from_cv]
+  >> Cases_on
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 0`
+  >> gvs [registered_case10173_b_hessian_rows_decimal_def]
+  >> Cases_on
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 1`
+  >> gvs []
+  >> Cases_on
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 2`
+  >> gvs []
+  >> Cases_on
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 3`
+  >> gvs []
+  >> Cases_on
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 4`
+  >> gvs []
+  >> Cases_on
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 5`
+  >> gvs []
+  >> rename1
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 0 =
+        SOME r0`
+  >> rename1
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 1 =
+        SOME r1`
+  >> rename1
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 2 =
+        SOME r2`
+  >> rename1
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 3 =
+        SOME r3`
+  >> rename1
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 4 =
+        SOME r4`
+  >> rename1
+       `registered_case10173_b_hessian_row_rows_decimal root_delta
+          two_over_root_four diagonal_reciprocal root_gradient base_rows 5 =
+        SOME r5`
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval (clock - 2)
+          registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_fs_angle_six»
+            [from_cv (bounded_interval64_object_cv_list r0);
+             from_cv (bounded_interval64_object_cv_list r1);
+             from_cv (bounded_interval64_object_cv_list r2);
+             from_cv (bounded_interval64_object_cv_list r3);
+             from_cv (bounded_interval64_object_cv_list r4);
+             from_cv (bounded_interval64_object_cv_list r5)]) refs`
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173HistoricalCombinatorEvalTheory.registered_case10173_compute_eval_app6_argument_results
+      >> simp []
+      >> rpt conj_tac
+      >> irule
+           (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+             registered_case10173_fs_hist_b_hessian_row_typed_eval)
+      >> simp []
+      >> qexists_tac `diagonal_reciprocal`
+      >> simp []
+      >> intLib.ARITH_TAC)
+  >> simp
+       [compute_boundedObjectTaylorCompleteDecimalTheory.bounded_interval64_object_cv_matrix_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def]
+  >> irule
+       (SIMP_RULE std_ss
+         [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def,
+          compute_execTheory.from_cv_def]
+         compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_fs_angle_six_eval)
+  >> intLib.ARITH_TAC
+QED
+
 val _ = export_theory ();
