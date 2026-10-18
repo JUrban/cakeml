@@ -980,4 +980,38 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem registered_case10173_source_radii_complete_eval:
+  bounded_case10173_source_radii64_positive_q boxes = SOME radii /\
+  LENGTH radii + 40 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_q_fixed_list_round_upper»
+        [App «candle_cv_q_radius_list» [from_cv boxes]])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (registered_case10173_q_cv_list
+          (MAP
+            (\radius.
+              (bounded_word64_object_cv radius,
+               Num 999999999999))
+            radii))),refs)
+Proof
+  strip_tac
+  >> `compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_q_fixed_list_round_upper»
+          [App «candle_cv_q_radius_list» [from_cv boxes]]) refs =
+      compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_q_fixed_list_round_upper»
+          [from_cv
+            (registered_case10173_q_cv_list
+              (registered_case10173_source_radius_q_list boxes))]) refs` by
+       (irule
+          compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+        >> simp [registered_case10173_q_radius_list_source_eval]
+        >> intLib.ARITH_TAC)
+  >> pop_assum SUBST1_TAC
+  >> irule registered_case10173_q_fixed_list_round_upper_source_eval
+  >> simp []
+QED
+
 val _ = export_theory ();
