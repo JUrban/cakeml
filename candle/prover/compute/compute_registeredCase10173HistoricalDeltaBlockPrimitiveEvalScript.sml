@@ -8,6 +8,8 @@ Ancestors
 Libs
   bossLib preamble intLib
 
+val _ = monadsyntax.temp_enable_monad "option";
+
 Definition registered_case10173_fs_hist_round_scale_body_def:
   registered_case10173_fs_hist_round_scale_body =
     App «candle_cv_fs_raw_interval_round»
@@ -437,6 +439,397 @@ Proof
   >> irule registered_case10173_fs_round_scale_squared_result_eval
   >> simp []
   >> intLib.ARITH_TAC
+QED
+
+Definition registered_case10173_fs_hist_delta_value_block_object_def:
+  registered_case10173_fs_hist_delta_value_block_object environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+      do
+        negative_x0 <- bounded_object_fs_interval_neg x0;
+        negative_x3 <- bounded_object_fs_interval_neg x3;
+        l0 <- registered_case10173_fs_interval_sum_object
+          [negative_x0;x1;x2;negative_x3;x4;x5];
+        negative_x1 <- bounded_object_fs_interval_neg x1;
+        negative_x4 <- bounded_object_fs_interval_neg x4;
+        l1 <- registered_case10173_fs_interval_sum_object
+          [x0;negative_x1;x2;x3;negative_x4;x5];
+        negative_x2 <- bounded_object_fs_interval_neg x2;
+        negative_x5 <- bounded_object_fs_interval_neg x5;
+        l2 <- registered_case10173_fs_interval_sum_object
+          [x0;x1;negative_x2;x3;x4;negative_x5];
+        p03 <- bounded_object_fs_raw_interval_mul x0 x3;
+        t0 <- bounded_object_fs_raw_interval_mul p03 l0;
+        p14 <- bounded_object_fs_raw_interval_mul x1 x4;
+        t1 <- bounded_object_fs_raw_interval_mul p14 l1;
+        p25 <- bounded_object_fs_raw_interval_mul x2 x5;
+        t2 <- bounded_object_fs_raw_interval_mul p25 l2;
+        p12 <- bounded_object_fs_raw_interval_mul x1 x2;
+        t3 <- bounded_object_fs_raw_interval_mul p12 x3;
+        negative_t3 <- bounded_object_fs_interval_neg t3;
+        p02 <- bounded_object_fs_raw_interval_mul x0 x2;
+        t4 <- bounded_object_fs_raw_interval_mul p02 x4;
+        negative_t4 <- bounded_object_fs_interval_neg t4;
+        p01 <- bounded_object_fs_raw_interval_mul x0 x1;
+        t5 <- bounded_object_fs_raw_interval_mul p01 x5;
+        negative_t5 <- bounded_object_fs_interval_neg t5;
+        p34 <- bounded_object_fs_raw_interval_mul x3 x4;
+        t6 <- bounded_object_fs_raw_interval_mul p34 x5;
+        negative_t6 <- bounded_object_fs_interval_neg t6;
+        raw <- registered_case10173_fs_interval_sum_object
+          [t0;t1;t2;negative_t3;negative_t4;negative_t5;negative_t6];
+        bounded_object_fs_raw_interval_round
+          1000000000000000000000000 raw
+      od
+    | _ => NONE
+End
+
+Theorem registered_case10173_fs_hist_delta_value_block_object_eval:
+  registered_case10173_fs_hist_delta_value_block_object environment =
+      SOME result /\
+  60 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_value_block»
+        [from_cv (registered_case10173_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> fs [registered_case10173_fs_hist_delta_value_block_object_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule registered_case10173_fs_hist_delta_value_block_trace_eval
+  >> simp []
+QED
+
+Definition registered_case10173_signed192_interval_ints_sum_def:
+  registered_case10173_signed192_interval_ints_sum
+      ([]:(bounded_signed192 # bounded_signed192) list) = (0:int,0:int) /\
+  registered_case10173_signed192_interval_ints_sum
+      ((lower,upper)::values) =
+    let rest = registered_case10173_signed192_interval_ints_sum values in
+      (bounded_signed192_to_int lower + FST rest,
+       bounded_signed192_to_int upper + SND rest)
+End
+
+Theorem registered_case10173_signed192_interval_sum_aux_endpoint_values:
+  !values lower upper result_lower result_upper.
+    bounded_signed192_interval_sum_aux values lower upper =
+      SOME (result_lower,result_upper) ==>
+    bounded_signed192_to_int result_lower =
+      bounded_signed192_to_int lower +
+        FST (registered_case10173_signed192_interval_ints_sum values) /\
+    bounded_signed192_to_int result_upper =
+      bounded_signed192_to_int upper +
+        SND (registered_case10173_signed192_interval_ints_sum values)
+Proof
+  Induct_on `values`
+  >- simp
+       [compute_boundedHistoricalDeltaTheory.bounded_signed192_interval_sum_aux_def,
+        registered_case10173_signed192_interval_ints_sum_def]
+  >> rpt gen_tac
+  >> PairCases_on `h`
+  >> rw
+       [compute_boundedHistoricalDeltaTheory.bounded_signed192_interval_sum_aux_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac compute_boundedWideSignedTheory.bounded_signed192_add_value
+  >> res_tac
+  >> fs [registered_case10173_signed192_interval_ints_sum_def,LET_THM]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem registered_case10173_signed192_interval_sum_endpoint_values:
+  bounded_signed192_interval_sum values = SOME (result_lower,result_upper) ==>
+  bounded_signed192_to_int result_lower =
+    FST (registered_case10173_signed192_interval_ints_sum values) /\
+  bounded_signed192_to_int result_upper =
+    SND (registered_case10173_signed192_interval_ints_sum values)
+Proof
+  rw [compute_boundedHistoricalDeltaTheory.bounded_signed192_interval_sum_def]
+  >> imp_res_tac
+       registered_case10173_signed192_interval_sum_aux_endpoint_values
+  >> fs
+       [compute_boundedWideSignedTheory.bounded_signed192_make_value,
+        compute_boundedWideTheory.bounded192_zero_def,
+        compute_boundedTheory.bounded192_to_num_def]
+QED
+
+Definition registered_case10173_raw_interval_list_rel_def:
+  registered_case10173_raw_interval_list_rel objects sources <=>
+    LIST_REL
+      (\object source.
+        bounded_object_interval_ints object =
+          SOME
+            (bounded_signed192_to_int (FST source),
+             bounded_signed192_to_int (SND source)))
+      objects sources
+End
+
+Theorem registered_case10173_raw_interval_cv_list_rel_decode:
+  !object_values source_values.
+    bounded_object_raw_interval_cv_list_rel object_values source_values ==>
+    ?objects.
+      object_values = registered_case10173_cv_list objects /\
+      registered_case10173_raw_interval_list_rel objects source_values
+Proof
+  Induct_on `source_values`
+  >- (gen_tac
+      >> Cases_on `object_values`
+      >- (Cases_on `n`
+          >> simp
+               [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_raw_interval_cv_list_rel_def,
+                compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def,
+                registered_case10173_raw_interval_list_rel_def])
+      >> Cases_on `c`
+      >> simp
+           [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_raw_interval_cv_list_rel_def])
+  >> rpt gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `object_values`
+  >- (Cases_on `n`
+      >> simp
+           [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_raw_interval_cv_list_rel_def])
+  >> Cases_on `c`
+  >- simp
+       [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_raw_interval_cv_list_rel_def]
+  >> rw
+       [compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_raw_interval_cv_list_rel_def]
+  >> res_tac
+  >> qexists_tac `Pair c' c0'::objects`
+  >> simp
+       [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def,
+        registered_case10173_raw_interval_list_rel_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def,
+        LIST_REL_def]
+  >> fs [registered_case10173_raw_interval_list_rel_def]
+QED
+
+Theorem registered_case10173_raw_interval_list_ints_sum:
+  !objects sources.
+    registered_case10173_raw_interval_list_rel objects sources ==>
+    compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_interval_ints_sum
+      objects =
+      SOME (registered_case10173_signed192_interval_ints_sum sources)
+Proof
+  Induct_on `objects`
+  >> Cases_on `sources`
+  >> simp
+       [registered_case10173_raw_interval_list_rel_def,LIST_REL_def,
+        compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_interval_ints_sum_def,
+        registered_case10173_signed192_interval_ints_sum_def,LET_THM]
+  >> rpt strip_tac
+  >> qpat_x_assum `!sources. _` (mp_tac o Q.SPEC `t`)
+  >> simp [registered_case10173_raw_interval_list_rel_def]
+  >> strip_tac
+  >> Cases_on `registered_case10173_signed192_interval_ints_sum t`
+  >> PairCases_on `h`
+  >> simp [registered_case10173_signed192_interval_ints_sum_def,LET_THM]
+QED
+
+Theorem registered_case10173_raw_interval_sum_bridge:
+  bounded_object_raw_interval_cv_list_rel object_values source_values /\
+  bounded_signed192_interval_sum source_values =
+    SOME (result_lower,result_upper) ==>
+  ?objects result.
+    object_values = registered_case10173_cv_list objects /\
+    registered_case10173_fs_interval_sum_object objects = SOME result /\
+    bounded_object_interval_ints result =
+      SOME
+        (bounded_signed192_to_int result_lower,
+         bounded_signed192_to_int result_upper)
+Proof
+  strip_tac
+  >> imp_res_tac registered_case10173_raw_interval_cv_list_rel_decode
+  >> imp_res_tac registered_case10173_raw_interval_list_ints_sum
+  >> imp_res_tac registered_case10173_signed192_interval_sum_endpoint_values
+  >> mp_tac
+       (Q.SPECL
+         [`FST (registered_case10173_signed192_interval_ints_sum source_values)`,
+          `SND (registered_case10173_signed192_interval_ints_sum source_values)`]
+         (Q.INST [`values` |-> `objects`]
+           compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_interval_sum_object_signed_values))
+  >> simp []
+  >> metis_tac []
+QED
+
+Theorem registered_case10173_raw_interval_sum_bridge_pair:
+  bounded_object_raw_interval_cv_list_rel object_values source_values /\
+  bounded_signed192_interval_sum source_values = SOME source_result ==>
+  ?objects result.
+    object_values = registered_case10173_cv_list objects /\
+    registered_case10173_fs_interval_sum_object objects = SOME result /\
+    bounded_object_interval_ints result =
+      SOME
+        (bounded_signed192_to_int (FST source_result),
+         bounded_signed192_to_int (SND source_result))
+Proof
+  strip_tac
+  >> PairCases_on `source_result`
+  >> simp []
+  >> metis_tac [registered_case10173_raw_interval_sum_bridge]
+QED
+
+Theorem registered_case10173_raw_round_source_endpoint_exact:
+  bounded_historical_raw_round_decimal source_raw = SOME result /\
+  bounded_object_interval_ints object_raw =
+    SOME
+      (bounded_signed192_to_int (FST source_raw),
+       bounded_signed192_to_int (SND source_raw)) ==>
+  bounded_object_fs_raw_interval_round 1000000000000000000000000
+      object_raw =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> PairCases_on `source_raw`
+  >> Cases_on `object_raw`
+  >> gvs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_interval_ints_def]
+  >> rw
+       [GSYM
+          compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_historical_raw_round_decimal_def]
+  >> irule
+       compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_historical_raw_round_decimal_exact
+  >> qexistsl_tac [`source_raw0`,`source_raw1`]
+  >> simp []
+QED
+
+Theorem registered_case10173_fs_interval_neg_eq_raw:
+  !raw.
+    bounded_object_fs_interval_neg raw =
+      bounded_object_fs_raw_interval_neg raw
+Proof
+  Cases_on `raw`
+  >> simp
+       [compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_neg_def,
+        compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_raw_interval_neg_def]
+QED
+
+Theorem registered_case10173_cv_list_pair_eq:
+  !head tail values.
+    Pair head tail = registered_case10173_cv_list values <=>
+    ?rest.
+      values = head::rest /\
+      tail = registered_case10173_cv_list rest
+Proof
+  rpt gen_tac
+  >> Cases_on `values`
+  >> simp
+       [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def]
+  >> metis_tac []
+QED
+
+Theorem registered_case10173_cv_list_nil_eq:
+  !values.
+    (Num 0:cv) = registered_case10173_cv_list values <=> values = []
+Proof
+  gen_tac
+  >> Cases_on `values`
+  >> simp
+       [compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def]
+QED
+
+Theorem registered_case10173_fs_hist_delta_value_block_object_six_typed_exact:
+  bounded_historical_delta64_value_six_decimal x0 x1 x2 x3 x4 x5 =
+      SOME result ==>
+  registered_case10173_fs_hist_delta_value_block_object
+    (MAP bounded_interval64_object_cv [x0;x1;x2;x3;x4;x5]) =
+      SOME (bounded_interval64_object_cv result)
+Proof
+  rw
+    [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_six_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_interval_sum_negative_zero_three_exact
+  >> imp_res_tac
+       compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_interval_sum_negative_one_four_exact
+  >> imp_res_tac
+       compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_interval_sum_negative_two_five_exact
+  >> imp_res_tac
+       compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_interval_sum_object_typed_exact
+  >> imp_res_tac
+       compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_historical_delta_raw_cubics_encoded_exact
+  >> imp_res_tac registered_case10173_raw_interval_sum_bridge_pair
+  >> imp_res_tac registered_case10173_raw_round_source_endpoint_exact
+  >> fs
+       [registered_case10173_fs_hist_delta_value_block_object_def,
+        compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_historical_raw_cubics_encoded_def,
+        compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_historical_raw_cubic_signed_encoded_def,
+        compute_boundedObjectHistoricalFirstDecimalTheory.bounded_object_fs_historical_raw_cubic_encoded_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def,
+        compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact,
+        registered_case10173_fs_interval_neg_eq_raw]
+  >> every_case_tac
+  >> gvs []
+  >> gvs
+       [registered_case10173_cv_list_pair_eq,
+        registered_case10173_cv_list_nil_eq]
+QED
+
+Theorem registered_case10173_fs_hist_delta_value_block_object_typed_exact:
+  bounded_historical_delta64_value_decimal environment = SOME result ==>
+  registered_case10173_fs_hist_delta_value_block_object
+      (MAP bounded_interval64_object_cv environment) =
+    SOME (bounded_interval64_object_cv result)
+Proof
+  Cases_on `environment`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def]
+  >> Cases_on `t`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def]
+  >> Cases_on `t'`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def]
+  >> Cases_on `t`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def]
+  >> Cases_on `t'`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def]
+  >> Cases_on `t`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def]
+  >> Cases_on `t'`
+  >> simp
+       [compute_boundedHistoricalDeltaDecimalTheory.bounded_historical_delta64_value_decimal_def]
+  >> strip_tac
+  >> irule
+       (SIMP_RULE (srw_ss()) []
+          registered_case10173_fs_hist_delta_value_block_object_six_typed_exact)
+  >> simp []
+QED
+
+Theorem registered_case10173_bounded_interval64_object_cv_list_as_registered:
+  !environment.
+    bounded_interval64_object_cv_list environment =
+      registered_case10173_cv_list
+        (MAP bounded_interval64_object_cv environment)
+Proof
+  Induct
+  >> simp
+       [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def]
+QED
+
+Theorem registered_case10173_fs_hist_delta_value_block_typed_eval:
+  bounded_historical_delta64_value_decimal environment = SOME result /\
+  60 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_delta_value_block»
+        [from_cv (bounded_interval64_object_cv_list environment)])
+      (refs:hol_refs) =
+    (M_success (from_cv (bounded_interval64_object_cv result)),refs)
+Proof
+  rpt strip_tac
+  >> rw
+       [registered_case10173_bounded_interval64_object_cv_list_as_registered]
+  >> irule registered_case10173_fs_hist_delta_value_block_object_eval
+  >> simp []
+  >> metis_tac
+       [registered_case10173_fs_hist_delta_value_block_object_typed_exact]
 QED
 
 val _ = export_theory ();
