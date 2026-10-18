@@ -8,6 +8,7 @@
 Theory compute_registeredCase10173CenterEnvironmentEval
 Ancestors
   compute_registeredCase10173QConversionEval
+  compute_registeredCase10173CenterEnvironmentObject
 Libs
   bossLib preamble
 
@@ -91,46 +92,15 @@ Definition registered_case10173_q_center_environment_list_body_def:
       (Num 0)
 End
 
-Definition registered_case10173_q_midpoint_positive_cv_def:
-  registered_case10173_q_midpoint_positive_cv
-      lower_value lower_denominator_minus_one
-      upper_value upper_denominator_minus_one =
-    let lower_denominator = lower_denominator_minus_one + 1 in
-    let upper_denominator = upper_denominator_minus_one + 1 in
-    let numerator =
-      upper_denominator * lower_value +
-      lower_denominator * upper_value in
-    let sum_denominator_minus_one =
-      lower_denominator_minus_one + upper_denominator_minus_one +
-      lower_denominator_minus_one * upper_denominator_minus_one in
-    Pair (Pair (Num numerator) (Num 0))
-      (Num (1 + sum_denominator_minus_one +
-            sum_denominator_minus_one))
-End
+val registered_case10173_q_midpoint_positive_cv_def =
+  save_thm
+    ("registered_case10173_q_midpoint_positive_cv_def",
+     compute_registeredCase10173CenterEnvironmentObjectTheory.registered_case10173_q_midpoint_positive_cv_def);
 
-Definition registered_case10173_q_center_environment_positive_def:
-  registered_case10173_q_center_environment_positive (Num 0 : cv) =
-      SOME (Num 0) /\
-  registered_case10173_q_center_environment_positive
-      (Pair
-        (Pair
-          (Pair (Pair (Num lower_value) (Num 0))
-            (Num lower_denominator_minus_one))
-          (Pair (Pair (Num upper_value) (Num 0))
-            (Num upper_denominator_minus_one)))
-        boxes) =
-      (case registered_case10173_q_center_environment_positive boxes of
-       | NONE => NONE
-       | SOME centers =>
-           let midpoint =
-             registered_case10173_q_midpoint_positive_cv
-               lower_value lower_denominator_minus_one
-               upper_value upper_denominator_minus_one in
-           SOME (Pair (Pair midpoint midpoint) centers)) /\
-  registered_case10173_q_center_environment_positive _ = NONE
-Termination
-  wf_rel_tac `measure cv_size` >> rw []
-End
+val registered_case10173_q_center_environment_positive_def =
+  save_thm
+    ("registered_case10173_q_center_environment_positive_def",
+     compute_registeredCase10173CenterEnvironmentObjectTheory.registered_case10173_q_center_environment_positive_def);
 
 Theorem registered_case10173_lc_zadd_lookup:
   ALOOKUP registered_case10173_historical_chunk16_ceqs

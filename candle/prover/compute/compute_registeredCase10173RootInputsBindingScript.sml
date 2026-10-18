@@ -9,7 +9,7 @@
  *****************************************************************************)
 Theory compute_registeredCase10173RootInputsBinding
 Ancestors
-  compute_registeredCase10173CenterEnvironmentEval
+  compute_registeredCase10173CenterEnvironmentObject
   compute_boundedCase10173DecimalInputBinding
 Libs
   bossLib preamble wordsLib
@@ -27,11 +27,11 @@ Definition bounded_case10173_decimal_packet_center_exact_object_job_def:
     case bounded_case10173_object_job_boxes object_job of
     | NONE => F
     | SOME source_boxes =>
-        ?center_boxes.
-          registered_case10173_q_center_environment_positive source_boxes =
-            SOME center_boxes /\
-          bounded_object_positive_q_interval64_decimal_list center_boxes =
-            SOME (bounded_case10173_packet_center_environment packet)
+        (case registered_case10173_q_center_environment_positive source_boxes of
+         | NONE => F
+         | SOME center_boxes =>
+             bounded_object_positive_q_interval64_decimal_list center_boxes =
+               SOME (bounded_case10173_packet_center_environment packet))
 End
 
 Definition bounded_case10173_decimal_packet_root_inputs_exact_def:
@@ -72,8 +72,8 @@ Proof
      bounded_case10173_packet_center_environment_def,
      compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet0_source_aligned_def,
      compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet0_source_sqrt_certificates_def,
-     registered_case10173_q_center_environment_positive_def,
-     registered_case10173_q_midpoint_positive_cv_def,
+     compute_registeredCase10173CenterEnvironmentObjectTheory.registered_case10173_q_center_environment_positive_def,
+     compute_registeredCase10173CenterEnvironmentObjectTheory.registered_case10173_q_midpoint_positive_cv_def,
      compute_boundedObjectDecimalQTheory.bounded_object_positive_q_interval64_decimal_list_def,
      compute_boundedObjectDecimalQTheory.bounded_object_positive_q_interval64_decimal_def,
      compute_boundedObjectDecimalQTheory.bounded_object_positive_q_floor64_decimal_def,

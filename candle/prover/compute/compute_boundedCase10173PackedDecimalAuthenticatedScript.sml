@@ -3,16 +3,16 @@
  *
  * Every accepted packet consumes exactly one source job and one historical
  * root record.  In addition to numerical acceptance, the packet box covers
- * the source box, its six coordinate-root intervals are the canonical
- * decimal conversion of the source job's first six roots, and its four
- * historical roots decode exactly to the supplied root record.  Missing,
- * extra, malformed, reordered, or independently substituted inputs fail
- * closed.
+ * the source box, its center is the canonical midpoint environment of that
+ * source box, its six coordinate-root intervals are the canonical decimal
+ * conversion of the source job's first six roots, and its four historical
+ * roots decode exactly to the supplied root record.  Missing, extra,
+ * malformed, reordered, or independently substituted inputs fail closed.
  *****************************************************************************)
 Theory compute_boundedCase10173PackedDecimalAuthenticated
 Ancestors
   compute_boundedCase10173PackedDecimalJobBinding
-  compute_boundedCase10173DecimalInputBinding
+  compute_registeredCase10173RootInputsBinding
 Libs
   bossLib preamble
 
@@ -38,7 +38,7 @@ Definition bounded_packed_chars_case10173_decimal_authenticated_packets_def:
         if bounded_packed_chars_case10173_decimal_packet_ok packet /\
            bounded_case10173_decimal_packet_box_binds_object_job
              packet object_job /\
-           bounded_case10173_decimal_packet_exact_input_binding
+           bounded_case10173_decimal_packet_root_inputs_exact
              packet object_job root_record
         then bounded_packed_chars_case10173_decimal_authenticated_packets
           remaining rest object_jobs root_records (SUC count)
@@ -130,7 +130,7 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_step:
     bounded_packed_chars_case10173_decimal_packet_ok packet /\
     bounded_case10173_decimal_packet_box_binds_object_job
       packet object_job /\
-    bounded_case10173_decimal_packet_exact_input_binding
+    bounded_case10173_decimal_packet_root_inputs_exact
       packet object_job root_record /\
     bounded_packed_chars_case10173_decimal_authenticated_packets
       remaining rest object_jobs root_records (SUC current_count) =
@@ -151,8 +151,8 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_head_object_contrac
   bounded_packed_chars_case10173_decimal_authenticated_packets
       (SUC remaining) bytes (Pair object_job object_jobs)
       (Pair root_record root_records) current_count = SOME result ==>
-  ?packet rest source_boxes center_roots box_roots center_extra box_extra
-     box_sqrt_data center_sqrt_data.
+  ?packet rest source_boxes center_boxes center_roots box_roots
+     center_extra box_extra box_sqrt_data center_sqrt_data.
     bounded_packed_chars_case10173_packet bytes = SOME (packet,rest) /\
     bounded_packed_chars_case10173_decimal_packet_object_ok packet /\
     bounded_case10173_object_job_boxes object_job = SOME source_boxes /\
@@ -160,6 +160,10 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_head_object_contrac
       (bounded_case10173_packet_box_environment packet) source_boxes /\
     bounded_object_positive_q_interval64_decimal_list source_boxes =
       SOME (bounded_case10173_packet_box_environment packet) /\
+    registered_case10173_q_center_environment_positive source_boxes =
+      SOME center_boxes /\
+    bounded_object_positive_q_interval64_decimal_list center_boxes =
+      SOME (bounded_case10173_packet_center_environment packet) /\
     object_job = Pair box_sqrt_data (Pair center_sqrt_data source_boxes) /\
     bounded_case10173_decimal_packet_sqrt_roots packet =
       (center_roots,box_roots) /\
@@ -180,7 +184,8 @@ Proof
        compute_boundedCase10173PackedDecimalBatchTheory.bounded_packed_chars_case10173_decimal_packet_ok_object_sound
   >> strip_tac
   >> fs
-       [compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_exact_input_binding_def,
+       [compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_decimal_packet_root_inputs_exact_def,
+        compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_exact_input_binding_def,
         compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_exact_auxiliary_binding_def]
   >> drule
        compute_boundedCase10173HistoricalCellDecimalBoundaryTheory.bounded_case10173_decimal_packet_box_binds_object_job_components
@@ -193,6 +198,9 @@ Proof
   >> strip_tac
   >> drule
        compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_root_binding_exact_cv
+  >> strip_tac
+  >> drule
+       compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_decimal_packet_center_exact_components
   >> strip_tac
   >> gvs
        [compute_boundedCase10173JobBindingTheory.bounded_case10173_object_job_boxes_def]

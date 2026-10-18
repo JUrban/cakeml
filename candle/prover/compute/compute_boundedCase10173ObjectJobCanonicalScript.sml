@@ -216,6 +216,8 @@ Proof
         bounded_object_fso_variable_jobs_canonical_def]
   >> every_case_tac
   >> gvs []
+  >> fs
+       [compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_decimal_packet_root_inputs_exact_def]
   >> imp_res_tac
        bounded_case10173_decimal_packet_exact_input_job_canonical
   >> res_tac

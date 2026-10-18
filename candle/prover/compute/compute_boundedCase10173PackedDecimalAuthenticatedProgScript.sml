@@ -159,6 +159,16 @@ val _ = translate
   compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_box_exact_object_job_def;
 val _ = translate
   compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_exact_input_binding_def;
+val _ = translate
+  compute_registeredCase10173CenterEnvironmentObjectTheory.registered_case10173_q_midpoint_positive_cv_def;
+val _ = translate
+  compute_registeredCase10173CenterEnvironmentObjectTheory.registered_case10173_q_center_environment_positive_def;
+val _ = translate
+  compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_packet_center_environment_def;
+val _ = translate
+  compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_decimal_packet_center_exact_object_job_def;
+val _ = translate
+  compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_decimal_packet_root_inputs_exact_def;
 
 val _ = translate
   compute_boundedCase10173PackedDecimalAuthenticatedTheory.bounded_packed_chars_case10173_decimal_authenticated_packets_def;
