@@ -643,4 +643,64 @@ Proof
         compute_boundedObjectDecimalAddTheory.bounded_object_fs_interval_neg_object_cv_exact]
 QED
 
+Theorem registered_case10173_historical_u126_object_typed_exact:
+  bounded_historical_u126_decimal [x0;x1;x2;x3;x4;x5] =
+      SOME (value,gradient) ==>
+  registered_case10173_fs_hist_u126_object
+      (bounded_interval64_object_cv x0)
+      (bounded_interval64_object_cv x1)
+      (bounded_interval64_object_cv x2)
+      (bounded_interval64_object_cv x3)
+      (bounded_interval64_object_cv x4)
+      (bounded_interval64_object_cv x5) =
+    SOME
+      (Pair (bounded_interval64_object_cv value)
+        (bounded_interval64_object_cv_list gradient))
+Proof
+  rw
+    [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_u126_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac registered_case10173_historical_u_three_object_typed_exact
+  >> fs
+       [compute_registeredCase10173HistoricalUObjectEmbeddingEvalTheory.registered_case10173_fs_hist_u126_object_def,
+        compute_registeredCase10173HistoricalUObjectEmbeddingEvalTheory.registered_case10173_fs_hist_u126_embed_local_object_def,
+        compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_interval_zero_cv_def,
+        compute_boundedIntervalListTheory.bounded_interval64_zero_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def]
+QED
+
+Theorem registered_case10173_historical_u135_object_typed_exact:
+  bounded_historical_u135_decimal [x0;x1;x2;x3;x4;x5] =
+      SOME (value,gradient) ==>
+  registered_case10173_fs_hist_u135_object
+      (bounded_interval64_object_cv x0)
+      (bounded_interval64_object_cv x1)
+      (bounded_interval64_object_cv x2)
+      (bounded_interval64_object_cv x3)
+      (bounded_interval64_object_cv x4)
+      (bounded_interval64_object_cv x5) =
+    SOME
+      (Pair (bounded_interval64_object_cv value)
+        (bounded_interval64_object_cv_list gradient))
+Proof
+  rw
+    [compute_boundedHistoricalDihedralFirstDecimalTheory.bounded_historical_u135_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac registered_case10173_historical_u_three_object_typed_exact
+  >> fs
+       [compute_registeredCase10173HistoricalUObjectEmbeddingEvalTheory.registered_case10173_fs_hist_u135_object_def,
+        compute_registeredCase10173HistoricalUObjectEmbeddingEvalTheory.registered_case10173_fs_hist_u135_embed_local_object_def,
+        compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_cv_list_def,
+        compute_registeredCase10173HistoricalListEvalTheory.registered_case10173_interval_zero_cv_def,
+        compute_boundedIntervalListTheory.bounded_interval64_zero_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_interval64_object_cv_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def]
+QED
+
 val _ = export_theory ();
