@@ -496,6 +496,86 @@ Proof
   >> asm_rewrite_tac []
 QED
 
+Theorem registered_case10173_q_fixed_round_upper_source_radius_eval:
+  bounded_case10173_source_radius64_positive_q interval = SOME radius /\
+  30 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_q_fixed_round_upper»
+        [from_cv
+          (Pair
+            (FST (registered_case10173_source_radius_q interval))
+            (SND (registered_case10173_source_radius_q interval)))])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair
+          (bounded_word64_object_cv radius)
+          (Num 999999999999))),refs)
+Proof
+  rpt strip_tac
+  >> imp_res_tac
+       bounded_case10173_source_radius64_positive_q_components
+  >> gvs [registered_case10173_source_radius_q_def]
+  >> `2 *
+        (lower_denominator_minus_one +
+         (upper_denominator_minus_one +
+          lower_denominator_minus_one * upper_denominator_minus_one)) + 1 =
+      1 + 2 *
+        (lower_denominator_minus_one + upper_denominator_minus_one +
+         lower_denominator_minus_one * upper_denominator_minus_one)` by
+       intLib.ARITH_TAC
+  >> qpat_x_assum
+       `2 *
+          (lower_denominator_minus_one +
+           (upper_denominator_minus_one +
+            lower_denominator_minus_one * upper_denominator_minus_one)) + 1 = _`
+       (fn th => once_rewrite_tac [th])
+  >> `compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_q_fixed_round_upper»
+          [App «candle_cv_q_radius»
+            [from_cv
+              (Pair
+                (Pair (Pair (Num lower_value) (Num 0))
+                  (Num lower_denominator_minus_one))
+                (Pair (Pair (Num upper_value) (Num 0))
+                  (Num upper_denominator_minus_one)))]]) refs =
+      compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_q_fixed_round_upper»
+          [from_cv
+            (Pair
+              (Pair
+                (Num
+                  (upper_value *
+                    (lower_denominator_minus_one + 1)))
+                (Num
+                  (lower_value *
+                    (upper_denominator_minus_one + 1))))
+              (Num
+                (1 + 2 *
+                  (lower_denominator_minus_one +
+                   upper_denominator_minus_one +
+                   lower_denominator_minus_one *
+                     upper_denominator_minus_one))))]) refs` by
+       (irule
+          compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+        >> simp [registered_case10173_q_radius_positive_eval]
+        >> intLib.ARITH_TAC)
+  >> qpat_x_assum
+       `compute_eval clock registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_q_fixed_round_upper»
+            [App «candle_cv_q_radius» _]) refs = _`
+       (fn th =>
+         once_rewrite_tac
+           [GSYM
+              (SIMP_RULE std_ss [compute_execTheory.from_cv_def] th)])
+  >> irule
+       (SIMP_RULE std_ss
+         [compute_execTheory.from_cv_def,
+          compute_boundedObjectTaylorCompleteDecimalTheory.bounded_word64_object_cv_as_signed64]
+         registered_case10173_q_radius_fixed_positive_eval)
+  >> simp []
+QED
+
 Theorem registered_case10173_q_radius_list_unfold:
   0 < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
@@ -698,6 +778,204 @@ Proof
        (fn th => once_rewrite_tac [th])
   >> qpat_x_assum
        `!clock' refs. LENGTH x' + 32 < clock' ==> _`
+       (fn th => irule th)
+  >> intLib.ARITH_TAC
+QED
+
+Theorem registered_case10173_q_fixed_list_round_upper_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_q_fixed_list_round_upper» [from_cv items])
+      (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«items»,from_cv items)]
+        registered_case10173_q_fixed_list_round_upper_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173CanonicalEvalTheory.compute_eval_literal_app1
+  >> simp [registered_case10173_radius_helper_lookups]
+QED
+
+Theorem registered_case10173_q_fixed_list_round_upper_source_eval:
+  !boxes radii clock refs.
+    bounded_case10173_source_radii64_positive_q boxes = SOME radii /\
+    LENGTH radii + 40 < clock ==>
+    compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_q_fixed_list_round_upper»
+          [from_cv
+            (registered_case10173_q_cv_list
+              (registered_case10173_source_radius_q_list boxes))])
+        (refs:hol_refs) =
+      (M_success
+        (from_cv
+          (registered_case10173_q_cv_list
+            (MAP
+              (\radius.
+                (bounded_word64_object_cv radius,
+                 Num 999999999999))
+              radii))),refs)
+Proof
+  Induct_on `boxes`
+  >- (rpt strip_tac
+      >> Cases_on `n`
+      >> rw [registered_case10173_q_fixed_list_round_upper_unfold]
+      >> gvs
+           [compute_registeredCase10173RadiusBindingTheory.bounded_case10173_source_radii64_positive_q_def,
+            registered_case10173_source_radius_q_list_def,
+            compute_registeredCase10173RadiiEvalTheory.registered_case10173_q_cv_list_def]
+      >> simp
+           [registered_case10173_q_fixed_list_round_upper_body_def,
+            compute_evalTheory.subst_def,
+            compute_execTheory.from_cv_def,
+            compute_execProofTheory.compute_eval_from_cv,
+            compute_evalTheory.compute_eval_def,
+            compute_evalTheory.do_uop_def,
+            compute_evalTheory.do_ispair_def,
+            ml_monadBaseTheory.st_ex_bind_def,
+            ml_monadBaseTheory.st_ex_return_def])
+  >> rpt strip_tac
+  >> rw [registered_case10173_q_fixed_list_round_upper_unfold]
+  >> Cases_on
+       `bounded_case10173_source_radius64_positive_q boxes`
+  >> gvs
+       [compute_registeredCase10173RadiusBindingTheory.bounded_case10173_source_radii64_positive_q_def]
+  >> Cases_on
+       `bounded_case10173_source_radii64_positive_q boxes'`
+  >> gvs
+       [compute_registeredCase10173RadiusBindingTheory.bounded_case10173_source_radii64_positive_q_def]
+  >> simp
+       [registered_case10173_q_fixed_list_round_upper_body_def,
+        compute_evalTheory.subst_def,
+        registered_case10173_source_radius_q_list_def,
+        compute_registeredCase10173RadiiEvalTheory.registered_case10173_q_cv_list_def]
+  >> once_rewrite_tac
+       [GSYM
+          (ISPEC
+            ``registered_case10173_source_radius_q boxes``
+            pairTheory.PAIR)]
+  >> simp
+       [compute_registeredCase10173RadiiEvalTheory.registered_case10173_q_cv_list_def,
+        compute_execTheory.from_cv_def]
+  >> rw
+       [SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+          (Q.INST
+            [`left` |->
+              `Pair
+                (FST (registered_case10173_source_radius_q boxes))
+                (SND (registered_case10173_source_radius_q boxes))`,
+             `right` |->
+              `registered_case10173_q_cv_list
+                (registered_case10173_source_radius_q_list boxes')`]
+            compute_registeredCase10173CanonicalListEvalTheory.compute_eval_if_ispair_from_cv_components)]
+  >> irule
+       (SIMP_RULE std_ss
+         [compute_execTheory.from_cv_def,
+          compute_boundedObjectTaylorCompleteDecimalTheory.bounded_word64_object_cv_as_signed64]
+         (Q.INST
+           [`left_result` |->
+             `Pair
+               (bounded_word64_object_cv x)
+               (Num 999999999999)`,
+            `right_result` |->
+              `registered_case10173_q_cv_list
+                (MAP
+                  (\radius.
+                    (bounded_word64_object_cv radius,
+                     Num 999999999999))
+                  x')`]
+          compute_registeredCase10173CanonicalEvalTheory.compute_eval_pair_from_results))
+  >> conj_tac
+  >- (`compute_eval (clock - 1)
+          registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_q_fixed_round_upper»
+            [Uop Fst
+              (Pair
+                (Pair
+                  (from_cv
+                    (FST (registered_case10173_source_radius_q boxes)))
+                  (from_cv
+                    (SND (registered_case10173_source_radius_q boxes))))
+                (from_cv
+                  (registered_case10173_q_cv_list
+                    (registered_case10173_source_radius_q_list boxes'))))])
+          refs =
+        compute_eval (clock - 1)
+          registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_q_fixed_round_upper»
+            [from_cv
+              (Pair
+                (FST (registered_case10173_source_radius_q boxes))
+                (SND (registered_case10173_source_radius_q boxes)))]) refs` by
+       (irule
+          compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+        >> simp
+             [SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+                (Q.INST
+                  [`left` |->
+                    `Pair
+                      (FST (registered_case10173_source_radius_q boxes))
+                      (SND (registered_case10173_source_radius_q boxes))`,
+                   `right` |->
+                    `registered_case10173_q_cv_list
+                      (registered_case10173_source_radius_q_list boxes')`]
+                  compute_registeredCase10173CanonicalEvalTheory.compute_eval_uop_fst_from_cv_components)]
+        >> intLib.ARITH_TAC)
+      >> qpat_x_assum
+           `compute_eval (clock - 1)
+              registered_case10173_historical_chunk16_ceqs
+              (App «candle_cv_q_fixed_round_upper» [Uop Fst _]) refs = _`
+           (fn th => once_rewrite_tac [th])
+      >> simp [compute_execTheory.from_cv_def]
+      >> irule
+           (SIMP_RULE std_ss
+             [compute_execTheory.from_cv_def,
+              compute_boundedObjectTaylorCompleteDecimalTheory.bounded_word64_object_cv_as_signed64]
+             registered_case10173_q_fixed_round_upper_source_radius_eval)
+      >> simp []
+      >> intLib.ARITH_TAC)
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_q_fixed_list_round_upper»
+          [Uop Snd
+            (Pair
+              (Pair
+                (from_cv
+                  (FST (registered_case10173_source_radius_q boxes)))
+                (from_cv
+                  (SND (registered_case10173_source_radius_q boxes))))
+              (from_cv
+                (registered_case10173_q_cv_list
+                  (registered_case10173_source_radius_q_list boxes'))))])
+        refs =
+      compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_q_fixed_list_round_upper»
+          [from_cv
+            (registered_case10173_q_cv_list
+              (registered_case10173_source_radius_q_list boxes'))]) refs` by
+       (irule
+          compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+        >> simp
+             [SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+                (Q.INST
+                  [`left` |->
+                    `Pair
+                      (FST (registered_case10173_source_radius_q boxes))
+                      (SND (registered_case10173_source_radius_q boxes))`,
+                   `right` |->
+                    `registered_case10173_q_cv_list
+                      (registered_case10173_source_radius_q_list boxes')`]
+                  compute_registeredCase10173CanonicalEvalTheory.compute_eval_uop_snd_from_cv_components)]
+        >> intLib.ARITH_TAC)
+  >> qpat_x_assum
+       `compute_eval (clock - 1)
+          registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_q_fixed_list_round_upper» [Uop Snd _]) refs = _`
+       (fn th => once_rewrite_tac [th])
+  >> qpat_x_assum
+       `!clock' refs. LENGTH x' + 40 < clock' ==> _`
        (fn th => irule th)
   >> intLib.ARITH_TAC
 QED
