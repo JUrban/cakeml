@@ -18,6 +18,24 @@ Ancestors
 Libs
   bossLib preamble intLib
 
+Theorem registered_case10173_root_geometry_ok_lengths:
+  !boxes centers radii count.
+    bounded_case10173_geometry_ok boxes centers radii count ==>
+    LENGTH boxes = LENGTH centers /\
+    LENGTH centers = LENGTH radii /\
+    LENGTH boxes + count = 6
+Proof
+  Induct
+  >> Cases_on `centers`
+  >> Cases_on `radii`
+  >> simp
+       [compute_boundedCase10173HistoricalCellTheory.bounded_case10173_geometry_ok_def]
+  >> rpt strip_tac
+  >> first_x_assum drule
+  >> simp []
+  >> intLib.ARITH_TAC
+QED
+
 Theorem registered_case10173_raw_scale_four_endpoint_exact:
   bounded_signed64_normalized value /\
   bounded_signed64_add value value = SOME twice /\
@@ -366,6 +384,230 @@ Proof
        [compute_execTheory.from_cv_def,
         compute_evalTheory.compute_eval_def,
         ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem registered_case10173_hist_root_list_four_object_eval:
+  bounded_interval64_positive_sqrt_certificate_decimal input0 root0 /\
+  bounded_interval64_positive_sqrt_certificate_decimal input1 root1 /\
+  bounded_interval64_positive_sqrt_certificate_decimal input2 root2 /\
+  bounded_interval64_positive_sqrt_certificate_decimal input3 root3 /\
+  300 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_hist_root_list_check»
+        [from_cv
+           (bounded_interval64_object_cv_list
+             [input0;input1;input2;input3]);
+         from_cv
+           (bounded_interval64_object_cv_list
+             [root0;root1;root2;root3])])
+      (refs:hol_refs) =
+    (M_success (Num 1),refs)
+Proof
+  rpt strip_tac
+  >> PURE_REWRITE_TAC
+       [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+  >> irule
+       compute_registeredCase10173RootRecordEvalTheory.registered_case10173_hist_root_list_check_cons_eval
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule registered_case10173_positive_root_certificate_object_eval
+      >> simp []
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_registeredCase10173RootRecordEvalTheory.registered_case10173_hist_root_list_check_cons_eval
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule registered_case10173_positive_root_certificate_object_eval
+      >> simp []
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_registeredCase10173RootRecordEvalTheory.registered_case10173_hist_root_list_check_cons_eval
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule registered_case10173_positive_root_certificate_object_eval
+      >> simp []
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_registeredCase10173RootRecordEvalTheory.registered_case10173_hist_root_list_check_cons_eval
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule registered_case10173_positive_root_certificate_object_eval
+      >> simp []
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_registeredCase10173RootRecordEvalTheory.registered_case10173_hist_root_list_check_nil_eval
+  >> intLib.ARITH_TAC
+QED
+
+Theorem registered_case10173_hist_root_record_typed_eval:
+  registered_case10173_q_center_environment_positive boxes =
+      SOME center_boxes /\
+  bounded_object_positive_q_interval64_decimal_list center_boxes =
+      SOME [cx0;cx1;cx2;cx3;cx4;cx5] /\
+  bounded_object_positive_q_interval64_decimal_list boxes =
+      SOME [bx0;bx1;bx2;bx3;bx4;bx5] /\
+  bounded_source_delta64_value_decimal [cx0;cx1;cx2;cx3;cx4;cx5] =
+      SOME center_delta /\
+  bounded_interval64_scale4 cx0 = SOME center_four_x0 /\
+  bounded_historical_delta_second_decimal [bx0;bx1;bx2;bx3;bx4;bx5] =
+      SOME (box_delta,box_gradient,box_hessian) /\
+  bounded_hessian64_rows box_hessian = SOME box_hessian_rows /\
+  bounded_interval64_scale4 bx0 = SOME box_four_x0 /\
+  bounded_interval64_positive_sqrt_certificate_decimal
+      center_delta center_root_delta /\
+  bounded_interval64_positive_sqrt_certificate_decimal
+      center_four_x0 center_root_four_x0 /\
+  bounded_interval64_positive_sqrt_certificate_decimal
+      box_delta box_root_delta /\
+  bounded_interval64_positive_sqrt_certificate_decimal
+      box_four_x0 box_root_four_x0 /\
+  1400 + 8 * (cv_size boxes + 1) < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_case10173_hist_root_record_check»
+        [from_cv boxes;
+         from_cv
+           (bounded_interval64_object_cv_list
+             [center_root_delta;center_root_four_x0;
+              box_root_delta;box_root_four_x0])])
+      (refs:hol_refs) =
+    (M_success (Num 1),refs)
+Proof
+  rpt strip_tac
+  >> irule
+       (Q.INST
+         [`inputs:cv` |->
+            `bounded_interval64_object_cv_list
+              [center_delta;center_four_x0;box_delta;box_four_x0]`,
+          `roots:cv` |->
+            `bounded_interval64_object_cv_list
+              [center_root_delta;center_root_four_x0;
+               box_root_delta;box_root_four_x0]`]
+         compute_registeredCase10173RootRecordEvalTheory.registered_case10173_hist_root_record_check_eval)
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `box_delta`
+  >> qexists_tac `box_four_x0`
+  >> qexists_tac `center_delta`
+  >> qexists_tac `center_four_x0`
+  >> conj_tac
+  >- (PURE_REWRITE_TAC
+        [compute_boundedObjectDecimalDecodeTheory.bounded_interval64_object_cv_list_def]
+      >> irule registered_case10173_hist_root_inputs_typed_eval
+      >> simp []
+      >> intLib.ARITH_TAC)
+  >> irule registered_case10173_hist_root_list_four_object_eval
+  >> simp []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem registered_case10173_hist_root_record_packet_eval:
+  bounded_packed_chars_case10173_decimal_packet_ok
+      (BoundedCase10173Packet radii
+        [x0;x1;x2;x3;x4;x5] [y0;y1;y2;y3;y4;y5]
+        coordinate_sqrt_certificates
+        center_root_delta center_root_four_x0
+        [center_root_derivative;center_root_four_reciprocal;
+         center_u_reciprocal;center_special_root_reciprocal;
+         center_b_reciprocal]
+        box_root_delta box_root_four_x0
+        [box_root_derivative;box_root_logarithmic;
+         box_root_four_reciprocal;box_diagonal_reciprocal;
+         box_u_reciprocal;box_special_root_reciprocal;
+         box_b_reciprocal;box_u126_reciprocal;box_u135_reciprocal]) /\
+  registered_case10173_q_center_environment_positive boxes =
+      SOME center_boxes /\
+  bounded_object_positive_q_interval64_decimal_list center_boxes =
+      SOME [x0;x1;x2;x3;x4;x5] /\
+  bounded_object_positive_q_interval64_decimal_list boxes =
+      SOME [y0;y1;y2;y3;y4;y5] /\
+  32000 + 8 * (cv_size boxes + 1) < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_case10173_hist_root_record_check»
+        [from_cv boxes;
+         from_cv
+           (bounded_interval64_object_cv_list
+             [center_root_delta;center_root_four_x0;
+              box_root_delta;box_root_four_x0])])
+      (refs:hol_refs) =
+    (M_success (Num 1),refs)
+Proof
+  rpt strip_tac
+  >> fs
+       [compute_boundedCase10173PackedDecimalBatchTheory.bounded_packed_chars_case10173_decimal_packet_ok_def]
+  >> every_case_tac
+  >> gvs []
+  >> drule
+       compute_boundedCase10173HistoricalCellDecimalTheory.bounded_case10173_checked_cell_accepts_decimal_contract
+  >> strip_tac
+  >> drule
+       compute_boundedObjectCase10173HistoricalCellDecimalTheory.bounded_case10173_checked_cell64_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedObjectHistoricalFirstDecimalTheory.bounded_historical_dihedral_first64_decimal_source_trace
+  >> imp_res_tac
+       compute_boundedObjectHistoricalSecondDecimalTheory.bounded_historical_dihedral_second64_decimal_source_trace
+  >> imp_res_tac
+       compute_boundedObjectHistoricalSecondDecimalTheory.bounded_historical_sqrt_second_decimal_source_trace
+  >> imp_res_tac
+       compute_boundedObjectHistoricalSecondDecimalTheory.bounded_historical_delta_second_decimal_source_trace
+  >> irule registered_case10173_hist_root_record_typed_eval
+  >> simp []
+  >> conj_tac
+  >- (qexists_tac `four_x0'`
+      >> gvs
+           [compute_boundedTaylorBaseTheory.bounded_interval64_nth_def])
+  >> qexists_tac `four_x0`
+  >> gvs [compute_boundedTaylorBaseTheory.bounded_interval64_nth_def]
+QED
+
+Theorem registered_case10173_hist_root_record_packet_accessor_eval:
+  bounded_packed_chars_case10173_decimal_packet_ok packet /\
+  registered_case10173_q_center_environment_positive boxes =
+      SOME center_boxes /\
+  bounded_object_positive_q_interval64_decimal_list center_boxes =
+      SOME (bounded_case10173_packet_center_environment packet) /\
+  bounded_object_positive_q_interval64_decimal_list boxes =
+      SOME (bounded_case10173_packet_box_environment packet) ==>
+  !clock refs.
+    32000 + 8 * (cv_size boxes + 1) < clock ==>
+    compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_case10173_hist_root_record_check»
+        [from_cv boxes;
+         from_cv
+           (bounded_interval64_object_cv_list
+             (bounded_case10173_packet_root_intervals packet))])
+      (refs:hol_refs) =
+    (M_success (Num 1),refs)
+Proof
+  Cases_on `packet`
+  >> simp
+       [compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_packet_center_environment_def,
+        compute_boundedCase10173JobBindingTheory.bounded_case10173_packet_box_environment_def,
+        compute_boundedCase10173RootBindingTheory.bounded_case10173_packet_root_intervals_def]
+  >> rpt strip_tac
+  >> fs
+       [compute_boundedCase10173PackedDecimalBatchTheory.bounded_packed_chars_case10173_decimal_packet_ok_def]
+  >> every_case_tac
+  >> gvs []
+  >> drule
+       compute_boundedCase10173HistoricalCellDecimalTheory.bounded_case10173_checked_cell_accepts_decimal_contract
+  >> strip_tac
+  >> drule
+       compute_boundedObjectCase10173HistoricalCellDecimalTheory.bounded_case10173_checked_cell64_decimal_source_trace
+  >> strip_tac
+  >> imp_res_tac
+       registered_case10173_root_geometry_ok_lengths
+  >> subgoal `LENGTH l0 = 6`
+  >- intLib.ARITH_TAC
+  >> subgoal `LENGTH l1 = 6`
+  >- intLib.ARITH_TAC
+  >> qpat_x_assum `LENGTH l0 = LENGTH l` kall_tac
+  >> qpat_x_assum `LENGTH l1 = LENGTH l0` kall_tac
+  >> qpat_x_assum `LENGTH l1 + 0 = 6` kall_tac
+  >> gvs [listTheory.LENGTH_EQ_NUM_compute]
+  >> irule registered_case10173_hist_root_record_packet_eval
+  >> simp
+       [compute_boundedCase10173PackedDecimalBatchTheory.bounded_packed_chars_case10173_decimal_packet_ok_def]
+  >> metis_tac []
 QED
 
 val _ = export_theory ();
