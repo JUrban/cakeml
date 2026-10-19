@@ -136,4 +136,86 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem registered_case10173_fso_item_mul_eval_above_from_result:
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_list_of_q» [from_cv radii]) fixed_radii /\
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_result_mul»
+        [from_cv fixed_radii;from_cv left_result;from_cv right_result])
+      result ==>
+  registered_case10173_eval_above (numeric_floor + 3)
+      (App «candle_cv_fso_item_mul»
+        [from_cv radii;
+         from_cv (Pair (Num 1) left_result);
+         from_cv (Pair (Num 1) right_result)])
+      (Pair (Num 1) result)
+Proof
+  strip_tac
+  >> simp [registered_case10173_eval_above_def]
+  >> rpt gen_tac
+  >> strip_tac
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         compute_registeredCase10173OrdinaryOperationEvalTheory.registered_case10173_fso_item_mul_fixed_eval_from_result)
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `fixed_radii`
+  >> conj_tac
+  >> fs [registered_case10173_eval_above_def]
+QED
+
+Theorem registered_case10173_fsn_item_sqrt_eval_above_from_result:
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_list_of_q» [from_cv radii]) fixed_radii /\
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fsn_result_sqrt»
+        [from_cv fixed_radii;from_cv center_certificate;
+         from_cv box_certificate;from_cv input_result])
+      result ==>
+  registered_case10173_eval_above (numeric_floor + 3)
+      (App «candle_cv_fsn_item_sqrt»
+        [from_cv radii;from_cv center_certificate;
+         from_cv box_certificate;
+         from_cv (Pair (Num 1) input_result)])
+      (Pair (Num 1) result)
+Proof
+  strip_tac
+  >> simp [registered_case10173_eval_above_def]
+  >> rpt gen_tac
+  >> strip_tac
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         compute_registeredCase10173OrdinaryOperationEvalTheory.registered_case10173_fsn_item_sqrt_fixed_eval_from_result)
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `fixed_radii`
+  >> conj_tac
+  >> fs [registered_case10173_eval_above_def]
+QED
+
+Theorem registered_case10173_fsa_item_add_eval_above_from_result:
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_list_of_q» [from_cv radii]) fixed_radii /\
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_result_add»
+        [from_cv fixed_radii;from_cv left_result;from_cv right_result])
+      result ==>
+  registered_case10173_eval_above (numeric_floor + 3)
+      (App «candle_cv_fsa_item_add»
+        [from_cv (Num 1);from_cv radii;
+         from_cv (Pair (Num 1) left_result);
+         from_cv (Pair (Num 1) right_result)])
+      (Pair (Num 1) result)
+Proof
+  strip_tac
+  >> simp [registered_case10173_eval_above_def]
+  >> rpt gen_tac
+  >> strip_tac
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         compute_registeredCase10173OrdinaryOperationEvalTheory.registered_case10173_fsa_item_add_fixed_eval_from_result)
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `fixed_radii`
+  >> conj_tac
+  >> fs [registered_case10173_eval_above_def]
+QED
+
 val _ = export_theory ();
