@@ -31,6 +31,21 @@ Definition registered_case10173_fsn_item_sqrt_body_def:
          App «candle_cv_fsa_item_to_fixed» [Var «item»]]]
 End
 
+Definition registered_case10173_fsa_item_add_body_def:
+  registered_case10173_fsa_item_add_body =
+    If (Var «use_fixed»)
+      (App «candle_cv_fsa_item_fixed»
+        [App «candle_cv_fs_result_add»
+          [App «candle_cv_fs_list_of_q» [Var «radii»];
+           App «candle_cv_fsa_item_to_fixed» [Var «left»];
+           App «candle_cv_fsa_item_to_fixed» [Var «right»]]])
+      (App «candle_cv_fsa_item_q»
+        [App «candle_cv_q_dim_taylor_model_result_add»
+          [Var «radii»;
+           App «candle_cv_fsa_item_to_q» [Var «left»];
+           App «candle_cv_fsa_item_to_q» [Var «right»]]])
+End
+
 Theorem registered_case10173_fso_item_mul_lookup:
   ALOOKUP registered_case10173_historical_chunk16_ceqs
       «candle_cv_fso_item_mul» =
@@ -47,6 +62,16 @@ Theorem registered_case10173_fsn_item_sqrt_lookup:
     SOME
       ([«radii»;«center_certificate»;«box_certificate»;«item»],
        registered_case10173_fsn_item_sqrt_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem registered_case10173_fsa_item_add_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_fsa_item_add» =
+    SOME
+      ([«use_fixed»;«radii»;«left»;«right»],
+       registered_case10173_fsa_item_add_body)
 Proof
   EVAL_TAC
 QED
@@ -90,6 +115,25 @@ Proof
   >> simp [registered_case10173_fsn_item_sqrt_lookup]
 QED
 
+Theorem registered_case10173_fsa_item_add_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fsa_item_add»
+        [from_cv use_fixed;from_cv radii;
+         from_cv left;from_cv right]) (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst
+        [(«use_fixed»,from_cv use_fixed);(«radii»,from_cv radii);
+         («left»,from_cv left);(«right»,from_cv right)]
+        registered_case10173_fsa_item_add_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173CertifiedCheckEvalTheory.registered_case10173_compute_eval_literal_app4
+  >> simp [registered_case10173_fsa_item_add_lookup]
+QED
+
 Theorem registered_case10173_fso_item_mul_fixed_subst:
   subst
       [(«radii»,from_cv radii);
@@ -126,6 +170,44 @@ Proof
   simp
     [registered_case10173_fsn_item_sqrt_body_def,
      compute_evalTheory.subst_def]
+QED
+
+Theorem registered_case10173_fsa_item_add_fixed_subst:
+  subst
+      [(«use_fixed»,from_cv (Num 1));(«radii»,from_cv radii);
+       («left»,from_cv (Pair (Num 1) left_result));
+       («right»,from_cv (Pair (Num 1) right_result))]
+      registered_case10173_fsa_item_add_body =
+    If (from_cv (Num 1))
+      (App «candle_cv_fsa_item_fixed»
+        [App «candle_cv_fs_result_add»
+          [App «candle_cv_fs_list_of_q» [from_cv radii];
+           App «candle_cv_fsa_item_to_fixed»
+             [from_cv (Pair (Num 1) left_result)];
+           App «candle_cv_fsa_item_to_fixed»
+             [from_cv (Pair (Num 1) right_result)]]])
+      (App «candle_cv_fsa_item_q»
+        [App «candle_cv_q_dim_taylor_model_result_add»
+          [from_cv radii;
+           App «candle_cv_fsa_item_to_q»
+             [from_cv (Pair (Num 1) left_result)];
+           App «candle_cv_fsa_item_to_q»
+             [from_cv (Pair (Num 1) right_result)]]])
+Proof
+  simp
+    [registered_case10173_fsa_item_add_body_def,
+     compute_evalTheory.subst_def]
+QED
+
+Theorem registered_case10173_compute_eval_if_fixed_branch:
+  compute_eval clock ceqs
+      (If (from_cv (Num 1)) yes_branch no_branch) (refs:hol_refs) =
+    compute_eval clock ceqs yes_branch refs
+Proof
+  irule
+    compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_if_success
+  >> qexists_tac `0`
+  >> simp [compute_execProofTheory.compute_eval_from_cv]
 QED
 
 Theorem registered_case10173_fso_item_mul_fixed_eval_from_result:
@@ -276,6 +358,88 @@ Proof
              from_cv center_certificate;from_cv box_certificate;
              App «candle_cv_fsa_item_to_fixed»
                [from_cv (Pair (Num 1) item_result)]]]) refs =
+      compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fsa_item_fixed» [from_cv result]) refs` by
+       (irule
+          compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result
+        >> conj_tac >- intLib.ARITH_TAC
+        >> fs [])
+  >> fs
+       [compute_registeredCase10173HistCompletionEvalTheory.registered_case10173_fsa_item_fixed_eval]
+QED
+
+Theorem registered_case10173_fsa_item_add_fixed_eval_from_result:
+  2 < clock /\
+  compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_list_of_q» [from_cv radii])
+      (refs:hol_refs) =
+    (M_success (from_cv fixed_radii),refs) /\
+  compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fs_result_add»
+        [from_cv fixed_radii;from_cv left_result;
+         from_cv right_result]) refs =
+    (M_success (from_cv result),refs) ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_fsa_item_add»
+        [from_cv (Num 1);from_cv radii;
+         from_cv (Pair (Num 1) left_result);
+         from_cv (Pair (Num 1) right_result)]) refs =
+    (M_success (from_cv (Pair (Num 1) result)),refs)
+Proof
+  strip_tac
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval (clock - 1)
+          registered_case10173_historical_chunk16_ceqs
+          (subst
+            [(«use_fixed»,from_cv (Num 1));(«radii»,from_cv radii);
+             («left»,from_cv (Pair (Num 1) left_result));
+             («right»,from_cv (Pair (Num 1) right_result))]
+            registered_case10173_fsa_item_add_body) refs`
+  >> conj_tac
+  >- (irule registered_case10173_fsa_item_add_unfold
+      >> intLib.ARITH_TAC)
+  >> PURE_REWRITE_TAC [registered_case10173_fsa_item_add_fixed_subst]
+  >> PURE_REWRITE_TAC [registered_case10173_compute_eval_if_fixed_branch]
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fs_result_add»
+          [App «candle_cv_fs_list_of_q» [from_cv radii];
+           App «candle_cv_fsa_item_to_fixed»
+             [from_cv (Pair (Num 1) left_result)];
+           App «candle_cv_fsa_item_to_fixed»
+             [from_cv (Pair (Num 1) right_result)]]) refs =
+      (M_success (from_cv result),refs)` by
+       (irule EQ_TRANS
+        >> qexists_tac
+             `compute_eval (clock - 1)
+                registered_case10173_historical_chunk16_ceqs
+                (App «candle_cv_fs_result_add»
+                  [from_cv fixed_radii;from_cv left_result;
+                   from_cv right_result]) refs`
+        >> conj_tac
+        >- (irule
+              compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_app3_argument_results
+            >> conj_tac >- intLib.ARITH_TAC
+            >> conj_tac >- fs []
+            >> conj_tac
+            >- (irule registered_case10173_fsa_item_to_fixed_fixed_eval
+                >> intLib.ARITH_TAC)
+            >> irule registered_case10173_fsa_item_to_fixed_fixed_eval
+            >> intLib.ARITH_TAC)
+        >> fs [])
+  >> `compute_eval (clock - 1)
+        registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fsa_item_fixed»
+          [App «candle_cv_fs_result_add»
+            [App «candle_cv_fs_list_of_q» [from_cv radii];
+             App «candle_cv_fsa_item_to_fixed»
+               [from_cv (Pair (Num 1) left_result)];
+             App «candle_cv_fsa_item_to_fixed»
+               [from_cv (Pair (Num 1) right_result)]]]) refs =
       compute_eval (clock - 1)
         registered_case10173_historical_chunk16_ceqs
         (App «candle_cv_fsa_item_fixed» [from_cv result]) refs` by
