@@ -602,4 +602,52 @@ Proof
         registered_case10173_bounded_hessian64_rows_map]
 QED
 
+Theorem registered_case10173_raw_interval_round_endpoint_equiv:
+  registered_case10173_raw_interval_endpoint_equiv left right ==>
+  bounded_object_fs_raw_interval_round denominator left =
+  bounded_object_fs_raw_interval_round denominator right
+Proof
+  rw [registered_case10173_raw_interval_endpoint_equiv_def]
+  >> irule bounded_object_fs_raw_interval_round_ints_extensional
+  >> metis_tac []
+QED
+
+Theorem registered_case10173_raw_list_round_endpoint_equiv:
+  !left right.
+    LIST_REL registered_case10173_raw_interval_endpoint_equiv left right ==>
+    registered_case10173_fs_raw_interval_list_round_object
+        denominator left =
+    registered_case10173_fs_raw_interval_list_round_object
+        denominator right
+Proof
+  Induct
+  >> Cases_on `right`
+  >> rw
+       [LIST_REL_def,
+        compute_registeredCase10173HistoricalListArithmeticEvalTheory.registered_case10173_fs_raw_interval_list_round_object_def]
+  >> imp_res_tac registered_case10173_raw_interval_round_endpoint_equiv
+  >> res_tac
+  >> simp []
+QED
+
+Theorem registered_case10173_raw_matrix_round_endpoint_equiv:
+  !left right.
+    LIST_REL
+      (LIST_REL registered_case10173_raw_interval_endpoint_equiv)
+      left right ==>
+    registered_case10173_fs_raw_interval_matrix_round_object
+        denominator left =
+    registered_case10173_fs_raw_interval_matrix_round_object
+        denominator right
+Proof
+  Induct
+  >> Cases_on `right`
+  >> rw
+       [LIST_REL_def,
+        compute_registeredCase10173HistoricalSecondOrderMatrixScaleEvalTheory.registered_case10173_fs_raw_interval_matrix_round_object_def]
+  >> imp_res_tac registered_case10173_raw_list_round_endpoint_equiv
+  >> res_tac
+  >> simp []
+QED
+
 val _ = export_theory ();
