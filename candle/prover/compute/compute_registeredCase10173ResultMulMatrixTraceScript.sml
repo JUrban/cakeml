@@ -124,6 +124,72 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Definition registered_case10173_raw_product_relation_def:
+  registered_case10173_raw_product_relation left right raw <=>
+    bounded_object_interval_ints raw =
+      SOME (registered_case10173_raw_product_ints left right)
+End
+
+Theorem registered_case10173_raw_list_scale_typed_trace:
+  !values.
+    ?raw_values.
+      registered_case10173_fs_raw_interval_list_scale_object
+          (bounded_interval64_object_cv scalar)
+          (MAP bounded_interval64_object_cv values) = SOME raw_values /\
+      LIST_REL
+        (\value raw.
+           registered_case10173_raw_product_relation scalar value raw)
+        values raw_values
+Proof
+  Induct
+  >- simp
+       [compute_registeredCase10173HistoricalListArithmeticEvalTheory.registered_case10173_fs_raw_interval_list_scale_object_def]
+  >> gen_tac
+  >> mp_tac
+       (Q.SPECL [`scalar`,`h`] registered_case10173_raw_product_exists)
+  >> disch_then (qx_choose_then `raw_head` strip_assume_tac)
+  >> qpat_x_assum `?raw_values. _`
+       (qx_choose_then `raw_tail` strip_assume_tac)
+  >> qexists_tac `raw_head::raw_tail`
+  >> imp_res_tac registered_case10173_raw_product_endpoint_values
+  >> simp
+       [compute_registeredCase10173HistoricalListArithmeticEvalTheory.registered_case10173_fs_raw_interval_list_scale_object_def,
+        registered_case10173_raw_product_relation_def,
+        LIST_REL_def]
+QED
+
+Theorem registered_case10173_raw_outer_typed_trace:
+  !left.
+    ?raw_rows.
+      registered_case10173_fs_raw_interval_outer_object
+          (MAP bounded_interval64_object_cv left)
+          (MAP bounded_interval64_object_cv right) = SOME raw_rows /\
+      LIST_REL
+        (\left_value raw_row.
+           LIST_REL
+             (\right_value raw.
+                registered_case10173_raw_product_relation
+                  left_value right_value raw)
+             right raw_row)
+        left raw_rows
+Proof
+  Induct
+  >- simp
+       [compute_registeredCase10173HistoricalRawOuterEvalTheory.registered_case10173_fs_raw_interval_outer_object_def]
+  >> gen_tac
+  >> mp_tac
+       (Q.INST [`scalar` |-> `h`]
+          (Q.SPEC `right`
+            registered_case10173_raw_list_scale_typed_trace))
+  >> disch_then (qx_choose_then `raw_row` strip_assume_tac)
+  >> qpat_x_assum `?raw_rows. _`
+       (qx_choose_then `raw_rows` strip_assume_tac)
+  >> qexists_tac `raw_row::raw_rows`
+  >> simp
+       [compute_registeredCase10173HistoricalRawOuterEvalTheory.registered_case10173_fs_raw_interval_outer_object_def,
+        LIST_REL_def]
+QED
+
 Theorem registered_case10173_bounded_hessian64_rows_map:
   bounded_hessian64_rows values = SOME rows ==>
   bounded_hessian64_rows (MAP f values) = SOME (MAP (MAP f) rows)
