@@ -9,9 +9,120 @@
 Theory compute_registeredCase10173ResultMulMatrixTrace
 Ancestors
   compute_registeredCase10173ResultMulTypedTrace
+  compute_registeredCase10173HistoricalDeltaX4ValueBlockEval
   compute_registeredCase10173HistoricalSecondOrderBoxEval
 Libs
   bossLib preamble
+
+Theorem registered_case10173_raw_product_ints_comm:
+  registered_case10173_raw_product_ints left right =
+  registered_case10173_raw_product_ints right left
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rw
+       [compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_raw_product_ints_def,
+        compute_boundedObjectDecimalIntervalTheory.bounded_object_int_min4_def,
+        compute_boundedObjectDecimalIntervalTheory.bounded_object_int_max4_def,
+        compute_boundedObjectDecimalIntervalTheory.bounded_object_int_min_def,
+        compute_boundedObjectDecimalIntervalTheory.bounded_object_int_max_def]
+  >> every_case_tac
+  >> fs []
+  >> intLib.ARITH_TAC
+QED
+
+Definition registered_case10173_raw_interval_endpoint_equiv_def:
+  registered_case10173_raw_interval_endpoint_equiv left right <=>
+    ?lower upper.
+      bounded_object_interval_ints left = SOME (lower,upper) /\
+      bounded_object_interval_ints right = SOME (lower,upper)
+End
+
+Theorem registered_case10173_raw_interval_add_endpoint_values:
+  bounded_object_interval_ints left = SOME (left_lower,left_upper) /\
+  bounded_object_interval_ints right = SOME (right_lower,right_upper) /\
+  bounded_object_fs_raw_interval_add left right = SOME result ==>
+  bounded_object_interval_ints result =
+    SOME (left_lower + right_lower,left_upper + right_upper)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.SPECL
+         [`left`,`right`,`left_lower`,`left_upper`,
+          `right_lower`,`right_upper`]
+         bounded_object_fs_raw_interval_add_ints_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `computed` strip_assume_tac)
+  >> gvs []
+QED
+
+Theorem registered_case10173_raw_product_swapped_endpoint_equiv:
+  bounded_object_fs_raw_interval_mul
+      (bounded_interval64_object_cv left)
+      (bounded_interval64_object_cv right) = SOME forward /\
+  bounded_object_fs_raw_interval_mul
+      (bounded_interval64_object_cv right)
+      (bounded_interval64_object_cv left) = SOME backward ==>
+  registered_case10173_raw_interval_endpoint_equiv forward backward
+Proof
+  strip_tac
+  >> imp_res_tac registered_case10173_raw_product_endpoint_values
+  >> rw [registered_case10173_raw_interval_endpoint_equiv_def]
+  >> Cases_on `registered_case10173_raw_product_ints left right`
+  >> qexists_tac `q`
+  >> qexists_tac `r`
+  >> simp [registered_case10173_raw_product_ints_comm]
+QED
+
+Theorem registered_case10173_raw_four_tree_middle_swap_endpoint_equiv:
+  bounded_object_interval_ints scaled_left =
+      SOME (scaled_left_lower,scaled_left_upper) /\
+  registered_case10173_raw_interval_endpoint_equiv
+      left_outer historical_right_outer /\
+  registered_case10173_raw_interval_endpoint_equiv
+      right_outer historical_left_outer /\
+  bounded_object_interval_ints scaled_right =
+      SOME (scaled_right_lower,scaled_right_upper) /\
+  bounded_object_fs_raw_interval_add scaled_left left_outer =
+      SOME compact_left_half /\
+  bounded_object_fs_raw_interval_add right_outer scaled_right =
+      SOME compact_right_half /\
+  bounded_object_fs_raw_interval_add compact_left_half compact_right_half =
+      SOME compact_sum /\
+  bounded_object_fs_raw_interval_add scaled_left historical_left_outer =
+      SOME historical_left_half /\
+  bounded_object_fs_raw_interval_add historical_right_outer scaled_right =
+      SOME historical_right_half /\
+  bounded_object_fs_raw_interval_add historical_left_half historical_right_half =
+      SOME historical_sum ==>
+  registered_case10173_raw_interval_endpoint_equiv
+      compact_sum historical_sum
+Proof
+  strip_tac
+  >> qpat_x_assum
+       `registered_case10173_raw_interval_endpoint_equiv
+          left_outer historical_right_outer` mp_tac
+  >> simp [registered_case10173_raw_interval_endpoint_equiv_def]
+  >> disch_then
+       (qx_choose_then `left_outer_lower`
+         (qx_choose_then `left_outer_upper` strip_assume_tac))
+  >> qpat_x_assum
+       `registered_case10173_raw_interval_endpoint_equiv
+          right_outer historical_left_outer` mp_tac
+  >> simp [registered_case10173_raw_interval_endpoint_equiv_def]
+  >> disch_then
+       (qx_choose_then `right_outer_lower`
+         (qx_choose_then `right_outer_upper` strip_assume_tac))
+  >> imp_res_tac registered_case10173_raw_interval_add_endpoint_values
+  >> qexists_tac
+       `scaled_left_lower + left_outer_lower +
+        (right_outer_lower + scaled_right_lower)`
+  >> qexists_tac
+       `scaled_left_upper + left_outer_upper +
+        (right_outer_upper + scaled_right_upper)`
+  >> simp []
+  >> intLib.ARITH_TAC
+QED
 
 Theorem registered_case10173_bounded_hessian64_rows_map:
   bounded_hessian64_rows values = SOME rows ==>
