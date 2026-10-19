@@ -116,6 +116,22 @@ Proof
   >> gvs []
 QED
 
+Theorem registered_case10173_raw_matrices_add_preserves_width:
+  !left right result.
+    registered_case10173_raw_matrices_add left right result /\
+    EVERY (\row. LENGTH row = width) left /\
+    EVERY (\row. LENGTH row = width) right ==>
+    EVERY (\row. LENGTH row = width) result
+Proof
+  Induct
+  >> Cases_on `right`
+  >> Cases_on `result`
+  >> rw [registered_case10173_raw_matrices_add_def]
+  >> imp_res_tac registered_case10173_raw_lists_add_lengths
+  >> res_tac
+  >> gvs []
+QED
+
 Theorem registered_case10173_raw_hessian_cell_endpoint_equiv:
   registered_case10173_raw_interval_object scaled_left /\
   registered_case10173_raw_interval_object scaled_right /\
@@ -403,6 +419,19 @@ Proof
   >> qexists_tac `result`
   >> imp_res_tac registered_case10173_raw_matrix_add_from_relation
   >> simp []
+QED
+
+Theorem registered_case10173_raw_outer_typed_shape6:
+  LENGTH left = 6 /\ LENGTH right = 6 /\
+  registered_case10173_fs_raw_interval_outer_object
+      (MAP bounded_interval64_object_cv left)
+      (MAP bounded_interval64_object_cv right) = SOME raw_rows ==>
+  LENGTH raw_rows = 6 /\ EVERY (\row. LENGTH row = 6) raw_rows
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_registeredCase10173HistoricalRawOuterEvalTheory.registered_case10173_fs_raw_interval_outer_object_shape
+  >> gvs [EVERY_MAP]
 QED
 
 val _ = export_theory ();
