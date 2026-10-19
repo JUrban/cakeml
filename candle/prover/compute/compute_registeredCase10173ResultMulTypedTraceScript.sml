@@ -388,4 +388,97 @@ Proof
   >> metis_tac []
 QED
 
+Theorem registered_case10173_fused_hessian_decimal_raw_trace:
+  !left_hessian right_hessian outer_pairs result_hessian.
+    bounded_interval64_fused_hessian_decimal
+        left_value right_value left_hessian right_hessian outer_pairs =
+      SOME result_hessian ==>
+    ?raw_scaled_left raw_left_outer_right raw_right_outer_left
+       raw_scaled_right raw_left_half raw_right_half raw_hessian.
+      registered_case10173_fs_raw_interval_list_scale_object
+          (bounded_interval64_object_cv right_value)
+          (MAP bounded_interval64_object_cv left_hessian) =
+        SOME raw_scaled_left /\
+      LIST_REL
+        (\outer raw.
+           bounded_object_fs_raw_interval_mul
+             (bounded_interval64_object_cv (FST (FST outer)))
+             (bounded_interval64_object_cv (SND (FST outer))) = SOME raw)
+        outer_pairs raw_left_outer_right /\
+      LIST_REL
+        (\outer raw.
+           bounded_object_fs_raw_interval_mul
+             (bounded_interval64_object_cv (FST (SND outer)))
+             (bounded_interval64_object_cv (SND (SND outer))) = SOME raw)
+        outer_pairs raw_right_outer_left /\
+      registered_case10173_fs_raw_interval_list_scale_object
+          (bounded_interval64_object_cv left_value)
+          (MAP bounded_interval64_object_cv right_hessian) =
+        SOME raw_scaled_right /\
+      registered_case10173_fs_raw_interval_list_add_object
+          raw_scaled_left raw_left_outer_right = SOME raw_left_half /\
+      registered_case10173_fs_raw_interval_list_add_object
+          raw_right_outer_left raw_scaled_right = SOME raw_right_half /\
+      registered_case10173_fs_raw_interval_list_add_object
+          raw_left_half raw_right_half = SOME raw_hessian /\
+      registered_case10173_fs_raw_interval_list_round_object
+          1000000000000 raw_hessian =
+        SOME (MAP bounded_interval64_object_cv result_hessian)
+Proof
+  Induct_on `left_hessian`
+  >- (Cases_on `right_hessian`
+      >> Cases_on `outer_pairs`
+      >> simp
+           [compute_boundedTaylorProductDecimalTheory.bounded_interval64_fused_hessian_decimal_def,
+            compute_registeredCase10173HistoricalListArithmeticEvalTheory.registered_case10173_fs_raw_interval_list_scale_object_def,
+            compute_registeredCase10173HistoricalRawListAddEvalTheory.registered_case10173_fs_raw_interval_list_add_object_def,
+            compute_registeredCase10173HistoricalListArithmeticEvalTheory.registered_case10173_fs_raw_interval_list_round_object_def])
+  >> rpt gen_tac
+  >> Cases_on `right_hessian`
+  >- (Cases_on `outer_pairs`
+      >> fs
+           [compute_boundedTaylorProductDecimalTheory.bounded_interval64_fused_hessian_decimal_def])
+  >> Cases_on `outer_pairs`
+  >- fs
+       [compute_boundedTaylorProductDecimalTheory.bounded_interval64_fused_hessian_decimal_def]
+  >> rw
+       [compute_boundedTaylorProductDecimalTheory.bounded_interval64_fused_hessian_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> qpat_x_assum `!right_hessian outer_pairs result_hessian. _`
+       (mp_tac o Q.SPECL [`t`,`t'`,`x`])
+  >> impl_tac >- simp []
+  >> disch_then
+       (qx_choose_then `raw_scaled_left_tail`
+         (qx_choose_then `raw_left_outer_right_tail`
+           (qx_choose_then `raw_right_outer_left_tail`
+             (qx_choose_then `raw_scaled_right_tail`
+               (qx_choose_then `raw_left_half_tail`
+                 (qx_choose_then `raw_right_half_tail`
+                   (qx_choose_then `raw_hessian_tail` strip_assume_tac)))))))
+  >> PairCases_on `h''`
+  >> gvs []
+  >> drule registered_case10173_four_raw_products_tree_round_fused_exact
+  >> disch_then
+       (qx_choose_then `raw_scaled_left_head`
+         (qx_choose_then `raw_left_outer_right_head`
+           (qx_choose_then `raw_right_outer_left_head`
+             (qx_choose_then `raw_scaled_right_head`
+               (qx_choose_then `raw_left_half_head`
+                 (qx_choose_then `raw_right_half_head`
+                   (qx_choose_then `raw_hessian_head` strip_assume_tac)))))))
+  >> qexists_tac `raw_scaled_left_head::raw_scaled_left_tail`
+  >> qexists_tac `raw_left_outer_right_head::raw_left_outer_right_tail`
+  >> qexists_tac `raw_right_outer_left_head::raw_right_outer_left_tail`
+  >> qexists_tac `raw_scaled_right_head::raw_scaled_right_tail`
+  >> qexists_tac `raw_left_half_head::raw_left_half_tail`
+  >> qexists_tac `raw_right_half_head::raw_right_half_tail`
+  >> qexists_tac `raw_hessian_head::raw_hessian_tail`
+  >> simp
+       [compute_registeredCase10173HistoricalListArithmeticEvalTheory.registered_case10173_fs_raw_interval_list_scale_object_def,
+        compute_registeredCase10173HistoricalRawListAddEvalTheory.registered_case10173_fs_raw_interval_list_add_object_def,
+        compute_registeredCase10173HistoricalListArithmeticEvalTheory.registered_case10173_fs_raw_interval_list_round_object_def,
+        LIST_REL_def]
+QED
+
 val _ = export_theory ();
