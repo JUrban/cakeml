@@ -269,4 +269,83 @@ Proof
            registered_case10173_prepared_source_program_templates))
 QED
 
+Theorem registered_case10173_authenticated_source_program_templates:
+  bounded_packed_chars_case10173_decimal_packet_ok packet /\
+  bounded_case10173_decimal_packet_root_inputs_exact
+    packet object_job root_record ==>
+  ?box_sqrt_data center_sqrt_data boxes box_program center_program
+   box0 box1 box2 box3 box4 box5 box6
+   center0 center1 center2 center3 center4 center5 center6.
+    object_job = Pair box_sqrt_data (Pair center_sqrt_data boxes) /\
+    box_sqrt_data = registered_case10173_cv_of_list
+      [box0;box1;box2;box3;box4;box5;box6] /\
+    center_sqrt_data = registered_case10173_cv_of_list
+      [center0;center1;center2;center3;center4;center5;center6] /\
+    registered_case10173_analytic_program_patch_sqrt_cv box_sqrt_data
+      registered_case10173_genuine_source_program =
+        Pair (Num 0) box_program /\
+    registered_case10173_analytic_program_patch_sqrt_cv center_sqrt_data
+      registered_case10173_genuine_source_program =
+        Pair (Num 0) center_program /\
+    registered_case10173_cv_take 31
+      (registered_case10173_hist_splice_cv 31 box_program) =
+        registered_case10173_source_prefix_template
+          box0 box1 box2 box3 box4 box5 /\
+    registered_case10173_cv_take 1
+      (registered_case10173_cv_drop 31
+        (registered_case10173_hist_splice_cv 31 box_program)) =
+          Pair (Num 9) (Num 0) /\
+    registered_case10173_cv_drop 32
+      (registered_case10173_hist_splice_cv 31 box_program) =
+        registered_case10173_source_suffix_template /\
+    registered_case10173_cv_take 31
+      (registered_case10173_hist_splice_cv 31 center_program) =
+        registered_case10173_source_prefix_template
+          center0 center1 center2 center3 center4 center5 /\
+    registered_case10173_cv_take 1
+      (registered_case10173_cv_drop 31
+        (registered_case10173_hist_splice_cv 31 center_program)) =
+          Pair (Num 9) (Num 0) /\
+    registered_case10173_cv_drop 32
+      (registered_case10173_hist_splice_cv 31 center_program) =
+        registered_case10173_source_suffix_template
+Proof
+  strip_tac
+  >> drule
+       compute_registeredCase10173ProgramShapePacketEvalTheory.registered_case10173_authenticated_source_program_shape
+  >> simp []
+  >> disch_then (qspecl_then [`root_record`,`object_job`] mp_tac)
+  >> impl_tac >- asm_rewrite_tac []
+  >> strip_tac
+  >> fs
+       [compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_decimal_packet_root_inputs_exact_def,
+        compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_exact_input_binding_def,
+        compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_exact_auxiliary_binding_def]
+  >> imp_res_tac
+       compute_boundedCase10173DecimalInputBindingTheory.bounded_case10173_decimal_packet_sqrt_roots_binding_components
+  >> imp_res_tac
+       compute_registeredCase10173ProgramShapePacketEvalTheory.registered_case10173_positive_q_interval_list_zero_terminated
+  >> imp_res_tac
+       compute_registeredCase10173ProgramPreparationPacketEvalTheory.registered_case10173_packet_sqrt_root_lengths
+  >> imp_res_tac
+       compute_registeredCase10173ProgramPreparationPacketEvalTheory.registered_case10173_positive_q_interval_list_length
+  >> gvs [compute_execTheory.cv_11]
+  >> subgoal
+       `registered_case10173_cv_list_zero_terminated box_sqrt_data /\
+        registered_case10173_cv_list_length box_sqrt_data = 7 /\
+        registered_case10173_analytic_program_patch_sqrt_cv box_sqrt_data
+          registered_case10173_genuine_source_program =
+            Pair (Num 0) box_program`
+  >- simp []
+  >> subgoal
+       `registered_case10173_cv_list_zero_terminated center_sqrt_data /\
+        registered_case10173_cv_list_length center_sqrt_data = 7 /\
+        registered_case10173_analytic_program_patch_sqrt_cv center_sqrt_data
+          registered_case10173_genuine_source_program =
+            Pair (Num 0) center_program`
+  >- simp []
+  >> imp_res_tac registered_case10173_prepared_source_program_templates_from_patch
+  >> metis_tac []
+QED
+
 val _ = export_theory ();
