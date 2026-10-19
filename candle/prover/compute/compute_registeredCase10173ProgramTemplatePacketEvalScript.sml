@@ -121,6 +121,43 @@ Definition registered_case10173_source_suffix_template_def:
        Num 3;Num 3;Num 3;Num 3;Num 3;Num 3]
 End
 
+Theorem registered_case10173_zero_terminated_cv_list_representation:
+  !items.
+    registered_case10173_cv_list_zero_terminated items ==>
+    ?values.
+      items = registered_case10173_cv_of_list values /\
+      LENGTH values = registered_case10173_cv_list_length items
+Proof
+  ho_match_mp_tac compute_execTheory.cv_induction
+  >> conj_tac
+  >- rw
+       [compute_registeredCase10173ProgramShapePacketEvalTheory.registered_case10173_cv_list_zero_terminated_def,
+        compute_registeredCase10173GenuineProgramDataTheory.registered_case10173_cv_list_length_def,
+        registered_case10173_cv_of_list_def]
+  >> rpt gen_tac
+  >> strip_tac
+  >> rw
+       [compute_registeredCase10173ProgramShapePacketEvalTheory.registered_case10173_cv_list_zero_terminated_def,
+        compute_registeredCase10173GenuineProgramDataTheory.registered_case10173_cv_list_length_def]
+  >> res_tac
+  >> qexists_tac `items::values`
+  >> simp [registered_case10173_cv_of_list_def]
+QED
+
+Theorem registered_case10173_zero_terminated_cv_list_seven:
+  registered_case10173_cv_list_zero_terminated items /\
+  registered_case10173_cv_list_length items = 7 ==>
+  ?item0 item1 item2 item3 item4 item5 item6.
+    items = registered_case10173_cv_of_list
+      [item0;item1;item2;item3;item4;item5;item6]
+Proof
+  strip_tac
+  >> drule registered_case10173_zero_terminated_cv_list_representation
+  >> strip_tac
+  >> gvs [listTheory.LENGTH_EQ_NUM_compute]
+  >> metis_tac []
+QED
+
 Theorem registered_case10173_source_prefix_template_length:
   registered_case10173_cv_list_length
     (registered_case10173_source_prefix_template
