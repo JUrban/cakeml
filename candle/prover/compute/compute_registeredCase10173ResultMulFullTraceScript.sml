@@ -320,4 +320,89 @@ Proof
         registered_case10173_raw_product_relations_swapped_endpoint_equiv]
 QED
 
+Theorem registered_case10173_raw_outer_source_rows_aligned_length6:
+  LENGTH left = 6 /\ LENGTH right = 6 /\
+  bounded_interval64_symmetric_product_pairs left right = SOME outer_pairs /\
+  LIST_REL
+      (\outer raw.
+         registered_case10173_raw_product_relation
+           (FST (FST outer)) (SND (FST outer)) raw)
+      outer_pairs compact_left_outer /\
+  LIST_REL
+      (\outer raw.
+         registered_case10173_raw_product_relation
+           (FST (SND outer)) (SND (SND outer)) raw)
+      outer_pairs compact_right_outer /\
+  bounded_hessian64_rows compact_left_outer = SOME compact_left_rows /\
+  bounded_hessian64_rows compact_right_outer = SOME compact_right_rows /\
+  LIST_REL
+      (\left_value raw_row.
+         LIST_REL
+           (\right_value raw.
+              registered_case10173_raw_product_relation
+                left_value right_value raw)
+           right raw_row)
+      left historical_left_outer /\
+  LIST_REL
+      (\right_value raw_row.
+         LIST_REL
+           (\left_value raw.
+              registered_case10173_raw_product_relation
+                right_value left_value raw)
+           left raw_row)
+      right historical_right_outer ==>
+  registered_case10173_raw_outer_matrices_aligned
+    compact_left_rows compact_right_rows
+    historical_left_outer historical_right_outer
+Proof
+  rw [listTheory.LENGTH_EQ_NUM_compute]
+  >> metis_tac [registered_case10173_raw_outer_source_rows_aligned]
+QED
+
+Theorem registered_case10173_bounded_hessian64_rows_every:
+  bounded_hessian64_rows values = SOME rows /\ EVERY property values ==>
+  EVERY (EVERY property) rows
+Proof
+  rw [compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
+Theorem registered_case10173_equal_width_matrices_list_rel:
+  !left right.
+    LENGTH left = LENGTH right /\
+    EVERY (\row. LENGTH row = width) left /\
+    EVERY (\row. LENGTH row = width) right ==>
+    LIST_REL (\left_row right_row.
+      LENGTH left_row = LENGTH right_row) left right
+Proof
+  Induct
+  >> Cases_on `right`
+  >> rw [LIST_REL_def]
+  >> res_tac
+  >> gvs []
+QED
+
+Theorem registered_case10173_raw_matrix_add_object_trace:
+  EVERY (EVERY registered_case10173_raw_interval_object) left /\
+  EVERY (EVERY registered_case10173_raw_interval_object) right /\
+  LIST_REL (\left_row right_row.
+    LENGTH left_row = LENGTH right_row) left right ==>
+  ?result.
+    registered_case10173_fs_raw_interval_matrix_add_object
+      left right = SOME result /\
+    registered_case10173_raw_matrices_add left right result /\
+    EVERY (EVERY registered_case10173_raw_interval_object) result
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.SPECL [`left`,`right`]
+          registered_case10173_raw_matrix_add_objects)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `result` strip_assume_tac)
+  >> qexists_tac `result`
+  >> imp_res_tac registered_case10173_raw_matrix_add_from_relation
+  >> simp []
+QED
+
 val _ = export_theory ();
