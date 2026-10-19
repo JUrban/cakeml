@@ -8,7 +8,6 @@
  *****************************************************************************)
 Theory compute_boundedCase10173SourceSqrtCertificate
 Ancestors
-  compute_registeredCase10173SqrtCertificateCompleteEval
   compute_registeredCase10173RootInputsBinding
 Libs
   bossLib preamble intLib

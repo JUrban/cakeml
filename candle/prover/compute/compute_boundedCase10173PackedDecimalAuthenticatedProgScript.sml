@@ -170,6 +170,15 @@ val _ = translate
 val _ = translate
   compute_registeredCase10173RootInputsBindingTheory.bounded_case10173_decimal_packet_root_inputs_exact_def;
 
+(* Exact source-rational square-root certificates.  These checks complement
+ * the rounded decimal certificates and are consumed by source refinement. *)
+val _ = translate
+  compute_boundedCase10173SourceSqrtCertificateTheory.bounded_case10173_source_q_sqrt_certificate_exact_def;
+val _ = translate
+  compute_boundedCase10173SourceSqrtCertificateTheory.bounded_case10173_source_q_sqrt_prefix_exact_def;
+val _ = translate
+  compute_boundedCase10173SourceSqrtCertificateTheory.bounded_case10173_source_coordinate_sqrts_exact_def;
+
 (* Exact source-radius reconstruction from the authenticated rational box. *)
 val _ = translate
   compute_registeredCase10173RadiusBindingTheory.bounded_case10173_packet_radii_def;
