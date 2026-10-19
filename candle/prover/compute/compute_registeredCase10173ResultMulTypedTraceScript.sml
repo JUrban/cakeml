@@ -164,4 +164,80 @@ Proof
         compute_registeredCase10173HistoricalListArithmeticEvalTheory.registered_case10173_fs_raw_interval_list_round_object_def]
 QED
 
+Theorem registered_case10173_taylor_mul_decimal_components:
+  bounded_taylor64_mul_decimal radii
+      (BoundedTaylor64 left_domain left_center left_center_gradient
+        left_value left_gradient_bounds left_hessian)
+      (BoundedTaylor64 right_domain right_center right_center_gradient
+        right_value right_gradient_bounds right_hessian) =
+    SOME
+      (BoundedTaylor64 result_domain result_center result_center_gradient
+        result_value result_gradient_bounds result_hessian) ==>
+  bounded_interval64_mul_decimal left_center right_center =
+      SOME result_center /\
+  bounded_interval64_fused_scale_add_decimal
+      right_center left_center_gradient
+      left_center right_center_gradient = SOME result_center_gradient /\
+  ?outer_pairs.
+    bounded_interval64_symmetric_product_pairs
+        left_gradient_bounds right_gradient_bounds = SOME outer_pairs /\
+    bounded_interval64_fused_hessian_decimal
+        left_value right_value left_hessian right_hessian outer_pairs =
+      SOME result_hessian
+Proof
+  rw [compute_boundedTaylorMulDecimalTheory.bounded_taylor64_mul_decimal_def]
+  >> every_case_tac
+  >> gvs []
+  >> fs
+       [compute_boundedTaylorCompleteDecimalTheory.bounded_taylor64_complete_decimal_def]
+  >> every_case_tac
+  >> gvs
+       [compute_boundedTaylorStateTheory.bounded_taylor64_make_def,
+        LET_THM]
+QED
+
+Theorem registered_case10173_taylor_mul_decimal_center_gradient_trace:
+  bounded_taylor64_mul_decimal radii
+      (BoundedTaylor64 left_domain left_center left_center_gradient
+        left_value left_gradient_bounds left_hessian)
+      (BoundedTaylor64 right_domain right_center right_center_gradient
+        right_value right_gradient_bounds right_hessian) =
+    SOME
+      (BoundedTaylor64 result_domain result_center result_center_gradient
+        result_value result_gradient_bounds result_hessian) ==>
+  ?raw_center_lower raw_center_upper raw_left_gradient raw_right_gradient
+     raw_center_gradient outer_pairs.
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv left_center)
+        (bounded_interval64_object_cv right_center) =
+      SOME (Pair raw_center_lower raw_center_upper) /\
+    bounded_object_fs_raw_interval_round 1000000000000
+        (Pair raw_center_lower raw_center_upper) =
+      SOME (bounded_interval64_object_cv result_center) /\
+    registered_case10173_fs_raw_interval_list_scale_object
+        (bounded_interval64_object_cv right_center)
+        (MAP bounded_interval64_object_cv left_center_gradient) =
+      SOME raw_left_gradient /\
+    registered_case10173_fs_raw_interval_list_scale_object
+        (bounded_interval64_object_cv left_center)
+        (MAP bounded_interval64_object_cv right_center_gradient) =
+      SOME raw_right_gradient /\
+    registered_case10173_fs_raw_interval_list_add_object
+        raw_left_gradient raw_right_gradient = SOME raw_center_gradient /\
+    registered_case10173_fs_raw_interval_list_round_object
+        1000000000000 raw_center_gradient =
+      SOME (MAP bounded_interval64_object_cv result_center_gradient) /\
+    bounded_interval64_symmetric_product_pairs
+        left_gradient_bounds right_gradient_bounds = SOME outer_pairs /\
+    bounded_interval64_fused_hessian_decimal
+        left_value right_value left_hessian right_hessian outer_pairs =
+      SOME result_hessian
+Proof
+  strip_tac
+  >> imp_res_tac registered_case10173_taylor_mul_decimal_components
+  >> imp_res_tac registered_case10173_mul_decimal_raw_trace
+  >> imp_res_tac registered_case10173_fused_scale_add_decimal_raw_trace
+  >> metis_tac []
+QED
+
 val _ = export_theory ();
