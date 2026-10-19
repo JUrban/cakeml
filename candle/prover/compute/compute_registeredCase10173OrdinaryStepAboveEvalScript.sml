@@ -218,4 +218,95 @@ Proof
   >> fs [registered_case10173_eval_above_def]
 QED
 
+Theorem registered_case10173_fso_poly_step_eval_at_numeric_floor:
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_poly_program»
+        [from_cv center_boxes;from_cv radii;from_cv center_program]) result ==>
+  registered_case10173_fso_step_eval_above (numeric_floor + 5)
+      center_boxes boxes radii
+      (Pair (Num 0) center_program) (Pair (Num 0) box_program)
+      stack (Pair (Pair (Num 1) result) stack)
+Proof
+  strip_tac
+  >> irule registered_case10173_fso_step_eval_above_weaken
+  >> qexists_tac `numeric_floor + 2`
+  >> conj_tac
+  >- intLib.ARITH_TAC
+  >> irule registered_case10173_fso_poly_step_eval_above_from_result
+  >> asm_rewrite_tac []
+QED
+
+Theorem registered_case10173_fso_sqrt_step_eval_at_numeric_floor:
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_list_of_q» [from_cv radii]) fixed_radii /\
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fsn_result_sqrt»
+        [from_cv fixed_radii;from_cv center_certificate;
+         from_cv box_certificate;from_cv input_result])
+      result ==>
+  registered_case10173_fso_step_eval_above (numeric_floor + 5)
+      center_boxes boxes radii
+      (Pair (Num 1) center_certificate) (Pair (Num 1) box_certificate)
+      (Pair (Pair (Num 1) input_result) stack_tail)
+      (Pair (Pair (Num 1) result) stack_tail)
+Proof
+  strip_tac
+  >> irule registered_case10173_fso_step_eval_above_weaken
+  >> qexists_tac `(numeric_floor + 3) + 2`
+  >> conj_tac
+  >- intLib.ARITH_TAC
+  >> irule registered_case10173_fso_sqrt_step_eval_above_from_item
+  >> irule registered_case10173_fsn_item_sqrt_eval_above_from_result
+  >> qexists_tac `fixed_radii`
+  >> asm_rewrite_tac []
+QED
+
+Theorem registered_case10173_fso_mul_step_eval_at_numeric_floor:
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_list_of_q» [from_cv radii]) fixed_radii /\
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_result_mul»
+        [from_cv fixed_radii;from_cv left_result;from_cv right_result])
+      result ==>
+  registered_case10173_fso_step_eval_above (numeric_floor + 5)
+      center_boxes boxes radii (Num 4) (Num 4)
+      (Pair (Pair (Num 1) right_result)
+        (Pair (Pair (Num 1) left_result) stack_tail))
+      (Pair (Pair (Num 1) result) stack_tail)
+Proof
+  strip_tac
+  >> irule registered_case10173_fso_step_eval_above_weaken
+  >> qexists_tac `(numeric_floor + 3) + 2`
+  >> conj_tac
+  >- intLib.ARITH_TAC
+  >> irule registered_case10173_fso_mul_step_eval_above_from_item
+  >> irule registered_case10173_fso_item_mul_eval_above_from_result
+  >> qexists_tac `fixed_radii`
+  >> asm_rewrite_tac []
+QED
+
+Theorem registered_case10173_fso_add_step_eval_at_numeric_floor:
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_list_of_q» [from_cv radii]) fixed_radii /\
+  registered_case10173_eval_above numeric_floor
+      (App «candle_cv_fs_result_add»
+        [from_cv fixed_radii;from_cv left_result;from_cv right_result])
+      result ==>
+  registered_case10173_fso_step_eval_above (numeric_floor + 5)
+      center_boxes boxes radii (Num 3) (Num 3)
+      (Pair (Pair (Num 1) right_result)
+        (Pair (Pair (Num 1) left_result) stack_tail))
+      (Pair (Pair (Num 1) result) stack_tail)
+Proof
+  strip_tac
+  >> irule registered_case10173_fso_step_eval_above_weaken
+  >> qexists_tac `(numeric_floor + 3) + 2`
+  >> conj_tac
+  >- intLib.ARITH_TAC
+  >> irule registered_case10173_fso_add_step_eval_above_from_item
+  >> irule registered_case10173_fsa_item_add_eval_above_from_result
+  >> qexists_tac `fixed_radii`
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
