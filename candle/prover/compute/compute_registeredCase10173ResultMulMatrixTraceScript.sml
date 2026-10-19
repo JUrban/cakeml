@@ -534,6 +534,23 @@ Definition registered_case10173_raw_matrices_add_def:
   registered_case10173_raw_matrices_add _ _ _ = F
 End
 
+Theorem registered_case10173_raw_matrix_add_relation:
+  !right result.
+    registered_case10173_fs_raw_interval_matrix_add_object
+        left right = SOME result ==>
+    registered_case10173_raw_matrices_add left right result
+Proof
+  Induct_on `left`
+  >> Cases_on `right`
+  >> rw
+       [compute_registeredCase10173HistoricalRawMatrixAddEvalTheory.registered_case10173_fs_raw_interval_matrix_add_object_def]
+  >> every_case_tac
+  >> gvs [registered_case10173_raw_matrices_add_def]
+  >> imp_res_tac registered_case10173_raw_list_add_relation
+  >> res_tac
+  >> gvs [registered_case10173_raw_matrices_add_def]
+QED
+
 Theorem registered_case10173_raw_matrix_add_objects:
   !left right.
     EVERY (EVERY registered_case10173_raw_interval_object) left /\
