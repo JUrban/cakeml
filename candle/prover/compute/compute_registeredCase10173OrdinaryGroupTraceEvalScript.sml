@@ -118,4 +118,42 @@ Proof
   >> metis_tac []
 QED
 
+Theorem registered_case10173_ordinary_program_trace_append:
+  !center_instructions box_instructions
+   center_suffix box_suffix stack middle_stack final_stack.
+    LENGTH center_instructions = LENGTH box_instructions /\
+    registered_case10173_ordinary_program_trace step_floor
+      center_boxes boxes radii
+      (registered_case10173_cv_of_list center_instructions)
+      (registered_case10173_cv_of_list box_instructions)
+      stack middle_stack /\
+    registered_case10173_ordinary_program_trace step_floor
+      center_boxes boxes radii
+      (registered_case10173_cv_of_list center_suffix)
+      (registered_case10173_cv_of_list box_suffix)
+      middle_stack final_stack ==>
+    registered_case10173_ordinary_program_trace step_floor
+      center_boxes boxes radii
+      (registered_case10173_cv_of_list
+        (center_instructions ++ center_suffix))
+      (registered_case10173_cv_of_list
+        (box_instructions ++ box_suffix))
+      stack final_stack
+Proof
+  Induct_on `center_instructions`
+  >- simp
+       [compute_registeredCase10173ProgramTemplatePacketEvalTheory.registered_case10173_cv_of_list_def,
+        compute_registeredCase10173OrdinaryTraceEvalTheory.registered_case10173_ordinary_program_trace_def]
+  >> rpt gen_tac
+  >> Cases_on `box_instructions`
+  >- simp []
+  >> rpt strip_tac
+  >> fs
+       [compute_registeredCase10173ProgramTemplatePacketEvalTheory.registered_case10173_cv_of_list_def,
+        compute_registeredCase10173OrdinaryTraceEvalTheory.registered_case10173_ordinary_program_trace_def]
+  >> qexists_tac `next_stack`
+  >> asm_rewrite_tac []
+  >> metis_tac []
+QED
+
 val _ = export_theory ();
