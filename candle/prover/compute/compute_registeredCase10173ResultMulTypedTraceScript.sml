@@ -111,6 +111,154 @@ Proof
   >> simp []
 QED
 
+Theorem registered_case10173_raw_product_trace:
+  !left right.
+    ?raw.
+      bounded_object_fs_raw_interval_mul
+          (bounded_interval64_object_cv left)
+          (bounded_interval64_object_cv right) = SOME raw /\
+      bounded_object_interval_ints raw =
+        SOME
+          (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+            left right)
+Proof
+  rpt gen_tac
+  >> mp_tac
+       (Q.SPECL [`left`,`right`]
+          compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_raw_product_exists)
+  >> disch_then (qx_choose_then `raw` assume_tac)
+  >> qexists_tac `raw`
+  >> simp []
+  >> irule
+       compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_raw_product_endpoint_values
+  >> simp []
+QED
+
+Theorem registered_case10173_four_raw_products_tree_round_fused_exact:
+  bounded_interval64_fused_products_decimal
+      [(left0,right0);(left1,right1);(left2,right2);(left3,right3)] =
+    SOME result ==>
+  ?raw0 raw1 raw2 raw3 raw_left raw_right raw_sum.
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv left0)
+        (bounded_interval64_object_cv right0) = SOME raw0 /\
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv left1)
+        (bounded_interval64_object_cv right1) = SOME raw1 /\
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv left2)
+        (bounded_interval64_object_cv right2) = SOME raw2 /\
+    bounded_object_fs_raw_interval_mul
+        (bounded_interval64_object_cv left3)
+        (bounded_interval64_object_cv right3) = SOME raw3 /\
+    bounded_object_fs_raw_interval_add raw0 raw1 = SOME raw_left /\
+    bounded_object_fs_raw_interval_add raw2 raw3 = SOME raw_right /\
+    bounded_object_fs_raw_interval_add raw_left raw_right = SOME raw_sum /\
+    bounded_object_fs_raw_interval_round 1000000000000 raw_sum =
+      SOME (bounded_interval64_object_cv result)
+Proof
+  strip_tac
+  >> mp_tac (Q.SPECL [`left0`,`right0`] registered_case10173_raw_product_trace)
+  >> disch_then (qx_choose_then `raw0` strip_assume_tac)
+  >> mp_tac (Q.SPECL [`left1`,`right1`] registered_case10173_raw_product_trace)
+  >> disch_then (qx_choose_then `raw1` strip_assume_tac)
+  >> mp_tac (Q.SPECL [`left2`,`right2`] registered_case10173_raw_product_trace)
+  >> disch_then (qx_choose_then `raw2` strip_assume_tac)
+  >> mp_tac (Q.SPECL [`left3`,`right3`] registered_case10173_raw_product_trace)
+  >> disch_then (qx_choose_then `raw3` strip_assume_tac)
+  >> mp_tac
+       (Q.SPECL
+         [`raw0`,`raw1`,
+          `FST
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left0 right0)`,
+          `SND
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left0 right0)`,
+          `FST
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left1 right1)`,
+          `SND
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left1 right1)`]
+         compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.bounded_object_fs_raw_interval_add_ints_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `raw_left` strip_assume_tac)
+  >> mp_tac
+       (Q.SPECL
+         [`raw2`,`raw3`,
+          `FST
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left2 right2)`,
+          `SND
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left2 right2)`,
+          `FST
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left3 right3)`,
+          `SND
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left3 right3)`]
+         compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.bounded_object_fs_raw_interval_add_ints_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `raw_right` strip_assume_tac)
+  >> mp_tac
+       (Q.SPECL
+         [`raw_left`,`raw_right`,
+          `FST
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left0 right0) +
+           FST
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left1 right1)`,
+          `SND
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left0 right0) +
+           SND
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left1 right1)`,
+          `FST
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left2 right2) +
+           FST
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left3 right3)`,
+          `SND
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left2 right2) +
+           SND
+             (compute_registeredCase10173HistoricalDeltaX4ValueBlockEval$registered_case10173_raw_product_ints
+               left3 right3)`]
+         compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.bounded_object_fs_raw_interval_add_ints_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `raw_sum` strip_assume_tac)
+  >> drule
+       compute_boundedObjectDecimalFusedTheory.bounded_object_fs_fused_products_decimal_object_exact
+  >> disch_then
+       (qx_choose_then `compact_lower`
+         (qx_choose_then `compact_upper` strip_assume_tac))
+  >> imp_res_tac
+       compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.bounded_object_fs_raw_products_endpoint_values
+  >> qexists_tac `raw0`
+  >> qexists_tac `raw1`
+  >> qexists_tac `raw2`
+  >> qexists_tac `raw3`
+  >> qexists_tac `raw_left`
+  >> qexists_tac `raw_right`
+  >> qexists_tac `raw_sum`
+  >> simp []
+  >> `bounded_object_fs_raw_interval_round 1000000000000 raw_sum =
+      bounded_object_fs_raw_interval_round 1000000000000
+        (Pair compact_lower compact_upper)` by
+       (irule
+          compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.bounded_object_fs_raw_interval_round_ints_extensional
+        >> simp
+             [compute_registeredCase10173HistoricalDeltaX4ValueBlockEvalTheory.registered_case10173_raw_products_ints_sum_def,
+              LET_THM]
+        >> intLib.ARITH_TAC)
+  >> simp []
+QED
+
 Theorem registered_case10173_fused_scale_add_decimal_raw_trace:
   !left right result.
     bounded_interval64_fused_scale_add_decimal
