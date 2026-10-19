@@ -130,6 +130,46 @@ Definition registered_case10173_raw_product_relation_def:
       SOME (registered_case10173_raw_product_ints left right)
 End
 
+Definition registered_case10173_raw_interval_object_def:
+  registered_case10173_raw_interval_object value <=>
+    ?lower upper.
+      bounded_object_interval_ints value = SOME (lower,upper)
+End
+
+Theorem registered_case10173_raw_product_relation_object:
+  registered_case10173_raw_product_relation left right raw ==>
+  registered_case10173_raw_interval_object raw
+Proof
+  rw [registered_case10173_raw_product_relation_def,
+      registered_case10173_raw_interval_object_def]
+  >> Cases_on `registered_case10173_raw_product_ints left right`
+  >> metis_tac []
+QED
+
+Theorem registered_case10173_raw_product_relations_endpoint_equiv:
+  registered_case10173_raw_product_relation left right first_raw /\
+  registered_case10173_raw_product_relation left right second_raw ==>
+  registered_case10173_raw_interval_endpoint_equiv first_raw second_raw
+Proof
+  rw [registered_case10173_raw_product_relation_def,
+      registered_case10173_raw_interval_endpoint_equiv_def]
+  >> Cases_on `registered_case10173_raw_product_ints left right`
+  >> metis_tac []
+QED
+
+Theorem registered_case10173_raw_product_relations_swapped_endpoint_equiv:
+  registered_case10173_raw_product_relation left right forward /\
+  registered_case10173_raw_product_relation right left backward ==>
+  registered_case10173_raw_interval_endpoint_equiv forward backward
+Proof
+  rw [registered_case10173_raw_product_relation_def,
+      registered_case10173_raw_interval_endpoint_equiv_def]
+  >> Cases_on `registered_case10173_raw_product_ints left right`
+  >> qexists_tac `q`
+  >> qexists_tac `r`
+  >> simp [registered_case10173_raw_product_ints_comm]
+QED
+
 Theorem registered_case10173_raw_list_scale_typed_trace:
   !values.
     ?raw_values.
@@ -188,6 +228,42 @@ Proof
   >> simp
        [compute_registeredCase10173HistoricalRawOuterEvalTheory.registered_case10173_fs_raw_interval_outer_object_def,
         LIST_REL_def]
+QED
+
+Theorem registered_case10173_raw_product_relation_list_objects:
+  !values raw_values.
+    LIST_REL
+      (\value raw.
+         registered_case10173_raw_product_relation scalar value raw)
+      values raw_values ==>
+    EVERY registered_case10173_raw_interval_object raw_values
+Proof
+  Induct
+  >> Cases_on `raw_values`
+  >> rw [LIST_REL_def]
+  >> imp_res_tac registered_case10173_raw_product_relation_object
+  >> res_tac
+  >> simp []
+QED
+
+Theorem registered_case10173_raw_product_relation_matrix_objects:
+  !left raw_rows.
+    LIST_REL
+      (\left_value raw_row.
+         LIST_REL
+           (\right_value raw.
+              registered_case10173_raw_product_relation
+                left_value right_value raw)
+           right raw_row)
+      left raw_rows ==>
+    EVERY (EVERY registered_case10173_raw_interval_object) raw_rows
+Proof
+  Induct
+  >> Cases_on `raw_rows`
+  >> rw [LIST_REL_def]
+  >> imp_res_tac registered_case10173_raw_product_relation_list_objects
+  >> res_tac
+  >> simp []
 QED
 
 Theorem registered_case10173_bounded_hessian64_rows_map:
@@ -265,6 +341,53 @@ Definition registered_case10173_raw_lists_add_def:
   registered_case10173_raw_lists_add _ _ _ = F
 End
 
+Theorem registered_case10173_raw_interval_add_objects:
+  registered_case10173_raw_interval_object left /\
+  registered_case10173_raw_interval_object right ==>
+  ?result.
+    bounded_object_fs_raw_interval_add left right = SOME result /\
+    registered_case10173_raw_interval_object result
+Proof
+  rw [registered_case10173_raw_interval_object_def]
+  >> mp_tac
+       (Q.SPECL
+         [`left`,`right`,`lower`,`upper`,`lower'`,`upper'`]
+         bounded_object_fs_raw_interval_add_ints_exists)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `result` strip_assume_tac)
+  >> qexists_tac `result`
+  >> simp [registered_case10173_raw_interval_object_def]
+QED
+
+Theorem registered_case10173_raw_list_add_objects:
+  !left right.
+    EVERY registered_case10173_raw_interval_object left /\
+    EVERY registered_case10173_raw_interval_object right /\
+    LENGTH left = LENGTH right ==>
+    ?result.
+      registered_case10173_raw_lists_add left right result /\
+      EVERY registered_case10173_raw_interval_object result
+Proof
+  Induct
+  >- (Cases_on `right`
+      >> rw []
+      >> qexists_tac `[]`
+      >> simp [registered_case10173_raw_lists_add_def])
+  >> rpt gen_tac
+  >> Cases_on `right`
+  >> rw []
+  >> mp_tac
+       (Q.INST [`left` |-> `h`, `right` |-> `h'`]
+          registered_case10173_raw_interval_add_objects)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `raw_head` strip_assume_tac)
+  >> first_x_assum (mp_tac o Q.SPEC `t`)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `raw_tail` strip_assume_tac)
+  >> qexists_tac `raw_head::raw_tail`
+  >> simp [registered_case10173_raw_lists_add_def]
+QED
+
 Theorem registered_case10173_raw_list_add_relation:
   !right result.
     registered_case10173_fs_raw_interval_list_add_object
@@ -306,6 +429,35 @@ Definition registered_case10173_raw_matrices_add_def:
        left_rows right_rows result_rows) /\
   registered_case10173_raw_matrices_add _ _ _ = F
 End
+
+Theorem registered_case10173_raw_matrix_add_objects:
+  !left right.
+    EVERY (EVERY registered_case10173_raw_interval_object) left /\
+    EVERY (EVERY registered_case10173_raw_interval_object) right /\
+    LIST_REL (\left_row right_row.
+      LENGTH left_row = LENGTH right_row) left right ==>
+    ?result.
+      registered_case10173_raw_matrices_add left right result /\
+      EVERY (EVERY registered_case10173_raw_interval_object) result
+Proof
+  Induct
+  >- (Cases_on `right`
+      >> rw [LIST_REL_def]
+      >> qexists_tac `[]`
+      >> simp [registered_case10173_raw_matrices_add_def])
+  >> rpt gen_tac
+  >> Cases_on `right`
+  >> rw [LIST_REL_def]
+  >> mp_tac
+       (Q.SPECL [`h`,`h'`] registered_case10173_raw_list_add_objects)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `raw_row` strip_assume_tac)
+  >> first_x_assum (mp_tac o Q.SPEC `t`)
+  >> impl_tac >- simp []
+  >> disch_then (qx_choose_then `raw_rows` strip_assume_tac)
+  >> qexists_tac `raw_row::raw_rows`
+  >> simp [registered_case10173_raw_matrices_add_def]
+QED
 
 Theorem registered_case10173_raw_matrix_add_from_relation:
   !right result.
