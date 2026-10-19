@@ -124,6 +124,55 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Theorem registered_case10173_raw_four_tree_endpoint_equiv:
+  bounded_object_interval_ints scaled_left =
+      SOME (scaled_left_lower,scaled_left_upper) /\
+  registered_case10173_raw_interval_endpoint_equiv
+      left_outer historical_left_outer /\
+  registered_case10173_raw_interval_endpoint_equiv
+      right_outer historical_right_outer /\
+  bounded_object_interval_ints scaled_right =
+      SOME (scaled_right_lower,scaled_right_upper) /\
+  bounded_object_fs_raw_interval_add scaled_left left_outer =
+      SOME compact_left_half /\
+  bounded_object_fs_raw_interval_add right_outer scaled_right =
+      SOME compact_right_half /\
+  bounded_object_fs_raw_interval_add compact_left_half compact_right_half =
+      SOME compact_sum /\
+  bounded_object_fs_raw_interval_add scaled_left historical_left_outer =
+      SOME historical_left_half /\
+  bounded_object_fs_raw_interval_add historical_right_outer scaled_right =
+      SOME historical_right_half /\
+  bounded_object_fs_raw_interval_add historical_left_half historical_right_half =
+      SOME historical_sum ==>
+  registered_case10173_raw_interval_endpoint_equiv
+      compact_sum historical_sum
+Proof
+  strip_tac
+  >> qpat_x_assum
+       `registered_case10173_raw_interval_endpoint_equiv
+          left_outer historical_left_outer` mp_tac
+  >> simp [registered_case10173_raw_interval_endpoint_equiv_def]
+  >> disch_then
+       (qx_choose_then `left_outer_lower`
+         (qx_choose_then `left_outer_upper` strip_assume_tac))
+  >> qpat_x_assum
+       `registered_case10173_raw_interval_endpoint_equiv
+          right_outer historical_right_outer` mp_tac
+  >> simp [registered_case10173_raw_interval_endpoint_equiv_def]
+  >> disch_then
+       (qx_choose_then `right_outer_lower`
+         (qx_choose_then `right_outer_upper` strip_assume_tac))
+  >> imp_res_tac registered_case10173_raw_interval_add_endpoint_values
+  >> qexists_tac
+       `scaled_left_lower + left_outer_lower +
+        (right_outer_lower + scaled_right_lower)`
+  >> qexists_tac
+       `scaled_left_upper + left_outer_upper +
+        (right_outer_upper + scaled_right_upper)`
+  >> simp []
+QED
+
 Definition registered_case10173_raw_product_relation_def:
   registered_case10173_raw_product_relation left right raw <=>
     bounded_object_interval_ints raw =
@@ -168,6 +217,61 @@ Proof
   >> qexists_tac `q`
   >> qexists_tac `r`
   >> simp [registered_case10173_raw_product_ints_comm]
+QED
+
+Theorem registered_case10173_raw_product_trace_relation:
+  bounded_object_fs_raw_interval_mul
+      (bounded_interval64_object_cv left)
+      (bounded_interval64_object_cv right) = SOME raw ==>
+  registered_case10173_raw_product_relation left right raw
+Proof
+  strip_tac
+  >> imp_res_tac registered_case10173_raw_product_endpoint_values
+  >> simp [registered_case10173_raw_product_relation_def]
+QED
+
+Theorem registered_case10173_outer_first_trace_relation:
+  !outer_pairs raw_products.
+    LIST_REL
+      (\outer raw.
+         bounded_object_fs_raw_interval_mul
+           (bounded_interval64_object_cv (FST (FST outer)))
+           (bounded_interval64_object_cv (SND (FST outer))) = SOME raw)
+      outer_pairs raw_products ==>
+    LIST_REL
+      (\outer raw.
+         registered_case10173_raw_product_relation
+           (FST (FST outer)) (SND (FST outer)) raw)
+      outer_pairs raw_products
+Proof
+  Induct
+  >> Cases_on `raw_products`
+  >> rw [LIST_REL_def]
+  >> imp_res_tac registered_case10173_raw_product_trace_relation
+  >> res_tac
+  >> simp []
+QED
+
+Theorem registered_case10173_outer_second_trace_relation:
+  !outer_pairs raw_products.
+    LIST_REL
+      (\outer raw.
+         bounded_object_fs_raw_interval_mul
+           (bounded_interval64_object_cv (FST (SND outer)))
+           (bounded_interval64_object_cv (SND (SND outer))) = SOME raw)
+      outer_pairs raw_products ==>
+    LIST_REL
+      (\outer raw.
+         registered_case10173_raw_product_relation
+           (FST (SND outer)) (SND (SND outer)) raw)
+      outer_pairs raw_products
+Proof
+  Induct
+  >> Cases_on `raw_products`
+  >> rw [LIST_REL_def]
+  >> imp_res_tac registered_case10173_raw_product_trace_relation
+  >> res_tac
+  >> simp []
 QED
 
 Theorem registered_case10173_raw_list_scale_typed_trace:
