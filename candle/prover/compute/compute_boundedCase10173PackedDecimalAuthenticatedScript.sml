@@ -45,6 +45,8 @@ Definition bounded_packed_chars_case10173_decimal_authenticated_packets_def:
            bounded_case10173_source_coordinate_sqrts_exact object_job /\
            bounded_case10173_source_coordinate_sqrt_decimals_exact
              packet object_job /\
+           bounded_case10173_source_coordinate_sqrt_dd_decimals_exact
+             packet object_job /\
            bounded_case10173_decimal_packet_source_radii_exact
              packet object_job
         then bounded_packed_chars_case10173_decimal_authenticated_packets
@@ -142,6 +144,8 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_step:
     bounded_case10173_source_coordinate_sqrts_exact object_job /\
     bounded_case10173_source_coordinate_sqrt_decimals_exact
       packet object_job /\
+    bounded_case10173_source_coordinate_sqrt_dd_decimals_exact
+      packet object_job /\
     bounded_case10173_decimal_packet_source_radii_exact
       packet object_job /\
     bounded_packed_chars_case10173_decimal_authenticated_packets
@@ -181,6 +185,8 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_head_object_contrac
     object_job = Pair box_sqrt_data (Pair center_sqrt_data source_boxes) /\
     bounded_case10173_source_coordinate_sqrts_exact object_job /\
     bounded_case10173_source_coordinate_sqrt_decimals_exact
+      packet object_job /\
+    bounded_case10173_source_coordinate_sqrt_dd_decimals_exact
       packet object_job /\
     bounded_case10173_decimal_packet_sqrt_roots packet =
       (center_roots,box_roots) /\

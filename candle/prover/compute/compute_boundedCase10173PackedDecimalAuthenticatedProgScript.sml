@@ -193,6 +193,16 @@ val _ = translate
   compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_sqrt_decimal_prefix_exact_def;
 val _ = translate
   compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_coordinate_sqrt_decimals_exact_def;
+val _ = translate
+  compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_sqrt_dd_floor64_exact_def;
+val _ = translate
+  compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_sqrt_dd_ceil64_exact_def;
+val _ = translate
+  compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_sqrt_dd_interval64_exact_def;
+val _ = translate
+  compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_sqrt_dd_prefix_exact_def;
+val _ = translate
+  compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_coordinate_sqrt_dd_decimals_exact_def;
 
 (* Exact source-radius reconstruction from the authenticated rational box. *)
 val _ = translate
