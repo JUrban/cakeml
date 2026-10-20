@@ -86,6 +86,67 @@ Definition bounded_case10173_source_actual_sqrt_operands_exact_def:
   bounded_case10173_source_actual_sqrt_operands_exact _ _ = F
 End
 
+(* One shared contract for the literal square-root source instruction.  It
+ * recomputes the completed variable operand, authenticates both rational
+ * roots against that operand, authenticates their fixed-point images and the
+ * direct second derivative, and requires the fast decimal operation itself
+ * to succeed on precisely the same Taylor state. *)
+Definition bounded_case10173_actual_sqrt_source_prefix_exact_def:
+  bounded_case10173_actual_sqrt_source_prefix_exact
+      0 index radii center_environment center_roots box_roots certificates = T /\
+  bounded_case10173_actual_sqrt_source_prefix_exact
+      (SUC remaining) index radii center_environment
+      (Pair center_root center_roots)
+      (Pair box_root box_roots)
+      (BoundedCase10173Sqrt64Certificate center_sqrt box_sqrt
+        center_derivative box_derivative box_second_reciprocal::certificates) =
+    (case bounded_case10173_actual_variable_decimal
+       radii center_environment index of
+     | NONE => F
+     | SOME
+         (BoundedTaylor64 domain_flag center_value center_gradient value_bound
+           gradient_bounds hessian) =>
+       case bounded_case10173_positive_interval64_q_cv center_value of
+       | NONE => F
+       | SOME center_input =>
+         case bounded_case10173_positive_interval64_q_cv value_bound of
+         | NONE => F
+         | SOME box_input =>
+             domain_flag /\
+             bounded_case10173_source_q_sqrt_certificate_exact
+               center_input center_root /\
+             bounded_case10173_source_q_sqrt_certificate_exact
+               box_input box_root /\
+             bounded_case10173_source_positive_q_interval64_exact
+               center_root center_sqrt /\
+             bounded_case10173_source_positive_q_interval64_exact
+               box_root box_sqrt /\
+             bounded_case10173_source_sqrt_dd_interval64_exact
+               box_root box_input box_second_reciprocal /\
+             IS_SOME
+               (bounded_taylor64_sqrt_decimal radii center_sqrt box_sqrt
+                 center_derivative box_derivative box_second_reciprocal
+                 (BoundedTaylor64 domain_flag center_value center_gradient
+                   value_bound gradient_bounds hessian)) /\
+             bounded_case10173_actual_sqrt_source_prefix_exact
+               remaining (SUC index) radii center_environment
+               center_roots box_roots certificates) /\
+  bounded_case10173_actual_sqrt_source_prefix_exact
+      (SUC remaining) index radii center_environment _ _ _ = F
+End
+
+Definition bounded_case10173_source_actual_sqrt_contract_def:
+  bounded_case10173_source_actual_sqrt_contract
+      (BoundedCase10173Packet radii center_environment box_environment
+        coordinate_sqrt_certificates center_root_delta center_root_four_x0
+        center_reciprocals box_root_delta box_root_four_x0 box_reciprocals)
+      (Pair box_sqrt_data (Pair center_sqrt_data source_boxes) : cv) =
+    bounded_case10173_actual_sqrt_source_prefix_exact 6 0 radii
+      center_environment center_sqrt_data box_sqrt_data
+      coordinate_sqrt_certificates /\
+  bounded_case10173_source_actual_sqrt_contract _ _ = F
+End
+
 Theorem bounded_case10173_actual_variable_decimal_some:
   bounded_case10173_actual_variable_decimal
       radii center_environment index = SOME result ==>
@@ -141,6 +202,67 @@ Proof
   >> rw [bounded_case10173_source_actual_sqrt_operands_exact_def]
   >> Cases_on `c0`
   >> gvs [bounded_case10173_source_actual_sqrt_operands_exact_def]
+QED
+
+Theorem bounded_case10173_actual_sqrt_source_prefix_exact_cons:
+  bounded_case10173_actual_sqrt_source_prefix_exact
+      (SUC remaining) index radii center_environment
+      (Pair center_root center_roots)
+      (Pair box_root box_roots)
+      (BoundedCase10173Sqrt64Certificate center_sqrt box_sqrt
+        center_derivative box_derivative box_second_reciprocal::certificates) ==>
+  ?domain_flag center_value center_gradient value_bound gradient_bounds hessian
+   center_input box_input root.
+    bounded_case10173_actual_variable_decimal
+      radii center_environment index =
+        SOME
+          (BoundedTaylor64 domain_flag center_value center_gradient value_bound
+            gradient_bounds hessian) /\
+    domain_flag /\
+    bounded_case10173_positive_interval64_q_cv center_value =
+      SOME center_input /\
+    bounded_case10173_positive_interval64_q_cv value_bound = SOME box_input /\
+    bounded_case10173_source_q_sqrt_certificate_exact
+      center_input center_root /\
+    bounded_case10173_source_q_sqrt_certificate_exact box_input box_root /\
+    bounded_case10173_source_positive_q_interval64_exact
+      center_root center_sqrt /\
+    bounded_case10173_source_positive_q_interval64_exact box_root box_sqrt /\
+    bounded_case10173_source_sqrt_dd_interval64_exact
+      box_root box_input box_second_reciprocal /\
+    bounded_taylor64_sqrt_decimal radii center_sqrt box_sqrt
+      center_derivative box_derivative box_second_reciprocal
+      (BoundedTaylor64 domain_flag center_value center_gradient value_bound
+        gradient_bounds hessian) = SOME root /\
+    bounded_case10173_actual_sqrt_source_prefix_exact
+      remaining (SUC index) radii center_environment
+      center_roots box_roots certificates
+Proof
+  simp [bounded_case10173_actual_sqrt_source_prefix_exact_def]
+  >> every_case_tac
+  >> Cases_on `b`
+  >> gvs [IS_SOME_EXISTS]
+QED
+
+Theorem bounded_case10173_source_actual_sqrt_contract_components:
+  bounded_case10173_source_actual_sqrt_contract packet object_job ==>
+  ?radii center_environment box_environment coordinate_sqrt_certificates
+   center_root_delta center_root_four_x0 center_reciprocals box_root_delta
+   box_root_four_x0 box_reciprocals box_sqrt_data center_sqrt_data source_boxes.
+    packet =
+      BoundedCase10173Packet radii center_environment box_environment
+        coordinate_sqrt_certificates center_root_delta center_root_four_x0
+        center_reciprocals box_root_delta box_root_four_x0 box_reciprocals /\
+    object_job = Pair box_sqrt_data (Pair center_sqrt_data source_boxes) /\
+    bounded_case10173_actual_sqrt_source_prefix_exact 6 0 radii
+      center_environment center_sqrt_data box_sqrt_data
+      coordinate_sqrt_certificates
+Proof
+  Cases_on `packet`
+  >> Cases_on `object_job`
+  >> rw [bounded_case10173_source_actual_sqrt_contract_def]
+  >> Cases_on `c0`
+  >> gvs [bounded_case10173_source_actual_sqrt_contract_def]
 QED
 
 val _ = export_theory ();
