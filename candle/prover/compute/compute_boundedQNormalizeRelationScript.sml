@@ -79,6 +79,25 @@ Proof
   >> simp [bounded_case10173_q_cv_equiv_def]
 QED
 
+Theorem bounded_case10173_q_cv_equiv_trans:
+  bounded_case10173_q_cv_equiv left middle /\
+  bounded_case10173_q_cv_equiv middle right ==>
+  bounded_case10173_q_cv_equiv left right
+Proof
+  rw [bounded_case10173_q_cv_equiv_def]
+  >> every_case_tac
+  >> gvs []
+  >> `0 < r''` by
+       metis_tac
+         [compute_boundedObjectIntervalRelationTheory.bounded_object_q_ints_denominator_positive]
+  >> `r'' <> 0` by intLib.ARITH_TAC
+  >> `(q' * r) * r'' = (q * r') * r''` by
+       metis_tac
+         [integerTheory.INT_MUL_ASSOC,
+          integerTheory.INT_MUL_COMM]
+  >> metis_tac [integerTheory.INT_EQ_RMUL_IMP]
+QED
+
 Theorem bounded_case10173_int_signed_difference:
   positive < negative ==>
   -&(negative - positive) = (&positive:int) - &negative

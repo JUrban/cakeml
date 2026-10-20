@@ -91,6 +91,13 @@ Definition registered_case10173_q_normalize_signed_body_def:
           Var «denominator»]]
 End
 
+Definition registered_case10173_q_normalize_body_def:
+  registered_case10173_q_normalize_body =
+    App «candle_cv_q_normalize_signed»
+      [App «candle_cv_lc_znormalize» [Uop Fst (Var «q»)];
+       App «candle_cv_q_den» [Var «q»]]
+End
+
 Theorem registered_case10173_lc_znormalize_lookup:
   ALOOKUP registered_case10173_historical_chunk16_ceqs
       «candle_cv_lc_znormalize» =
@@ -139,6 +146,14 @@ Proof
   EVAL_TAC
 QED
 
+Theorem registered_case10173_q_normalize_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_q_normalize» =
+    SOME ([«q»],registered_case10173_q_normalize_body)
+Proof
+  EVAL_TAC
+QED
+
 Theorem registered_case10173_q_normalize_verified_unfold:
   0 < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
@@ -176,6 +191,22 @@ Proof
   >> irule
        compute_registeredCase10173AnalyticSqrtEvalTheory.compute_eval_literal_app2
   >> simp [registered_case10173_q_normalize_signed_lookup]
+QED
+
+Theorem registered_case10173_q_normalize_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_q_normalize» [from_cv encoded_q])
+      (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst [(«q»,from_cv encoded_q)]
+        registered_case10173_q_normalize_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173CanonicalEvalTheory.compute_eval_literal_app1
+  >> simp [registered_case10173_q_normalize_lookup]
 QED
 
 Theorem registered_case10173_lc_znormalize_eval:
@@ -686,6 +717,129 @@ Proof
        `bounded_case10173_num_gcd
           (positive + negative) denominator`
   >> first_assum ACCEPT_TAC
+QED
+
+Theorem registered_case10173_q_normalize_relation_eval:
+  0 < denominator /\ 140 < clock ==>
+  ?normalized.
+    compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_q_normalize»
+          [from_cv
+            (Pair (Pair (Num positive) (Num negative))
+              (Num (denominator - 1)))]) (refs:hol_refs) =
+      (M_success (from_cv normalized),refs) /\
+    bounded_case10173_q_cv_equiv normalized
+      (Pair (Pair (Num positive) (Num negative))
+        (Num (denominator - 1)))
+Proof
+  strip_tac
+  >> `?lc_positive lc_negative.
+        bounded_case10173_lc_znormalize_cv positive negative =
+          Pair (Num lc_positive) (Num lc_negative)` by
+       (Cases_on `positive < negative`
+        >- (qexists_tac `0`
+            >> qexists_tac `negative - positive`
+            >> simp [bounded_case10173_lc_znormalize_cv_def])
+        >> qexists_tac `positive - negative`
+        >> qexists_tac `0`
+        >> simp [bounded_case10173_lc_znormalize_cv_def])
+  >> mp_tac
+       (Q.INST
+         [`positive` |-> `lc_positive`,
+          `negative` |-> `lc_negative`,
+          `denominator` |-> `denominator`,
+          `clock` |-> `clock - 1`,
+          `refs` |-> `refs`]
+         registered_case10173_q_normalize_signed_relation_eval)
+  >> impl_tac >- intLib.ARITH_TAC
+  >> strip_tac
+  >> qexists_tac `normalized`
+  >> conj_tac
+  >- (simp [registered_case10173_q_normalize_unfold]
+      >> simp
+           [registered_case10173_q_normalize_body_def,
+            compute_evalTheory.subst_def,
+            compute_execProofTheory.subst_from_cv]
+      >> irule EQ_TRANS
+      >> qexists_tac
+           `compute_eval (clock - 1)
+              registered_case10173_historical_chunk16_ceqs
+              (App «candle_cv_q_normalize_signed»
+                [from_cv (Pair (Num lc_positive) (Num lc_negative));
+                 from_cv (Num denominator)]) refs`
+      >> conj_tac
+      >- (irule
+            compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_app2_argument_results
+          >> conj_tac >- intLib.ARITH_TAC
+          >> conj_tac
+          >- (irule EQ_TRANS
+              >> qexists_tac
+                   `compute_eval (clock - 1)
+                      registered_case10173_historical_chunk16_ceqs
+                      (App «candle_cv_lc_znormalize»
+                        [Pair (Num positive) (Num negative)]) refs`
+              >> conj_tac
+              >- (irule
+                    (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+                      (Q.INST
+                        [`clock` |-> `clock - 1`,
+                         `ceqs` |->
+                           `registered_case10173_historical_chunk16_ceqs`,
+                         `argument` |->
+                           `Uop Fst
+                             (Pair (Pair (Num positive) (Num negative))
+                               (Num (denominator - 1)))`,
+                         `argument_result` |->
+                           `Pair (Num positive) (Num negative)`,
+                         `function_name` |->
+                           `«candle_cv_lc_znormalize»`,
+                         `refs` |-> `refs`]
+                        compute_registeredCase10173CanonicalEvalTheory.compute_eval_app1_argument_result))
+                  >> conj_tac >- intLib.ARITH_TAC
+                  >> simp
+                       [compute_evalTheory.compute_eval_def,
+                        compute_evalTheory.do_uop_def,
+                        compute_evalTheory.do_fst_def,
+                        ml_monadBaseTheory.st_ex_bind_def,
+                        ml_monadBaseTheory.st_ex_return_def])
+              >> mp_tac
+                   (Q.INST
+                     [`clock` |-> `clock - 1`,
+                      `positive` |-> `positive`,
+                      `negative` |-> `negative`,
+                      `refs` |-> `refs`]
+                     registered_case10173_lc_znormalize_eval)
+              >> impl_tac >- intLib.ARITH_TAC
+              >> simp [compute_execTheory.from_cv_def]
+              >> PURE_ASM_REWRITE_TAC [])
+          >> mp_tac
+               (Q.INST
+                 [`clock` |-> `clock - 1`,
+                  `numerator` |->
+                    `Pair (Num positive) (Num negative)`,
+                  `denominator_minus_one` |-> `denominator - 1`,
+                  `refs` |-> `refs`]
+                 compute_registeredCase10173QConversionEvalTheory.registered_case10173_q_den_positive_eval)
+          >> impl_tac >- intLib.ARITH_TAC
+          >> simp [compute_execTheory.from_cv_def]
+          >> PURE_ASM_REWRITE_TAC [])
+      >> PURE_ASM_REWRITE_TAC []
+      >> simp [])
+  >> irule
+       compute_boundedQNormalizeRelationTheory.bounded_case10173_q_cv_equiv_trans
+  >> qexists_tac
+       `Pair (Pair (Num lc_positive) (Num lc_negative))
+          (Num (denominator - 1))`
+  >> conj_tac >- PURE_ASM_REWRITE_TAC []
+  >> mp_tac
+       (Q.INST
+         [`positive` |-> `positive`,
+          `negative` |-> `negative`,
+          `denominator` |-> `denominator`]
+         compute_boundedQNormalizeRelationTheory.bounded_case10173_lc_znormalize_cv_equiv)
+  >> impl_tac >- intLib.ARITH_TAC
+  >> PURE_ASM_REWRITE_TAC []
+  >> simp []
 QED
 
 val _ = export_theory ();
