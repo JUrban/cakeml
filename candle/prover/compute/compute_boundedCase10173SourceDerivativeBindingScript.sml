@@ -64,6 +64,26 @@ Proof
   >> INT_RING_TAC
 QED
 
+Theorem bounded_case10173_positive_q_inv_endpoint64_equiv:
+  0 < numerator /\ 0 < denominator /\ 0 < w2n magnitude /\
+  bounded_case10173_q_cv_equiv
+    (Pair (Pair (Num numerator) (Num 0))
+      (Num (denominator - 1)))
+    (bounded_case10173_positive_endpoint64_q_cv
+      (BoundedSigned64 F magnitude)) ==>
+  bounded_case10173_q_cv_equiv
+    (Pair (Pair (Num denominator) (Num 0))
+      (Num (numerator - 1)))
+    (Pair (Pair (Num 1000000000000) (Num 0))
+      (Num (w2n magnitude - 1)))
+Proof
+  strip_tac
+  >> irule
+       compute_boundedQRelationAlgebraTheory.bounded_case10173_positive_q_inv_cv_equiv
+  >> fs
+       [compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_positive_endpoint64_q_cv_def]
+QED
+
 Theorem bounded_case10173_positive_inv_certificate_q_conversion:
   bounded_interval64_positive_inv_certificate_decimal
     (BoundedInterval64 (BoundedSigned64 F input_lower)
