@@ -179,6 +179,21 @@ val _ = translate
 val _ = translate
   compute_boundedCase10173SourceSqrtCertificateTheory.bounded_case10173_source_coordinate_sqrts_exact_def;
 
+(* Exact identity of the authenticated source roots and the typed decimal
+ * roots consumed by the specialized derivative checker. *)
+val _ = translate
+  compute_boundedQNormalizeRelationTheory.bounded_case10173_q_cv_equiv_def;
+val _ = translate
+  compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_positive_endpoint64_q_cv_def;
+val _ = translate
+  compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_positive_q_endpoint64_exact_def;
+val _ = translate
+  compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_positive_q_interval64_exact_def;
+val _ = translate
+  compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_sqrt_decimal_prefix_exact_def;
+val _ = translate
+  compute_boundedCase10173SourceDecimalExactTheory.bounded_case10173_source_coordinate_sqrt_decimals_exact_def;
+
 (* Exact source-radius reconstruction from the authenticated rational box. *)
 val _ = translate
   compute_registeredCase10173RadiusBindingTheory.bounded_case10173_packet_radii_def;
