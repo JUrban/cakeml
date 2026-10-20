@@ -201,4 +201,48 @@ Proof
   >> INT_RING_TAC
 QED
 
+Theorem bounded_case10173_q_normalize_verified_cv_positive_shape:
+  0 < positive /\ 0 < denominator ==>
+  ?normalized_positive normalized_denominator.
+    bounded_case10173_q_normalize_verified_cv
+        positive 0 denominator common =
+      Pair
+        (Pair (Num normalized_positive) (Num 0))
+        (Num (normalized_denominator - 1)) /\
+    0 < normalized_positive /\
+    0 < normalized_denominator
+Proof
+  strip_tac
+  >> Cases_on `common = 0`
+  >- (simp
+        [bounded_case10173_q_normalize_verified_cv_def,
+         bounded_case10173_q_normalize_fallback_cv_def]
+      >> metis_tac [])
+  >> Cases_on `denominator DIV common = 0`
+  >- (simp
+        [bounded_case10173_q_normalize_verified_cv_def,
+         bounded_case10173_q_normalize_fallback_cv_def]
+      >> metis_tac [])
+  >> Cases_on `(positive DIV common) * common = positive`
+  >- (Cases_on `(denominator DIV common) * common = denominator`
+      >- (`0 < positive DIV common` by
+            (Cases_on `positive DIV common` >> fs [])
+          >> `0 < denominator DIV common` by intLib.ARITH_TAC
+          >> qexists_tac `positive DIV common`
+          >> qexists_tac `denominator DIV common`
+          >> simp
+               [bounded_case10173_q_normalize_verified_cv_def,
+                bounded_case10173_q_normalize_divide_cv_def,
+                arithmeticTheory.MULT_COMM])
+      >> simp
+           [bounded_case10173_q_normalize_verified_cv_def,
+            bounded_case10173_q_normalize_fallback_cv_def,
+            arithmeticTheory.MULT_COMM]
+      >> metis_tac [])
+  >> simp
+       [bounded_case10173_q_normalize_verified_cv_def,
+        bounded_case10173_q_normalize_fallback_cv_def]
+  >> metis_tac []
+QED
+
 val _ = export_theory ();
