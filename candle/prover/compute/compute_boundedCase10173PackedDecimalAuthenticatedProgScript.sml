@@ -242,6 +242,19 @@ val _ = bounded_case10173_source_radii64_positive_q_ind_translation
 val _ = translate
   compute_registeredCase10173RadiusBindingTheory.bounded_case10173_decimal_packet_source_radii_exact_def;
 
+(* Authenticate the operands used by the literal source program.  The source
+ * Taylor-completes each coordinate before sqrt, so this executable contract
+ * deliberately recomputes that completed value_bound rather than checking
+ * the original source-box coordinate. *)
+val _ = translate
+  compute_boundedCase10173ActualSqrtOperandTheory.bounded_case10173_actual_variable_decimal_def;
+val _ = translate
+  compute_boundedCase10173ActualSqrtOperandTheory.bounded_case10173_positive_interval64_q_cv_def;
+val _ = translate
+  compute_boundedCase10173ActualSqrtOperandTheory.bounded_case10173_actual_sqrt_source_prefix_exact_def;
+val _ = translate
+  compute_boundedCase10173ActualSqrtOperandTheory.bounded_case10173_source_actual_sqrt_contract_def;
+
 val _ = translate
   compute_boundedCase10173PackedDecimalAuthenticatedTheory.bounded_packed_chars_case10173_decimal_authenticated_packets_def;
 val _ = translate

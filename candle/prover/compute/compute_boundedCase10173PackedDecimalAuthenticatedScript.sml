@@ -15,6 +15,7 @@ Ancestors
   compute_registeredCase10173RadiusBinding
   compute_boundedCase10173SourceSqrtCertificate
   compute_boundedCase10173SourceDecimalExact
+  compute_boundedCase10173ActualSqrtOperand
 Libs
   bossLib preamble
 
@@ -46,6 +47,8 @@ Definition bounded_packed_chars_case10173_decimal_authenticated_packets_def:
            bounded_case10173_source_coordinate_sqrt_decimals_exact
              packet object_job /\
            bounded_case10173_source_coordinate_sqrt_dd_decimals_exact
+             packet object_job /\
+           bounded_case10173_source_actual_sqrt_contract
              packet object_job /\
            bounded_case10173_decimal_packet_source_radii_exact
              packet object_job
@@ -146,6 +149,7 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_step:
       packet object_job /\
     bounded_case10173_source_coordinate_sqrt_dd_decimals_exact
       packet object_job /\
+    bounded_case10173_source_actual_sqrt_contract packet object_job /\
     bounded_case10173_decimal_packet_source_radii_exact
       packet object_job /\
     bounded_packed_chars_case10173_decimal_authenticated_packets
@@ -188,6 +192,7 @@ Theorem bounded_packed_chars_case10173_decimal_authenticated_head_object_contrac
       packet object_job /\
     bounded_case10173_source_coordinate_sqrt_dd_decimals_exact
       packet object_job /\
+    bounded_case10173_source_actual_sqrt_contract packet object_job /\
     bounded_case10173_decimal_packet_sqrt_roots packet =
       (center_roots,box_roots) /\
     bounded_object_positive_q_interval64_decimal_list center_sqrt_data =
