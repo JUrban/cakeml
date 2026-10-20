@@ -81,6 +81,15 @@ Definition registered_case10173_q_normalize_verified_body_def:
             [Var «z»;Var «denominator»])))
 End
 
+Definition registered_case10173_q_normalize_signed_body_def:
+  registered_case10173_q_normalize_signed_body =
+    App «candle_cv_q_normalize_verified»
+      [Var «z»;Var «denominator»;
+       App «candle_cv_num_gcd»
+         [Binop Add (Uop Fst (Var «z»)) (Uop Snd (Var «z»));
+          Var «denominator»]]
+End
+
 Theorem registered_case10173_lc_znormalize_lookup:
   ALOOKUP registered_case10173_historical_chunk16_ceqs
       «candle_cv_lc_znormalize» =
@@ -119,6 +128,16 @@ Proof
   EVAL_TAC
 QED
 
+Theorem registered_case10173_q_normalize_signed_lookup:
+  ALOOKUP registered_case10173_historical_chunk16_ceqs
+      «candle_cv_q_normalize_signed» =
+    SOME
+      ([«z»;«denominator»],
+       registered_case10173_q_normalize_signed_body)
+Proof
+  EVAL_TAC
+QED
+
 Theorem registered_case10173_q_normalize_verified_unfold:
   0 < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
@@ -137,6 +156,25 @@ Proof
   >> irule
        compute_registeredCase10173TaylorWeightedRowsEvalTheory.registered_case10173_compute_eval_literal_app3
   >> simp [registered_case10173_q_normalize_verified_lookup]
+QED
+
+Theorem registered_case10173_q_normalize_signed_unfold:
+  0 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_q_normalize_signed»
+        [from_cv encoded_z;from_cv encoded_denominator])
+      (refs:hol_refs) =
+    compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (subst
+        [(«z»,from_cv encoded_z);
+         («denominator»,from_cv encoded_denominator)]
+        registered_case10173_q_normalize_signed_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173AnalyticSqrtEvalTheory.compute_eval_literal_app2
+  >> simp [registered_case10173_q_normalize_signed_lookup]
 QED
 
 Theorem registered_case10173_lc_znormalize_eval:
@@ -490,6 +528,92 @@ Proof
           positive negative denominator common`
   >> conj_tac
   >- simp [registered_case10173_q_normalize_verified_eval]
+  >> irule
+       compute_boundedQNormalizeRelationTheory.bounded_case10173_q_normalize_verified_cv_equiv
+  >> first_assum ACCEPT_TAC
+QED
+
+Theorem registered_case10173_q_normalize_signed_from_gcd_eval:
+  compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_num_gcd»
+        [Binop Add
+           (Uop Fst (from_cv (Pair (Num positive) (Num negative))))
+           (Uop Snd (from_cv (Pair (Num positive) (Num negative))));
+         from_cv (Num denominator)]) (refs:hol_refs) =
+    (M_success (from_cv (Num common)),refs) /\
+  4 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_q_normalize_signed»
+        [from_cv (Pair (Num positive) (Num negative));
+         from_cv (Num denominator)]) refs =
+    (M_success
+      (from_cv
+        (bounded_case10173_q_normalize_verified_cv
+          positive negative denominator common)),refs)
+Proof
+  strip_tac
+  >> simp
+       [(SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+          (Q.INST
+            [`encoded_z` |-> `(Pair (Num positive) (Num negative):cv)`,
+             `encoded_denominator` |-> `(Num denominator:cv)`]
+            registered_case10173_q_normalize_signed_unfold))]
+  >> simp
+       [registered_case10173_q_normalize_signed_body_def,
+        compute_evalTheory.subst_def]
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval (clock - 1)
+          registered_case10173_historical_chunk16_ceqs
+          (App «candle_cv_q_normalize_verified»
+            [from_cv (Pair (Num positive) (Num negative));
+             from_cv (Num denominator);from_cv (Num common)]) refs`
+  >> conj_tac
+  >- (irule
+        compute_registeredCase10173CheckedJobsEvalTheory.compute_eval_app3_argument_results
+      >> conj_tac
+      >- fs []
+      >> conj_tac
+      >- simp
+           [compute_evalTheory.compute_eval_def,
+            ml_monadBaseTheory.st_ex_bind_def,
+            ml_monadBaseTheory.st_ex_return_def]
+      >> conj_tac
+      >- simp
+           [compute_evalTheory.compute_eval_def,
+            ml_monadBaseTheory.st_ex_return_def]
+      >> fs [compute_execTheory.from_cv_def])
+  >> simp [registered_case10173_q_normalize_verified_eval]
+QED
+
+Theorem registered_case10173_q_normalize_signed_relation_from_gcd_eval:
+  compute_eval (clock - 1)
+      registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_num_gcd»
+        [Binop Add
+           (Uop Fst (from_cv (Pair (Num positive) (Num negative))))
+           (Uop Snd (from_cv (Pair (Num positive) (Num negative))));
+         from_cv (Num denominator)]) (refs:hol_refs) =
+    (M_success (from_cv (Num common)),refs) /\
+  0 < denominator /\ 4 < clock ==>
+  ?normalized.
+    compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_q_normalize_signed»
+          [from_cv (Pair (Num positive) (Num negative));
+           from_cv (Num denominator)]) refs =
+      (M_success (from_cv normalized),refs) /\
+    bounded_case10173_q_cv_equiv normalized
+      (Pair (Pair (Num positive) (Num negative))
+        (Num (denominator - 1)))
+Proof
+  strip_tac
+  >> qexists_tac
+       `bounded_case10173_q_normalize_verified_cv
+          positive negative denominator common`
+  >> conj_tac
+  >- (irule registered_case10173_q_normalize_signed_from_gcd_eval
+      >> asm_rewrite_tac [])
   >> irule
        compute_boundedQNormalizeRelationTheory.bounded_case10173_q_normalize_verified_cv_equiv
   >> first_assum ACCEPT_TAC
