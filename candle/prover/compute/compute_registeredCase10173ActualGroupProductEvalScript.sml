@@ -157,8 +157,13 @@ Theorem registered_case10173_actual_group_product_eval_above:
       (BoundedCase10173Sqrt64Certificate center_sqrt box_sqrt
         center_derivative box_derivative box_second_reciprocal::certificates)
   ==>
-  ?root root_rows coefficient coefficient_state coefficient_rows product
+  ?variable root root_rows coefficient coefficient_state coefficient_rows product
    product_rows.
+    bounded_case10173_actual_variable_decimal
+      radii center_environment index = SOME variable /\
+    bounded_taylor64_sqrt_decimal radii center_sqrt box_sqrt
+      center_derivative box_derivative box_second_reciprocal variable =
+      SOME root /\
     bounded_interval64_nth bounded_case10173_root_coefficients_decimal index =
       SOME coefficient /\
     bounded_taylor64_constant coefficient = SOME coefficient_state /\
@@ -207,8 +212,7 @@ Proof
          registered_case10173_taylor_mul_decimal_eval_above_exists)
   >> impl_tac >- asm_rewrite_tac []
   >> strip_tac
-  >> qexistsl_tac
-       [`root`,`left_rows`,`right_rows`,`product`,`result_rows`]
+  >> qexistsl_tac [`left_rows`,`right_rows`,`result_rows`]
   >> asm_rewrite_tac []
 QED
 

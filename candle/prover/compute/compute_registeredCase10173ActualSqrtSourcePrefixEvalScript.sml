@@ -124,6 +124,10 @@ Theorem registered_case10173_actual_sqrt_source_prefix_head_uniform_eval:
       center_derivative box_derivative box_second_reciprocal
       (BoundedTaylor64 T center_value center_gradient value_bound
         gradient_bounds source_hessian) = SOME result /\
+    (case result of
+     | BoundedTaylor64 result_domain center result_gradient result_value
+         result_gradient_bounds result_hessian =>
+         bounded_hessian64_rows result_hessian = SOME result_rows) /\
     (!clock refs.
       8192 < clock ==>
       compute_eval clock registered_case10173_historical_chunk16_ceqs
@@ -168,8 +172,8 @@ Proof
        (qx_choose_then `source_hessian_rows` strip_assume_tac)
   >> drule_all_then strip_assume_tac
        compute_registeredCase10173ResultSqrtContractTheory.registered_case10173_taylor_sqrt_decimal_typed_contract
-  >> qexistsl_tac [`source_hessian_rows`,`result_rows`]
-  >> asm_rewrite_tac []
+  >> Cases_on `root`
+  >> gvs []
   >> rpt gen_tac
   >> strip_tac
   >> drule_all_then strip_assume_tac

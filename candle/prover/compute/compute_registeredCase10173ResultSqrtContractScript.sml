@@ -124,6 +124,21 @@ Proof
   >> gvs []
 QED
 
+Theorem registered_case10173_taylor_complete_decimal_hessian:
+  bounded_taylor64_complete_decimal radii result_domain center_value
+      center_gradient hessian = SOME result ==>
+  case result of
+  | BoundedTaylor64 actual_domain actual_center actual_center_gradient
+      actual_value actual_gradient_bounds actual_hessian =>
+      actual_hessian = hessian
+Proof
+  rw
+    [compute_boundedTaylorCompleteDecimalTheory.bounded_taylor64_complete_decimal_def]
+  >> every_case_tac
+  >> gvs
+       [compute_boundedTaylorStateTheory.bounded_taylor64_make_def]
+QED
+
 Theorem registered_case10173_taylor_sqrt_decimal_typed_contract:
   LENGTH radii = 6 /\
   bounded_hessian64_rows source_hessian = SOME source_hessian_rows /\
@@ -183,6 +198,10 @@ Theorem registered_case10173_taylor_sqrt_decimal_typed_contract:
     bounded_interval64_list_add outer_hessian scaled_hessian =
       SOME result_hessian /\
     bounded_hessian64_rows result_hessian = SOME result_rows /\
+    (case result of
+     | BoundedTaylor64 result_domain result_center result_gradient
+         result_value result_gradient_bounds actual_result_hessian =>
+         actual_result_hessian = result_hessian) /\
     bounded_object_fs_taylor_complete radii T center_sqrt
       result_center_gradient result_hessian result_rows =
       SOME (bounded_taylor64_rows_object_cv result result_rows)
@@ -194,6 +213,13 @@ Proof
        compute_boundedObjectTaylorUnaryDecimalTheory.bounded_taylor64_unary_complete_decimal_object_trace
   >> strip_tac
   >> gvs []
+  >> `bounded_taylor64_complete_decimal radii T center_sqrt
+        center_gradient' hessian = SOME result` by
+       (fs
+          [compute_boundedTaylorUnaryDecimalTheory.bounded_taylor64_unary_complete_decimal_def]
+        >> every_case_tac
+        >> gvs [])
+  >> imp_res_tac registered_case10173_taylor_complete_decimal_hessian
   >> imp_res_tac bounded_interval64_positive_sqrt_certificate_output_strict
   >> imp_res_tac bounded_interval64_positive_inv_certificate_strict
   >> imp_res_tac
