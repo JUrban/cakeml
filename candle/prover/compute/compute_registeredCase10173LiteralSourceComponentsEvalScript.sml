@@ -203,4 +203,106 @@ Proof
   >> metis_tac []
 QED
 
+(* Name the six source products and pin every state consumed by the suffix.
+ * Keeping this decomposition independent of the evaluator trace prevents
+ * generated list witnesses from leaking into the final composition proof. *)
+Theorem registered_case10173_literal_source_components_exact:
+  bounded_case10173_literal_source_decimal
+      (BoundedCase10173Packet radii center_environment box_environment
+        coordinate_sqrt_certificates center_root_delta center_root_four_x0
+        center_reciprocals box_root_delta box_root_four_x0 box_reciprocals) =
+    SOME final_result ==>
+  ?product0 product1 product2 product3 product4 product5 historical_item
+   scaled_historical.
+    bounded_case10173_literal_products_decimal 6 0 radii
+      center_environment coordinate_sqrt_certificates =
+      SOME [product0;product1;product2;product3;product4;product5] /\
+    bounded_case10173_literal_historical_item_decimal radii
+      center_environment box_environment center_root_delta
+      center_root_four_x0 center_reciprocals box_root_delta
+      box_root_four_x0 box_reciprocals = SOME historical_item /\
+    bounded_taylor64_mul_decimal radii historical_item
+      (registered_case10173_constant_taylor
+        (registered_case10173_decimal_point T 1000000000000)) =
+      SOME scaled_historical /\
+    bounded_case10173_literal_add_stack_decimal radii
+      [registered_case10173_constant_taylor
+         registered_case10173_ordinary_term56_value;
+       product5;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term56_value;
+       product4;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term4_value;
+       product3;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term23_value;
+       product2;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term23_value;
+       product1;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term1_value;
+       product0;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term0_value]
+      scaled_historical = SOME final_result /\
+    EVERY registered_case10173_taylor_domain
+      [registered_case10173_constant_taylor
+         registered_case10173_ordinary_term56_value;
+       product5;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term56_value;
+       product4;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term4_value;
+       product3;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term23_value;
+       product2;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term23_value;
+       product1;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term1_value;
+       product0;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term0_value] /\
+    EVERY bounded_taylor64_well_formed
+      [registered_case10173_constant_taylor
+         registered_case10173_ordinary_term56_value;
+       product5;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term56_value;
+       product4;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term4_value;
+       product3;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term23_value;
+       product2;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term23_value;
+       product1;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term1_value;
+       product0;
+       registered_case10173_constant_taylor
+         registered_case10173_ordinary_term0_value]
+Proof
+  strip_tac
+  >> drule registered_case10173_literal_source_components
+  >> strip_tac
+  >> imp_res_tac registered_case10173_literal_products_length
+  >> fs [listTheory.LENGTH_EQ_NUM_compute]
+  >> gvs
+       [compute_registeredCase10173LiteralPrefixStackEvalTheory.registered_case10173_literal_constants_exact,
+        compute_registeredCase10173LiteralPrefixStackEvalTheory.registered_case10173_literal_summands_exact,
+        compute_registeredCase10173LiteralSuffixContractEvalTheory.registered_case10173_literal_negative_one_taylor]
+  >> imp_res_tac registered_case10173_literal_products_properties
+  >> drule_all_then strip_assume_tac
+       registered_case10173_literal_typed_summands_properties
+  >> fs []
+QED
+
 val _ = export_theory ();
