@@ -233,4 +233,65 @@ Proof
   >> metis_tac []
 QED
 
+Theorem registered_case10173_taylor_sqrt_decimal_eval:
+  LENGTH radii = 6 /\
+  bounded_hessian64_rows source_hessian = SOME source_hessian_rows /\
+  bounded_case10173_positive_interval64_q_cv center_value =
+    SOME center_input /\
+  bounded_case10173_positive_interval64_q_cv value_bound =
+    SOME box_input /\
+  bounded_case10173_source_q_sqrt_certificate_exact
+    center_input center_root /\
+  bounded_case10173_source_q_sqrt_certificate_exact
+    box_input box_root /\
+  bounded_case10173_source_positive_q_interval64_exact
+    center_root center_sqrt /\
+  bounded_case10173_source_positive_q_interval64_exact
+    box_root box_sqrt /\
+  bounded_case10173_source_sqrt_dd_interval64_exact
+    box_root box_input box_second_reciprocal /\
+  bounded_taylor64_sqrt_decimal radii center_sqrt box_sqrt
+      center_derivative box_derivative box_second_reciprocal
+      (BoundedTaylor64 T center_value center_gradient value_bound
+        gradient_bounds source_hessian) = SOME result /\
+  8192 < clock ==>
+  ?result_rows.
+    compute_eval clock registered_case10173_historical_chunk16_ceqs
+        (App «candle_cv_fsn_result_sqrt»
+          [from_cv (registered_case10173_word64_object_cv_list radii);
+           from_cv center_root;
+           from_cv box_root;
+           from_cv
+             (Pair (Num 1)
+               (Pair
+                 (Pair (bounded_interval64_object_cv center_value)
+                   (bounded_interval64_object_cv_list center_gradient))
+                 (Pair (bounded_interval64_object_cv value_bound)
+                   (Pair
+                     (bounded_interval64_object_cv_list gradient_bounds)
+                     (bounded_interval64_object_cv_matrix
+                       source_hessian_rows)))))])
+        (refs:hol_refs) =
+      (M_success
+        (from_cv (bounded_taylor64_rows_object_cv result result_rows)),refs)
+Proof
+  strip_tac
+  >> drule_all_then strip_assume_tac
+       registered_case10173_taylor_sqrt_decimal_typed_contract
+  >> qexists_tac `result_rows`
+  >> irule
+       compute_registeredCase10173ActualResultSqrtEvalTheory.registered_case10173_actual_result_sqrt_eval
+  >> asm_rewrite_tac []
+  >> conj_tac
+  >- (qexists_tac `center_input`
+      >> asm_rewrite_tac [])
+  >> qexistsl_tac
+       [`box_derivative`,`box_input`,`box_second_reciprocal`,`box_sqrt`,
+        `box_twice`,`center_derivative`,`center_sqrt`,`center_twice`,
+        `compact_outer`,`outer_hessian`,`outer_hessian_rows`,`outer_rows`,
+        `result_center_gradient`,`result_hessian`,`result_rows`,
+        `scaled_hessian`,`scaled_hessian_rows`,`source_hessian`]
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
