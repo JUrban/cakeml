@@ -14,6 +14,7 @@ Ancestors
   compute_boundedCase10173SourceDecimalExact
   compute_boundedCase10173SourceSqrtCertificate
   compute_boundedCase10173HistoricalCellDecimal
+  compute_boundedTaylorMulDecimal
 Libs
   bossLib preamble
 
@@ -86,11 +87,14 @@ Definition bounded_case10173_source_actual_sqrt_operands_exact_def:
   bounded_case10173_source_actual_sqrt_operands_exact _ _ = F
 End
 
-(* One shared contract for the literal square-root source instruction.  It
+(* One shared contract for the literal coordinate source group.  It
  * recomputes the completed variable operand, authenticates both rational
  * roots against that operand, authenticates their fixed-point images and the
- * direct second derivative, and requires the fast decimal operation itself
- * to succeed on precisely the same Taylor state. *)
+ * direct second derivative, and requires both the fast decimal square-root
+ * and the following fixed-coefficient product to succeed on precisely those
+ * Taylor states.  The coefficient is selected from the canonical historical
+ * six-element list by the same coordinate index; it is not a supplied alias.
+ *)
 Definition bounded_case10173_actual_sqrt_source_prefix_exact_def:
   bounded_case10173_actual_sqrt_source_prefix_exact
       0 index radii center_environment center_roots box_roots certificates = T /\
@@ -123,14 +127,25 @@ Definition bounded_case10173_actual_sqrt_source_prefix_exact_def:
                box_root box_sqrt /\
              bounded_case10173_source_sqrt_dd_interval64_exact
                box_root box_input box_second_reciprocal /\
-             IS_SOME
-               (bounded_taylor64_sqrt_decimal radii center_sqrt box_sqrt
-                 center_derivative box_derivative box_second_reciprocal
-                 (BoundedTaylor64 domain_flag center_value center_gradient
-                   value_bound gradient_bounds hessian)) /\
-             bounded_case10173_actual_sqrt_source_prefix_exact
-               remaining (SUC index) radii center_environment
-               center_roots box_roots certificates) /\
+             (case bounded_taylor64_sqrt_decimal radii center_sqrt box_sqrt
+                center_derivative box_derivative box_second_reciprocal
+                (BoundedTaylor64 domain_flag center_value center_gradient
+                  value_bound gradient_bounds hessian) of
+              | NONE => F
+              | SOME root =>
+                case bounded_interval64_nth
+                  bounded_case10173_root_coefficients_decimal index of
+                | NONE => F
+                | SOME coefficient =>
+                  case bounded_taylor64_constant coefficient of
+                  | NONE => F
+                  | SOME coefficient_state =>
+                    IS_SOME
+                      (bounded_taylor64_mul_decimal radii root
+                        coefficient_state) /\
+                    bounded_case10173_actual_sqrt_source_prefix_exact
+                      remaining (SUC index) radii center_environment
+                      center_roots box_roots certificates)) /\
   bounded_case10173_actual_sqrt_source_prefix_exact
       (SUC remaining) index radii center_environment _ _ _ = F
 End
@@ -212,7 +227,7 @@ Theorem bounded_case10173_actual_sqrt_source_prefix_exact_cons:
       (BoundedCase10173Sqrt64Certificate center_sqrt box_sqrt
         center_derivative box_derivative box_second_reciprocal::certificates) ==>
   ?domain_flag center_value center_gradient value_bound gradient_bounds hessian
-   center_input box_input root.
+   center_input box_input root coefficient coefficient_state product.
     bounded_case10173_actual_variable_decimal
       radii center_environment index =
         SOME
@@ -234,6 +249,10 @@ Theorem bounded_case10173_actual_sqrt_source_prefix_exact_cons:
       center_derivative box_derivative box_second_reciprocal
       (BoundedTaylor64 domain_flag center_value center_gradient value_bound
         gradient_bounds hessian) = SOME root /\
+    bounded_interval64_nth bounded_case10173_root_coefficients_decimal index =
+      SOME coefficient /\
+    bounded_taylor64_constant coefficient = SOME coefficient_state /\
+    bounded_taylor64_mul_decimal radii root coefficient_state = SOME product /\
     bounded_case10173_actual_sqrt_source_prefix_exact
       remaining (SUC index) radii center_environment
       center_roots box_roots certificates
