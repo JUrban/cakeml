@@ -12,11 +12,15 @@ Ancestors
 Libs
   bossLib preamble
 
+Definition registered_case10173_genuine_packed_certificate_bytes_def:
+  registered_case10173_genuine_packed_certificate_bytes =
+    mlstring$explode registered_case10173_genuine_packed_certificate
+End
+
 Definition registered_case10173_genuine_decimal_authenticated_fast_eval_def:
   registered_case10173_genuine_decimal_authenticated_fast_eval =
     registered_case10173_decimal_authenticated_fast_eval
-      (mlstring$explode
-        registered_case10173_genuine_packed_certificate)
+      registered_case10173_genuine_packed_certificate_bytes
 End
 
 Theorem registered_case10173_genuine_decimal_authenticated_fast_eval_ok:
@@ -24,7 +28,8 @@ Theorem registered_case10173_genuine_decimal_authenticated_fast_eval_ok:
     registered_case10173_genuine_decimal_authenticated_fast_eval
 Proof
   PURE_REWRITE_TAC
-    [registered_case10173_genuine_decimal_authenticated_fast_eval_def]
+    [registered_case10173_genuine_decimal_authenticated_fast_eval_def,
+     registered_case10173_genuine_packed_certificate_bytes_def]
   >> MATCH_ACCEPT_TAC
        compute_registeredCase10173AuthenticatedFastDispatchTheory.registered_case10173_decimal_authenticated_fast_eval_ok
 QED
@@ -42,7 +47,8 @@ Theorem registered_case10173_genuine_decimal_authenticated_fast_eval_hit:
        from_cv encoded_jobs;from_cv encoded_roots]) = SOME (Num 1)
 Proof
   PURE_REWRITE_TAC
-    [registered_case10173_genuine_decimal_authenticated_fast_eval_def]
+    [registered_case10173_genuine_decimal_authenticated_fast_eval_def,
+     registered_case10173_genuine_packed_certificate_bytes_def]
   >> MATCH_ACCEPT_TAC
        compute_registeredCase10173AuthenticatedFastDispatchTheory.registered_case10173_decimal_authenticated_fast_eval_hit
 QED

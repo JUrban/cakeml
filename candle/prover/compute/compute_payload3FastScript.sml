@@ -17,17 +17,20 @@ Definition compute_literal_call_payload3_def:
   compute_literal_call_payload3 (entry:mlstring) (expression:compute_exp) =
     case expression of
     | App function_name expressions =>
-        (if function_name <> entry \/ LENGTH expressions <> 3 then NONE
+        (if function_name <> entry then NONE
          else
-           case compute_exp_to_cv (EL 0 expressions) of
-           | NONE => NONE
-           | SOME payload1 =>
-               case compute_exp_to_cv (EL 1 expressions) of
-               | NONE => NONE
-               | SOME payload2 =>
-                   case compute_exp_to_cv (EL 2 expressions) of
-                   | NONE => NONE
-                   | SOME payload3 => SOME (payload1,payload2,payload3))
+           case expressions of
+           | [first_expression;second_expression;third_expression] =>
+               (case compute_exp_to_cv first_expression of
+                | NONE => NONE
+                | SOME payload1 =>
+                    case compute_exp_to_cv second_expression of
+                    | NONE => NONE
+                    | SOME payload2 =>
+                        case compute_exp_to_cv third_expression of
+                        | NONE => NONE
+                        | SOME payload3 => SOME (payload1,payload2,payload3))
+           | _ => NONE)
     | _ => NONE
 End
 
