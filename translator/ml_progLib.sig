@@ -41,6 +41,10 @@ sig
                      string (* var name *) ->
                      ml_prog_state -> ml_prog_state
 
+  val add_Dlet_lit_abbrev : term (* loc *) -> term (* name *) ->
+                            term (* literal *) -> thm (* value abbrev *) ->
+                            ml_prog_state -> ml_prog_state
+
   val add_Denv     : thm (* declare_env thm *) ->
                      string (* var name *) ->
                      ml_prog_state -> ml_prog_state

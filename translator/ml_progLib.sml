@@ -415,6 +415,18 @@ fun add_Dlet_lit loc n l =
     ML_code_upd "add_Dlet_lit" mp_thm [let_env_abbrev ALL_CONV, let_env_abbrev ALL_CONV]
 end
 
+(* As add_Dlet_lit, but keep a large literal out of the environment theorem.
+   The supplied definition must abbreviate [Litv l]; the declaration itself
+   still contains the exact literal and is justified by ML_code_Dlet_var_lit. *)
+fun add_Dlet_lit_abbrev loc n l value_def =
+  let
+    val mp_thm = SPECL [loc,n,l] ML_code_Dlet_var_lit
+    val abbreviate_value = PURE_REWRITE_CONV [GSYM value_def]
+  in
+    ML_code_upd "add_Dlet_lit_abbrev" mp_thm
+      [let_env_abbrev abbreviate_value, let_env_abbrev ALL_CONV]
+  end
+
 fun add_Denv eval_thm var_str = let
     val (_, eval_thm_xs) = strip_comb (concl eval_thm)
     val mp_thm = ML_code_Denv |> SPECL (
