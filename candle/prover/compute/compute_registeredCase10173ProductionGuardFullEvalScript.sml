@@ -273,7 +273,8 @@ Theorem registered_case10173_hist_production_guard_typed_eval:
       [cx0;cx1;cx2;cx3;cx4;cx5] /\
   bounded_case10173_positive_environment
       [bx0;bx1;bx2;bx3;bx4;bx5] /\
-  3000 + 8 * (cv_size boxes + 1) < clock ==>
+  3000 +
+      8 * (registered_case10173_center_list_length boxes + 1) < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_production_guard»
         [from_cv boxes;

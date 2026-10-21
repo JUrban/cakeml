@@ -4,6 +4,7 @@
 Theory compute_registeredCase10173ProductionGuardBindingEval
 Ancestors
   compute_registeredCase10173ProductionGuardCompositionEval
+  compute_registeredCase10173CenterEnvironmentStructuralEval
 Libs
   bossLib preamble intLib
 
@@ -12,7 +13,8 @@ Theorem registered_case10173_hist_center_environment_binding_eval:
       SOME center_boxes /\
   bounded_object_positive_q_interval64_decimal_list center_boxes =
       SOME center_environment /\
-  100 + 8 * (cv_size boxes + 1) +
+  100 +
+      8 * (registered_case10173_center_list_length boxes + 1) +
       11 * (LENGTH center_environment + 1) < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_fs_interval_list_of_q»
@@ -34,7 +36,7 @@ Proof
       >> conj_tac
       >- intLib.ARITH_TAC
       >> irule
-           compute_registeredCase10173CenterEnvironmentEvalTheory.registered_case10173_q_center_environment_positive_eval
+           compute_registeredCase10173CenterEnvironmentStructuralEvalTheory.registered_case10173_q_center_environment_positive_eval_structural
       >> simp []
       >> intLib.ARITH_TAC)
   >> irule

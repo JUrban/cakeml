@@ -85,7 +85,8 @@ Theorem registered_case10173_hist_production_guard_packet_eval:
       SOME [x0;x1;x2;x3;x4;x5] /\
   bounded_object_positive_q_interval64_decimal_list boxes =
       SOME [y0;y1;y2;y3;y4;y5] /\
-  36000 + 8 * (cv_size boxes + 1) < clock ==>
+  36000 +
+      8 * (registered_case10173_center_list_length boxes + 1) < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_production_guard»
         [from_cv boxes;
@@ -167,7 +168,8 @@ Theorem registered_case10173_hist_production_guard_packet_accessor_eval:
   bounded_object_positive_q_interval64_decimal_list boxes =
       SOME (bounded_case10173_packet_box_environment packet) ==>
   !clock refs.
-    36000 + 8 * (cv_size boxes + 1) < clock ==>
+    36000 +
+        8 * (registered_case10173_center_list_length boxes + 1) < clock ==>
     compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_production_guard»
         [from_cv boxes;

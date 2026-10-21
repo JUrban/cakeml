@@ -13,7 +13,7 @@ Ancestors
   compute_registeredCase10173HistoricalSourceDeltaGeneralEval
   compute_registeredCase10173HistoricalDeltaSecondEval
   compute_registeredCase10173RootRecordEval
-  compute_registeredCase10173CenterEnvironmentEval
+  compute_registeredCase10173CenterEnvironmentStructuralEval
   compute_registeredCase10173QConversionEval
 Libs
   bossLib preamble intLib
@@ -274,7 +274,8 @@ Theorem registered_case10173_hist_root_inputs_typed_eval:
       SOME (box_delta,box_gradient,box_hessian) /\
   bounded_hessian64_rows box_hessian = SOME box_hessian_rows /\
   bounded_interval64_scale4 bx0 = SOME box_four_x0 /\
-  1000 + 8 * (cv_size boxes + 1) < clock ==>
+  1000 +
+      8 * (registered_case10173_center_list_length boxes + 1) < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_root_inputs» [from_cv boxes])
       (refs:hol_refs) =
@@ -299,7 +300,7 @@ Proof
   >> qexists_tac `from_cv center_boxes`
   >> conj_tac
   >- (irule
-        compute_registeredCase10173CenterEnvironmentEvalTheory.registered_case10173_q_center_environment_positive_eval
+        compute_registeredCase10173CenterEnvironmentStructuralEvalTheory.registered_case10173_q_center_environment_positive_eval_structural
       >> simp []
       >> intLib.ARITH_TAC)
   >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
@@ -461,7 +462,8 @@ Theorem registered_case10173_hist_root_record_typed_eval:
       box_delta box_root_delta /\
   bounded_interval64_positive_sqrt_certificate_decimal
       box_four_x0 box_root_four_x0 /\
-  1400 + 8 * (cv_size boxes + 1) < clock ==>
+  1400 +
+      8 * (registered_case10173_center_list_length boxes + 1) < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_root_record_check»
         [from_cv boxes;
@@ -519,7 +521,8 @@ Theorem registered_case10173_hist_root_record_packet_eval:
       SOME [x0;x1;x2;x3;x4;x5] /\
   bounded_object_positive_q_interval64_decimal_list boxes =
       SOME [y0;y1;y2;y3;y4;y5] /\
-  32000 + 8 * (cv_size boxes + 1) < clock ==>
+  32000 +
+      8 * (registered_case10173_center_list_length boxes + 1) < clock ==>
   compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_root_record_check»
         [from_cv boxes;
@@ -568,7 +571,8 @@ Theorem registered_case10173_hist_root_record_packet_accessor_eval:
   bounded_object_positive_q_interval64_decimal_list boxes =
       SOME (bounded_case10173_packet_box_environment packet) ==>
   !clock refs.
-    32000 + 8 * (cv_size boxes + 1) < clock ==>
+    32000 +
+        8 * (registered_case10173_center_list_length boxes + 1) < clock ==>
     compute_eval clock registered_case10173_historical_chunk16_ceqs
       (App «candle_cv_case10173_hist_root_record_check»
         [from_cv boxes;
