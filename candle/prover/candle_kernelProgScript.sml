@@ -323,6 +323,10 @@ val r = translate compute_boundedDeltaTaylorTheory.bounded_interval64_list_scale
 val r = translate compute_boundedDeltaTaylorTheory.bounded_interval64_mul3_def;
 val r = translate compute_boundedDeltaTaylorTheory.bounded_interval64_sums_def;
 val r = translate compute_boundedDeltaTaylorTheory.bounded_delta64_pair_products_def;
+val r = translate
+  compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_signed_terms_def;
+val r = translate
+  compute_boundedDeltaTaylorTheory.bounded_delta64_apply_signed_terms_def;
 val r = translate compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_component_from_products_def;
 val r = translate compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_components_def;
 val r = translate compute_boundedDeltaTaylorTheory.bounded_delta64_gradient_from_products_def;
