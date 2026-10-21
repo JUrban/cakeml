@@ -385,4 +385,34 @@ Proof
   >> asm_rewrite_tac []
 QED
 
+Theorem registered_case10173_q_certified_finish_fixed_taylor_from_coverage_eval:
+  bounded_interval64_list_covers_object_q intervals boxes /\
+  bounded_signed64_strict_negative value_upper /\
+  6 < clock /\
+  LENGTH intervals + 5 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_q_dim_taylor_model_certified_finish»
+        [from_cv boxes;
+         from_cv
+           (registered_case10173_fixed_q_taylor_object_cv
+             (BoundedTaylor64 T center_value center_gradient
+               (BoundedInterval64 value_lower value_upper)
+               gradient_bounds hessian) rows)])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair (Num 1)
+          (registered_case10173_fixed_q_endpoint_cv value_upper))),refs)
+Proof
+  strip_tac
+  >> irule
+       compute_registeredCase10173FixedCertifiedFinishEvalTheory.registered_case10173_q_certified_finish_fixed_taylor_eval
+  >> conj_tac >- asm_rewrite_tac []
+  >> conj_tac >- asm_rewrite_tac []
+  >> irule registered_case10173_q_box_valid_list_from_coverage_eval
+  >> qexists_tac `intervals`
+  >> conj_tac >- intLib.ARITH_TAC
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
