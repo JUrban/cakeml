@@ -298,4 +298,21 @@ Proof
   >> simp []
 QED
 
+Theorem registered_case10173_prepared_program_splice_eval:
+  registered_case10173_cv_list_length program = 54 /\
+  34 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+      (App «candle_cv_case10173_hist_splice_aux»
+        [Num 31;from_cv program]) (refs:hol_refs) =
+    (M_success
+      (from_cv (registered_case10173_hist_splice_cv 31 program)),refs)
+Proof
+  strip_tac
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         (Q.SPECL [`31`,`program`,`clock`,`refs`]
+           registered_case10173_hist_splice_aux_eval))
+  >> simp []
+QED
+
 val _ = export_theory ();
