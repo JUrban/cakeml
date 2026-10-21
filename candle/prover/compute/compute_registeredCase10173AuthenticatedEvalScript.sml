@@ -27,6 +27,7 @@ Definition registered_case10173_decimal_authenticated_head_refines_def:
       bounded_case10173_source_coordinate_sqrt_decimals_exact
         packet object_job /\
       bounded_case10173_source_actual_sqrt_contract packet object_job /\
+      bounded_case10173_literal_source_accepts_decimal packet /\
       bounded_case10173_decimal_packet_source_radii_exact
         packet object_job ==>
       ?box_sqrt_data center_sqrt_data boxes

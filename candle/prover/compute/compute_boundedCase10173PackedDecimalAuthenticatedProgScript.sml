@@ -4,13 +4,13 @@
  * lockstep traversal. *)
 Theory compute_boundedCase10173PackedDecimalAuthenticatedProg
 Ancestors
-  compute_boundedCase10173PackedDecimalBatchProg
+  compute_boundedCase10173LiteralSourceDecimalProg
   compute_boundedCase10173PackedDecimalAuthenticatedExecutable
 Libs
   preamble ml_translatorLib ml_progLib basis
 
 val _ = translation_extends
-  "compute_boundedCase10173PackedDecimalBatchProg";
+  "compute_boundedCase10173LiteralSourceDecimalProg";
 
 (* Source rational decoding and exact source-box coverage. *)
 val _ = translate
@@ -246,8 +246,6 @@ val _ = translate
  * Taylor-completes each coordinate before sqrt, so this executable contract
  * deliberately recomputes that completed value_bound rather than checking
  * the original source-box coordinate. *)
-val _ = translate
-  compute_boundedCase10173ActualSqrtOperandTheory.bounded_case10173_actual_variable_decimal_def;
 val _ = translate
   compute_boundedCase10173ActualSqrtOperandTheory.bounded_case10173_positive_interval64_q_cv_def;
 val _ = translate
