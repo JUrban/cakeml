@@ -261,4 +261,115 @@ Proof
        [compute_registeredCase10173OrdinaryPrefixTraceEvalTheory.registered_case10173_ordinary_result_push_def]
 QED
 
+Theorem registered_case10173_literal_source_program_length:
+  registered_case10173_cv_list_length
+    (registered_case10173_cv_append
+      (registered_case10173_source_prefix_template
+        item0 item1 item2 item3 item4 item5)
+      (Pair (Num 9) registered_case10173_source_suffix_template)) = 47
+Proof
+  EVAL_TAC
+QED
+
+(* Execute the exact source-shaped trace without replaying the generic
+ * numerical evaluator.  The bound is structural: 8215 for any ordinary
+ * instruction, 30000 for the one authenticated historical item, 47 source
+ * instructions, and the four units required by the trace interpreter. *)
+Theorem registered_case10173_literal_source_program_eval:
+  LENGTH radii = 6 /\
+  bounded_packed_chars_case10173_decimal_packet_ok
+    (BoundedCase10173Packet radii
+      [x0;x1;x2;x3;x4;x5] [y0;y1;y2;y3;y4;y5]
+      [certificate0;certificate1;certificate2;
+       certificate3;certificate4;certificate5]
+      center_root_delta center_root_four_x0
+      [center_root_derivative;center_root_four_reciprocal;
+       center_u_reciprocal;center_special_root_reciprocal;
+       center_b_reciprocal]
+      box_root_delta box_root_four_x0
+      [box_root_derivative;box_root_logarithmic;
+       box_root_four_reciprocal;box_diagonal_reciprocal;
+       box_u_reciprocal;box_special_root_reciprocal;
+       box_b_reciprocal;box_u126_reciprocal;box_u135_reciprocal]) /\
+  bounded_object_positive_q_interval64_decimal_list center_boxes =
+    SOME [x0;x1;x2;x3;x4;x5] /\
+  bounded_object_positive_q_interval64_decimal_list boxes =
+    SOME [y0;y1;y2;y3;y4;y5] /\
+  registered_case10173_eval_above 8208
+    (App «candle_cv_fs_interval_list_of_q» [from_cv center_boxes])
+    (bounded_interval64_object_cv_list [x0;x1;x2;x3;x4;x5]) /\
+  registered_case10173_eval_above 8208
+    (App «candle_cv_fs_list_of_q» [from_cv source_radii])
+    (registered_case10173_word64_object_cv_list radii) /\
+  source_radii =
+    registered_case10173_q_cv_list
+      (MAP
+        (\value.
+          (bounded_word64_object_cv value,Num 999999999999))
+        radii) /\
+  bounded_case10173_actual_sqrt_source_prefix_exact 6 0 radii
+    [x0;x1;x2;x3;x4;x5]
+    (Pair center0
+      (Pair center1
+        (Pair center2
+          (Pair center3 (Pair center4 (Pair center5 (Num 0)))))))
+    (Pair box0
+      (Pair box1
+        (Pair box2
+          (Pair box3 (Pair box4 (Pair box5 (Num 0)))))))
+    [certificate0;certificate1;certificate2;
+     certificate3;certificate4;certificate5] /\
+  bounded_case10173_literal_source_decimal
+    (BoundedCase10173Packet radii
+      [x0;x1;x2;x3;x4;x5] [y0;y1;y2;y3;y4;y5]
+      [certificate0;certificate1;certificate2;
+       certificate3;certificate4;certificate5]
+      center_root_delta center_root_four_x0
+      [center_root_derivative;center_root_four_reciprocal;
+       center_u_reciprocal;center_special_root_reciprocal;
+       center_b_reciprocal]
+      box_root_delta box_root_four_x0
+      [box_root_derivative;box_root_logarithmic;
+       box_root_four_reciprocal;box_diagonal_reciprocal;
+       box_u_reciprocal;box_special_root_reciprocal;
+       box_b_reciprocal;box_u126_reciprocal;box_u135_reciprocal]) =
+    SOME final_result /\
+  38266 < clock ==>
+  compute_eval clock registered_case10173_historical_chunk16_ceqs
+    (App «candle_cv_case10173_hist_program_run»
+      [from_cv center_boxes;from_cv boxes;from_cv source_radii;
+       from_cv
+         (bounded_interval64_object_cv_list
+           [center_root_delta;center_root_four_x0;
+            box_root_delta;box_root_four_x0]);
+       from_cv
+         (registered_case10173_cv_append
+           (registered_case10173_source_prefix_template
+             center0 center1 center2 center3 center4 center5)
+           (Pair (Num 9) registered_case10173_source_suffix_template));
+       from_cv
+         (registered_case10173_cv_append
+           (registered_case10173_source_prefix_template
+             box0 box1 box2 box3 box4 box5)
+           (Pair (Num 9) registered_case10173_source_suffix_template));
+       from_cv (Num 0)]) (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (registered_case10173_ordinary_result_push
+          (registered_case10173_taylor_object final_result) (Num 0))),refs)
+Proof
+  strip_tac
+  >> drule_all_then strip_assume_tac
+       registered_case10173_literal_source_program_trace
+  >> irule
+       compute_registeredCase10173CompleteSourceTraceEvalTheory.registered_case10173_source_program_trace_sound
+  >> qexists_tac
+       `Pair (Num 1) (registered_case10173_taylor_object historical_item)`
+  >> qexists_tac `30000`
+  >> qexists_tac `8215`
+  >> conj_tac
+  >- simp [registered_case10173_literal_source_program_length]
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
