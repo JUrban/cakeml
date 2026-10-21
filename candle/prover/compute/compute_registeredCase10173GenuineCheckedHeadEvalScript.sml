@@ -9,6 +9,7 @@
 Theory compute_registeredCase10173GenuineCheckedHeadEval
 Ancestors
   compute_registeredCase10173GenuineProgramResultEval
+  compute_registeredCase10173FastGenuineCertifiedEval
 Libs
   bossLib preamble cv_transLib
 
@@ -222,7 +223,7 @@ Proof
           (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
             registered_case10173_genuine_center_patch_eval),
         irule
-          compute_registeredCase10173GenuineProgramResultEvalTheory.registered_case10173_genuine_hist_certified_check_accept]
+          compute_registeredCase10173FastGenuineCertifiedEvalTheory.registered_case10173_genuine_fast_hist_certified_check_accept]
   >> intLib.ARITH_TAC
 QED
 
