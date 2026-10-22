@@ -1,0 +1,137 @@
+(*****************************************************************************
+ * Checked fixed-scale square-root certificates.
+ *
+ * Square roots are supplied as reusable external data.  Candle authenticates
+ * them by exact word products: lower^2 <= input_lower * 2^40 and
+ * input_upper * 2^40 <= upper^2.  No numerical square-root algorithm or
+ * per-leaf proof construction is required inside the hot path.
+ *****************************************************************************)
+Theory compute_boundedSqrtCertificate
+Ancestors
+  compute_boundedTaylorGradient
+Libs
+  bossLib preamble
+
+Definition bounded_interval64_sqrt_certificate_def:
+  bounded_interval64_sqrt_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) =
+    (bounded_interval64_valid
+       (BoundedInterval64 input_lower input_upper) ∧
+     bounded_interval64_valid
+       (BoundedInterval64 output_lower output_upper) ∧
+     bounded_signed64_nonnegative input_lower ∧
+     bounded_signed64_nonnegative output_lower ∧
+     let input_lower_scaled = bounded_word64_product128
+       (bounded_signed64_magnitude input_lower) 1099511627776w in
+     let input_upper_scaled = bounded_word64_product128
+       (bounded_signed64_magnitude input_upper) 1099511627776w in
+     let output_lower_squared = bounded_word64_product128
+       (bounded_signed64_magnitude output_lower)
+       (bounded_signed64_magnitude output_lower) in
+     let output_upper_squared = bounded_word64_product128
+       (bounded_signed64_magnitude output_upper)
+       (bounded_signed64_magnitude output_upper) in
+     bounded128_le_words output_lower_squared input_lower_scaled ∧
+     bounded128_le_words input_upper_scaled output_upper_squared)
+End
+
+Theorem bounded_interval64_sqrt_certificate_magnitude_bounds:
+  bounded_interval64_sqrt_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ⇒
+  w2n (bounded_signed64_magnitude output_lower) *
+      w2n (bounded_signed64_magnitude output_lower) ≤
+    w2n (bounded_signed64_magnitude input_lower) * 1099511627776 ∧
+  w2n (bounded_signed64_magnitude input_upper) * 1099511627776 ≤
+    w2n (bounded_signed64_magnitude output_upper) *
+      w2n (bounded_signed64_magnitude output_upper)
+Proof
+  rw [bounded_interval64_sqrt_certificate_def, LET_THM,
+      compute_boundedSignedAddTheory.bounded128_le_words_correct,
+      compute_boundedTaylorCompleteTheory.bounded_word64_product128_value]
+QED
+
+Theorem bounded_interval64_sqrt_certificate_nonnegative:
+  bounded_interval64_sqrt_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ⇒
+  bounded_interval64_valid
+      (BoundedInterval64 input_lower input_upper) ∧
+  bounded_interval64_valid
+      (BoundedInterval64 output_lower output_upper) ∧
+  bounded_signed64_nonnegative input_lower ∧
+  bounded_signed64_nonnegative input_upper ∧
+  bounded_signed64_nonnegative output_lower ∧
+  bounded_signed64_nonnegative output_upper
+Proof
+  strip_tac
+  >> fs [bounded_interval64_sqrt_certificate_def,
+         compute_boundedIntervalTheory.bounded_interval64_valid_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_le_correct,
+         compute_boundedIntervalTheory.bounded_signed64_nonnegative_correct]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_sqrt_certificate_int_bounds:
+  bounded_interval64_sqrt_certificate
+      (BoundedInterval64 input_lower input_upper)
+      (BoundedInterval64 output_lower output_upper) ⇒
+  bounded_signed64_to_int output_lower *
+      bounded_signed64_to_int output_lower ≤
+    (&1099511627776:int) * bounded_signed64_to_int input_lower ∧
+  (&1099511627776:int) * bounded_signed64_to_int input_upper ≤
+    bounded_signed64_to_int output_upper *
+      bounded_signed64_to_int output_upper
+Proof
+  strip_tac
+  >> imp_res_tac bounded_interval64_sqrt_certificate_magnitude_bounds
+  >> imp_res_tac bounded_interval64_sqrt_certificate_nonnegative
+  >> fs [compute_boundedIntervalTheory.bounded_signed64_nonnegative_magnitude_value,
+         integerTheory.INT_OF_NUM_MUL,
+         integerTheory.INT_OF_NUM_LE]
+QED
+
+Theorem bounded_interval64_sqrt_certificate_contains_scaled_square:
+  bounded_interval64_contains_scaled_int input
+      (&1208925819614629174706176:int) exact_value ∧
+  bounded_interval64_sqrt_certificate input output ⇒
+  (&1099511627776:int) *
+      bounded_signed64_to_int (bounded_interval64_lower output) *
+      bounded_signed64_to_int (bounded_interval64_lower output) ≤
+    exact_value ∧
+  exact_value ≤
+    (&1099511627776:int) *
+      bounded_signed64_to_int (bounded_interval64_upper output) *
+      bounded_signed64_to_int (bounded_interval64_upper output)
+Proof
+  Cases_on `input`
+  >> Cases_on `output`
+  >> strip_tac
+  >> imp_res_tac bounded_interval64_sqrt_certificate_int_bounds
+  >> fs [compute_boundedIntervalTheory.bounded_interval64_contains_scaled_int_def,
+         compute_boundedIntervalTheory.bounded_interval64_lower_def,
+         compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_sqrt_certificate_closed_tests:
+  let input = BoundedInterval64
+    (BoundedSigned64 F 4398046511104w)
+    (BoundedSigned64 F 4398046511104w) in
+  let exact_output = BoundedInterval64
+    (BoundedSigned64 F 2199023255552w)
+    (BoundedSigned64 F 2199023255552w) in
+  let short_output = BoundedInterval64
+    (BoundedSigned64 F 2199023255551w)
+    (BoundedSigned64 F 2199023255551w) in
+  let negative_input = BoundedInterval64
+    (BoundedSigned64 T 1w) (BoundedSigned64 F 1w) in
+  bounded_interval64_sqrt_certificate input exact_output ∧
+  ¬bounded_interval64_sqrt_certificate input short_output ∧
+  ¬bounded_interval64_sqrt_certificate negative_input exact_output
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+val _ = export_theory ();

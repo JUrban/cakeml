@@ -40,6 +40,14 @@ Datatype:
   cv = Num num | Pair cv cv
 End
 
+(* The canonical embedding of executable values into the source evaluator's
+   value language.  A proved fast evaluator can therefore refine
+   [compute_eval] directly, without replaying [exec]. *)
+Definition from_cv_def[simp]:
+  from_cv ((Num n):cv) = (Num n : compute_exp) ∧
+  from_cv (Pair x y) = Pair (from_cv x) (from_cv y)
+End
+
 Datatype:
   ce = Const num
      | Var num

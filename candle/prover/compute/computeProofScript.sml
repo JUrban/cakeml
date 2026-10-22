@@ -373,18 +373,20 @@ QED
  * raised by the 'compute' function.)
  *)
 
-Theorem compute_thm:
+Theorem compute_with_thm:
   STATE ctxt s ∧
   EVERY (THM ctxt) ths ∧
   EVERY (THM ctxt) ceqs ∧
-  TERM ctxt tm ⇒
-  compute (ths,ceqs) tm s = (res, s') ⇒
+  TERM ctxt tm ∧
+  compute_fast_eval_ok fast_eval ⇒
+  compute_with fast_eval (ths,ceqs) tm s = (res, s') ⇒
     s' = s ∧
     (∀th. res = M_success th ⇒ THM ctxt th) ∧
     (∀tm. res ≠ M_failure (Clash tm))
 Proof
   strip_tac
-  \\ simp [compute_def, handle_Clash_def, raise_Failure_def, st_ex_return_def]
+  \\ simp [compute_with_def, handle_Clash_def,
+           raise_Failure_def, st_ex_return_def]
   \\ IF_CASES_TAC \\ gs []
   \\ gs []
   \\ drule_all_then strip_assume_tac compute_init_thy_ok
@@ -400,7 +402,9 @@ Proof
   \\ reverse CASE_TAC \\ gs [] >- (CASE_TAC \\ gs [] \\ rw [])
   \\ simp [st_ex_ignore_bind_def]
   \\ IF_CASES_TAC \\ gs []
-  \\ CASE_TAC \\ gs []
+  \\ qmatch_goalsub_abbrev_tac ‘check_consts consts msg cv0 st0’
+  \\ Cases_on ‘check_consts consts msg cv0 st0’ \\ gs []
+  \\ unabbrev_all_tac \\ gs []
   \\ drule_all_then strip_assume_tac check_consts_thm
   \\ rename [‘check_consts _ _ _ _ = (res,_)’]
   \\ reverse (Cases_on ‘res’) \\ gs [] >- (CASE_TAC \\ gs [] \\ rw [])
@@ -411,13 +415,15 @@ Proof
   \\ rename [‘map _ _ s = (res,s)’]
   \\ reverse (Cases_on ‘res’) \\ gs [] >- (CASE_TAC \\ gs [] \\ rw [])
   \\ rename [‘to_ce eqs _ cv’]
-  \\ simp [Once st_ex_bind_def] \\ CASE_TAC
   \\ ‘term_ok (sigof ctxt) tm’ by fs [TERM_def]
   \\ drule dest_cexp_thm \\ simp []
   \\ disch_then (drule_all_then strip_assume_tac)
   \\ ‘term_ok (sigof ctxt) (cexp2term cv)’
     by (drule_then assume_tac proves_term_ok
         \\ gvs [term_ok_clauses])
+  \\ Cases_on ‘fast_eval eqs cv’
+  >- (
+  simp [Once st_ex_bind_def] \\ CASE_TAC
   \\ drule (DISCH_ALL (CONJUNCT1 (UNDISCH_ALL compute_eval_thm)))
   \\ ‘∃res1 s1. compute_eval compute_default_clock eqs cv s = (res1,s1)’ by metis_tac [PAIR]
   \\ disch_then drule \\ gs []
@@ -470,5 +476,69 @@ Proof
   \\ ‘(thyof ctxt,[]) |- tm === cv2term tm'’
     suffices_by rw [equation_def, THM_def]
   \\ resolve_then Any irule trans_equation_simple sym_equation
+  \\ first_x_assum (irule_at Any) \\ gs [sym_equation])
+  \\ rename [‘fast_eval eqs cv = SOME fast_res’]
+  \\ ‘compute_eval compute_default_clock eqs cv s =
+        (M_success (from_cv fast_res),s)’
+    by (qpat_x_assum ‘compute_fast_eval_ok fast_eval’ mp_tac
+        \\ rw [compute_fast_eval_ok_def]
+        \\ metis_tac [])
+  \\ drule (DISCH_ALL (CONJUNCT1 (UNDISCH_ALL compute_eval_thm)))
+  \\ disch_then drule \\ gs []
+  \\ impl_tac
+  >- (
+    irule_at Any check_consts_ok
+    \\ first_assum (irule_at Any)
+    \\ gvs [EVERY_MEM, FORALL_PROD, MEM_EL, PULL_EXISTS] \\ rw []
+    \\ first_x_assum (drule_all_then strip_assume_tac) \\ gvs []
+    \\ drule_then strip_assume_tac list_dest_comb_folds_back \\ gvs []
+    \\ simp [cexp2term_def, MAP_MAP_o, o_DEF]
+    \\ first_x_assum (irule_at Any)
+    \\ imp_res_tac map_LENGTH \\ gs []
+    \\ qpat_x_assum ‘∀n. _ ⇒ THM _ _’ drule
+    \\ rw [THM_def] \\ gs [SUBSET_DEF, MEM_EL, SF SFY_ss]
+    \\ irule check_consts_ok
+    \\ drule_then strip_assume_tac map_thm
+    \\ gs [PULL_FORALL]
+    \\ first_x_assum drule \\ rw []
+    \\ first_assum (irule_at Any))
+  \\ strip_tac \\ gvs [cexp2term_from_cv]
+  \\ ‘TERM ctxt (cv2term fast_res)’
+    by (drule_then strip_assume_tac proves_term_ok
+        \\ gvs [term_ok_clauses, TERM_def])
+  \\ simp [Once st_ex_bind_def] \\ CASE_TAC \\ gs []
+  \\ drule_all_then strip_assume_tac mk_eq_thm \\ gvs []
+  \\ reverse CASE_TAC >- (CASE_TAC \\ gs [] \\ rw [])
+  \\ rw []
+  \\ ‘term_type tm = Cexp’
+    by (fs [STATE_def]
+        \\ qpat_x_assum ‘TERM ctxt tm’ assume_tac
+        \\ drule_all term_type \\ gs [])
+  \\ ‘(thyof ctxt,[]) |- tm === cv2term fast_res’
+    suffices_by rw [equation_def, THM_def]
+  \\ resolve_then Any irule trans_equation_simple sym_equation
   \\ first_x_assum (irule_at Any) \\ gs [sym_equation]
+QED
+
+Theorem compute_thm:
+  STATE ctxt s ∧
+  EVERY (THM ctxt) ths ∧
+  EVERY (THM ctxt) ceqs ∧
+  TERM ctxt tm ⇒
+  compute (ths,ceqs) tm s = (res, s') ⇒
+    s' = s ∧
+    (∀th. res = M_success th ⇒ THM ctxt th) ∧
+    (∀tm. res ≠ M_failure (Clash tm))
+Proof
+  strip_tac
+  \\ fs [compute_def]
+  \\ strip_tac
+  \\ ‘compute_fast_eval_ok (λceqs cexp. NONE)’ by simp []
+  \\ irule compute_with_thm
+  \\ simp []
+  \\ qexists_tac ‘ceqs’
+  \\ qexists_tac ‘λceqs cexp. NONE’
+  \\ qexists_tac ‘ths’
+  \\ qexists_tac ‘tm’
+  \\ simp []
 QED

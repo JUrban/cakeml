@@ -1,0 +1,1401 @@
+(*
+  Fixed-width data boundary for a future checked Candle compute executor.
+
+  This theory is deliberately independent of the compute-expression syntax.
+  It establishes the lossless conversion boundary first; arithmetic and the
+  executor refinement will be layered on it.  Overflow remains an explicit
+  option at every conversion from an unbounded natural.
+*)
+Theory compute_bounded
+Ancestors
+  arithmetic words
+Libs
+  bossLib intLib
+
+val _ = numLib.temp_prefer_num ();
+
+Definition bounded_word_base_def:
+  bounded_word_base = dimword (:64)
+End
+
+Definition bounded128_limit_def:
+  bounded128_limit = bounded_word_base * bounded_word_base
+End
+
+Definition bounded192_limit_def:
+  bounded192_limit =
+    bounded_word_base * bounded_word_base * bounded_word_base
+End
+
+Theorem bounded_word_base_positive:
+  0 < bounded_word_base
+Proof
+  simp [bounded_word_base_def]
+QED
+
+Theorem bounded_word_base_eq:
+  bounded_word_base = 18446744073709551616
+Proof
+  simp [bounded_word_base_def]
+QED
+
+Theorem bounded128_limit_eq:
+  bounded128_limit = 2 ** 128
+Proof
+  simp [bounded128_limit_def, bounded_word_base_def, dimword_64,
+        GSYM EXP_ADD]
+QED
+
+Theorem bounded192_limit_eq:
+  bounded192_limit = 2 ** 192
+Proof
+  simp [bounded192_limit_def, bounded_word_base_def, dimword_64,
+        GSYM EXP_ADD]
+QED
+
+Datatype:
+  bounded128 = Bounded128 word64 word64
+End
+
+Datatype:
+  bounded192 = Bounded192 word64 word64 word64
+End
+
+Definition bounded128_to_num_def:
+  bounded128_to_num (Bounded128 high low) =
+    w2n low + bounded_word_base * w2n high
+End
+
+Definition bounded192_to_num_def:
+  bounded192_to_num (Bounded192 high middle low) =
+    w2n low + bounded_word_base * w2n middle +
+    bounded_word_base * bounded_word_base * w2n high
+End
+
+Definition bounded128_of_num_def:
+  bounded128_of_num n =
+    if n < bounded128_limit then
+      SOME (Bounded128 (n2w (n DIV bounded_word_base)) (n2w n))
+    else NONE
+End
+
+Definition bounded192_of_num_def:
+  bounded192_of_num n =
+    if n < bounded192_limit then
+      SOME
+        (Bounded192
+          (n2w (n DIV (bounded_word_base * bounded_word_base)))
+          (n2w (n DIV bounded_word_base))
+          (n2w n))
+    else NONE
+End
+
+Theorem bounded128_to_num_lt:
+  bounded128_to_num (Bounded128 high low) < bounded128_limit
+Proof
+  rw [bounded128_to_num_def]
+  >> qspec_then ‘low’ assume_tac w2n_lt
+  >> qspec_then ‘high’ assume_tac w2n_lt
+  >> gvs [bounded128_limit_def, bounded_word_base_def, dimword_64]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded192_to_num_lt:
+  bounded192_to_num (Bounded192 high middle low) < bounded192_limit
+Proof
+  rw [bounded192_to_num_def]
+  >> qspec_then ‘low’ assume_tac w2n_lt
+  >> qspec_then ‘middle’ assume_tac w2n_lt
+  >> qspec_then ‘high’ assume_tac w2n_lt
+  >> gvs [bounded192_limit_def, bounded_word_base_def, dimword_64]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded128_of_num_none:
+  bounded128_of_num n = NONE ⇔ bounded128_limit ≤ n
+Proof
+  simp [bounded128_of_num_def, NOT_LESS]
+QED
+
+Theorem bounded192_of_num_none:
+  bounded192_of_num n = NONE ⇔ bounded192_limit ≤ n
+Proof
+  simp [bounded192_of_num_def, NOT_LESS]
+QED
+
+Theorem bounded_two_digit_reconstruct:
+  0 < base ∧ n < base * base ⇒
+  n MOD base + base * ((n DIV base) MOD base) = n
+Proof
+  strip_tac
+  >> ‘n DIV base < base’ by simp [DIV_LT_X]
+  >> ‘(n DIV base) MOD base = n DIV base’ by simp []
+  >> ‘n = (n DIV base) * base + n MOD base’ by
+       metis_tac [DIVISION]
+  >> metis_tac [ADD_COMM, MULT_COMM]
+QED
+
+Theorem bounded_three_digit_group:
+  remainder + base * middle + base * base * high =
+  remainder + base * (middle + base * high)
+Proof
+  once_rewrite_tac [LEFT_ADD_DISTRIB]
+  >> once_rewrite_tac [GSYM MULT_ASSOC]
+  >> once_rewrite_tac [GSYM ADD_ASSOC]
+  >> simp []
+QED
+
+Theorem bounded_three_digit_reorder:
+  middle + (high + low) = low + middle + high
+Proof
+  metis_tac [ADD_ASSOC, ADD_COMM]
+QED
+
+Theorem bounded_division_reconstruct:
+  0 < base ⇒ n MOD base + base * (n DIV base) = n
+Proof
+  strip_tac
+  >> ‘n = (n DIV base) * base + n MOD base’ by
+       metis_tac [DIVISION]
+  >> metis_tac [ADD_COMM, MULT_COMM]
+QED
+
+Theorem bounded_three_digit_reconstruct:
+  0 < base ∧ n < base * base * base ⇒
+  n MOD base + base * ((n DIV base) MOD base) +
+    base * base * ((n DIV (base * base)) MOD base) = n
+Proof
+  strip_tac
+  >> ‘n DIV base < base * base’ by simp [DIV_LT_X, MULT_ASSOC]
+  >> ‘(n DIV base) MOD base +
+       base * ((n DIV (base * base)) MOD base) = n DIV base’ by
+       (simp [GSYM DIV_DIV_DIV_MULT]
+        >> once_rewrite_tac [ADD_COMM]
+        >> irule bounded_two_digit_reconstruct
+        >> simp [])
+  >> once_rewrite_tac [bounded_three_digit_group]
+  >> qpat_x_assum
+       ‘(n DIV base) MOD base +
+        base * ((n DIV (base * base)) MOD base) = n DIV base’
+       (fn th => once_rewrite_tac [th])
+  >> irule bounded_division_reconstruct
+  >> simp []
+QED
+
+Theorem bounded128_of_num_some:
+  bounded128_of_num n = SOME value ⇒
+  bounded128_to_num value = n
+Proof
+  rw [bounded128_of_num_def]
+  >> gvs [bounded128_to_num_def]
+  >> simp [bounded_word_base_def, w2n_n2w]
+  >> irule bounded_two_digit_reconstruct
+  >> fs [bounded128_limit_def, bounded_word_base_def]
+QED
+
+Theorem bounded192_of_num_some:
+  bounded192_of_num n = SOME value ⇒
+  bounded192_to_num value = n
+Proof
+  rw [bounded192_of_num_def]
+  >> gvs [bounded192_to_num_def]
+  >> simp [w2n_n2w, GSYM bounded_word_base_def]
+  >> rewrite_tac [GSYM bounded_word_base_eq]
+  >> once_rewrite_tac [bounded_three_digit_reorder]
+  >> rewrite_tac [EXP_2]
+  >> irule bounded_three_digit_reconstruct
+  >> fs [bounded192_limit_def]
+  >> simp [bounded_word_base_positive]
+QED
+
+(*
+  Logical contracts for the first checked arithmetic operations.  These use
+  the conversion boundary above and deliberately do not claim fast execution;
+  a word-level implementation must refine these total option-valued functions.
+*)
+
+Definition bounded128_add_def:
+  bounded128_add left right =
+    bounded128_of_num
+      (bounded128_to_num left + bounded128_to_num right)
+End
+
+Definition bounded192_add_def:
+  bounded192_add left right =
+    bounded192_of_num
+      (bounded192_to_num left + bounded192_to_num right)
+End
+
+Definition bounded128_mul_to_192_def:
+  bounded128_mul_to_192 left right =
+    bounded192_of_num
+      (bounded128_to_num left * bounded128_to_num right)
+End
+
+Definition bounded192_narrow_128_def:
+  bounded192_narrow_128 value =
+    bounded128_of_num (bounded192_to_num value)
+End
+
+Definition bounded192_shift_floor_128_def:
+  bounded192_shift_floor_128 bits value =
+    bounded128_of_num
+      (bounded192_to_num value DIV (2 ** bits))
+End
+
+Definition bounded192_shift_ceil_128_def:
+  bounded192_shift_ceil_128 bits value =
+    bounded128_of_num
+      ((bounded192_to_num value + (2 ** bits - 1)) DIV (2 ** bits))
+End
+
+Theorem bounded128_add_none:
+  bounded128_add left right = NONE ⇔
+  bounded128_limit ≤
+    bounded128_to_num left + bounded128_to_num right
+Proof
+  simp [bounded128_add_def, bounded128_of_num_none]
+QED
+
+Theorem bounded192_add_none:
+  bounded192_add left right = NONE ⇔
+  bounded192_limit ≤
+    bounded192_to_num left + bounded192_to_num right
+Proof
+  simp [bounded192_add_def, bounded192_of_num_none]
+QED
+
+Theorem bounded128_mul_to_192_none:
+  bounded128_mul_to_192 left right = NONE ⇔
+  bounded192_limit ≤
+    bounded128_to_num left * bounded128_to_num right
+Proof
+  simp [bounded128_mul_to_192_def, bounded192_of_num_none]
+QED
+
+Theorem bounded192_narrow_128_none:
+  bounded192_narrow_128 value = NONE ⇔
+  bounded128_limit ≤ bounded192_to_num value
+Proof
+  simp [bounded192_narrow_128_def, bounded128_of_num_none]
+QED
+
+Theorem bounded192_shift_floor_128_none:
+  bounded192_shift_floor_128 bits value = NONE ⇔
+  bounded128_limit ≤
+    bounded192_to_num value DIV (2 ** bits)
+Proof
+  simp [bounded192_shift_floor_128_def, bounded128_of_num_none]
+QED
+
+Theorem bounded192_shift_ceil_128_none:
+  bounded192_shift_ceil_128 bits value = NONE ⇔
+  bounded128_limit ≤
+    (bounded192_to_num value + (2 ** bits - 1)) DIV (2 ** bits)
+Proof
+  simp [bounded192_shift_ceil_128_def, bounded128_of_num_none]
+QED
+
+Theorem bounded128_add_some:
+  bounded128_add left right = SOME result ⇒
+  bounded128_to_num result =
+    bounded128_to_num left + bounded128_to_num right
+Proof
+  rw [bounded128_add_def]
+  >> imp_res_tac bounded128_of_num_some
+QED
+
+Theorem bounded192_add_some:
+  bounded192_add left right = SOME result ⇒
+  bounded192_to_num result =
+    bounded192_to_num left + bounded192_to_num right
+Proof
+  rw [bounded192_add_def]
+  >> imp_res_tac bounded192_of_num_some
+QED
+
+Theorem bounded128_mul_to_192_some:
+  bounded128_mul_to_192 left right = SOME result ⇒
+  bounded192_to_num result =
+    bounded128_to_num left * bounded128_to_num right
+Proof
+  rw [bounded128_mul_to_192_def]
+  >> imp_res_tac bounded192_of_num_some
+QED
+
+Theorem bounded192_narrow_128_some:
+  bounded192_narrow_128 value = SOME result ⇒
+  bounded128_to_num result = bounded192_to_num value
+Proof
+  rw [bounded192_narrow_128_def]
+  >> imp_res_tac bounded128_of_num_some
+QED
+
+Theorem bounded192_shift_floor_128_some:
+  bounded192_shift_floor_128 bits value = SOME result ⇒
+  bounded128_to_num result =
+    bounded192_to_num value DIV (2 ** bits)
+Proof
+  rw [bounded192_shift_floor_128_def]
+  >> imp_res_tac bounded128_of_num_some
+QED
+
+Theorem bounded192_shift_ceil_128_some:
+  bounded192_shift_ceil_128 bits value = SOME result ⇒
+  bounded128_to_num result =
+    (bounded192_to_num value + (2 ** bits - 1)) DIV (2 ** bits)
+Proof
+  rw [bounded192_shift_ceil_128_def]
+  >> imp_res_tac bounded128_of_num_some
+QED
+
+(* First executable word operation.  The signed interval layer will use this
+   unsigned magnitude primitive and keep sign handling outside the carry
+   chain. *)
+
+Definition bounded_word64_add_carry_def:
+  bounded_word64_add_carry (left:word64) (right:word64) carry_in =
+    let partial = left + right in
+    let partial_carry = word_lo partial left in
+    if carry_in then
+      let result = partial + 1w in
+      (result, partial_carry ∨ result = 0w)
+    else
+      (partial, partial_carry)
+End
+
+Theorem bounded_add_mod_carry:
+  0 < base ∧ left < base ∧ right < base ⇒
+  ((left + right) MOD base < left ⇔ base ≤ left + right)
+Proof
+  strip_tac
+  >> Cases_on ‘left + right < base’
+  >- (simp [LESS_MOD] >> intLib.ARITH_TAC)
+  >> ‘(left + right) MOD base = left + right - base’ by
+       (irule MOD_UNIQUE
+        >> qexists_tac ‘1’
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> simp []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_add_mod_carry_in:
+  0 < base ∧ left < base ∧ right < base ⇒
+  ((left + right) MOD base < left ∨
+   (left + (right + 1)) MOD base = 0 ⇔
+   base ≤ left + (right + 1))
+Proof
+  strip_tac
+  >> ‘((left + right) MOD base < left ⇔ base ≤ left + right)’ by
+       metis_tac [bounded_add_mod_carry]
+  >> rw []
+  >> Cases_on ‘base ≤ left + right’
+  >- simp []
+  >> Cases_on ‘base ≤ left + (right + 1)’
+  >- (‘left + (right + 1) = base’ by intLib.ARITH_TAC
+      >> simp [])
+  >> ‘left + (right + 1) < base’ by intLib.ARITH_TAC
+  >> simp [LESS_MOD]
+QED
+
+Theorem bounded_word64_add_carry_correct:
+  bounded_word64_add_carry left right carry_in =
+    (FST (add_with_carry (left, right, carry_in)),
+     FST (SND (add_with_carry (left, right, carry_in))))
+Proof
+  Cases_on ‘carry_in’
+  >> Cases_on ‘left’
+  >> Cases_on ‘right’
+  >> simp [bounded_word64_add_carry_def, add_with_carry_def,
+           word_add_n2w, WORD_LO, dimword_64, NOT_LESS]
+  >- (irule bounded_add_mod_carry_in
+      >> simp [dimword_64])
+  >> irule bounded_add_mod_carry
+  >> simp [dimword_64]
+QED
+
+Theorem bounded_word64_add_carry_value:
+  let result = bounded_word64_add_carry left right carry_in in
+  w2n (FST result) + bounded_word_base *
+    (if SND result then 1 else 0) =
+  w2n left + w2n right + (if carry_in then 1 else 0)
+Proof
+  rw [bounded_word64_add_carry_correct, add_with_carry_def,
+      bounded_word_base_def]
+  >> qspec_then `left` assume_tac w2n_lt
+  >> qspec_then `right` assume_tac w2n_lt
+  >> fs [w2n_n2w, dimword_64]
+  >> qmatch_abbrev_tac
+       `sum MOD 18446744073709551616 + 18446744073709551616 = sum`
+  >> `sum < 2 * 18446744073709551616` by
+       (qunabbrev_tac `sum` >> intLib.ARITH_TAC)
+  >> `sum MOD 18446744073709551616 =
+      sum - 18446744073709551616` by
+       (irule MOD_UNIQUE
+        >> qexists_tac `1`
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> asm_rewrite_tac []
+  >> intLib.ARITH_TAC
+QED
+
+(* CakeML's verified source Word64 interface currently has no multiplication
+   primitive.  This deliberately narrow hybrid converts only two limbs,
+   performs one exact product, and immediately splits the result back into
+   Word64 limbs. *)
+
+Definition bounded_word64_mul_full_num_def:
+  bounded_word64_mul_full_num (left:word64) (right:word64) =
+    let product = w2n left * w2n right in
+    ((n2w (product DIV 18446744073709551616)):word64,
+     (n2w product):word64)
+End
+
+Theorem bounded_product_lt_square:
+  left < base ∧ right < base ⇒ left * right < base * base
+Proof
+  strip_tac
+  >> Cases_on ‘right = 0’
+  >- simp []
+  >> ‘0 < right’ by simp []
+  >> ‘left * right < base * right’ by simp [LT_MULT_RCANCEL]
+  >> ‘base * right < base * base’ by simp [LT_MULT_LCANCEL]
+  >> metis_tac [LESS_TRANS]
+QED
+
+Theorem bounded_word64_mul_full_num_correct:
+  let result = bounded_word64_mul_full_num left right in
+  w2n (SND result) + bounded_word_base * w2n (FST result) =
+    w2n left * w2n right
+Proof
+  simp [bounded_word64_mul_full_num_def, w2n_n2w,
+        GSYM bounded_word_base_eq]
+  >> once_rewrite_tac [ADD_COMM]
+  >> irule bounded_two_digit_reconstruct
+  >> simp [bounded_word_base_positive]
+  >> rewrite_tac [EXP_2]
+  >> irule bounded_product_lt_square
+  >> simp [bounded_word_base_def]
+  >> metis_tac [w2n_lt, dimword_64]
+QED
+
+(* Small-natural convolution.  The 22-bit radix keeps all nine chunk products
+   and normalized carry columns below the tagged-small-natural boundary. *)
+
+Definition bounded_word64_mul_full_chunks22_def:
+  bounded_word64_mul_full_chunks22 (left:word64) (right:word64) =
+    let mask = 4194303w:word64 in
+    let left0 = w2n (word_and left mask) in
+    let left1 = w2n (word_and (left >>> 22) mask) in
+    let left2 = w2n (left >>> 44) in
+    let right0 = w2n (word_and right mask) in
+    let right1 = w2n (word_and (right >>> 22) mask) in
+    let right2 = w2n (right >>> 44) in
+    let column0 = left0 * right0 in
+    let digit0 = column0 MOD 4194304 in
+    let column1 = left0 * right1 + left1 * right0 +
+      column0 DIV 4194304 in
+    let digit1 = column1 MOD 4194304 in
+    let column2 = left0 * right2 + left1 * right1 + left2 * right0 +
+      column1 DIV 4194304 in
+    let digit2 = column2 MOD 4194304 in
+    let column3 = left1 * right2 + left2 * right1 +
+      column2 DIV 4194304 in
+    let digit3 = column3 MOD 4194304 in
+    let column4 = left2 * right2 + column3 DIV 4194304 in
+    let digit4 = column4 MOD 4194304 in
+    let digit5 = column4 DIV 4194304 in
+    let low = ((n2w digit0):word64) +
+      (((n2w digit1):word64) << 22) +
+      (((n2w digit2):word64) << 44) in
+    let high = (((n2w digit2):word64) >>> 20) +
+      (((n2w digit3):word64) << 2) +
+      (((n2w digit4):word64) << 24) +
+      (((n2w digit5):word64) << 46) in
+    (high, low)
+End
+
+Theorem bounded_word64_mul_full_chunks22_small_test:
+  bounded_word64_mul_full_chunks22 4503599627370453w 1099511627689w =
+    (268435455w, 18054883627128327837w)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded_word64_mask22:
+  (word:word64) && 4194303w = n2w (w2n word MOD 4194304)
+Proof
+  once_rewrite_tac [WORD_AND_COMM]
+  >> mp_tac
+       (Q.SPECL [`22`, `w2n (word:word64)`]
+          (WORD_AND_EXP_SUB1 |> INST_TYPE [alpha |-> ``:64``]))
+  >> simp [n2w_w2n]
+QED
+
+Theorem bounded_word64_extract_low22:
+  n < 18446744073709551616 ⇒
+  w2n (((n2w n):word64) && 4194303w) = n MOD 4194304
+Proof
+  strip_tac
+  >> simp [bounded_word64_mask22, w2n_n2w, dimword_64]
+  >> ‘n MOD 4194304 < 18446744073709551616’ by intLib.ARITH_TAC
+  >> simp []
+QED
+
+Theorem bounded_word64_extract_middle22:
+  n < 18446744073709551616 ⇒
+  w2n ((((n2w n):word64) >>> 22) && 4194303w) =
+    (n DIV 4194304) MOD 4194304
+Proof
+  strip_tac
+  >> simp [bounded_word64_mask22, w2n_lsr, w2n_n2w, dimword_64]
+  >> ‘(n DIV 4194304) MOD 4194304 < 18446744073709551616’ by
+       intLib.ARITH_TAC
+  >> simp []
+QED
+
+Theorem bounded_word64_extract_high20:
+  n < 18446744073709551616 ⇒
+  w2n (((n2w n):word64) >>> 44) = n DIV 17592186044416
+Proof
+  simp [w2n_lsr, w2n_n2w, dimword_64]
+QED
+
+Theorem bounded_radix22_div_second:
+  (n DIV 4194304) MOD 4194304 +
+    4194304 * (n DIV 17592186044416) = n DIV 4194304
+Proof
+  ‘n DIV 4194304 DIV 4194304 = n DIV 17592186044416’ by
+    (mp_tac (Q.SPECL [`4194304`, `4194304`] DIV_DIV_DIV_MULT)
+     >> simp [])
+  >> qpat_x_assum
+       ‘n DIV 4194304 DIV 4194304 = n DIV 17592186044416’
+       (fn th => rewrite_tac [GSYM th])
+  >> irule bounded_division_reconstruct
+  >> simp []
+QED
+
+Theorem bounded_radix22_div_first:
+  n MOD 4194304 + 4194304 * (n DIV 4194304) = n
+Proof
+  irule bounded_division_reconstruct
+  >> simp []
+QED
+
+Theorem bounded_radix22_reconstruct:
+  n MOD 4194304 + 4194304 * ((n DIV 4194304) MOD 4194304) +
+    17592186044416 * (n DIV 17592186044416) = n
+Proof
+  mp_tac bounded_radix22_div_second
+  >> mp_tac bounded_radix22_div_first
+  >> CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+QED
+
+Theorem bounded_radix22_convolution:
+  d0 + 4194304 * q1 = a0 * b0 ∧
+  d1 + 4194304 * q2 = a0 * b1 + a1 * b0 + q1 ∧
+  d2 + 4194304 * q3 = a0 * b2 + a1 * b1 + a2 * b0 + q2 ∧
+  d3 + 4194304 * q4 = a1 * b2 + a2 * b1 + q3 ∧
+  d4 + 4194304 * d5 = a2 * b2 + q4 ⇒
+  d0 + 4194304 * d1 + 17592186044416 * d2 +
+    73786976294838206464 * d3 +
+    309485009821345068724781056 * d4 +
+    1298074214633706907132624082305024 * d5 =
+  (a0 + 4194304 * a1 + 17592186044416 * a2) *
+  (b0 + 4194304 * b1 + 17592186044416 * b2)
+Proof
+  CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+QED
+
+Theorem bounded_word64_lsr20_n2w:
+  d2 < 4194304 ⇒
+  ((n2w d2):word64) >>> 20 = n2w (d2 DIV 1048576)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.SPECL [`d2`, `20`]
+          (n2w_DIV |> INST_TYPE [alpha |-> ``:64``]))
+  >> simp [dimword_64]
+QED
+
+Theorem bounded_word64_chunks22_join:
+  d0 < 4194304 ⇒
+  d1 < 4194304 ⇒
+  d2 < 4194304 ⇒
+  d3 < 4194304 ⇒
+  d4 < 4194304 ⇒
+  d0 + 4194304 * d1 + 17592186044416 * d2 +
+    73786976294838206464 * d3 +
+    309485009821345068724781056 * d4 +
+    1298074214633706907132624082305024 * d5 <
+    18446744073709551616 * 18446744073709551616 ⇒
+  w2n (((n2w d0):word64) + (((n2w d1):word64) << 22) +
+    (((n2w d2):word64) << 44)) +
+  18446744073709551616 *
+    w2n ((((n2w d2):word64) >>> 20) +
+      (((n2w d3):word64) << 2) +
+      (((n2w d4):word64) << 24) +
+      (((n2w d5):word64) << 46)) =
+  d0 + 4194304 * d1 + 17592186044416 * d2 +
+    73786976294838206464 * d3 +
+    309485009821345068724781056 * d4 +
+    1298074214633706907132624082305024 * d5
+Proof
+  rpt strip_tac
+  >> qabbrev_tac `r = d2 MOD 1048576`
+  >> qabbrev_tac `q = d2 DIV 1048576`
+  >> ‘r < 1048576’ by (qunabbrev_tac `r` >> simp [])
+  >> ‘r + 1048576 * q = d2’ by
+       (qunabbrev_tac `r`
+        >> qunabbrev_tac `q`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d0 + 4194304 * d1 + 17592186044416 * r <
+       18446744073709551616’ by intLib.ARITH_TAC
+  >> ‘r + 1048576 * q = d2 ⇒
+       d0 + 4194304 * d1 + 17592186044416 * d2 =
+       q * 18446744073709551616 +
+         (d0 + 4194304 * d1 + 17592186044416 * r)’ by
+       CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+  >> ‘(d0 + 4194304 * d1 + 17592186044416 * d2) MOD
+       18446744073709551616 =
+       d0 + 4194304 * d1 + 17592186044416 * r’ by
+       (irule MOD_UNIQUE >> qexists_tac `q` >> simp [])
+  >> ‘r + 1048576 * q = d2 ⇒
+       d0 + 4194304 * d1 + 17592186044416 * d2 +
+         73786976294838206464 * d3 +
+         309485009821345068724781056 * d4 +
+         1298074214633706907132624082305024 * d5 =
+       (d0 + 4194304 * d1 + 17592186044416 * r) +
+         18446744073709551616 *
+           (q + 4 * d3 + 16777216 * d4 + 70368744177664 * d5)’ by
+       CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+  >> ‘q + 4 * d3 + 16777216 * d4 + 70368744177664 * d5 <
+       18446744073709551616’ by intLib.ARITH_TAC
+  >> ‘((n2w d2):word64) >>> 20 = n2w q’ by
+       (qunabbrev_tac `q` >> metis_tac [bounded_word64_lsr20_n2w])
+  >> simp [word_lsl_n2w, word_add_n2w, w2n_n2w, dimword_64]
+QED
+
+Theorem bounded_word64_mul_full_chunks22_correct:
+  let result = bounded_word64_mul_full_chunks22 left right in
+  w2n (SND result) + bounded_word_base * w2n (FST result) =
+    w2n left * w2n right
+Proof
+  Cases_on ‘left’
+  >> Cases_on ‘right’
+  >> fs [dimword_64]
+  >> simp_tac std_ss [bounded_word64_mul_full_chunks22_def, LET_THM]
+  >> asm_simp_tac std_ss
+       [bounded_word64_extract_low22, bounded_word64_extract_middle22,
+        bounded_word64_extract_high20, bounded_word_base_eq,
+        w2n_n2w, dimword_64]
+  >> qabbrev_tac `a0 = n MOD 4194304`
+  >> qabbrev_tac `a1 = (n DIV 4194304) MOD 4194304`
+  >> qabbrev_tac `a2 = n DIV 17592186044416`
+  >> qabbrev_tac `b0 = n' MOD 4194304`
+  >> qabbrev_tac `b1 = (n' DIV 4194304) MOD 4194304`
+  >> qabbrev_tac `b2 = n' DIV 17592186044416`
+  >> qabbrev_tac `c0 = a0 * b0`
+  >> qabbrev_tac `d0 = c0 MOD 4194304`
+  >> qabbrev_tac `q1 = c0 DIV 4194304`
+  >> qabbrev_tac `c1 = a0 * b1 + a1 * b0 + q1`
+  >> qabbrev_tac `d1 = c1 MOD 4194304`
+  >> qabbrev_tac `q2 = c1 DIV 4194304`
+  >> qabbrev_tac `c2 = a0 * b2 + a1 * b1 + a2 * b0 + q2`
+  >> qabbrev_tac `d2 = c2 MOD 4194304`
+  >> qabbrev_tac `q3 = c2 DIV 4194304`
+  >> qabbrev_tac `c3 = a1 * b2 + a2 * b1 + q3`
+  >> qabbrev_tac `d3 = c3 MOD 4194304`
+  >> qabbrev_tac `q4 = c3 DIV 4194304`
+  >> qabbrev_tac `c4 = a2 * b2 + q4`
+  >> qabbrev_tac `d4 = c4 MOD 4194304`
+  >> qabbrev_tac `d5 = c4 DIV 4194304`
+  >> ‘a0 + 4194304 * a1 + 17592186044416 * a2 = n’ by
+       (qunabbrev_tac `a0`
+        >> qunabbrev_tac `a1`
+        >> qunabbrev_tac `a2`
+        >> simp [bounded_radix22_reconstruct])
+  >> ‘b0 + 4194304 * b1 + 17592186044416 * b2 = n'’ by
+       (qunabbrev_tac `b0`
+        >> qunabbrev_tac `b1`
+        >> qunabbrev_tac `b2`
+        >> simp [bounded_radix22_reconstruct])
+  >> ‘d0 + 4194304 * q1 = a0 * b0’ by
+       (qunabbrev_tac `d0`
+        >> qunabbrev_tac `q1`
+        >> qunabbrev_tac `c0`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d1 + 4194304 * q2 = a0 * b1 + a1 * b0 + q1’ by
+       (qunabbrev_tac `d1`
+        >> qunabbrev_tac `q2`
+        >> qunabbrev_tac `c1`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d2 + 4194304 * q3 = a0 * b2 + a1 * b1 + a2 * b0 + q2’ by
+       (qunabbrev_tac `d2`
+        >> qunabbrev_tac `q3`
+        >> qunabbrev_tac `c2`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d3 + 4194304 * q4 = a1 * b2 + a2 * b1 + q3’ by
+       (qunabbrev_tac `d3`
+        >> qunabbrev_tac `q4`
+        >> qunabbrev_tac `c3`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d4 + 4194304 * d5 = a2 * b2 + q4’ by
+       (qunabbrev_tac `d4`
+        >> qunabbrev_tac `d5`
+        >> qunabbrev_tac `c4`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> ‘d0 + 4194304 * d1 + 17592186044416 * d2 +
+       73786976294838206464 * d3 +
+       309485009821345068724781056 * d4 +
+       1298074214633706907132624082305024 * d5 =
+       (a0 + 4194304 * a1 + 17592186044416 * a2) *
+       (b0 + 4194304 * b1 + 17592186044416 * b2)’ by
+       (match_mp_tac bounded_radix22_convolution
+        >> asm_rewrite_tac [])
+  >> ‘d0 + 4194304 * d1 + 17592186044416 * d2 +
+       73786976294838206464 * d3 +
+       309485009821345068724781056 * d4 +
+       1298074214633706907132624082305024 * d5 = n * n'’ by
+       asm_rewrite_tac []
+  >> ‘d0 < 4194304’ by simp [Abbr `d0`]
+  >> ‘d1 < 4194304’ by simp [Abbr `d1`]
+  >> ‘d2 < 4194304’ by simp [Abbr `d2`]
+  >> ‘d3 < 4194304’ by simp [Abbr `d3`]
+  >> ‘d4 < 4194304’ by simp [Abbr `d4`]
+  >> ‘d0 + 4194304 * d1 + 17592186044416 * d2 +
+       73786976294838206464 * d3 +
+       309485009821345068724781056 * d4 +
+       1298074214633706907132624082305024 * d5 <
+       18446744073709551616 * 18446744073709551616’ by
+       (asm_rewrite_tac []
+        >> irule bounded_product_lt_square
+        >> simp [])
+  >> qpat_x_assum
+       ‘d0 + 4194304 * d1 + 17592186044416 * d2 +
+        73786976294838206464 * d3 +
+        309485009821345068724781056 * d4 +
+        1298074214633706907132624082305024 * d5 = n * n'’
+       (fn th => once_rewrite_tac [GSYM th])
+  >> irule bounded_word64_chunks22_join
+  >> simp []
+QED
+
+(* Case16594 stores interval endpoints in one word and immediately divides
+   their full product by the dyadic 2^40 scale.  Keep that hot path in words;
+   the mathematical refinement theorem is the next bounded proof obligation. *)
+
+Definition bounded_word64_mul_shift_floor40_def:
+  bounded_word64_mul_shift_floor40 (left:word64) (right:word64) =
+    let product = bounded_word64_mul_full_chunks22 left right in
+    let high = FST product in
+    let low = SND product in
+    Bounded128 (high >>> 40) ((low >>> 40) + (high << 24))
+End
+
+(* Decimal-scale discriminator for the already proved HOL Light fixed-scale
+   checker.  Unlike the production dyadic path this deliberately uses the
+   translated natural-number division boundary.  Keeping it beside the
+   shift-40 primitive makes the matched recurring cost explicit before we
+   decide whether proof reuse justifies a decimal executor. *)
+
+Definition bounded_word64_mul_div_floor_decimal_def:
+  bounded_word64_mul_div_floor_decimal (left:word64) (right:word64) =
+    let quotient = (w2n left * w2n right) DIV 1000000000000 in
+    Bounded128
+      ((n2w (quotient DIV 18446744073709551616)):word64)
+      ((n2w quotient):word64)
+End
+
+Theorem bounded_word64_mul_div_floor_decimal_correct:
+  bounded128_to_num (bounded_word64_mul_div_floor_decimal left right) =
+    (w2n left * w2n right) DIV 1000000000000
+Proof
+  rw [bounded_word64_mul_div_floor_decimal_def, LET_THM,
+      bounded128_to_num_def, bounded_word_base_eq, w2n_n2w]
+  >> irule bounded_two_digit_reconstruct
+  >> simp []
+  >> qspec_then `left` assume_tac w2n_lt
+  >> qspec_then `right` assume_tac w2n_lt
+  >> `w2n left * w2n right <
+      18446744073709551616 * 18446744073709551616` by
+       (irule bounded_product_lt_square >> fs [dimword_64])
+  >> simp [DIV_LT_X]
+QED
+
+(* Directed upper rounding at the same decimal scale.  This keeps the full
+ * product in the mathematical natural-number domain until after division;
+ * the two-word result is exact and total for every word64 input. *)
+Definition bounded_word64_mul_div_ceil_decimal_def:
+  bounded_word64_mul_div_ceil_decimal (left:word64) (right:word64) =
+    let quotient =
+      (w2n left * w2n right + 999999999999) DIV 1000000000000 in
+    Bounded128
+      ((n2w (quotient DIV 18446744073709551616)):word64)
+      ((n2w quotient):word64)
+End
+
+Theorem bounded_word64_mul_div_ceil_decimal_correct:
+  bounded128_to_num (bounded_word64_mul_div_ceil_decimal left right) =
+    (w2n left * w2n right + 999999999999) DIV 1000000000000
+Proof
+  rw [bounded_word64_mul_div_ceil_decimal_def, LET_THM,
+      bounded128_to_num_def, bounded_word_base_eq, w2n_n2w]
+  >> irule bounded_two_digit_reconstruct
+  >> simp []
+  >> qspec_then `left` assume_tac w2n_lt
+  >> qspec_then `right` assume_tac w2n_lt
+  >> `w2n left * w2n right <
+      18446744073709551616 * 18446744073709551616` by
+       (irule bounded_product_lt_square >> fs [dimword_64])
+  >> simp [DIV_LT_X]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_word64_shift_pair40_correct:
+  w2n (((low:word64) >>> 40) + ((high:word64) << 24)) +
+    bounded_word_base * w2n (high >>> 40) =
+  (w2n low + bounded_word_base * w2n high) DIV 1099511627776
+Proof
+  Cases_on `high`
+  >> Cases_on `low`
+  >> fs [dimword_64]
+  >> `((n2w n'):word64) >>> 40 =
+      n2w (n' DIV 1099511627776)` by
+       (mp_tac
+          (Q.SPECL [`n'`, `40`]
+             (n2w_DIV |> INST_TYPE [alpha |-> ``:64``]))
+        >> simp [dimword_64])
+  >> asm_rewrite_tac []
+  >> simp [bounded_word_base_eq, w2n_lsr, word_lsl_n2w,
+           word_add_n2w, w2n_n2w, dimword_64]
+  >> qabbrev_tac `q = n DIV 1099511627776`
+  >> qabbrev_tac `r = n MOD 1099511627776`
+  >> qabbrev_tac `q' = n' DIV 1099511627776`
+  >> qabbrev_tac `r' = n' MOD 1099511627776`
+  >> `r < 1099511627776` by (qunabbrev_tac `r` >> simp [])
+  >> `r' < 1099511627776` by (qunabbrev_tac `r'` >> simp [])
+  >> `q < 16777216` by
+       (qunabbrev_tac `q` >> simp [DIV_LT_X])
+  >> `q' < 16777216` by
+       (qunabbrev_tac `q'` >> simp [DIV_LT_X])
+  >> `r + 1099511627776 * q = n` by
+       (qunabbrev_tac `r`
+        >> qunabbrev_tac `q`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> `r' + 1099511627776 * q' = n'` by
+       (qunabbrev_tac `r'`
+        >> qunabbrev_tac `q'`
+        >> irule bounded_division_reconstruct
+        >> simp [])
+  >> `16777216 * n + q' =
+      q * 18446744073709551616 + (16777216 * r + q')` by
+       intLib.ARITH_TAC
+  >> `16777216 * r + q' < 18446744073709551616` by
+       intLib.ARITH_TAC
+  >> `(16777216 * n + q') MOD 18446744073709551616 =
+      16777216 * r + q'` by
+       (qpat_x_assum
+          `16777216 * n + q' =
+           q * 18446744073709551616 + (16777216 * r + q')`
+          (fn th => once_rewrite_tac [th])
+        >> irule MOD_UNIQUE
+        >> qexists_tac `q`
+        >> simp [])
+  >> `18446744073709551616 * n + n' =
+      (18446744073709551616 * q + 16777216 * r + q') *
+        1099511627776 + r'` by
+       intLib.ARITH_TAC
+  >> `(18446744073709551616 * n + n') DIV 1099511627776 =
+      18446744073709551616 * q + 16777216 * r + q'` by
+       (qpat_x_assum
+          `18446744073709551616 * n + n' =
+           (18446744073709551616 * q + 16777216 * r + q') *
+             1099511627776 + r'`
+          (fn th => once_rewrite_tac [th])
+        >> irule DIV_UNIQUE
+        >> qexists_tac `r'`
+        >> simp [])
+  >> asm_rewrite_tac []
+  >> CONV_TAC (EQT_INTRO o Grobner.NUM_RING)
+QED
+
+Theorem bounded_word64_mul_shift_floor40_correct:
+  bounded128_to_num (bounded_word64_mul_shift_floor40 left right) =
+    (w2n left * w2n right) DIV 1099511627776
+Proof
+  rw [bounded_word64_mul_shift_floor40_def, bounded128_to_num_def]
+  >> once_rewrite_tac [WORD_ADD_COMM]
+  >> rw [bounded_word64_shift_pair40_correct]
+  >> mp_tac bounded_word64_mul_full_chunks22_correct
+  >> simp [LET_THM]
+QED
+
+Definition bounded128_shift_floor40_words_def:
+  bounded128_shift_floor40_words (Bounded128 high low) =
+    Bounded128 (high >>> 40) ((low >>> 40) + (high << 24))
+End
+
+Theorem bounded128_shift_floor40_words_correct:
+  bounded128_to_num (bounded128_shift_floor40_words value) =
+    bounded128_to_num value DIV 1099511627776
+Proof
+  Cases_on `value`
+  >> rw [bounded128_shift_floor40_words_def, bounded128_to_num_def]
+  >> once_rewrite_tac [WORD_ADD_COMM]
+  >> rw [bounded_word64_shift_pair40_correct]
+QED
+
+Theorem bounded_word64_mul_shift_floor40_small_test:
+  bounded_word64_mul_shift_floor40
+    4503599627370453w 1099511627689w =
+    Bounded128 0w 4503599627014101w
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Definition bounded_word64_mul_shift_floor40_repeat_def:
+  bounded_word64_mul_shift_floor40_repeat 0 left right digest = digest ∧
+  bounded_word64_mul_shift_floor40_repeat (SUC n) left right digest =
+    case bounded_word64_mul_shift_floor40 left right of
+      Bounded128 high low =>
+        bounded_word64_mul_shift_floor40_repeat n left right
+          (word_xor digest (word_xor high low))
+End
+
+Definition bounded_word64_mul_div_floor_decimal_repeat_def:
+  bounded_word64_mul_div_floor_decimal_repeat 0 left right digest = digest /\
+  bounded_word64_mul_div_floor_decimal_repeat (SUC n) left right digest =
+    case bounded_word64_mul_div_floor_decimal left right of
+      Bounded128 high low =>
+        bounded_word64_mul_div_floor_decimal_repeat n left right
+          (word_xor digest (word_xor high low))
+End
+
+(* First actual-data boundary: consume distinct authenticated endpoint pairs
+   rather than replaying one synthetic operand pair.  The generated
+   case16594 fixture instantiates this fold with one genuine coordinate
+   product from each of the 875 certificate cells. *)
+
+Definition bounded_word64_mul_shift_floor40_pairs_def:
+  bounded_word64_mul_shift_floor40_pairs [] digest = digest ∧
+  bounded_word64_mul_shift_floor40_pairs (pair::rest) digest =
+    case bounded_word64_mul_shift_floor40 (FST pair) (SND pair) of
+      Bounded128 high low =>
+        bounded_word64_mul_shift_floor40_pairs rest
+          (word_xor digest (word_xor high low))
+End
+
+Theorem bounded_word64_mul_shift_floor40_pairs_small_test:
+  bounded_word64_mul_shift_floor40_pairs
+    [(4503599627370453w,1099511627689w);
+     (1099511627776w,1099511627776w)] 0w =
+    4502500115386325w
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Definition bounded_word64_mul_shift_floor40_benchmark_def:
+  bounded_word64_mul_shift_floor40_benchmark =
+    bounded_word64_mul_shift_floor40_repeat 10000001
+      4503599627370453w 1099511627689w 0w
+End
+
+Definition bounded_word64_mul_shift_floor40_benchmark_ok_def:
+  bounded_word64_mul_shift_floor40_benchmark_ok ⇔
+    bounded_word64_mul_shift_floor40_benchmark = 4503599627014101w
+End
+
+Definition bounded_word64_mul_div_floor_decimal_benchmark_def:
+  bounded_word64_mul_div_floor_decimal_benchmark =
+    bounded_word64_mul_div_floor_decimal_repeat 10000001
+      4503599627370453w 1099511627689w 0w
+End
+
+Definition bounded_word64_mul_div_floor_decimal_benchmark_ok_def:
+  bounded_word64_mul_div_floor_decimal_benchmark_ok <=>
+    bounded_word64_mul_div_floor_decimal_benchmark = 4951760156749660w
+End
+
+Definition bounded_word64_mul_full_repeat_def:
+  bounded_word64_mul_full_repeat 0 left right digest = digest ∧
+  bounded_word64_mul_full_repeat (SUC n) left right digest =
+    let product = bounded_word64_mul_full_num left right in
+    bounded_word64_mul_full_repeat n left right
+      (word_xor digest (word_xor (FST product) (SND product)))
+End
+
+Definition bounded_word64_mul_repeat_control_def:
+  bounded_word64_mul_repeat_control 0 (mix:word64) digest = digest ∧
+  bounded_word64_mul_repeat_control (SUC n) mix digest =
+    bounded_word64_mul_repeat_control n mix (word_xor digest mix)
+End
+
+Definition bounded_word64_mul_chunks22_repeat_def:
+  bounded_word64_mul_chunks22_repeat 0 left right digest = digest ∧
+  bounded_word64_mul_chunks22_repeat (SUC n) left right digest =
+    let product = bounded_word64_mul_full_chunks22 left right in
+    bounded_word64_mul_chunks22_repeat n left right
+      (word_xor digest (word_xor (FST product) (SND product)))
+End
+
+Definition bounded_word64_mul_full_benchmark_def:
+  bounded_word64_mul_full_benchmark =
+    bounded_word64_mul_full_repeat 10000001
+      4503599627370453w 1099511627689w 0w
+End
+
+Definition bounded_word64_mul_control_benchmark_def:
+  bounded_word64_mul_control_benchmark =
+    bounded_word64_mul_repeat_control 10000001
+      18054883627396755810w 0w
+End
+
+Definition bounded_word64_mul_chunks22_benchmark_def:
+  bounded_word64_mul_chunks22_benchmark =
+    bounded_word64_mul_chunks22_repeat 10000001
+      4503599627370453w 1099511627689w 0w
+End
+
+Definition bounded_word64_mul_full_benchmark_ok_def:
+  bounded_word64_mul_full_benchmark_ok ⇔
+    bounded_word64_mul_full_benchmark = 18054883627396755810w
+End
+
+Definition bounded_word64_mul_control_ok_def:
+  bounded_word64_mul_control_ok (u:unit) =
+    (bounded_word64_mul_control_benchmark = 18054883627396755810w)
+End
+
+Definition bounded_word64_mul_chunks22_benchmark_ok_def:
+  bounded_word64_mul_chunks22_benchmark_ok ⇔
+    bounded_word64_mul_chunks22_benchmark = 18054883627396755810w
+End
+
+Theorem bounded_word64_mul_full_small_test:
+  bounded_word64_mul_full_num 4503599627370453w 1099511627689w =
+    (268435455w, 18054883627128327837w)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Definition bounded128_add_words_def:
+  bounded128_add_words
+      (Bounded128 left_high left_low)
+      (Bounded128 right_high right_low) =
+    let low_sum = bounded_word64_add_carry left_low right_low F in
+    let high_sum = bounded_word64_add_carry
+      left_high right_high (SND low_sum) in
+    if SND high_sum then NONE
+    else SOME (Bounded128 (FST high_sum) (FST low_sum))
+End
+
+Theorem bounded128_add_words_refines:
+  bounded128_add_words left right = bounded128_add left right
+Proof
+  Cases_on ‘left’
+  >> Cases_on ‘right’
+  >> qspec_then ‘c’ assume_tac w2n_lt
+  >> qspec_then ‘c0’ assume_tac w2n_lt
+  >> qspec_then ‘c'’ assume_tac w2n_lt
+  >> qspec_then ‘c0'’ assume_tac w2n_lt
+  >> rw [bounded128_add_words_def, bounded128_add_def,
+         bounded128_of_num_def, bounded128_to_num_def,
+         bounded_word64_add_carry_correct, add_with_carry_def]
+  >> fs [bounded_word_base_def, bounded128_limit_def, dimword_64]
+  >> intLib.ARITH_TAC
+QED
+
+Definition bounded128_add_repeat_def:
+  bounded128_add_repeat 0 increment value = SOME value ∧
+  bounded128_add_repeat (SUC count) increment value =
+    case bounded128_add value increment of
+    | NONE => NONE
+    | SOME next => bounded128_add_repeat count increment next
+End
+
+Definition bounded128_add_words_repeat_def:
+  bounded128_add_words_repeat 0 increment value = SOME value ∧
+  bounded128_add_words_repeat (SUC count) increment value =
+    case bounded128_add_words value increment of
+    | NONE => NONE
+    | SOME next => bounded128_add_words_repeat count increment next
+End
+
+Theorem bounded128_add_words_repeat_refines:
+  ∀n increment value.
+    bounded128_add_words_repeat n increment value =
+      bounded128_add_repeat n increment value
+Proof
+  Induct
+  >> simp [bounded128_add_words_repeat_def, bounded128_add_repeat_def,
+           bounded128_add_words_refines]
+  >> Cases_on ‘bounded128_add value increment’
+  >> simp []
+QED
+
+Definition bounded128_repeat_control_def:
+  bounded128_repeat_control 0 value = SOME value ∧
+  bounded128_repeat_control (SUC n) (Bounded128 high low) =
+    let low_copy = (low, F) in
+    let high_copy = (high, SND low_copy) in
+    if SND high_copy then NONE
+    else bounded128_repeat_control n
+      (Bounded128 (FST high_copy) (FST low_copy))
+End
+
+Definition bounded128_add_words_benchmark_def:
+  bounded128_add_words_benchmark =
+    bounded128_add_words_repeat 10000000
+      (Bounded128 0w 1w) (Bounded128 0w 0w)
+End
+
+Definition bounded128_repeat_control_benchmark_def:
+  bounded128_repeat_control_benchmark =
+    bounded128_repeat_control 10000000 (Bounded128 0w 0w)
+End
+
+Definition bounded128_add_words_benchmark_ok_def:
+  bounded128_add_words_benchmark_ok ⇔
+    bounded128_add_words_benchmark =
+      SOME (Bounded128 0w 10000000w)
+End
+
+Definition bounded128_repeat_control_benchmark_ok_def:
+  bounded128_repeat_control_benchmark_ok ⇔
+    bounded128_repeat_control_benchmark =
+      SOME (Bounded128 0w 0w)
+End
+
+Theorem bounded128_add_words_repeat_small_test:
+  bounded128_add_words_repeat 3
+    (Bounded128 0w 7w) (Bounded128 0w 5w) =
+  SOME (Bounded128 0w 26w)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded128_add_words_no_carry_test:
+  bounded128_add_words
+    (Bounded128 0w 7w) (Bounded128 0w 9w) =
+  SOME (Bounded128 0w 16w)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded128_add_words_low_carry_test:
+  bounded128_add_words
+    (Bounded128 0w (-1w)) (Bounded128 0w 1w) =
+  SOME (Bounded128 1w 0w)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded128_add_words_overflow_test:
+  bounded128_add_words
+    (Bounded128 (-1w) (-1w)) (Bounded128 0w 1w) = NONE
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Definition bounded192_add_words_def:
+  bounded192_add_words
+      (Bounded192 left_high left_middle left_low)
+      (Bounded192 right_high right_middle right_low) =
+    let low_sum = bounded_word64_add_carry left_low right_low F in
+    let middle_sum = bounded_word64_add_carry
+      left_middle right_middle (SND low_sum) in
+    let high_sum = bounded_word64_add_carry
+      left_high right_high (SND middle_sum) in
+    if SND high_sum then NONE
+    else SOME
+      (Bounded192 (FST high_sum) (FST middle_sum) (FST low_sum))
+End
+
+Theorem bounded192_add_words_refines:
+  bounded192_add_words left right = bounded192_add left right
+Proof
+  Cases_on ‘left’
+  >> Cases_on ‘right’
+  >> qspec_then ‘c’ assume_tac w2n_lt
+  >> qspec_then ‘c0’ assume_tac w2n_lt
+  >> qspec_then ‘c1’ assume_tac w2n_lt
+  >> qspec_then ‘c'’ assume_tac w2n_lt
+  >> qspec_then ‘c0'’ assume_tac w2n_lt
+  >> qspec_then ‘c1'’ assume_tac w2n_lt
+  >> rw [bounded192_add_words_def, bounded192_add_def,
+         bounded192_of_num_def, bounded192_to_num_def,
+         bounded_word64_add_carry_correct, add_with_carry_def]
+  >> fs [bounded_word_base_def, bounded192_limit_def, dimword_64]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded192_add_words_carry_chain_test:
+  bounded192_add_words
+    (Bounded192 0w (-1w) (-1w)) (Bounded192 0w 0w 1w) =
+  SOME (Bounded192 1w 0w 0w)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded192_add_words_overflow_test:
+  bounded192_add_words
+    (Bounded192 (-1w) (-1w) (-1w)) (Bounded192 0w 0w 1w) = NONE
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+(*
+  Closed operation-count trace for the authenticated case16594 delta-pair
+  candidate.  Wide 128-by-64 products are conservatively charged as two
+  proved full-word products plus a checked carry composition.  This is a
+  performance gate, not yet the nonlinear checker or its decode theorem.
+*)
+
+Definition bounded128_shift_floor40_repeat_def:
+  bounded128_shift_floor40_repeat 0 value digest = digest ∧
+  bounded128_shift_floor40_repeat (SUC count) value digest =
+    case bounded128_shift_floor40_words value of
+      Bounded128 high low =>
+        bounded128_shift_floor40_repeat count value
+          (word_xor digest (word_xor high low))
+End
+
+Definition bounded192_add_words_repeat_def:
+  bounded192_add_words_repeat 0 increment value = SOME value ∧
+  bounded192_add_words_repeat (SUC count) increment value =
+    case bounded192_add_words value increment of
+    | NONE => NONE
+    | SOME next => bounded192_add_words_repeat count increment next
+End
+
+Definition bounded_sign_class_dispatch_def:
+  bounded_sign_class_dispatch
+      left_nonnegative left_nonpositive
+      right_nonnegative right_nonpositive =
+    if left_nonnegative then
+      if right_nonnegative then 1w
+      else if right_nonpositive then 2w else 3w
+    else if left_nonpositive then
+      if right_nonnegative then 4w
+      else if right_nonpositive then 5w else 6w
+    else if right_nonnegative then 7w
+    else if right_nonpositive then 8w else 9w:word64
+End
+
+Definition bounded_sign_class_repeat_def:
+  bounded_sign_class_repeat 0
+      left_nonnegative left_nonpositive
+      right_nonnegative right_nonpositive digest = digest ∧
+  bounded_sign_class_repeat (SUC count)
+      left_nonnegative left_nonpositive
+      right_nonnegative right_nonpositive digest =
+    bounded_sign_class_repeat count
+      left_nonnegative left_nonpositive
+      right_nonnegative right_nonpositive
+      (word_xor digest
+        (bounded_sign_class_dispatch
+          left_nonnegative left_nonpositive
+          right_nonnegative right_nonpositive))
+End
+
+Definition bounded_boolean_branch_repeat_def:
+  bounded_boolean_branch_repeat 0 condition
+      (when_true:word64) (when_false:word64) (digest:word64) =
+    digest ∧
+  bounded_boolean_branch_repeat (SUC count)
+      condition (when_true:word64) (when_false:word64) (digest:word64) =
+    let selected = if condition then when_true else when_false in
+    bounded_boolean_branch_repeat count condition when_true when_false
+      (word_xor digest selected)
+End
+
+Definition bounded_narrow_trace_repeat_def:
+  bounded_narrow_trace_repeat 0 value digest = digest ∧
+  bounded_narrow_trace_repeat (SUC count)
+      (Bounded192 high middle low) digest =
+    if high = 0w then
+      bounded_narrow_trace_repeat count
+        (Bounded192 high middle low)
+        (word_xor digest (word_xor middle low))
+    else
+      bounded_narrow_trace_repeat count
+        (Bounded192 high middle low) (word_xor digest high)
+End
+
+Definition bounded_case16594_sign_trace_def:
+  bounded_case16594_sign_trace =
+    let product_digest = bounded_word64_mul_chunks22_repeat 34093928
+      18446744073709551557w 1099511627689w 0w in
+    let add128 = bounded128_add_words_repeat 33004687
+      (Bounded128 0w 1w) (Bounded128 0w 0w) in
+    let add192 = bounded192_add_words_repeat 1464750
+      (Bounded192 0w 0w 1w) (Bounded192 0w 0w 0w) in
+    let shift_digest = bounded128_shift_floor40_repeat 11663750
+      (Bounded128 1099511627689w 18446744073709551557w) 0w in
+    let sign1 = bounded_sign_class_repeat 5802731 T F T F 0w in
+    let sign2 = bounded_sign_class_repeat 220661 T F F T sign1 in
+    let sign3 = bounded_sign_class_repeat 460661 T F F F sign2 in
+    let sign4 = bounded_sign_class_repeat 966686 F T T F sign3 in
+    let sign5 = bounded_sign_class_repeat 132807 F T F T sign4 in
+    let sign6 = bounded_sign_class_repeat 266639 F T F F sign5 in
+    let sign7 = bounded_sign_class_repeat 209505 F F T F sign6 in
+    let sign8 = bounded_sign_class_repeat 65346 F F F T sign7 in
+    let sign_digest = bounded_sign_class_repeat 43089 F F F F sign8 in
+    let negative_branch = bounded_boolean_branch_repeat
+      1433809 T 1w 2w 0w in
+    let positive_branch = bounded_boolean_branch_repeat
+      10229941 F 1w 2w negative_branch in
+    let remainder_branch = bounded_boolean_branch_repeat
+      3259937 T 4w 8w positive_branch in
+    let rounding_digest = bounded_boolean_branch_repeat
+      8403813 F 4w 8w remainder_branch in
+    let narrow_digest = bounded_narrow_trace_repeat 325500
+      (Bounded192 0w 268435455w 18054883627128327837w) 0w in
+    (product_digest, add128, add192, shift_digest, sign_digest,
+     rounding_digest, narrow_digest)
+End
+
+Definition bounded_case16594_sign_trace_result_ok_def:
+  bounded_case16594_sign_trace_result_ok (u:unit) =
+    (
+    bounded_case16594_sign_trace =
+      ((0w:word64),
+       SOME (Bounded128 (0w:word64) (33004687w:word64)),
+       SOME (Bounded192 (0w:word64) (0w:word64) (1464750w:word64)),
+       (0w:word64), (13w:word64), (15w:word64), (0w:word64)))
+End
+
+Definition bounded_case16594_sign_trace_overflow128_ok_def:
+  bounded_case16594_sign_trace_overflow128_ok (u:unit) =
+    (bounded128_add_words
+      (Bounded128 18446744073709551615w 18446744073709551615w)
+      (Bounded128 0w 1w) = NONE
+    )
+End
+
+Definition bounded_case16594_sign_trace_overflow192_ok_def:
+  bounded_case16594_sign_trace_overflow192_ok (u:unit) =
+    (bounded192_add_words
+      (Bounded192 18446744073709551615w
+        18446744073709551615w 18446744073709551615w)
+      (Bounded192 0w 0w 1w) = NONE)
+End
+
+
+Definition bounded_case16594_sign_trace_ok_def:
+  bounded_case16594_sign_trace_ok (u:unit) =
+    (bounded_case16594_sign_trace_result_ok () ∧
+     bounded_case16594_sign_trace_overflow128_ok () ∧
+     bounded_case16594_sign_trace_overflow192_ok ())
+End
+
+val _ = export_theory ();

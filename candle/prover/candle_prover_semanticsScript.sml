@@ -174,6 +174,30 @@ Proof
   EVAL_TAC
 QED
 
+(* Keep the initial-state proof tied to the generated state itself.  Every
+ * translated top-level value contributes a <name>_refs constant; closed data
+ * must have a generated definition for that constant, even when it is empty.
+ * Extracting these definitions mechanically avoids a second handwritten list
+ * that can drift when the production kernel gains another immutable value. *)
+fun is_init_refs_constant tm =
+  case total dest_thy_const tm of
+    SOME {Name, ...} => String.isSuffix "_refs" Name
+  | NONE => false;
+
+fun init_refs_definition tm =
+  let
+    val {Name, Thy, ...} = dest_thy_const tm
+  in
+    DB.fetch Thy (Name ^ "_def")
+  end;
+
+val candle_init_state_refs_defs =
+  candle_init_state_def
+  |> concl
+  |> find_terms is_init_refs_constant
+  |> op_mk_set aconv
+  |> map init_refs_definition;
+
 Theorem candle_init_state_state_ok:
   ffi.io_events = [] ⇒
   state_ok init_context (candle_init_state ffi)
@@ -182,9 +206,9 @@ Proof
   \\ simp [state_ok_def, candle_init_state_stamp]
   \\ irule_at Any STATE_init_refs
   \\ simp [candle_init_state_refs,kernel_locs]
-  \\ rw [LLOOKUP_EQ_EL, EL_APPEND_EQN, candle_init_state_def, refs_defs,
-         compute_thms_refs_def, compute_default_clock_refs_def,
-         bool_ty_refs_def, aty_refs_def, bty_refs_def]
+  \\ rw [candle_init_state_def]
+  \\ fs candle_init_state_refs_defs
+  \\ fs [LLOOKUP_EQ_EL, EL_APPEND_EQN]
   \\ ‘loc ∈ {0;1}’ by fs []
   \\ fs [ref_ok_def]
 QED
@@ -261,15 +285,12 @@ local
                               env_ok_empty_env,
                               env_ok_nsEmpty];
   val prev_ths = ref empty_net;
-  (* 'Prove' v_ok for kernel values by looking them up in the kernel funs
-   * theorem from above. *)
-  val v_ok_thms = map inst_context (CONJUNCTS v_ok_kernel_funs);
-  fun prove_v_ok tm =
-    let
-      val goal = mk_comb (mk_comb (v_ok_term, init_context_term), tm)
-    in
-      Lib.first (can (Lib.C match_term goal) o concl) v_ok_thms
-    end;
+  (* All externally visible privileged values are exactly the kernel
+   * functions covered by the invariant theorem above.  Numerical helper
+   * closures and tables remain private inside compute_v's local block. *)
+  val v_ok_thms =
+    map inst_context (CONJUNCTS v_ok_kernel_funs)
+    |> map (REWRITE_RULE [compute_v_alias_def]);
   (* Theorems *)
   val write_th = inst_context env_ok_write |> REWRITE_RULE [GSYM AND_IMP_INTRO];
   val merge_env_th = inst_context env_ok_merge_env
@@ -366,6 +387,16 @@ local
     in
       INST [“n:num”|->k, “m:num”|->m, “nm:mlstring”|->n]
            (MATCH_MP write_exn_th th1)
+    end
+  and prove_v_ok tm =
+    let
+      val goal = mk_comb (mk_comb (v_ok_term, init_context_term), tm)
+    in
+      Lib.first (can (Lib.C match_term goal) o concl) v_ok_thms
+      handle err as HOL_ERR _ =>
+        (print ("No kernel v_ok theorem for exported value " ^
+                term_to_string tm ^ "\n");
+         raise err)
     end
   and env_ok_conv tm =
     let

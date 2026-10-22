@@ -12,11 +12,6 @@ Libs
 
 (* verification *)
 
-Definition from_cv_def[simp]:
-  from_cv ((Num n):cv) = (Num n : compute_exp) ∧
-  from_cv (Pair x y) = Pair (from_cv x) (from_cv y)
-End
-
 Definition from_res_def[simp]:
   from_res f (M_success v) = M_success (f v) ∧
   from_res f (M_failure e) = M_failure e
@@ -445,4 +440,3 @@ Proof
   \\ gvs [EVERY_MEM,FORALL_PROD]
   \\ rw [] \\ res_tac \\ fs []
 QED
-

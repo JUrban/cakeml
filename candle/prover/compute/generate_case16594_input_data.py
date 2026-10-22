@@ -1,0 +1,213 @@
+#!/usr/bin/env python3
+"""Generate the complete bounded-word case16594 input fixture.
+
+The output is DEVELOPMENT / NON-RELEASE data.  The generator accepts only the
+pinned 875-row native-input export.  It encodes the six box coordinates and
+the ten box and ten center square-root certificate intervals with directed
+floor/ceiling endpoints on the exact 2^40 grid.  It supplies no checker
+verdict and remains untrusted preparation pending a source-correspondence
+theorem.
+"""
+
+from __future__ import annotations
+
+import argparse
+from dataclasses import dataclass
+from fractions import Fraction
+import hashlib
+from pathlib import Path
+
+
+EXPECTED_INPUT_SHA256 = (
+    "236c4ffa1773b92c80584defa24beeddfb20b59811bc287a4f4770da87ac8e80"
+)
+SCALE = 1 << 40
+WORD_LIMIT = 1 << 64
+
+
+@dataclass(frozen=True)
+class Cell:
+    box: tuple[tuple[int, int], ...]
+    box_sqrt: tuple[tuple[int, int], ...]
+    center_sqrt: tuple[tuple[int, int], ...]
+
+
+def floor_scaled(value: Fraction) -> int:
+    return (value.numerator * SCALE) // value.denominator
+
+
+def ceil_scaled(value: Fraction) -> int:
+    return -((-value.numerator * SCALE) // value.denominator)
+
+
+def checked_interval(lower: Fraction, upper: Fraction, context: str) -> tuple[int, int]:
+    if lower > upper:
+        raise ValueError(f"reversed interval at {context}")
+    encoded = (floor_scaled(lower), ceil_scaled(upper))
+    if not all(0 <= endpoint < WORD_LIMIT for endpoint in encoded):
+        raise ValueError(f"endpoint width/sign drift at {context}: {encoded}")
+    if encoded[0] > encoded[1]:
+        raise ValueError(f"empty encoded interval at {context}: {encoded}")
+    return encoded
+
+
+def parse_interval_list(text: str, expected: int, context: str) -> tuple[tuple[int, int], ...]:
+    fields = text.split(",")
+    if len(fields) != expected:
+        raise ValueError(f"{context} width drift: {len(fields)}")
+    result = []
+    for index, field in enumerate(fields):
+        endpoints = field.split(":")
+        if len(endpoints) != 2:
+            raise ValueError(f"malformed interval at {context}[{index}]")
+        result.append(
+            checked_interval(
+                Fraction(endpoints[0]), Fraction(endpoints[1]),
+                f"{context}[{index}]",
+            )
+        )
+    return tuple(result)
+
+
+def load_cells(path: Path) -> list[Cell]:
+    payload = path.read_bytes()
+    actual_hash = hashlib.sha256(payload).hexdigest()
+    if actual_hash != EXPECTED_INPUT_SHA256:
+        raise ValueError(f"case16594 input identity drift: {actual_hash}")
+    rows = payload.decode("ascii").splitlines()
+    if len(rows) != 875:
+        raise ValueError(f"case16594 row count drift: {len(rows)}")
+
+    cells = []
+    for expected_index, row in enumerate(rows):
+        fields = row.split("\t")
+        if len(fields) != 5 or int(fields[0]) != expected_index:
+            raise ValueError(f"malformed case16594 row {expected_index}")
+        box_sqrt = parse_interval_list(
+            fields[1], 10, f"row {expected_index} box sqrt"
+        )
+        center_sqrt = parse_interval_list(
+            fields[2], 10, f"row {expected_index} center sqrt"
+        )
+        lower = [Fraction(value) for value in fields[3].split(",")]
+        upper = [Fraction(value) for value in fields[4].split(",")]
+        if len(lower) != 6 or len(upper) != 6:
+            raise ValueError(f"box width drift at row {expected_index}")
+        box = tuple(
+            checked_interval(lo, hi, f"row {expected_index} box[{coordinate}]")
+            for coordinate, (lo, hi) in enumerate(zip(lower, upper))
+        )
+        cells.append(Cell(box, box_sqrt, center_sqrt))
+    return cells
+
+
+def expected_digest(cells: list[Cell]) -> int:
+    digest = 0
+    for cell in cells:
+        for interval_group in (cell.box, cell.box_sqrt, cell.center_sqrt):
+            for lower, upper in interval_group:
+                digest ^= lower ^ upper
+    return digest
+
+
+def render_intervals(values: tuple[tuple[int, int], ...], indent: str) -> str:
+    return "\n".join(
+        f"{indent}({lower}w,{upper}w){';' if index + 1 != len(values) else ''}"
+        for index, (lower, upper) in enumerate(values)
+    )
+
+
+def render_cell(cell: Cell, final: bool) -> str:
+    suffix = ";" if not final else ""
+    return "\n".join(
+        [
+            "    BoundedCase16594Input",
+            "      [",
+            render_intervals(cell.box, "        "),
+            "      ]",
+            "      [",
+            render_intervals(cell.box_sqrt, "        "),
+            "      ]",
+            "      [",
+            render_intervals(cell.center_sqrt, "        "),
+            f"      ]{suffix}",
+        ]
+    )
+
+
+def render(cells: list[Cell]) -> str:
+    digest = expected_digest(cells)
+    data = "\n".join(
+        render_cell(cell, index + 1 == len(cells))
+        for index, cell in enumerate(cells)
+    )
+    return f'''(*
+  GENERATED by generate_case16594_input_data.py.
+  Source jobs SHA-256: {EXPECTED_INPUT_SHA256}
+  DEVELOPMENT / NON-RELEASE / NON-AUTHORITATIVE.
+*)
+Theory compute_boundedCase16594InputData
+Ancestors
+  compute_bounded
+Libs
+  bossLib wordsLib
+
+Datatype:
+  bounded_case16594_input =
+    BoundedCase16594Input
+      ((word64 # word64) list)
+      ((word64 # word64) list)
+      ((word64 # word64) list)
+End
+
+Definition bounded_case16594_inputs_def:
+  bounded_case16594_inputs : bounded_case16594_input list =
+  [
+{data}
+  ]
+End
+
+Theorem bounded_case16594_inputs_length:
+  LENGTH bounded_case16594_inputs = 875
+Proof
+  EVAL_TAC
+QED
+
+Definition bounded_case16594_interval_list_digest_def:
+  bounded_case16594_interval_list_digest [] digest = digest ∧
+  bounded_case16594_interval_list_digest ((lower,upper)::rest) digest =
+    bounded_case16594_interval_list_digest rest
+      (word_xor digest (word_xor lower upper))
+End
+
+Definition bounded_case16594_inputs_digest_def:
+  bounded_case16594_inputs_digest [] digest = digest ∧
+  bounded_case16594_inputs_digest
+      (BoundedCase16594Input box box_sqrt center_sqrt::rest) digest =
+    bounded_case16594_inputs_digest rest
+      (bounded_case16594_interval_list_digest center_sqrt
+        (bounded_case16594_interval_list_digest box_sqrt
+          (bounded_case16594_interval_list_digest box digest)))
+End
+
+Theorem bounded_case16594_inputs_digest_value:
+  bounded_case16594_inputs_digest bounded_case16594_inputs 0w = {digest}w
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+val _ = export_theory ();
+'''
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("jobs", type=Path)
+    parser.add_argument("output", type=Path)
+    args = parser.parse_args()
+    cells = load_cells(args.jobs)
+    args.output.write_text(render(cells), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    main()

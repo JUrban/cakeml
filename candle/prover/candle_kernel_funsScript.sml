@@ -3,7 +3,7 @@
  *)
 Theory candle_kernel_funs
 Libs
-  preamble helperLib ml_progLib[qualified]
+  preamble helperLib ml_progLib[qualified] ml_monad_translatorLib[qualified]
 Ancestors
   candle_kernel_vals candle_prover_inv ast_extras evaluate
   namespaceProps perms semanticPrimitivesProps misc[qualified]
@@ -1744,6 +1744,194 @@ Proof
   \\ disch_then (qspec_then ‘v’ mp_tac) \\ fs []
 QED
 
+(* The generated side conditions for the authenticated case-10173 evaluator are
+   total.  Keep these proofs factored by evaluator layer: expanding the whole
+   generated call graph at once is both slow and brittle. *)
+
+val bounded_interval64_positive_inv_certificate_decimal_side_total = prove(
+  ``!i c. bounded_interval64_positive_inv_certificate_decimal_side i c``,
+  rw [candle_kernelProgTheory.bounded_interval64_positive_inv_certificate_decimal_side_def]
+  \\ imp_res_tac
+       compute_boundedObjectCertificateDecimalTheory.bounded_interval64_positive_inv_certificate_decimal_sound
+  \\ imp_res_tac
+       compute_boundedCertificateDecimalTheory.bounded_interval64_inv_certificate_decimal_positive_signs
+  \\ fs [compute_boundedReciprocalCertificateTheory.bounded_signed64_strict_positive_def]);
+
+val bounded_taylor64_sqrt_decimal_side_total = prove(
+  ``!a0 a1 a2 a3 a4 a5 a6.
+      bounded_taylor64_sqrt_decimal_side a0 a1 a2 a3 a4 a5 a6``,
+  rw [candle_kernelProgTheory.bounded_taylor64_sqrt_decimal_side_def,
+      bounded_interval64_positive_inv_certificate_decimal_side_total]);
+
+val bounded_case10173_add_coordinate_sqrts_decimal_side_total = prove(
+  ``!a0 a1 a2 a3 a4 a5 a6.
+      bounded_case10173_add_coordinate_sqrts_decimal_side
+        a0 a1 a2 a3 a4 a5 a6``,
+  Induct_on `a3`
+  \\ rw [Once
+            candle_kernelProgTheory.bounded_case10173_add_coordinate_sqrts_decimal_side_def,
+          bounded_taylor64_sqrt_decimal_side_total]);
+
+val bounded_case10173_actual_sqrt_source_prefix_exact_side_total = prove(
+  ``!a0 a1 a2 a3 a4 a5 a6.
+      bounded_case10173_actual_sqrt_source_prefix_exact_side
+        a0 a1 a2 a3 a4 a5 a6``,
+  Induct_on `a0`
+  \\ rw [Once
+            candle_kernelProgTheory.bounded_case10173_actual_sqrt_source_prefix_exact_side_def,
+          bounded_taylor64_sqrt_decimal_side_total]);
+
+val bounded_case10173_literal_products_decimal_side_total = prove(
+  ``!a0 a1 a2 a3 a4.
+      bounded_case10173_literal_products_decimal_side a0 a1 a2 a3 a4``,
+  Induct_on `a0`
+  \\ rw [Once
+            candle_kernelProgTheory.bounded_case10173_literal_products_decimal_side_def,
+          bounded_taylor64_sqrt_decimal_side_total]);
+
+val bounded_historical_sqrt_second_decimal_side_total = prove(
+  ``!a0 a1 a2 a3 a4 a5.
+      bounded_historical_sqrt_second_decimal_side a0 a1 a2 a3 a4 a5``,
+  rw [candle_kernelProgTheory.bounded_historical_sqrt_second_decimal_side_def,
+      bounded_interval64_positive_inv_certificate_decimal_side_total]);
+
+val bounded_historical_dihedral_first64_decimal_side_total = prove(
+  ``!a0 a1 a2 a3.
+      bounded_historical_dihedral_first64_decimal_side a0 a1 a2 a3``,
+  rw [candle_kernelProgTheory.bounded_historical_dihedral_first64_decimal_side_def,
+      bounded_interval64_positive_inv_certificate_decimal_side_total]);
+
+val bounded_historical_dihedral_second64_decimal_side_total = prove(
+  ``!a0 a1 a2 a3.
+      bounded_historical_dihedral_second64_decimal_side a0 a1 a2 a3``,
+  rw [candle_kernelProgTheory.bounded_historical_dihedral_second64_decimal_side_def,
+      bounded_historical_sqrt_second_decimal_side_total,
+      bounded_interval64_positive_inv_certificate_decimal_side_total]);
+
+val bounded_object_positive_q_floor64_decimal_side_total = prove(
+  ``!a. bounded_object_positive_q_floor64_decimal_side a``,
+  rw [candle_kernelProgTheory.bounded_object_positive_q_floor64_decimal_side_def,
+      candle_kernelProgTheory.bounded_decimal_natural_floor64_side_def]);
+
+val bounded_object_positive_q_ceil64_decimal_side_total = prove(
+  ``!a. bounded_object_positive_q_ceil64_decimal_side a``,
+  rw [candle_kernelProgTheory.bounded_object_positive_q_ceil64_decimal_side_def,
+      candle_kernelProgTheory.bounded_decimal_natural_ceil64_side_def]);
+
+val bounded_case10173_source_radius64_positive_q_side_total = prove(
+  ``!a. bounded_case10173_source_radius64_positive_q_side a``,
+  rw [candle_kernelProgTheory.bounded_case10173_source_radius64_positive_q_side_def,
+      candle_kernelProgTheory.bounded_decimal_natural_ceil64_side_def]);
+
+val bounded_case10173_source_actual_sqrt_contract_side_total = prove(
+  ``!a b. bounded_case10173_source_actual_sqrt_contract_side a b``,
+  rw [candle_kernelProgTheory.bounded_case10173_source_actual_sqrt_contract_side_def,
+      bounded_case10173_actual_sqrt_source_prefix_exact_side_total]);
+
+val bounded_case10173_literal_historical_item_decimal_side_total = prove(
+  ``!a0 a1 a2 a3 a4 a5 a6 a7 a8.
+      bounded_case10173_literal_historical_item_decimal_side
+        a0 a1 a2 a3 a4 a5 a6 a7 a8``,
+  rw [candle_kernelProgTheory.bounded_case10173_literal_historical_item_decimal_side_def,
+      bounded_historical_dihedral_first64_decimal_side_total,
+      bounded_historical_dihedral_second64_decimal_side_total]);
+
+val bounded_case10173_literal_source_decimal_side_total = prove(
+  ``!a. bounded_case10173_literal_source_decimal_side a``,
+  rw [candle_kernelProgTheory.bounded_case10173_literal_source_decimal_side_def,
+      bounded_case10173_literal_products_decimal_side_total,
+      bounded_case10173_literal_historical_item_decimal_side_total]);
+
+val bounded_case10173_literal_source_accepts_decimal_side_total = prove(
+  ``!a. bounded_case10173_literal_source_accepts_decimal_side a``,
+  rw [candle_kernelProgTheory.bounded_case10173_literal_source_accepts_decimal_side_def,
+      bounded_case10173_literal_source_decimal_side_total]);
+
+val bounded_case10173_checked_cell64_decimal_side_total = prove(
+  ``!a0 a1 a2 a3 a4 a5 a6 a7 a8 a9.
+      bounded_case10173_checked_cell64_decimal_side
+        a0 a1 a2 a3 a4 a5 a6 a7 a8 a9``,
+  rw [candle_kernelProgTheory.bounded_case10173_checked_cell64_decimal_side_def,
+      bounded_case10173_add_coordinate_sqrts_decimal_side_total,
+      bounded_historical_dihedral_first64_decimal_side_total,
+      bounded_historical_dihedral_second64_decimal_side_total]);
+
+val bounded_case10173_checked_cell_accepts_decimal_side_total = prove(
+  ``!a0 a1 a2 a3 a4 a5 a6 a7 a8 a9.
+      bounded_case10173_checked_cell_accepts_decimal_side
+        a0 a1 a2 a3 a4 a5 a6 a7 a8 a9``,
+  rw [candle_kernelProgTheory.bounded_case10173_checked_cell_accepts_decimal_side_def,
+      bounded_case10173_checked_cell64_decimal_side_total]);
+
+val bounded_packed_chars_case10173_decimal_packet_ok_side_total = prove(
+  ``!a. bounded_packed_chars_case10173_decimal_packet_ok_side a``,
+  rw [candle_kernelProgTheory.bounded_packed_chars_case10173_decimal_packet_ok_side_def,
+      bounded_case10173_checked_cell_accepts_decimal_side_total]);
+
+val bounded_packed_chars_case10173_decimal_authenticated_packets_side_total =
+  prove(
+    ``!n s jobs sqrts k.
+        bounded_packed_chars_case10173_decimal_authenticated_packets_side
+          n s jobs sqrts k``,
+    Induct_on `n`
+    \\ rw [Once
+              candle_kernelProgTheory.bounded_packed_chars_case10173_decimal_authenticated_packets_side_def,
+            bounded_packed_chars_case10173_decimal_packet_ok_side_total,
+            bounded_case10173_source_actual_sqrt_contract_side_total,
+            bounded_case10173_literal_source_accepts_decimal_side_total]);
+
+val bounded_packed_chars_case10173_decimal_authenticated_full_check_side_total =
+  prove(
+    ``!s jobs sqrts.
+        bounded_packed_chars_case10173_decimal_authenticated_full_check_side
+          s jobs sqrts``,
+    rw [candle_kernelProgTheory.bounded_packed_chars_case10173_decimal_authenticated_full_check_side_def,
+        bounded_packed_chars_case10173_decimal_authenticated_packets_side_total]);
+
+val registered_case10173_decimal_authenticated_fast_checker_side_total = prove(
+  ``!a0 a1 a2 a3.
+      registered_case10173_decimal_authenticated_fast_checker_side
+        a0 a1 a2 a3``,
+  rw [candle_kernelProgTheory.registered_case10173_decimal_authenticated_fast_checker_side_def,
+      bounded_packed_chars_case10173_decimal_authenticated_full_check_side_total]);
+
+val registered_case10173_decimal_authenticated_fast_eval_side_total = prove(
+  ``!a. registered_case10173_decimal_authenticated_fast_eval_side a``,
+  rw [candle_kernelProgTheory.registered_case10173_decimal_authenticated_fast_eval_side_def,
+      registered_case10173_decimal_authenticated_fast_checker_side_total]);
+
+val registered_case10173_genuine_decimal_authenticated_fast_eval_side_total =
+  prove(
+    ``!a. registered_case10173_genuine_decimal_authenticated_fast_eval_side a``,
+    rw [candle_kernelProgTheory.registered_case10173_genuine_decimal_authenticated_fast_eval_side_def,
+        registered_case10173_decimal_authenticated_fast_eval_side_total]);
+
+val compute_case10173_genuine_fast_eval_side_total = prove(
+  ``!a. compute_case10173_genuine_fast_eval_side a``,
+  rw [candle_kernelProgTheory.compute_case10173_genuine_fast_eval_side_def,
+      registered_case10173_genuine_decimal_authenticated_fast_eval_side_total]);
+
+val compute_case10173_genuine_fast_side_total = prove(
+  ``!st a b. compute_case10173_genuine_fast_side st a b``,
+  rw [candle_kernelProgTheory.compute_case10173_genuine_fast_side_def,
+      compute_case10173_genuine_fast_eval_side_total]);
+
+val compute_v_closed =
+  let
+    val th =
+      PROVE_HYP
+        registered_case10173_genuine_packed_certificate_v_thm
+        compute_v_thm
+    val precondition =
+      prove
+        (hd (hyp th),
+         rw [ml_translatorTheory.PRECONDITION_def,
+             compute_case10173_genuine_fast_side_total])
+  in
+    ml_monad_translatorLib.remove_Eq_from_v_thm
+      (PROVE_HYP precondition th)
+  end;
+
 Theorem kernel_vals_ok:
   ∀ctxt f.
     kernel_vals ctxt f ⇒
@@ -2165,11 +2353,10 @@ Proof
     \\ rename [‘M_failure ff’] \\ Cases_on ‘ff’ \\ fs []
     \\ fs [HOL_EXN_TYPE_Fail_v_ok, SF SFY_ss])
   \\ Cases_on ‘f = compute_v’ \\ gvs [] >- (
-
     drule_all compute_v_head \\ strip_tac \\ gvs[]
     >- (qexists_tac`ctxt` \\ fs[])
     \\ rename1 ‘do_opapp [g; w]’
-    \\ assume_tac compute_v_thm
+    \\ assume_tac compute_v_closed
     \\ fs[state_ok_def]
     \\ ‘∃pq. PAIR_TYPE (LIST_TYPE THM_TYPE) (LIST_TYPE THM_TYPE) pq v’
       by (irule_at Any v_ok_PAIR_TYPE_HEAD
@@ -2186,10 +2373,12 @@ Proof
     \\ qexists_tac ‘ctxt’ \\ gs [v_ok_def]
     \\ drule_all_then assume_tac v_ok_TERM
     \\ imp_res_tac v_ok_LIST_THM \\ gs [SF SFY_ss]
-    \\ drule_all_then strip_assume_tac compute_thm \\ gvs []
+    \\ drule_all_then strip_assume_tac
+         compute_registeredCase10173GenuineFastChainTheory.compute_case10173_genuine_fast_thm
+    \\ gvs []
     \\ strip_tac
     >- ( first_assum $ irule_at $ Any \\ simp[SF SFY_ss] )
-    \\ rename [‘compute _ _ _ = (res1,_)’]
+    \\ rename [‘compute_case10173_genuine_fast _ _ _ = (res1,_)’]
     \\ Cases_on ‘res1’ \\ gvs [THM_IMP_v_ok, SF SFY_ss]
     \\ rename [‘M_failure ff’] \\ Cases_on ‘ff’ \\ fs []
     \\ fs [HOL_EXN_TYPE_Fail_v_ok, SF SFY_ss])
