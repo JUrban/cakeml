@@ -1672,6 +1672,22 @@ Proof
   \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw[]
 QED
 
+Theorem perms_ok_compute_literal_call_payload3_v[simp]:
+  perms_ok kernel_perms compute_literal_call_payload3_v
+Proof
+  rw [perms_ok_def, compute_literal_call_payload3_v_def,
+      astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw []
+QED
+
+Theorem perms_ok_compute_payload3_call_fast_eval_v[simp]:
+  perms_ok kernel_perms compute_payload3_call_fast_eval_v
+Proof
+  rw [perms_ok_def, compute_payload3_call_fast_eval_v_def,
+      astTheory.pat_bindings_def, perms_ok_env_def]
+  \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw []
+QED
+
 Theorem perms_ok_compute_pure_fast_fuel_v[simp]:
   perms_ok kernel_perms compute_pure_fast_fuel_v
 Proof
@@ -1849,12 +1865,72 @@ Proof
   metis_tac [CANDLE_LIST_TYPE_perms_ok, CANDLE_PAIR_NUM_NUM_perms_ok]
 QED
 
+Theorem CANDLE_CHAR_perms_ok:
+  !x v. CHAR x v ==> perms_ok ps v
+Proof
+  rw [ml_translatorTheory.CHAR_def, perms_ok_def]
+QED
+
+Theorem CANDLE_CHAR_LIST_TYPE_perms_ok:
+  !xs vs. LIST_TYPE CHAR xs vs ==> perms_ok ps vs
+Proof
+  metis_tac [CANDLE_LIST_TYPE_perms_ok, CANDLE_CHAR_perms_ok]
+QED
+
+Theorem CANDLE_WORD_LIST_TYPE_perms_ok:
+  !xs vs. LIST_TYPE WORD xs vs ==> perms_ok ps vs
+Proof
+  metis_tac [CANDLE_LIST_TYPE_perms_ok, CANDLE_WORD_perms_ok]
+QED
+
+Theorem CANDLE_BOUNDED_SQRT64_CERT_LIST_TYPE_perms_ok:
+  !xs vs.
+    LIST_TYPE
+      COMPUTE_BOUNDEDCASE10173HISTORICALCELL_BOUNDED_CASE10173_SQRT64_CERTIFICATE_TYPE
+      xs vs ==> perms_ok ps vs
+Proof
+  metis_tac [CANDLE_LIST_TYPE_perms_ok,
+             CANDLE_BOUNDED_SQRT64_CERT_TYPE_perms_ok]
+QED
+
+Theorem CANDLE_BOUNDED_TAYLOR64_TYPE_perms_ok:
+  !x v.
+    COMPUTE_BOUNDEDTAYLORSTATE_BOUNDED_TAYLOR64_TYPE x v ==>
+    perms_ok ps v
+Proof
+  Cases_on `x`
+  \\ rw [COMPUTE_BOUNDEDTAYLORSTATE_BOUNDED_TAYLOR64_TYPE_def,
+         perms_ok_def]
+  \\ fs [perms_ok_def]
+  \\ metis_tac [CANDLE_BOOL_perms_ok,
+                 CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok,
+                 CANDLE_LIST_TYPE_perms_ok]
+QED
+
+Theorem CANDLE_OPTION_BOUNDED_TAYLOR64_LIST_TYPE_perms_ok:
+  !x v.
+    OPTION_TYPE
+      (LIST_TYPE COMPUTE_BOUNDEDTAYLORSTATE_BOUNDED_TAYLOR64_TYPE) x v ==>
+    perms_ok ps v
+Proof
+  metis_tac [CANDLE_OPTION_TYPE_perms_ok,
+             CANDLE_LIST_TYPE_perms_ok,
+             CANDLE_BOUNDED_TAYLOR64_TYPE_perms_ok]
+QED
+
 Theorem perms_ok_option_mappartial_v[simp]:
   perms_ok kernel_perms OptionProg$mappartial_v
 Proof
   rw [perms_ok_def, OptionProgTheory.mappartial_v_def,
       astTheory.pat_bindings_def, perms_ok_env_def]
   \\ gs [] \\ pop_assum mp_tac \\ eval_nsLookup_tac \\ rw []
+QED
+
+Theorem perms_ok_option_is_some_v[simp]:
+  perms_ok kernel_perms OptionProg$is_some_v
+Proof
+  rw [perms_ok_def, OptionProgTheory.is_some_v_def,
+      astTheory.pat_bindings_def, perms_ok_env_def]
 QED
 
 Theorem perms_ok_genlist_aux_v[simp]:
@@ -1893,7 +1969,11 @@ val _ = prove_data_perms_auto
 val _ = prove_data_perms_auto
   "bounded_scale_squared128_v" CANDLE_BOUNDED128_TYPE_perms_ok
 val _ = prove_data_perms_auto
+  "bounded_decimal_scale_squared128_v" CANDLE_BOUNDED128_TYPE_perms_ok
+val _ = prove_data_perms_auto
   "bounded_atan_scale_v" CANDLE_WORD_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_scale_decimal_v" CANDLE_WORD_perms_ok
 val _ = prove_data_perms_auto
   "bounded_atan_one_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
 val _ = prove_data_perms_auto
@@ -1913,6 +1993,24 @@ val _ = prove_data_perms_auto
 val _ = prove_data_perms_auto
   "bounded_atan_pos_thirteenth_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
 val _ = prove_data_perms_auto
+  "bounded_atan_one_decimal_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_pi_half_decimal_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_pos_third_decimal_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_neg_third_decimal_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_pos_fifth_decimal_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_neg_seventh_decimal_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_pos_ninth_decimal_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_neg_eleventh_decimal_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_atan_pos_thirteenth_decimal_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
   "bounded_interval64_zero_v" CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
 val _ = prove_data_perms_auto
   "bounded_delta64_hessian_indices_v" CANDLE_NUM_PAIR_LIST_TYPE_perms_ok
@@ -1920,16 +2018,111 @@ val _ = prove_data_perms_auto
   "bounded_historical_delta_x4_hessian_v"
   CANDLE_OPTION_INTERVAL64_LIST_TYPE_perms_ok
 val _ = prove_data_perms_auto
+  "bounded_historical_delta_x4_hessian_decimal_v"
+  CANDLE_OPTION_INTERVAL64_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_historical_pi_half_decimal_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
   "bounded_case10173_source_constant_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_source_constant_decimal_v"
   CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
 val _ = prove_data_perms_auto
   "bounded_case10173_root_coefficients_v"
   CANDLE_INTERVAL64_LIST_TYPE_perms_ok
 val _ = prove_data_perms_auto
+  "bounded_case10173_root_coefficients_decimal_v"
+  CANDLE_INTERVAL64_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
   "bounded_case10173_angle_coefficient_v"
   CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
 val _ = prove_data_perms_auto
+  "bounded_case10173_angle_coefficient_decimal_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_center_environment_v"
+  CANDLE_INTERVAL64_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_box_environment_v"
+  CANDLE_INTERVAL64_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_radii_v" CANDLE_WORD_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_sqrt_certificates_v"
+  CANDLE_BOUNDED_SQRT64_CERT_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_center_root_delta_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_center_root_four_x0_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_center_reciprocals_v"
+  CANDLE_INTERVAL64_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_box_root_delta_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_box_root_four_x0_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_cell0_box_reciprocals_v"
+  CANDLE_INTERVAL64_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
   "bounded_case10173_cell0_packet_v" CANDLE_BOUNDED_PACKET_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_literal_term0_decimal_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_literal_term1_decimal_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_literal_term23_decimal_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_literal_term4_decimal_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_literal_term56_decimal_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_literal_negative_one_decimal_v"
+  CANDLE_BOUNDED_INTERVAL64_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "bounded_case10173_literal_constants_decimal_v"
+  CANDLE_OPTION_BOUNDED_TAYLOR64_LIST_TYPE_perms_ok
+val _ = prove_data_perms_auto
+  "registered_case10173_genuine_source_program_v"
+  COMPUTE_EXEC_CV_TYPE_perms_ok
+
+(* The certificate literal was installed by [add_Dlet_lit_abbrev], so its
+ * exported [_v_thm] is an [Eval] theorem rather than the direct
+ * representation theorem produced by [translate].  Use the separately
+ * proved relation to the exact installed value; do not expand the literal. *)
+val registered_case10173_genuine_packed_certificate_perms =
+  let
+    val relation_thm =
+      DB.fetch "candle_kernelProg"
+        "registered_case10173_genuine_packed_certificate_value_relation"
+    val value_tm = rand (concl relation_thm)
+    val goal = list_mk_comb (``perms_ok``, [``kernel_perms``, value_tm])
+    val result =
+      prove (goal, metis_tac [relation_thm, STRING_TYPE_perms_ok])
+    val result =
+      save_thm
+        ("perms_ok_registered_case10173_genuine_packed_certificate_auto",
+         result)
+    val _ = export_rewrites
+      ["perms_ok_registered_case10173_genuine_packed_certificate_auto"]
+  in
+    result
+  end
+
+val _ = prove_data_perms_auto
+  "registered_case10173_genuine_packed_certificate_bytes_v"
+  CANDLE_CHAR_LIST_TYPE_perms_ok
 
 Theorem perms_ok_registered_case10173_cell0_ceqs_v[simp]:
   perms_ok kernel_perms registered_case10173_cell0_ceqs_v
@@ -1997,6 +2190,23 @@ Proof
   metis_tac
     [registered_case10173_historical_chunk_at2048_count16_result_v_thm,
      COMPUTE_EXEC_CV_TYPE_perms_ok]
+QED
+
+Theorem perms_ok_registered_case10173_historical_chunk16_ceqs_v[simp]:
+  perms_ok kernel_perms registered_case10173_historical_chunk16_ceqs_v
+Proof
+  assume_tac registered_case10173_historical_chunk16_ceqs_v_thm
+  \\ drule_at Any LIST_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  \\ drule_at Any PAIR_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  >- (imp_res_tac STRING_TYPE_perms_ok \\ fs [])
+  \\ drule_at Any PAIR_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  >- metis_tac [CONJUNCT1 COMPUTE_SYNTAX_COMPUTE_EXP_TYPE_perms_ok]
+  \\ drule_at Any LIST_TYPE_perms_ok
+  \\ disch_then irule \\ rw []
+  \\ imp_res_tac STRING_TYPE_perms_ok \\ fs []
 QED
 
 (* Sort by the newest candle_kernelProg environment captured by each closure.
