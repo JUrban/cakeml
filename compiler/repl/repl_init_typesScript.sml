@@ -11,6 +11,12 @@ Libs
 
 val _ = cv_trans_deep_embedding EVAL repl_moduleProgTheory.repl_prog_def;
 
+(* Candle's reflected evaluator also registers an mlstring representation.
+   Keep the generic basis representation canonical for inference terms. *)
+val _ =
+  cv_memLib.cv_from_to_add
+    basis_cvTheory.from_mlstring_to_mlstring_mlstring_thm;
+
 val _ = cv_auto_trans inferTheory.init_config_def;
 
 val eval_res_thm =
