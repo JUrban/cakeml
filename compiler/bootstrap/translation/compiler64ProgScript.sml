@@ -1254,6 +1254,14 @@ Proof
     parserProgTheory.peg_uqconstructorname_side_def]
 QED
 
+(* The genuine fast-NL certificate is installed as a proved literal rather
+   than by [translate].  Consequently it remains as an explicit [Eval]
+   premise of the whole-program semantics derivations below.  Keep the
+   discharge fact in one shared set so the ordinary and diagnostic entry
+   points account for the same enlarged global environment. *)
+val compiler64_global_eval_thms =
+  [candle_kernelProgTheory.registered_case10173_genuine_packed_certificate_v_thm];
+
 val sem_thm = prove_sem_thm "main" "compiler64_prog" main_whole_prog_spec;
 val compiler64_prog_def = fetch "-" "compiler64_prog_def";
 
@@ -1339,7 +1347,7 @@ Theorem semantics_compiler64_prog_parser_capability:
 Proof
   strip_tac
   \\ irule parser_capability_sem_thm
-  \\ fs [dec_sides]
+  \\ fs (dec_sides :: compiler64_global_eval_thms)
 QED
 
 Theorem semantics_compiler64_prog_parser_ok:
@@ -1359,7 +1367,7 @@ Theorem semantics_compiler64_prog_parser_ok:
 Proof
   strip_tac
   \\ irule parser_ok_sem_thm
-  \\ fs [dec_sides]
+  \\ fs (dec_sides :: compiler64_global_eval_thms)
 QED
 
 Theorem semantics_compiler64_prog_parser_error:
@@ -1385,7 +1393,7 @@ Theorem semantics_compiler64_prog_parser_error:
 Proof
   strip_tac
   \\ irule parser_error_sem_thm
-  \\ fs [dec_sides]
+  \\ fs (dec_sides :: compiler64_global_eval_thms)
 QED
 
 Theorem semantics_compiler64_prog_parser_ok_exact:
@@ -1452,7 +1460,7 @@ Theorem semantics_compiler64_prog:
 Proof
   strip_tac
   \\ irule sem_thm
-  \\ fs [dec_sides]
+  \\ fs (dec_sides :: compiler64_global_eval_thms)
 QED
 
 (* saving a tidied up final theorem *)
