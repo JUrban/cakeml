@@ -7,6 +7,24 @@ Ancestors
 Libs
   preamble eval_cake_compile_x64Lib
 
+(**
+  [compute_evalPure] and [basis_cv] were developed in separate theory
+  ancestries and therefore each exported a converter and a [cv_rep] theorem
+  for [mlstring].  Both encodings are definitionally suitable, but mixing the
+  converter from one namespace with the representation theorem from the other
+  makes [cv_repLib] fail during whole-program backend evaluation.
+
+  Select the standard basis representation coherently for this compilation
+  theory.  This changes only proof automation state: it does not rewrite the
+  compiler program or add an unproved compiler equation.
+**)
+val _ = cv_memLib.cv_from_to_add
+  basis_cvTheory.from_mlstring_to_mlstring_mlstring_thm;
+
+val _ = save_thm
+  ("canonical_basis_mlstring_cv_rep[cv_rep]",
+   basis_cvTheory.cv_rep_mlstring_mlstring_mlstring_datatype);
+
 Definition init_conf_def:
   init_conf =
     x64_config$x64_backend_config with
@@ -35,4 +53,3 @@ Theorem compiler64_compiled =
     , main_return          = false
     , output_filename      = "cake.S"
     , output_conf_filename = SOME "config_enc_str.txt" };
-
