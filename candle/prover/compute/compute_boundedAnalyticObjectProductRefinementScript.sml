@@ -316,4 +316,250 @@ Proof
   >> gvs [bounded_object_q_interval_mul_ints_def]
 QED
 
+Definition bounded_interval64_contains_int_fraction_def:
+  bounded_interval64_contains_int_fraction interval
+      ((numerator,denominator):int # int) <=>
+    0 < denominator /\
+    denominator *
+        bounded_signed64_to_int (bounded_interval64_lower interval) <=
+      (&1099511627776:int) * numerator /\
+    (&1099511627776:int) * numerator <=
+      denominator *
+        bounded_signed64_to_int (bounded_interval64_upper interval)
+End
+
+Theorem bounded_int_positive_scales_product_corner:
+  0 < (left_scale:int) /\ 0 < right_scale /\
+  (&1099511627776:int) * output_lower <= left * right /\
+  left * right <= (&1099511627776:int) * output_upper ==>
+  (&1099511627776:int) * left_scale * right_scale * output_lower <=
+      (left_scale * left) * (right_scale * right) /\
+  (left_scale * left) * (right_scale * right) <=
+      (&1099511627776:int) * left_scale * right_scale * output_upper
+Proof
+  strip_tac
+  >> `0 <= left_scale * right_scale` by
+       (irule integerTheory.INT_LE_MUL >> intLib.ARITH_TAC)
+  >> `(left_scale * right_scale) *
+        ((&1099511627776:int) * output_lower) <=
+      (left_scale * right_scale) * (left * right)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> simp [])
+  >> `(left_scale * right_scale) * (left * right) <=
+      (left_scale * right_scale) *
+        ((&1099511627776:int) * output_upper)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> simp [])
+  >> `(&1099511627776:int) * left_scale * right_scale * output_lower =
+      (left_scale * right_scale) *
+        ((&1099511627776:int) * output_lower)` by INT_RING_TAC
+  >> `(left_scale * left) * (right_scale * right) =
+      (left_scale * right_scale) * (left * right)` by INT_RING_TAC
+  >> `(&1099511627776:int) * left_scale * right_scale * output_upper =
+      (left_scale * right_scale) *
+        ((&1099511627776:int) * output_upper)` by INT_RING_TAC
+  >> metis_tac []
+QED
+
+Theorem bounded_scale40_cancel_fraction_product:
+  0 < (left_denominator:int) /\ 0 < right_denominator /\
+  (&1099511627776:int) * left_denominator * right_denominator *
+      output_lower <=
+    ((&1099511627776:int) * left_numerator) *
+      ((&1099511627776:int) * right_numerator) /\
+  ((&1099511627776:int) * left_numerator) *
+      ((&1099511627776:int) * right_numerator) <=
+    (&1099511627776:int) * left_denominator * right_denominator *
+      output_upper ==>
+  0 < left_denominator * right_denominator /\
+  left_denominator * right_denominator * output_lower <=
+    (&1099511627776:int) * (left_numerator * right_numerator) /\
+  (&1099511627776:int) * (left_numerator * right_numerator) <=
+    left_denominator * right_denominator * output_upper
+Proof
+  strip_tac
+  >> conj_tac >- simp [integerTheory.INT_MUL_SIGN_CASES]
+  >> `(&1099511627776:int) * left_denominator * right_denominator *
+        output_lower =
+      (&1099511627776:int) *
+        (left_denominator * right_denominator * output_lower)` by
+       INT_RING_TAC
+  >> `((&1099511627776:int) * left_numerator) *
+        ((&1099511627776:int) * right_numerator) =
+      (&1099511627776:int) *
+        ((&1099511627776:int) *
+          (left_numerator * right_numerator))` by INT_RING_TAC
+  >> `(&1099511627776:int) * left_denominator * right_denominator *
+        output_upper =
+      (&1099511627776:int) *
+        (left_denominator * right_denominator * output_upper)` by
+       INT_RING_TAC
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_mul_contains_int_fraction_product:
+  bounded_interval64_contains_int_fraction left left_fraction /\
+  bounded_interval64_contains_int_fraction right right_fraction /\
+  bounded_interval64_mul left right = SOME result ==>
+  bounded_interval64_contains_int_fraction result
+    (bounded_int_fraction_mul left_fraction right_fraction)
+Proof
+  PairCases_on `left_fraction`
+  >> PairCases_on `right_fraction`
+  >> Cases_on `left`
+  >> Cases_on `right`
+  >> Cases_on `result`
+  >> rename1
+       `bounded_interval64_mul
+          (BoundedInterval64 left_lower left_upper)
+          (BoundedInterval64 right_lower right_upper) =
+        SOME (BoundedInterval64 output_lower output_upper)`
+  >> strip_tac
+  >> `bounded_interval64_valid
+        (BoundedInterval64 left_lower left_upper) /\
+      bounded_interval64_valid
+        (BoundedInterval64 right_lower right_upper)` by
+       fs [compute_boundedIntervalTheory.bounded_interval64_mul_def]
+  >> `bounded_signed64_to_int left_lower <=
+        bounded_signed64_to_int left_upper /\
+      bounded_signed64_to_int right_lower <=
+        bounded_signed64_to_int right_upper` by
+       fs [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+           compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+  >> `bounded_interval64_contains_int
+        (BoundedInterval64 left_lower left_upper)
+          (bounded_signed64_to_int left_lower) /\
+      bounded_interval64_contains_int
+        (BoundedInterval64 left_lower left_upper)
+          (bounded_signed64_to_int left_upper) /\
+      bounded_interval64_contains_int
+        (BoundedInterval64 right_lower right_upper)
+          (bounded_signed64_to_int right_lower) /\
+      bounded_interval64_contains_int
+        (BoundedInterval64 right_lower right_upper)
+          (bounded_signed64_to_int right_upper)` by
+       simp [compute_boundedIntervalTheory.bounded_interval64_contains_int_def]
+  >> `(&1099511627776:int) * bounded_signed64_to_int output_lower <=
+        bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower /\
+      bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_lower <=
+        (&1099511627776:int) * bounded_signed64_to_int output_upper` by
+       metis_tac
+         [compute_boundedIntervalTheory.bounded_interval64_mul_contains_product]
+  >> `(&1099511627776:int) * bounded_signed64_to_int output_lower <=
+        bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper /\
+      bounded_signed64_to_int left_lower *
+          bounded_signed64_to_int right_upper <=
+        (&1099511627776:int) * bounded_signed64_to_int output_upper` by
+       metis_tac
+         [compute_boundedIntervalTheory.bounded_interval64_mul_contains_product]
+  >> `(&1099511627776:int) * bounded_signed64_to_int output_lower <=
+        bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower /\
+      bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_lower <=
+        (&1099511627776:int) * bounded_signed64_to_int output_upper` by
+       metis_tac
+         [compute_boundedIntervalTheory.bounded_interval64_mul_contains_product]
+  >> `(&1099511627776:int) * bounded_signed64_to_int output_lower <=
+        bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper /\
+      bounded_signed64_to_int left_upper *
+          bounded_signed64_to_int right_upper <=
+        (&1099511627776:int) * bounded_signed64_to_int output_upper` by
+       metis_tac
+         [compute_boundedIntervalTheory.bounded_interval64_mul_contains_product]
+  >> `0 < left_fraction1 /\ 0 < right_fraction1` by
+       fs [bounded_interval64_contains_int_fraction_def]
+  >> `(&1099511627776:int) * left_fraction1 * right_fraction1 *
+        bounded_signed64_to_int output_lower <=
+        (left_fraction1 * bounded_signed64_to_int left_lower) *
+          (right_fraction1 * bounded_signed64_to_int right_lower) /\
+      (left_fraction1 * bounded_signed64_to_int left_lower) *
+          (right_fraction1 * bounded_signed64_to_int right_lower) <=
+        (&1099511627776:int) * left_fraction1 * right_fraction1 *
+          bounded_signed64_to_int output_upper` by
+       metis_tac [bounded_int_positive_scales_product_corner]
+  >> `(&1099511627776:int) * left_fraction1 * right_fraction1 *
+        bounded_signed64_to_int output_lower <=
+        (left_fraction1 * bounded_signed64_to_int left_lower) *
+          (right_fraction1 * bounded_signed64_to_int right_upper) /\
+      (left_fraction1 * bounded_signed64_to_int left_lower) *
+          (right_fraction1 * bounded_signed64_to_int right_upper) <=
+        (&1099511627776:int) * left_fraction1 * right_fraction1 *
+          bounded_signed64_to_int output_upper` by
+       metis_tac [bounded_int_positive_scales_product_corner]
+  >> `(&1099511627776:int) * left_fraction1 * right_fraction1 *
+        bounded_signed64_to_int output_lower <=
+        (left_fraction1 * bounded_signed64_to_int left_upper) *
+          (right_fraction1 * bounded_signed64_to_int right_lower) /\
+      (left_fraction1 * bounded_signed64_to_int left_upper) *
+          (right_fraction1 * bounded_signed64_to_int right_lower) <=
+        (&1099511627776:int) * left_fraction1 * right_fraction1 *
+          bounded_signed64_to_int output_upper` by
+       metis_tac [bounded_int_positive_scales_product_corner]
+  >> `(&1099511627776:int) * left_fraction1 * right_fraction1 *
+        bounded_signed64_to_int output_lower <=
+        (left_fraction1 * bounded_signed64_to_int left_upper) *
+          (right_fraction1 * bounded_signed64_to_int right_upper) /\
+      (left_fraction1 * bounded_signed64_to_int left_upper) *
+          (right_fraction1 * bounded_signed64_to_int right_upper) <=
+        (&1099511627776:int) * left_fraction1 * right_fraction1 *
+          bounded_signed64_to_int output_upper` by
+       metis_tac [bounded_int_positive_scales_product_corner]
+  >> mp_tac
+       (INST
+         [``left_lower:int`` |->
+            ``left_fraction1 * bounded_signed64_to_int left_lower``,
+          ``left_value:int`` |->
+            ``(&1099511627776:int) * left_fraction0``,
+          ``left_upper:int`` |->
+            ``left_fraction1 * bounded_signed64_to_int left_upper``,
+          ``right_lower:int`` |->
+            ``right_fraction1 * bounded_signed64_to_int right_lower``,
+          ``right_value:int`` |->
+            ``(&1099511627776:int) * right_fraction0``,
+          ``right_upper:int`` |->
+            ``right_fraction1 * bounded_signed64_to_int right_upper``]
+         compute_boundedIntervalTheory.bounded_int_product_bounds_corners)
+  >> fs [bounded_interval64_contains_int_fraction_def]
+  >> disch_then assume_tac
+  >> mp_tac
+       (Q.INST
+         [`lower` |->
+            `(&1099511627776:int) * left_fraction1 * right_fraction1 *
+               bounded_signed64_to_int output_lower`,
+          `corner1` |->
+            `(left_fraction1 * bounded_signed64_to_int left_lower) *
+               (right_fraction1 * bounded_signed64_to_int right_lower)`,
+          `corner2` |->
+            `(left_fraction1 * bounded_signed64_to_int left_lower) *
+               (right_fraction1 * bounded_signed64_to_int right_upper)`,
+          `corner3` |->
+            `(left_fraction1 * bounded_signed64_to_int left_upper) *
+               (right_fraction1 * bounded_signed64_to_int right_lower)`,
+          `corner4` |->
+            `(left_fraction1 * bounded_signed64_to_int left_upper) *
+               (right_fraction1 * bounded_signed64_to_int right_upper)`,
+          `value` |->
+            `((&1099511627776:int) * left_fraction0) *
+               ((&1099511627776:int) * right_fraction0)`,
+          `upper` |->
+            `(&1099511627776:int) * left_fraction1 * right_fraction1 *
+               bounded_signed64_to_int output_upper`]
+         compute_boundedIntervalTheory.bounded_int_four_corners_enclose)
+  >> simp []
+  >> disch_then strip_assume_tac
+  >> fs [bounded_interval64_contains_int_fraction_def,
+         bounded_int_fraction_mul_def,
+         compute_boundedIntervalTheory.bounded_interval64_lower_def,
+         compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> irule bounded_scale40_cancel_fraction_product
+  >> conj_tac >> metis_tac []
+QED
+
 val _ = export_theory ();
