@@ -1888,33 +1888,33 @@ val bounded_packed_chars_case10173_decimal_authenticated_full_check_side_total =
     rw [candle_kernelProgTheory.bounded_packed_chars_case10173_decimal_authenticated_full_check_side_def,
         bounded_packed_chars_case10173_decimal_authenticated_packets_side_total]);
 
-val registered_case10173_decimal_authenticated_fast_checker_side_total = prove(
+val registered_case10173_tag10_decimal_authenticated_fast_checker_side_total = prove(
   ``!a0 a1 a2 a3.
-      registered_case10173_decimal_authenticated_fast_checker_side
+      registered_case10173_tag10_decimal_authenticated_fast_checker_side
         a0 a1 a2 a3``,
-  rw [candle_kernelProgTheory.registered_case10173_decimal_authenticated_fast_checker_side_def,
+  rw [candle_kernelProgTheory.registered_case10173_tag10_decimal_authenticated_fast_checker_side_def,
       bounded_packed_chars_case10173_decimal_authenticated_full_check_side_total]);
 
-val registered_case10173_decimal_authenticated_fast_eval_side_total = prove(
-  ``!a. registered_case10173_decimal_authenticated_fast_eval_side a``,
-  rw [candle_kernelProgTheory.registered_case10173_decimal_authenticated_fast_eval_side_def,
-      registered_case10173_decimal_authenticated_fast_checker_side_total]);
+val registered_case10173_tag10_decimal_authenticated_fast_eval_side_total = prove(
+  ``!a. registered_case10173_tag10_decimal_authenticated_fast_eval_side a``,
+  rw [candle_kernelProgTheory.registered_case10173_tag10_decimal_authenticated_fast_eval_side_def,
+      registered_case10173_tag10_decimal_authenticated_fast_checker_side_total]);
 
-val registered_case10173_genuine_decimal_authenticated_fast_eval_side_total =
+val registered_case10173_tag10_genuine_decimal_authenticated_fast_eval_side_total =
   prove(
-    ``!a. registered_case10173_genuine_decimal_authenticated_fast_eval_side a``,
-    rw [candle_kernelProgTheory.registered_case10173_genuine_decimal_authenticated_fast_eval_side_def,
-        registered_case10173_decimal_authenticated_fast_eval_side_total]);
+    ``!a. registered_case10173_tag10_genuine_decimal_authenticated_fast_eval_side a``,
+    rw [candle_kernelProgTheory.registered_case10173_tag10_genuine_decimal_authenticated_fast_eval_side_def,
+        registered_case10173_tag10_decimal_authenticated_fast_eval_side_total]);
 
-val compute_case10173_genuine_fast_eval_side_total = prove(
-  ``!a. compute_case10173_genuine_fast_eval_side a``,
-  rw [candle_kernelProgTheory.compute_case10173_genuine_fast_eval_side_def,
-      registered_case10173_genuine_decimal_authenticated_fast_eval_side_total]);
+val compute_case10173_tag10_genuine_fast_eval_side_total = prove(
+  ``!a. compute_case10173_tag10_genuine_fast_eval_side a``,
+  rw [candle_kernelProgTheory.compute_case10173_tag10_genuine_fast_eval_side_def,
+      registered_case10173_tag10_genuine_decimal_authenticated_fast_eval_side_total]);
 
-val compute_case10173_genuine_fast_side_total = prove(
-  ``!st a b. compute_case10173_genuine_fast_side st a b``,
-  rw [candle_kernelProgTheory.compute_case10173_genuine_fast_side_def,
-      compute_case10173_genuine_fast_eval_side_total]);
+val compute_case10173_tag10_genuine_fast_side_total = prove(
+  ``!st a b. compute_case10173_tag10_genuine_fast_side st a b``,
+  rw [candle_kernelProgTheory.compute_case10173_tag10_genuine_fast_side_def,
+      compute_case10173_tag10_genuine_fast_eval_side_total]);
 
 val compute_v_closed =
   let
@@ -1926,7 +1926,7 @@ val compute_v_closed =
       prove
         (hd (hyp th),
          rw [ml_translatorTheory.PRECONDITION_def,
-             compute_case10173_genuine_fast_side_total])
+             compute_case10173_tag10_genuine_fast_side_total])
   in
     ml_monad_translatorLib.remove_Eq_from_v_thm
       (PROVE_HYP precondition th)
@@ -2374,11 +2374,11 @@ Proof
     \\ drule_all_then assume_tac v_ok_TERM
     \\ imp_res_tac v_ok_LIST_THM \\ gs [SF SFY_ss]
     \\ drule_all_then strip_assume_tac
-         compute_registeredCase10173GenuineFastChainTheory.compute_case10173_genuine_fast_thm
+         compute_registeredCase10173Tag10GenuineFastChainTheory.compute_case10173_tag10_genuine_fast_thm
     \\ gvs []
     \\ strip_tac
     >- ( first_assum $ irule_at $ Any \\ simp[SF SFY_ss] )
-    \\ rename [‘compute_case10173_genuine_fast _ _ _ = (res1,_)’]
+    \\ rename [‘compute_case10173_tag10_genuine_fast _ _ _ = (res1,_)’]
     \\ Cases_on ‘res1’ \\ gvs [THM_IMP_v_ok, SF SFY_ss]
     \\ rename [‘M_failure ff’] \\ Cases_on ‘ff’ \\ fs []
     \\ fs [HOL_EXN_TYPE_Fail_v_ok, SF SFY_ss])
