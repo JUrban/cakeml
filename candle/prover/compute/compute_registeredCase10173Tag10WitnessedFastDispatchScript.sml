@@ -42,7 +42,7 @@ QED
 Definition registered_case10173_tag10_witnessed_checker_def:
   registered_case10173_tag10_witnessed_checker
       certificate source_program encoded_jobs encoded_roots <=>
-    case cv_unpack_byte_chunks certificate of
+    case cv_unpack_byte_tree certificate of
     | NONE => F
     | SOME bytes =>
         registered_case10173_tag10_decimal_authenticated_fast_checker
@@ -130,7 +130,7 @@ Proof
 QED
 
 Theorem registered_case10173_tag10_witnessed_fast_eval_rejects_bad_certificate:
-  cv_unpack_byte_chunks certificate = NONE ==>
+  cv_unpack_byte_tree certificate = NONE ==>
   registered_case10173_tag10_witnessed_fast_eval
     registered_case10173_historical_chunk16_tag10_ceqs
     (Let «candle_cv_nl_certificate_witness» (from_cv certificate)
@@ -146,7 +146,7 @@ Proof
 QED
 
 Theorem registered_case10173_tag10_witnessed_fast_eval_rejects_bad_decoded_certificate:
-  cv_unpack_byte_chunks certificate = SOME bytes /\
+  cv_unpack_byte_tree certificate = SOME bytes /\
   ~bounded_packed_chars_case10173_decimal_authenticated_full_check
       bytes encoded_jobs encoded_roots ==>
   registered_case10173_tag10_witnessed_fast_eval

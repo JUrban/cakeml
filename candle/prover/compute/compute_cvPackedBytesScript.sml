@@ -90,4 +90,70 @@ Proof
   simp [cv_unpack_byte_chunks_def]
 QED
 
+(*
+ * The linear chunk list above is convenient for small witnesses, but a
+ * multi-megabyte certificate would make both its cv term and its decoder
+ * tens of thousands of constructors deep.  The production input shape is a
+ * balanced tree instead:
+ *
+ *   Pair (Num 0) (Pair (Num byte_count) (Num packed))   -- leaf
+ *   Pair (Num 1) (Pair left right)                      -- branch
+ *
+ * The accumulator form visits the right subtree first and then prepends the
+ * left subtree.  It therefore builds every output byte once rather than
+ * repeatedly appending at every level of the balanced tree.
+ *)
+Definition cv_unpack_byte_tree_append_def:
+  cv_unpack_byte_tree_append (Num value) suffix = NONE /\
+  cv_unpack_byte_tree_append
+      (Pair (Num 0) (Pair (Num byte_count) (Num packed))) suffix =
+    (if byte_count = 0 \/
+        cv_packed_bytes_chunk_limit < byte_count then NONE
+     else
+       case cv_unpack_byte_chunk byte_count packed of
+       | NONE => NONE
+       | SOME prefix => SOME (prefix ++ suffix)) /\
+  cv_unpack_byte_tree_append (Pair (Num 1) (Pair left right)) suffix =
+    (case cv_unpack_byte_tree_append right suffix of
+     | NONE => NONE
+     | SOME right_suffix =>
+         cv_unpack_byte_tree_append left right_suffix) /\
+  cv_unpack_byte_tree_append _ suffix = NONE
+Termination
+  wf_rel_tac `measure (compute_exec$cv_size o FST)` >> rw []
+End
+
+Definition cv_unpack_byte_tree_def:
+  cv_unpack_byte_tree tree = cv_unpack_byte_tree_append tree []
+End
+
+Theorem cv_unpack_byte_tree_rejects_num[simp]:
+  cv_unpack_byte_tree (Num value) = NONE
+Proof
+  simp [cv_unpack_byte_tree_def,cv_unpack_byte_tree_append_def]
+QED
+
+Theorem cv_unpack_byte_tree_rejects_zero_length[simp]:
+  cv_unpack_byte_tree
+    (Pair (Num 0) (Pair (Num 0) (Num packed))) = NONE
+Proof
+  simp [cv_unpack_byte_tree_def,cv_unpack_byte_tree_append_def]
+QED
+
+Theorem cv_unpack_byte_tree_rejects_oversize[simp]:
+  cv_packed_bytes_chunk_limit < byte_count ==>
+  cv_unpack_byte_tree
+    (Pair (Num 0) (Pair (Num byte_count) (Num packed))) = NONE
+Proof
+  simp [cv_unpack_byte_tree_def,cv_unpack_byte_tree_append_def]
+QED
+
+Theorem cv_unpack_byte_tree_rejects_unknown_tag[simp]:
+  1 < tag ==>
+  cv_unpack_byte_tree (Pair (Num tag) payload) = NONE
+Proof
+  Cases_on `payload`
+  >> simp [cv_unpack_byte_tree_def,cv_unpack_byte_tree_append_def]
+QED
+
 val _ = export_theory ();
