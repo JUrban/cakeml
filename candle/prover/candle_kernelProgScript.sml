@@ -10,7 +10,7 @@ Ancestors
   (* compute: *) compute_syntax compute_eval compute_pmatch
   compute_pureFast
   compute_packetFastChain
-  compute_registeredCase10173GenuineFastChain
+  compute_registeredCase10173Tag10GenuineFastChain
   compute_boundedCase10173Packet
   runtime_check
 
@@ -1201,6 +1201,8 @@ val _ = translate_closed
   compute_registeredCase10173GenuineProgramDataTheory.registered_case10173_genuine_source_program_def;
 val _ = translate
   compute_registeredCase10173HistoricalChunk16DataTheory.registered_case10173_historical_chunk16_ceqs_def;
+val _ = translate
+  compute_registeredCase10173HistoricalChunk16Tag10DataTheory.registered_case10173_historical_chunk16_tag10_ceqs_def;
 
 (* Generic three-payload fast-dispatch seam. *)
 val _ = translate
@@ -1213,6 +1215,14 @@ val _ = translate
   compute_registeredCase10173AuthenticatedFastDispatchTheory.registered_case10173_decimal_authenticated_fast_checker_def;
 val _ = translate
   compute_registeredCase10173AuthenticatedFastDispatchTheory.registered_case10173_decimal_authenticated_fast_eval_def;
+
+(* Corrected authenticated dispatcher.  The old dispatcher remains translated
+   only for the existing fallback surface; the production full-stream branch
+   below is closed over the exact tag-10 equation environment. *)
+val _ = translate
+  compute_registeredCase10173Tag10AuthenticatedFastDispatchTheory.registered_case10173_tag10_decimal_authenticated_fast_checker_def;
+val _ = translate
+  compute_registeredCase10173Tag10AuthenticatedFastDispatchTheory.registered_case10173_tag10_decimal_authenticated_fast_eval_def;
 
 (* Add the immutable 4,707,156-byte payload as one proved CakeML literal.
    Keeping the HOL value behind an abbreviation prevents every subsequent
@@ -1290,31 +1300,31 @@ val _ =
 (* Close the genuine evaluator over the authenticated literal and compose it
    ahead of the existing packet/general evaluator chain. *)
 val _ = translate
-  compute_registeredCase10173GenuineAuthenticatedFastTheory.registered_case10173_genuine_packed_certificate_bytes_def;
+  compute_registeredCase10173Tag10GenuineAuthenticatedFastTheory.registered_case10173_tag10_genuine_packed_certificate_bytes_def;
 val _ = translate
-  compute_registeredCase10173GenuineAuthenticatedFastTheory.registered_case10173_genuine_decimal_authenticated_fast_eval_def;
+  compute_registeredCase10173Tag10GenuineAuthenticatedFastTheory.registered_case10173_tag10_genuine_decimal_authenticated_fast_eval_def;
 val _ = translate
-  compute_registeredCase10173GenuineFastChainTheory.compute_case10173_genuine_fast_eval_def;
+  compute_registeredCase10173Tag10GenuineFastChainTheory.compute_case10173_tag10_genuine_fast_eval_def;
 
 val _ = ml_prog_update open_local_in_block;
 
 val _ = next_ml_names := ["compute"];
-val r = compute_case10173_genuine_fast_def
+val r = compute_case10173_tag10_genuine_fast_def
         |> SIMP_RULE(srw_ss()) [compute_with_def, combinTheory.C_DEF]
         |> check [‘ths’,‘ceqs’,‘tm’]
         |> m_translate;
 
 (* Preserve the semantic name consumed by the existing kernel interface. *)
 Definition compute_v_alias_def:
-  compute_v = compute_case10173_genuine_fast_v
+  compute_v = compute_case10173_tag10_genuine_fast_v
 End
 
 Theorem compute_v_def =
-  fetch "-" "compute_case10173_genuine_fast_v_def"
+  fetch "-" "compute_case10173_tag10_genuine_fast_v_def"
   |> REWRITE_RULE [GSYM compute_v_alias_def];
 
 Theorem compute_v_thm =
-  fetch "-" "compute_case10173_genuine_fast_v_thm"
+  fetch "-" "compute_case10173_tag10_genuine_fast_v_thm"
   |> REWRITE_RULE [GSYM compute_v_alias_def];
 
 val _ = ml_prog_update close_local_blocks;
