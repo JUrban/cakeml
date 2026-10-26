@@ -235,4 +235,103 @@ Proof
   >> metis_tac [bounded_interval64_add_covers_object_q_ints]
 QED
 
+Theorem bounded_interval64_list_neg_covers_object_q:
+  !word_values object_values.
+    LIST_REL bounded_interval64_covers_object_q
+      word_values object_values ==>
+    LIST_REL bounded_interval64_covers_object_q
+      (bounded_interval64_list_neg word_values)
+      (MAP bounded_object_q_interval_neg_cv object_values)
+Proof
+  Induct
+  >> Cases_on `object_values`
+  >> simp [compute_boundedIntervalListTheory.bounded_interval64_list_neg_def,
+           LIST_REL_def]
+  >> rpt strip_tac
+  >- metis_tac [bounded_interval64_neg_covers_object_q]
+  >> first_x_assum (qspec_then `t` mp_tac)
+  >> simp
+       [compute_boundedIntervalListTheory.bounded_interval64_list_neg_def]
+QED
+
+Theorem bounded_interval64_list_add_covers_object_q:
+  !left right left_object_values right_object_values result.
+    LIST_REL bounded_interval64_covers_object_q
+      left left_object_values /\
+    LIST_REL bounded_interval64_covers_object_q
+      right right_object_values /\
+    bounded_interval64_list_add left right = SOME result ==>
+    LIST_REL bounded_interval64_covers_object_q result
+      (MAP2 bounded_object_q_interval_add_cv
+        left_object_values right_object_values)
+Proof
+  Induct
+  >> Cases_on `right`
+  >> Cases_on `left_object_values`
+  >> Cases_on `right_object_values`
+  >> rw [compute_boundedIntervalListTheory.bounded_interval64_list_add_def,
+         LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> res_tac
+  >> fs []
+  >> metis_tac [bounded_interval64_add_covers_object_q]
+QED
+
+Theorem bounded_taylor64_neg_covers_object_q_state:
+  bounded_taylor64_covers_object_q_state source object_domain
+      object_center_value object_center_gradient object_value_bound
+      object_gradient_bounds object_hessian ==>
+  bounded_taylor64_covers_object_q_state
+      (bounded_taylor64_neg source) object_domain
+      (bounded_object_q_interval_neg_cv object_center_value)
+      (MAP bounded_object_q_interval_neg_cv object_center_gradient)
+      (bounded_object_q_interval_neg_cv object_value_bound)
+      (MAP bounded_object_q_interval_neg_cv object_gradient_bounds)
+      (MAP bounded_object_q_interval_neg_cv object_hessian)
+Proof
+  Cases_on `source`
+  >> rw
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_taylor64_covers_object_q_state_def,
+        compute_boundedTaylorStateTheory.bounded_taylor64_neg_def]
+  >> metis_tac
+       [bounded_interval64_neg_covers_object_q,
+        bounded_interval64_list_neg_covers_object_q]
+QED
+
+Theorem bounded_taylor64_add_unchecked_covers_object_q_state:
+  bounded_taylor64_covers_object_q_state left left_object_domain
+      left_object_center_value left_object_center_gradient
+      left_object_value_bound left_object_gradient_bounds
+      left_object_hessian /\
+  bounded_taylor64_covers_object_q_state right right_object_domain
+      right_object_center_value right_object_center_gradient
+      right_object_value_bound right_object_gradient_bounds
+      right_object_hessian /\
+  bounded_taylor64_add_unchecked left right = SOME result ==>
+  bounded_taylor64_covers_object_q_state result
+      (left_object_domain /\ right_object_domain)
+      (bounded_object_q_interval_add_cv
+        left_object_center_value right_object_center_value)
+      (MAP2 bounded_object_q_interval_add_cv
+        left_object_center_gradient right_object_center_gradient)
+      (bounded_object_q_interval_add_cv
+        left_object_value_bound right_object_value_bound)
+      (MAP2 bounded_object_q_interval_add_cv
+        left_object_gradient_bounds right_object_gradient_bounds)
+      (MAP2 bounded_object_q_interval_add_cv
+        left_object_hessian right_object_hessian)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rw
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_taylor64_covers_object_q_state_def,
+        compute_boundedTaylorStateTheory.bounded_taylor64_add_unchecked_def]
+  >> every_case_tac
+  >> gvs
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_taylor64_covers_object_q_state_def]
+  >> imp_res_tac bounded_interval64_list_add_covers_object_q
+  >> metis_tac [bounded_interval64_add_covers_object_q]
+QED
+
 val _ = export_theory ();
