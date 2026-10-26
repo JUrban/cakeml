@@ -71,6 +71,11 @@ Definition bounded_int_fraction_max4_def:
       (bounded_int_fraction_max third fourth)
 End
 
+Definition bounded_int_fraction_positive_def:
+  bounded_int_fraction_positive (fraction:int # int) <=>
+    0 < SND fraction
+End
+
 Definition bounded_object_q_le_cv_def:
   bounded_object_q_le_cv
       (Pair (Pair (Num left_positive) (Num left_negative))
@@ -328,6 +333,258 @@ Definition bounded_interval64_contains_int_fraction_def:
         bounded_signed64_to_int (bounded_interval64_upper interval)
 End
 
+Theorem bounded_int_fraction_le_trans:
+  0 < (denominator1:int) /\ 0 < denominator2 /\ 0 < denominator3 /\
+  numerator1 * denominator2 <= numerator2 * denominator1 /\
+  numerator2 * denominator3 <= numerator3 * denominator2 ==>
+  numerator1 * denominator3 <= numerator3 * denominator1
+Proof
+  strip_tac
+  >> `denominator3 * (numerator1 * denominator2) <=
+        denominator3 * (numerator2 * denominator1)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> intLib.ARITH_TAC)
+  >> `denominator1 * (numerator2 * denominator3) <=
+        denominator1 * (numerator3 * denominator2)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> intLib.ARITH_TAC)
+  >> `denominator3 * (numerator1 * denominator2) =
+        denominator2 * (numerator1 * denominator3)` by INT_RING_TAC
+  >> `denominator3 * (numerator2 * denominator1) =
+        denominator1 * (numerator2 * denominator3)` by INT_RING_TAC
+  >> `denominator1 * (numerator3 * denominator2) =
+        denominator2 * (numerator3 * denominator1)` by INT_RING_TAC
+  >> `denominator2 * (numerator1 * denominator3) <=
+        denominator2 * (numerator3 * denominator1)` by
+       metis_tac [integerTheory.INT_LE_TRANS]
+  >> mp_tac
+       (Q.SPECL
+         [`denominator2`, `numerator1 * denominator3`,
+          `numerator3 * denominator1`]
+         integerTheory.INT_LE_MONO)
+  >> simp []
+QED
+
+Theorem bounded_int_fraction_le_transitive:
+  bounded_int_fraction_positive q1 /\
+  bounded_int_fraction_positive q2 /\
+  bounded_int_fraction_positive q3 /\
+  bounded_int_fraction_le q1 q2 /\
+  bounded_int_fraction_le q2 q3 ==>
+  bounded_int_fraction_le q1 q3
+Proof
+  PairCases_on `q1`
+  >> PairCases_on `q2`
+  >> PairCases_on `q3`
+  >> fs [bounded_int_fraction_positive_def,
+         bounded_int_fraction_le_def]
+  >> metis_tac [bounded_int_fraction_le_trans]
+QED
+
+Theorem bounded_int_fraction_min_positive:
+  bounded_int_fraction_positive left /\
+  bounded_int_fraction_positive right ==>
+  bounded_int_fraction_positive
+    (bounded_int_fraction_min left right)
+Proof
+  PairCases_on `left`
+  >> PairCases_on `right`
+  >> rw [bounded_int_fraction_positive_def,
+         bounded_int_fraction_min_def]
+QED
+
+Theorem bounded_int_fraction_max_positive:
+  bounded_int_fraction_positive left /\
+  bounded_int_fraction_positive right ==>
+  bounded_int_fraction_positive
+    (bounded_int_fraction_max left right)
+Proof
+  PairCases_on `left`
+  >> PairCases_on `right`
+  >> rw [bounded_int_fraction_positive_def,
+         bounded_int_fraction_max_def]
+QED
+
+Theorem bounded_int_fraction_min_le_left:
+  bounded_int_fraction_le
+    (bounded_int_fraction_min left right) left
+Proof
+  PairCases_on `left`
+  >> PairCases_on `right`
+  >> rw [bounded_int_fraction_min_def,
+         bounded_int_fraction_le_def]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_int_fraction_left_le_max:
+  bounded_int_fraction_le left
+    (bounded_int_fraction_max left right)
+Proof
+  PairCases_on `left`
+  >> PairCases_on `right`
+  >> rw [bounded_int_fraction_max_def,
+         bounded_int_fraction_le_def]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_int_fraction_min4_positive:
+  bounded_int_fraction_positive q1 /\
+  bounded_int_fraction_positive q2 /\
+  bounded_int_fraction_positive q3 /\
+  bounded_int_fraction_positive q4 ==>
+  bounded_int_fraction_positive
+    (bounded_int_fraction_min4 q1 q2 q3 q4)
+Proof
+  rw [bounded_int_fraction_min4_def]
+  >> metis_tac [bounded_int_fraction_min_positive]
+QED
+
+Theorem bounded_int_fraction_max4_positive:
+  bounded_int_fraction_positive q1 /\
+  bounded_int_fraction_positive q2 /\
+  bounded_int_fraction_positive q3 /\
+  bounded_int_fraction_positive q4 ==>
+  bounded_int_fraction_positive
+    (bounded_int_fraction_max4 q1 q2 q3 q4)
+Proof
+  rw [bounded_int_fraction_max4_def]
+  >> metis_tac [bounded_int_fraction_max_positive]
+QED
+
+Theorem bounded_int_fraction_min4_le_max4:
+  bounded_int_fraction_positive q1 /\
+  bounded_int_fraction_positive q2 /\
+  bounded_int_fraction_positive q3 /\
+  bounded_int_fraction_positive q4 ==>
+  bounded_int_fraction_le
+    (bounded_int_fraction_min4 q1 q2 q3 q4)
+    (bounded_int_fraction_max4 q1 q2 q3 q4)
+Proof
+  strip_tac
+  >> `bounded_int_fraction_positive
+        (bounded_int_fraction_min q1 q2) /\
+      bounded_int_fraction_positive
+        (bounded_int_fraction_min q3 q4) /\
+      bounded_int_fraction_positive
+        (bounded_int_fraction_max q1 q2) /\
+      bounded_int_fraction_positive
+        (bounded_int_fraction_max q3 q4)` by
+       metis_tac [bounded_int_fraction_min_positive,
+                  bounded_int_fraction_max_positive]
+  >> `bounded_int_fraction_positive
+        (bounded_int_fraction_min4 q1 q2 q3 q4) /\
+      bounded_int_fraction_positive
+        (bounded_int_fraction_max4 q1 q2 q3 q4)` by
+       metis_tac [bounded_int_fraction_min4_positive,
+                  bounded_int_fraction_max4_positive]
+  >> `bounded_int_fraction_le
+        (bounded_int_fraction_min4 q1 q2 q3 q4)
+        (bounded_int_fraction_min q1 q2)` by
+       simp [bounded_int_fraction_min4_def,
+             bounded_int_fraction_min_le_left]
+  >> `bounded_int_fraction_le
+        (bounded_int_fraction_min q1 q2) q1` by
+       simp [bounded_int_fraction_min_le_left]
+  >> `bounded_int_fraction_le q1
+        (bounded_int_fraction_max q1 q2)` by
+       simp [bounded_int_fraction_left_le_max]
+  >> `bounded_int_fraction_le
+        (bounded_int_fraction_max q1 q2)
+        (bounded_int_fraction_max4 q1 q2 q3 q4)` by
+       simp [bounded_int_fraction_max4_def,
+             bounded_int_fraction_left_le_max]
+  >> metis_tac [bounded_int_fraction_le_transitive]
+QED
+
+Theorem bounded_interval64_contains_int_fraction_min4:
+  bounded_interval64_contains_int_fraction interval q1 /\
+  bounded_interval64_contains_int_fraction interval q2 /\
+  bounded_interval64_contains_int_fraction interval q3 /\
+  bounded_interval64_contains_int_fraction interval q4 ==>
+  bounded_interval64_contains_int_fraction interval
+    (bounded_int_fraction_min4 q1 q2 q3 q4)
+Proof
+  rw [bounded_int_fraction_min4_def,
+      bounded_int_fraction_min_def]
+QED
+
+Theorem bounded_interval64_contains_int_fraction_max4:
+  bounded_interval64_contains_int_fraction interval q1 /\
+  bounded_interval64_contains_int_fraction interval q2 /\
+  bounded_interval64_contains_int_fraction interval q3 /\
+  bounded_interval64_contains_int_fraction interval q4 ==>
+  bounded_interval64_contains_int_fraction interval
+    (bounded_int_fraction_max4 q1 q2 q3 q4)
+Proof
+  rw [bounded_int_fraction_max4_def,
+      bounded_int_fraction_max_def]
+QED
+
+Theorem bounded_interval64_contains_fraction_pair_covers:
+  bounded_interval64_contains_int_fraction interval lower /\
+  bounded_interval64_contains_int_fraction interval upper /\
+  bounded_int_fraction_le lower upper ==>
+  bounded_interval64_covers_object_q_ints interval (lower,upper)
+Proof
+  PairCases_on `lower`
+  >> PairCases_on `upper`
+  >> fs
+       [bounded_interval64_contains_int_fraction_def,
+        bounded_int_fraction_le_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_ints_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_word_scale_int_def]
+QED
+
+Theorem bounded_interval64_covers_object_q_ints_contains_endpoints:
+  bounded_interval64_covers_object_q_ints interval
+    ((lower_numerator,lower_denominator),
+     (upper_numerator,upper_denominator)) ==>
+  bounded_interval64_contains_int_fraction interval
+    (lower_numerator,lower_denominator) /\
+  bounded_interval64_contains_int_fraction interval
+    (upper_numerator,upper_denominator)
+Proof
+  strip_tac
+  >> fs
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_ints_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_word_scale_int_def]
+  >> `(&1099511627776:int) * lower_numerator <=
+        lower_denominator *
+          bounded_signed64_to_int (bounded_interval64_upper interval)` by
+       (mp_tac
+          (Q.INST
+            [`numerator1` |-> `lower_numerator`,
+             `denominator1` |-> `lower_denominator`,
+             `numerator2` |-> `upper_numerator`,
+             `denominator2` |-> `upper_denominator`,
+             `numerator3` |->
+               `bounded_signed64_to_int
+                  (bounded_interval64_upper interval)`,
+             `denominator3` |-> `(&1099511627776:int)`]
+            bounded_int_fraction_le_trans)
+        >> simp []
+        >> metis_tac [integerTheory.INT_MUL_COMM])
+  >> `upper_denominator *
+          bounded_signed64_to_int (bounded_interval64_lower interval) <=
+        (&1099511627776:int) * upper_numerator` by
+       (mp_tac
+          (Q.INST
+            [`numerator1` |->
+               `bounded_signed64_to_int
+                  (bounded_interval64_lower interval)`,
+             `denominator1` |-> `(&1099511627776:int)`,
+             `numerator2` |-> `lower_numerator`,
+             `denominator2` |-> `lower_denominator`,
+             `numerator3` |-> `upper_numerator`,
+             `denominator3` |-> `upper_denominator`]
+            bounded_int_fraction_le_trans)
+        >> simp []
+        >> metis_tac [integerTheory.INT_MUL_COMM])
+  >> fs [bounded_interval64_contains_int_fraction_def]
+QED
+
 Theorem bounded_int_positive_scales_product_corner:
   0 < (left_scale:int) /\ 0 < right_scale /\
   (&1099511627776:int) * output_lower <= left * right /\
@@ -560,6 +817,139 @@ Proof
          compute_boundedIntervalTheory.bounded_interval64_upper_def]
   >> irule bounded_scale40_cancel_fraction_product
   >> conj_tac >> metis_tac []
+QED
+
+Theorem bounded_interval64_mul_covers_object_q_ints:
+  bounded_interval64_covers_object_q_ints left
+      ((left_lower_numerator,left_lower_denominator),
+       (left_upper_numerator,left_upper_denominator)) /\
+  bounded_interval64_covers_object_q_ints right
+      ((right_lower_numerator,right_lower_denominator),
+       (right_upper_numerator,right_upper_denominator)) /\
+  bounded_interval64_mul left right = SOME result ==>
+  bounded_interval64_covers_object_q_ints result
+    (bounded_object_q_interval_mul_ints
+      ((left_lower_numerator,left_lower_denominator),
+       (left_upper_numerator,left_upper_denominator))
+      ((right_lower_numerator,right_lower_denominator),
+       (right_upper_numerator,right_upper_denominator)))
+Proof
+  strip_tac
+  >> `bounded_interval64_contains_int_fraction left
+        (left_lower_numerator,left_lower_denominator) /\
+      bounded_interval64_contains_int_fraction left
+        (left_upper_numerator,left_upper_denominator)` by
+       metis_tac
+         [bounded_interval64_covers_object_q_ints_contains_endpoints]
+  >> `bounded_interval64_contains_int_fraction right
+        (right_lower_numerator,right_lower_denominator) /\
+      bounded_interval64_contains_int_fraction right
+        (right_upper_numerator,right_upper_denominator)` by
+       metis_tac
+         [bounded_interval64_covers_object_q_ints_contains_endpoints]
+  >> `bounded_interval64_contains_int_fraction result
+        (bounded_int_fraction_mul
+          (left_lower_numerator,left_lower_denominator)
+          (right_lower_numerator,right_lower_denominator))` by
+       metis_tac [bounded_interval64_mul_contains_int_fraction_product]
+  >> `bounded_interval64_contains_int_fraction result
+        (bounded_int_fraction_mul
+          (left_lower_numerator,left_lower_denominator)
+          (right_upper_numerator,right_upper_denominator))` by
+       metis_tac [bounded_interval64_mul_contains_int_fraction_product]
+  >> `bounded_interval64_contains_int_fraction result
+        (bounded_int_fraction_mul
+          (left_upper_numerator,left_upper_denominator)
+          (right_lower_numerator,right_lower_denominator))` by
+       metis_tac [bounded_interval64_mul_contains_int_fraction_product]
+  >> `bounded_interval64_contains_int_fraction result
+        (bounded_int_fraction_mul
+          (left_upper_numerator,left_upper_denominator)
+          (right_upper_numerator,right_upper_denominator))` by
+       metis_tac [bounded_interval64_mul_contains_int_fraction_product]
+  >> `bounded_int_fraction_positive
+        (bounded_int_fraction_mul
+          (left_lower_numerator,left_lower_denominator)
+          (right_lower_numerator,right_lower_denominator)) /\
+      bounded_int_fraction_positive
+        (bounded_int_fraction_mul
+          (left_lower_numerator,left_lower_denominator)
+          (right_upper_numerator,right_upper_denominator)) /\
+      bounded_int_fraction_positive
+        (bounded_int_fraction_mul
+          (left_upper_numerator,left_upper_denominator)
+          (right_lower_numerator,right_lower_denominator)) /\
+      bounded_int_fraction_positive
+        (bounded_int_fraction_mul
+          (left_upper_numerator,left_upper_denominator)
+          (right_upper_numerator,right_upper_denominator))` by
+       fs [bounded_interval64_contains_int_fraction_def,
+           bounded_int_fraction_positive_def,
+           bounded_int_fraction_mul_def]
+  >> `bounded_object_q_interval_mul_ints
+        ((left_lower_numerator,left_lower_denominator),
+         (left_upper_numerator,left_upper_denominator))
+        ((right_lower_numerator,right_lower_denominator),
+         (right_upper_numerator,right_upper_denominator)) =
+      (bounded_int_fraction_min4
+        (bounded_int_fraction_mul
+          (left_lower_numerator,left_lower_denominator)
+          (right_lower_numerator,right_lower_denominator))
+        (bounded_int_fraction_mul
+          (left_lower_numerator,left_lower_denominator)
+          (right_upper_numerator,right_upper_denominator))
+        (bounded_int_fraction_mul
+          (left_upper_numerator,left_upper_denominator)
+          (right_lower_numerator,right_lower_denominator))
+        (bounded_int_fraction_mul
+          (left_upper_numerator,left_upper_denominator)
+          (right_upper_numerator,right_upper_denominator)),
+       bounded_int_fraction_max4
+        (bounded_int_fraction_mul
+          (left_lower_numerator,left_lower_denominator)
+          (right_lower_numerator,right_lower_denominator))
+        (bounded_int_fraction_mul
+          (left_lower_numerator,left_lower_denominator)
+          (right_upper_numerator,right_upper_denominator))
+        (bounded_int_fraction_mul
+          (left_upper_numerator,left_upper_denominator)
+          (right_lower_numerator,right_lower_denominator))
+        (bounded_int_fraction_mul
+          (left_upper_numerator,left_upper_denominator)
+          (right_upper_numerator,right_upper_denominator)))` by
+       simp [bounded_object_q_interval_mul_ints_def]
+  >> pop_assum SUBST1_TAC
+  >> irule bounded_interval64_contains_fraction_pair_covers
+  >> rpt conj_tac
+  >> FIRST
+       [irule bounded_interval64_contains_int_fraction_min4
+        >> PURE_ASM_REWRITE_TAC []
+        >> simp [],
+        irule bounded_interval64_contains_int_fraction_max4
+        >> PURE_ASM_REWRITE_TAC []
+        >> simp [],
+        irule bounded_int_fraction_min4_le_max4
+        >> PURE_ASM_REWRITE_TAC []
+        >> simp []]
+QED
+
+Theorem bounded_interval64_mul_covers_object_q:
+  bounded_interval64_covers_object_q left left_object_interval /\
+  bounded_interval64_covers_object_q right right_object_interval /\
+  bounded_interval64_mul left right = SOME result ==>
+  bounded_interval64_covers_object_q result
+    (bounded_object_q_interval_mul_cv
+      left_object_interval right_object_interval)
+Proof
+  rw
+    [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_object_q_interval_mul_cv_decodes
+  >> gvs []
+  >> PairCases_on `x'`
+  >> PairCases_on `x''`
+  >> metis_tac [bounded_interval64_mul_covers_object_q_ints]
 QED
 
 val _ = export_theory ();
