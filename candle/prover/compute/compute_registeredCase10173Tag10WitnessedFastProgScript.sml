@@ -17,7 +17,7 @@ Theory compute_registeredCase10173Tag10WitnessedFastProg
 Ancestors
   compute_boundedCase10173PackedDecimalAuthenticatedProg
   compute_cvPackedBytesRuntime
-  compute_registeredCase10173AuthenticatedFastDispatch
+  compute_registeredCase10173ExternalWitnessedChecker
 Libs
   preamble ml_translatorLib ml_progLib basis
 
@@ -59,17 +59,8 @@ val _ = translate
 val _ = translate
   compute_registeredCase10173AuthenticatedFastDispatchTheory.registered_case10173_decimal_authenticated_fast_checker_def;
 
-Definition registered_case10173_external_witnessed_checker_def:
-  registered_case10173_external_witnessed_checker
-      certificate source_program encoded_jobs encoded_roots <=>
-    case cv_unpack_byte_tree certificate of
-    | NONE => F
-    | SOME bytes =>
-        registered_case10173_decimal_authenticated_fast_checker
-          bytes source_program encoded_jobs encoded_roots
-End
-
-val _ = translate registered_case10173_external_witnessed_checker_def;
+val _ = translate
+  compute_registeredCase10173ExternalWitnessedCheckerTheory.registered_case10173_external_witnessed_checker_def;
 
 Quote main = cakeml:
   fun read_all path =

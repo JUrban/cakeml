@@ -1,0 +1,22 @@
+Theory compute_registeredCase10173ExternalCheckerIdentity
+Ancestors
+  compute_registeredCase10173ExternalWitnessedChecker
+  compute_registeredCase10173Tag10WitnessedFastDispatch
+Libs
+  bossLib preamble
+
+Theorem registered_case10173_external_witnessed_checker_eq_tag10:
+  !certificate source_program encoded_jobs encoded_roots.
+    registered_case10173_external_witnessed_checker
+      certificate source_program encoded_jobs encoded_roots =
+    registered_case10173_tag10_witnessed_checker
+      certificate source_program encoded_jobs encoded_roots
+Proof
+  rw
+    [compute_registeredCase10173ExternalWitnessedCheckerTheory.registered_case10173_external_witnessed_checker_def,
+     compute_registeredCase10173Tag10WitnessedFastDispatchTheory.registered_case10173_tag10_witnessed_checker_def,
+     compute_registeredCase10173AuthenticatedFastDispatchTheory.registered_case10173_decimal_authenticated_fast_checker_def,
+     compute_registeredCase10173Tag10AuthenticatedFastDispatchTheory.registered_case10173_tag10_decimal_authenticated_fast_checker_def]
+QED
+
+val _ = export_theory ();
