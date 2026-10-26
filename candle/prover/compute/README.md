@@ -259,6 +259,23 @@ the hot path.  General HOL theorems prove the flat box, batch, and acceptance
 predicate extensionally equal to the original total instruction before its
 closed thousand-batch benchmark is translated and compiled.
 
+[compute_boundedAnalyticProgramCVScript.sml](compute_boundedAnalyticProgramCVScript.sml),
+[compute_cvNativeRuntimeScript.sml](compute_cvNativeRuntimeScript.sml),
+[compute_registeredCase16594ExternalWitnessedCheckerScript.sml](compute_registeredCase16594ExternalWitnessedCheckerScript.sml),
+[compute_registeredNLExternalWitnessedCheckerScript.sml](compute_registeredNLExternalWitnessedCheckerScript.sml),
+and their `*Prog`/`*Export` theories:
+Development-only four-payload executable shared by genuine case 10173 and
+case 16594.  It accepts external certificate bytes, a source descriptor, jobs,
+and roots; decodes both canonical flat cv text and the exact compact native cv
+spelling; then runs complete source and evidence checks.  The same compiled
+program accepts both genuine families and rejects certificate, source, job,
+root, and cross-family substitutions.  This is an R3 reusability experiment,
+not yet the all-NL runtime: the shared checker currently contains an explicit
+two-family disjunction.  A production runtime must replace that enumerative
+dispatch with a checker and soundness result parameterized by the decoded
+program/evidence schema, so adding a new inequality does not change runtime
+source or force a verified compiler rebuild.
+
 [computeProofScript.sml](computeProofScript.sml):
 Proof of correctness for the compute primitive.
 
