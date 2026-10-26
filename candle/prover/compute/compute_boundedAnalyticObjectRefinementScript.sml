@@ -20,6 +20,49 @@ Definition bounded_analytic_source_q_cv_def:
       (Num denominator_predecessor)
 End
 
+Definition bounded_analytic_source_q_interval_cv_def:
+  bounded_analytic_source_q_interval_cv positive negative
+      denominator_predecessor =
+    Pair
+      (bounded_analytic_source_q_cv positive negative
+        denominator_predecessor)
+      (bounded_analytic_source_q_cv positive negative
+        denominator_predecessor)
+End
+
+Definition bounded_taylor64_covers_object_q_state_def:
+  bounded_taylor64_covers_object_q_state
+      (BoundedTaylor64 domain center_value center_gradient
+        value_bound gradient_bounds hessian)
+      object_domain object_center_value object_center_gradient
+      object_value_bound object_gradient_bounds object_hessian <=>
+    domain = object_domain /\
+    bounded_interval64_covers_object_q center_value object_center_value /\
+    LIST_REL bounded_interval64_covers_object_q
+      center_gradient object_center_gradient /\
+    bounded_interval64_covers_object_q value_bound object_value_bound /\
+    LIST_REL bounded_interval64_covers_object_q
+      gradient_bounds object_gradient_bounds /\
+    LIST_REL bounded_interval64_covers_object_q hessian object_hessian
+End
+
+Definition bounded_object_q_nth_def:
+  bounded_object_q_nth [] index = NONE /\
+  bounded_object_q_nth (value::rest) 0 = SOME value /\
+  bounded_object_q_nth (value::rest) (SUC index) =
+    bounded_object_q_nth rest index
+End
+
+Definition bounded_object_q_unit_vector_def:
+  bounded_object_q_unit_vector index =
+    GENLIST
+      (\position.
+         if position = index then
+           bounded_analytic_source_q_interval_cv 1 0 0
+         else bounded_analytic_source_q_interval_cv 0 0 0)
+      6
+End
+
 Theorem bounded_analytic_source_q_cv_decodes[simp]:
   bounded_object_q_ints
       (bounded_analytic_source_q_cv positive negative
@@ -53,6 +96,117 @@ Proof
          compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def,
          compute_boundedObjectIntervalRelationTheory.bounded_word_scale_int_def,
          compute_boundedAnalyticPreparedPlanTheory.bounded_analytic_scale40_def]
+QED
+
+Theorem bounded_interval64_zero_covers_object_q_zero:
+  bounded_interval64_covers_object_q bounded_interval64_zero
+    (bounded_analytic_source_q_interval_cv 0 0 0)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded_atan_one_covers_object_q_one:
+  bounded_interval64_covers_object_q bounded_atan_one
+    (bounded_analytic_source_q_interval_cv 1 0 0)
+Proof
+  EVAL_TAC >> wordsLib.WORD_EVAL_TAC
+QED
+
+Theorem bounded_interval64_zeros_cover_object_q_zeros:
+  LIST_REL bounded_interval64_covers_object_q
+    (bounded_interval64_zeros (n:num))
+    (REPLICATE n (bounded_analytic_source_q_interval_cv 0 0 0))
+Proof
+  Induct_on `n`
+  >> simp [compute_boundedTaylorBaseTheory.bounded_interval64_zeros_def,
+           bounded_interval64_zero_covers_object_q_zero]
+QED
+
+Theorem bounded_interval64_nth_covers_object_q_nth:
+  !word_values object_values index word_value.
+    LIST_REL bounded_interval64_covers_object_q
+      word_values object_values /\
+    bounded_interval64_nth word_values index = SOME word_value ==>
+    ?object_value.
+      bounded_object_q_nth object_values index = SOME object_value /\
+      bounded_interval64_covers_object_q word_value object_value
+Proof
+  Induct_on `word_values`
+  >> Cases_on `object_values`
+  >> Cases_on `index`
+  >> rw [compute_boundedTaylorBaseTheory.bounded_interval64_nth_def,
+         bounded_object_q_nth_def]
+  >> gvs []
+  >> metis_tac []
+QED
+
+Theorem bounded_interval64_unit_vector_covers_object_q:
+  bounded_interval64_unit_vector index = SOME gradient ==>
+  LIST_REL bounded_interval64_covers_object_q gradient
+    (bounded_object_q_unit_vector index)
+Proof
+  rw [compute_boundedTaylorBaseTheory.bounded_interval64_unit_vector_def,
+      bounded_object_q_unit_vector_def]
+  >> gvs [LIST_REL_EL_EQN]
+  >> rw []
+  >> Cases_on `n = index`
+  >> simp [bounded_atan_one_covers_object_q_one,
+           bounded_interval64_zero_covers_object_q_zero]
+QED
+
+Theorem bounded_taylor64_constant_covers_source_q:
+  bounded_analytic_rational_constant64 positive negative
+      denominator_predecessor = SOME interval /\
+  bounded_taylor64_constant interval = SOME result ==>
+  bounded_taylor64_covers_object_q_state result T
+    (bounded_analytic_source_q_interval_cv positive negative
+      denominator_predecessor)
+    (REPLICATE 6 (bounded_analytic_source_q_interval_cv 0 0 0))
+    (bounded_analytic_source_q_interval_cv positive negative
+      denominator_predecessor)
+    (REPLICATE 6 (bounded_analytic_source_q_interval_cv 0 0 0))
+    (REPLICATE 21 (bounded_analytic_source_q_interval_cv 0 0 0))
+Proof
+  strip_tac
+  >> imp_res_tac bounded_analytic_rational_constant64_covers
+  >> `bounded_interval64_valid interval` by
+       fs [bounded_analytic_rational_interval_covers_def]
+  >> fs [compute_boundedTaylorBaseTheory.bounded_taylor64_constant_def,
+         compute_boundedTaylorStateTheory.bounded_taylor64_make_def,
+         compute_boundedTaylorStateTheory.bounded_taylor64_well_formed_def,
+         compute_boundedTaylorBaseTheory.bounded_interval64_zeros_def]
+  >> gvs [bounded_taylor64_covers_object_q_state_def]
+  >> simp [bounded_analytic_source_q_interval_cv_def,
+           bounded_interval64_zeros_cover_object_q_zeros,
+           bounded_analytic_rational_constant64_covers_object_q]
+QED
+
+Theorem bounded_taylor64_variable_covers_object_q:
+  LIST_REL bounded_interval64_covers_object_q
+      center_environment object_center_environment /\
+  LIST_REL bounded_interval64_covers_object_q
+      box_environment object_box_environment /\
+  bounded_taylor64_variable center_environment box_environment index =
+    SOME result ==>
+  ?object_center object_box.
+    bounded_object_q_nth object_center_environment index =
+      SOME object_center /\
+    bounded_object_q_nth object_box_environment index = SOME object_box /\
+    bounded_taylor64_covers_object_q_state result T object_center
+      (bounded_object_q_unit_vector index) object_box
+      (bounded_object_q_unit_vector index)
+      (REPLICATE 21 (bounded_analytic_source_q_interval_cv 0 0 0))
+Proof
+  strip_tac
+  >> fs [compute_boundedTaylorBaseTheory.bounded_taylor64_variable_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_interval64_nth_covers_object_q_nth
+  >> imp_res_tac bounded_interval64_unit_vector_covers_object_q
+  >> fs [compute_boundedTaylorStateTheory.bounded_taylor64_make_def]
+  >> every_case_tac
+  >> gvs [bounded_taylor64_covers_object_q_state_def]
+  >> metis_tac [bounded_interval64_zeros_cover_object_q_zeros]
 QED
 
 val _ = export_theory ();
