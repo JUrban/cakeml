@@ -63,6 +63,15 @@ Definition bounded_object_q_unit_vector_def:
       6
 End
 
+Definition bounded_object_q_interval_neg_ints_def:
+  bounded_object_q_interval_neg_ints
+      (((lower_numerator,lower_denominator),
+        (upper_numerator,upper_denominator)) :
+          (int # int) # (int # int)) =
+    ((-upper_numerator,upper_denominator),
+     (-lower_numerator,lower_denominator))
+End
+
 Theorem bounded_analytic_source_q_cv_decodes[simp]:
   bounded_object_q_ints
       (bounded_analytic_source_q_cv positive negative
@@ -207,6 +216,20 @@ Proof
   >> every_case_tac
   >> gvs [bounded_taylor64_covers_object_q_state_def]
   >> metis_tac [bounded_interval64_zeros_cover_object_q_zeros]
+QED
+
+Theorem bounded_interval64_neg_covers_object_q_ints:
+  bounded_interval64_covers_object_q_ints source object_interval ==>
+  bounded_interval64_covers_object_q_ints
+    (bounded_interval64_neg source)
+    (bounded_object_q_interval_neg_ints object_interval)
+Proof
+  PairCases_on `object_interval`
+  >> rw [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_ints_def,
+         bounded_object_q_interval_neg_ints_def]
+  >> simp [compute_boundedIntervalAddTheory.bounded_interval64_neg_value,
+           integerTheory.INT_MUL_LNEG, integerTheory.INT_MUL_RNEG]
+  >> intLib.ARITH_TAC
 QED
 
 val _ = export_theory ();
