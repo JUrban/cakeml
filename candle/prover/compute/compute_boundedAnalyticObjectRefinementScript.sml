@@ -72,6 +72,22 @@ Definition bounded_object_q_interval_neg_ints_def:
      (-lower_numerator,lower_denominator))
 End
 
+Definition bounded_object_q_interval_add_ints_def:
+  bounded_object_q_interval_add_ints
+      (((left_lower_numerator,left_lower_denominator),
+        (left_upper_numerator,left_upper_denominator)) :
+          (int # int) # (int # int))
+      (((right_lower_numerator,right_lower_denominator),
+        (right_upper_numerator,right_upper_denominator)) :
+          (int # int) # (int # int)) =
+    (((left_lower_numerator * right_lower_denominator) +
+       (right_lower_numerator * left_lower_denominator),
+      left_lower_denominator * right_lower_denominator),
+     ((left_upper_numerator * right_upper_denominator) +
+       (right_upper_numerator * left_upper_denominator),
+      left_upper_denominator * right_upper_denominator))
+End
+
 Theorem bounded_analytic_source_q_cv_decodes[simp]:
   bounded_object_q_ints
       (bounded_analytic_source_q_cv positive negative
@@ -230,6 +246,168 @@ Proof
   >> simp [compute_boundedIntervalAddTheory.bounded_interval64_neg_value,
            integerTheory.INT_MUL_LNEG, integerTheory.INT_MUL_RNEG]
   >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_int_fraction_interval_add_ordered:
+  0 < (left_lower_denominator:int) /\
+  0 < left_upper_denominator /\
+  left_lower_numerator * left_upper_denominator <=
+    left_upper_numerator * left_lower_denominator /\
+  0 < right_lower_denominator /\
+  0 < right_upper_denominator /\
+  right_lower_numerator * right_upper_denominator <=
+    right_upper_numerator * right_lower_denominator ==>
+  (left_lower_numerator * right_lower_denominator +
+   right_lower_numerator * left_lower_denominator) *
+      (left_upper_denominator * right_upper_denominator) <=
+    (left_upper_numerator * right_upper_denominator +
+     right_upper_numerator * left_upper_denominator) *
+      (left_lower_denominator * right_lower_denominator)
+Proof
+  strip_tac
+  >> `0 < right_lower_denominator * right_upper_denominator` by
+       (irule
+          (REWRITE_RULE [integerTheory.INT_0]
+            integerTheory.INT_LT_MUL)
+        >> fs [])
+  >> `0 < left_lower_denominator * left_upper_denominator` by
+       (irule
+          (REWRITE_RULE [integerTheory.INT_0]
+            integerTheory.INT_LT_MUL)
+        >> fs [])
+  >> `(right_lower_denominator * right_upper_denominator) *
+        (left_lower_numerator * left_upper_denominator) <=
+      (right_lower_denominator * right_upper_denominator) *
+        (left_upper_numerator * left_lower_denominator)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> fs [])
+  >> `(left_lower_denominator * left_upper_denominator) *
+        (right_lower_numerator * right_upper_denominator) <=
+      (left_lower_denominator * left_upper_denominator) *
+        (right_upper_numerator * right_lower_denominator)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> fs [])
+  >> `(left_lower_numerator * right_lower_denominator +
+       right_lower_numerator * left_lower_denominator) *
+        (left_upper_denominator * right_upper_denominator) =
+      (right_lower_denominator * right_upper_denominator) *
+        (left_lower_numerator * left_upper_denominator) +
+      (left_lower_denominator * left_upper_denominator) *
+        (right_lower_numerator * right_upper_denominator)` by INT_RING_TAC
+  >> `(left_upper_numerator * right_upper_denominator +
+       right_upper_numerator * left_upper_denominator) *
+        (left_lower_denominator * right_lower_denominator) =
+      (right_lower_denominator * right_upper_denominator) *
+        (left_upper_numerator * left_lower_denominator) +
+      (left_lower_denominator * left_upper_denominator) *
+        (right_upper_numerator * right_lower_denominator)` by INT_RING_TAC
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_int_fraction_add_lower_bound:
+  0 < (left_denominator:int) /\
+  0 < right_denominator /\
+  left_denominator * left_value <= scale * left_numerator /\
+  right_denominator * right_value <= scale * right_numerator ==>
+  left_denominator * right_denominator * (left_value + right_value) <=
+    scale *
+      (left_numerator * right_denominator +
+       right_numerator * left_denominator)
+Proof
+  strip_tac
+  >> `right_denominator * (left_denominator * left_value) <=
+      right_denominator * (scale * left_numerator)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> conj_tac >- fs []
+        >> intLib.ARITH_TAC)
+  >> `left_denominator * (right_denominator * right_value) <=
+      left_denominator * (scale * right_numerator)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> conj_tac >- fs []
+        >> intLib.ARITH_TAC)
+  >> `left_denominator * right_denominator *
+        (left_value + right_value) =
+      right_denominator * (left_denominator * left_value) +
+      left_denominator * (right_denominator * right_value)` by INT_RING_TAC
+  >> `scale *
+        (left_numerator * right_denominator +
+         right_numerator * left_denominator) =
+      right_denominator * (scale * left_numerator) +
+      left_denominator * (scale * right_numerator)` by INT_RING_TAC
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_int_fraction_add_upper_bound:
+  0 < (left_denominator:int) /\
+  0 < right_denominator /\
+  scale * left_numerator <= left_denominator * left_value /\
+  scale * right_numerator <= right_denominator * right_value ==>
+  scale *
+      (left_numerator * right_denominator +
+       right_numerator * left_denominator) <=
+    left_denominator * right_denominator * (left_value + right_value)
+Proof
+  strip_tac
+  >> `right_denominator * (scale * left_numerator) <=
+      right_denominator * (left_denominator * left_value)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> conj_tac >- fs []
+        >> intLib.ARITH_TAC)
+  >> `left_denominator * (scale * right_numerator) <=
+      left_denominator * (right_denominator * right_value)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> conj_tac >- fs []
+        >> intLib.ARITH_TAC)
+  >> `scale *
+        (left_numerator * right_denominator +
+         right_numerator * left_denominator) =
+      right_denominator * (scale * left_numerator) +
+      left_denominator * (scale * right_numerator)` by INT_RING_TAC
+  >> `left_denominator * right_denominator *
+        (left_value + right_value) =
+      right_denominator * (left_denominator * left_value) +
+      left_denominator * (right_denominator * right_value)` by INT_RING_TAC
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_interval64_add_covers_object_q_ints:
+  bounded_interval64_covers_object_q_ints
+      left
+      ((left_lower_numerator,left_lower_denominator),
+       (left_upper_numerator,left_upper_denominator)) /\
+  bounded_interval64_covers_object_q_ints
+      right
+      ((right_lower_numerator,right_lower_denominator),
+       (right_upper_numerator,right_upper_denominator)) /\
+  bounded_interval64_add left right = SOME result ==>
+  bounded_interval64_covers_object_q_ints result
+    (bounded_object_q_interval_add_ints
+      ((left_lower_numerator,left_lower_denominator),
+       (left_upper_numerator,left_upper_denominator))
+      ((right_lower_numerator,right_lower_denominator),
+       (right_upper_numerator,right_upper_denominator)))
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_add_value
+  >> fs [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_ints_def,
+         bounded_object_q_interval_add_ints_def]
+  >> rpt conj_tac
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> fs [])
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> fs [])
+  >- metis_tac [bounded_int_fraction_interval_add_ordered]
+  >- metis_tac [bounded_int_fraction_add_lower_bound]
+  >> metis_tac [bounded_int_fraction_add_upper_bound]
 QED
 
 val _ = export_theory ();
