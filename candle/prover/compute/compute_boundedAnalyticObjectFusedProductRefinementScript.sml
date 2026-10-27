@@ -439,4 +439,340 @@ Proof
   >> imp_res_tac bounded_fused_raw_round40_contains_int_fraction
 QED
 
+Theorem bounded_int_fraction_min4_member:
+  bounded_int_fraction_min4 q1 q2 q3 q4 = q1 \/
+  bounded_int_fraction_min4 q1 q2 q3 q4 = q2 \/
+  bounded_int_fraction_min4 q1 q2 q3 q4 = q3 \/
+  bounded_int_fraction_min4 q1 q2 q3 q4 = q4
+Proof
+  rw [bounded_int_fraction_min4_def,
+      bounded_int_fraction_min_def]
+QED
+
+Theorem bounded_int_fraction_max4_member:
+  bounded_int_fraction_max4 q1 q2 q3 q4 = q1 \/
+  bounded_int_fraction_max4 q1 q2 q3 q4 = q2 \/
+  bounded_int_fraction_max4 q1 q2 q3 q4 = q3 \/
+  bounded_int_fraction_max4 q1 q2 q3 q4 = q4
+Proof
+  rw [bounded_int_fraction_max4_def,
+      bounded_int_fraction_max_def]
+QED
+
+Definition bounded_fused_product_input_covers_object_q_ints_def:
+  bounded_fused_product_input_covers_object_q_ints
+      (left,right) (left_object_interval,right_object_interval) <=>
+    bounded_interval64_covers_object_q_ints
+      left left_object_interval /\
+    bounded_interval64_covers_object_q_ints
+      right right_object_interval
+End
+
+Definition bounded_object_q_interval_product_lower_ints_def:
+  bounded_object_q_interval_product_lower_ints
+      (left_object_interval,right_object_interval) =
+    FST
+      (bounded_object_q_interval_mul_ints
+        left_object_interval right_object_interval)
+End
+
+Definition bounded_object_q_interval_product_upper_ints_def:
+  bounded_object_q_interval_product_upper_ints
+      (left_object_interval,right_object_interval) =
+    SND
+      (bounded_object_q_interval_mul_ints
+        left_object_interval right_object_interval)
+End
+
+Theorem bounded_fused_product_input_covers_object_q_ints_endpoints:
+  bounded_fused_product_input_covers_object_q_ints
+      input object_input ==>
+  bounded_fused_product_input_represents_int_fraction input
+      (bounded_object_q_interval_product_lower_ints object_input) /\
+  bounded_fused_product_input_represents_int_fraction input
+      (bounded_object_q_interval_product_upper_ints object_input)
+Proof
+  PairCases_on `input`
+  >> PairCases_on `object_input`
+  >> rw
+       [bounded_fused_product_input_covers_object_q_ints_def,
+        bounded_object_q_interval_product_lower_ints_def,
+        bounded_object_q_interval_product_upper_ints_def]
+  >> imp_res_tac
+       bounded_interval64_covers_object_q_ints_contains_endpoints
+  >> fs [bounded_object_q_interval_mul_ints_def,
+         bounded_fused_product_input_represents_int_fraction_def]
+  >> rw [bounded_int_fraction_min4_def,
+         bounded_int_fraction_max4_def,
+         bounded_int_fraction_min_def,
+         bounded_int_fraction_max_def]
+  >> metis_tac []
+QED
+
+Theorem bounded_fused_product_inputs_covers_object_q_ints_endpoints:
+  !products object_products.
+    LIST_REL bounded_fused_product_input_covers_object_q_ints
+      products object_products ==>
+    LIST_REL bounded_fused_product_input_represents_int_fraction
+      products
+      (MAP bounded_object_q_interval_product_lower_ints object_products) /\
+    LIST_REL bounded_fused_product_input_represents_int_fraction
+      products
+      (MAP bounded_object_q_interval_product_upper_ints object_products)
+Proof
+  Induct
+  >> Cases_on `object_products`
+  >> rw [LIST_REL_def]
+  >> res_tac
+  >> imp_res_tac
+       bounded_fused_product_input_covers_object_q_ints_endpoints
+  >> simp [LIST_REL_def]
+QED
+
+Definition bounded_object_q_interval_products_sum_acc_ints_def:
+  bounded_object_q_interval_products_sum_acc_ints [] accumulator =
+      accumulator /\
+  bounded_object_q_interval_products_sum_acc_ints
+      (object_input::object_inputs) accumulator =
+    bounded_object_q_interval_products_sum_acc_ints object_inputs
+      (bounded_object_q_interval_add_ints accumulator
+        (bounded_object_q_interval_mul_ints
+          (FST object_input) (SND object_input)))
+End
+
+Theorem bounded_object_q_interval_add_ints_components:
+  FST (bounded_object_q_interval_add_ints left right) =
+      bounded_int_fraction_add (FST left) (FST right) /\
+  SND (bounded_object_q_interval_add_ints left right) =
+      bounded_int_fraction_add (SND left) (SND right)
+Proof
+  PairCases_on `left`
+  >> PairCases_on `right`
+  >> simp
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_object_q_interval_add_ints_def,
+        bounded_int_fraction_add_def]
+QED
+
+Theorem bounded_object_q_interval_products_sum_acc_ints_components:
+  !object_inputs accumulator.
+    bounded_object_q_interval_products_sum_acc_ints
+      object_inputs accumulator =
+    (bounded_int_fraction_sum_acc
+       (MAP bounded_object_q_interval_product_lower_ints object_inputs)
+       (FST accumulator),
+     bounded_int_fraction_sum_acc
+       (MAP bounded_object_q_interval_product_upper_ints object_inputs)
+       (SND accumulator))
+Proof
+  Induct
+  >- simp [bounded_object_q_interval_products_sum_acc_ints_def,
+           bounded_int_fraction_sum_acc_def]
+  >> gen_tac
+  >> PairCases_on `h`
+  >> gen_tac
+  >> Cases_on `accumulator`
+  >> PairCases_on `q`
+  >> PairCases_on `r`
+  >> simp
+       [bounded_object_q_interval_products_sum_acc_ints_def,
+        bounded_int_fraction_sum_acc_def,
+        bounded_object_q_interval_product_lower_ints_def,
+        bounded_object_q_interval_product_upper_ints_def,
+        bounded_object_q_interval_mul_ints_def,
+        bounded_object_q_interval_add_ints_components,
+        bounded_int_fraction_add_def]
+QED
+
+Definition bounded_int_fraction_interval_valid_def:
+  bounded_int_fraction_interval_valid (lower,upper) <=>
+    bounded_int_fraction_positive lower /\
+    bounded_int_fraction_positive upper /\
+    bounded_int_fraction_le lower upper
+End
+
+Theorem bounded_interval64_covers_object_q_ints_valid:
+  bounded_interval64_covers_object_q_ints interval object_interval ==>
+  bounded_int_fraction_interval_valid object_interval
+Proof
+  PairCases_on `object_interval`
+  >> fs
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_ints_def,
+        bounded_int_fraction_interval_valid_def,
+        bounded_int_fraction_positive_def,
+        bounded_int_fraction_le_def]
+QED
+
+Theorem bounded_int_fraction_mul_positive:
+  bounded_int_fraction_positive left /\
+  bounded_int_fraction_positive right ==>
+  bounded_int_fraction_positive
+    (bounded_int_fraction_mul left right)
+Proof
+  PairCases_on `left`
+  >> PairCases_on `right`
+  >> simp [bounded_int_fraction_positive_def,
+           bounded_int_fraction_mul_def,
+           integerTheory.INT_MUL_SIGN_CASES]
+QED
+
+Theorem bounded_int_fraction_add_positive:
+  bounded_int_fraction_positive left /\
+  bounded_int_fraction_positive right ==>
+  bounded_int_fraction_positive
+    (bounded_int_fraction_add left right)
+Proof
+  PairCases_on `left`
+  >> PairCases_on `right`
+  >> simp [bounded_int_fraction_positive_def,
+           bounded_int_fraction_add_def,
+           integerTheory.INT_MUL_SIGN_CASES]
+QED
+
+Theorem bounded_int_fraction_add_le:
+  bounded_int_fraction_positive left_lower /\
+  bounded_int_fraction_positive left_upper /\
+  bounded_int_fraction_le left_lower left_upper /\
+  bounded_int_fraction_positive right_lower /\
+  bounded_int_fraction_positive right_upper /\
+  bounded_int_fraction_le right_lower right_upper ==>
+  bounded_int_fraction_le
+    (bounded_int_fraction_add left_lower right_lower)
+    (bounded_int_fraction_add left_upper right_upper)
+Proof
+  PairCases_on `left_lower`
+  >> PairCases_on `left_upper`
+  >> PairCases_on `right_lower`
+  >> PairCases_on `right_upper`
+  >> fs [bounded_int_fraction_positive_def,
+         bounded_int_fraction_le_def,
+         bounded_int_fraction_add_def]
+  >> metis_tac
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_int_fraction_interval_add_ordered]
+QED
+
+Theorem bounded_object_q_interval_mul_ints_valid:
+  bounded_int_fraction_interval_valid left /\
+  bounded_int_fraction_interval_valid right ==>
+  bounded_int_fraction_interval_valid
+    (bounded_object_q_interval_mul_ints left right)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> simp [bounded_int_fraction_interval_valid_def]
+  >> strip_tac
+  >> `bounded_int_fraction_positive
+        (bounded_int_fraction_mul q q') /\
+      bounded_int_fraction_positive
+        (bounded_int_fraction_mul q r') /\
+      bounded_int_fraction_positive
+        (bounded_int_fraction_mul r q') /\
+      bounded_int_fraction_positive
+        (bounded_int_fraction_mul r r')` by
+       metis_tac [bounded_int_fraction_mul_positive]
+  >> simp [bounded_object_q_interval_mul_ints_def,
+           bounded_int_fraction_interval_valid_def]
+  >> metis_tac
+       [bounded_int_fraction_min4_positive,
+        bounded_int_fraction_max4_positive,
+        bounded_int_fraction_min4_le_max4]
+QED
+
+Theorem bounded_object_q_interval_add_ints_valid:
+  bounded_int_fraction_interval_valid left /\
+  bounded_int_fraction_interval_valid right ==>
+  bounded_int_fraction_interval_valid
+    (bounded_object_q_interval_add_ints left right)
+Proof
+  PairCases_on `left`
+  >> PairCases_on `right`
+  >> fs
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_object_q_interval_add_ints_def,
+        bounded_int_fraction_interval_valid_def,
+        bounded_int_fraction_positive_def,
+        bounded_int_fraction_le_def]
+  >> strip_tac
+  >> conj_tac
+  >- fs [integerTheory.INT_MUL_SIGN_CASES]
+  >> conj_tac
+  >- fs [integerTheory.INT_MUL_SIGN_CASES]
+  >> metis_tac
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_int_fraction_interval_add_ordered]
+QED
+
+Theorem bounded_object_q_interval_products_sum_acc_ints_valid:
+  !object_inputs accumulator.
+    bounded_int_fraction_interval_valid accumulator /\
+    EVERY
+      (\object_input.
+         bounded_int_fraction_interval_valid (FST object_input) /\
+         bounded_int_fraction_interval_valid (SND object_input))
+      object_inputs ==>
+    bounded_int_fraction_interval_valid
+      (bounded_object_q_interval_products_sum_acc_ints
+        object_inputs accumulator)
+Proof
+  Induct
+  >> simp
+       [bounded_object_q_interval_products_sum_acc_ints_def,
+        bounded_object_q_interval_add_ints_valid,
+        bounded_object_q_interval_mul_ints_valid]
+QED
+
+Theorem bounded_fused_product_inputs_covers_object_q_ints_valid:
+  !products object_products.
+    LIST_REL bounded_fused_product_input_covers_object_q_ints
+      products object_products ==>
+    EVERY
+      (\object_input.
+         bounded_int_fraction_interval_valid (FST object_input) /\
+         bounded_int_fraction_interval_valid (SND object_input))
+      object_products
+Proof
+  Induct
+  >> Cases_on `object_products`
+  >> rw [LIST_REL_def]
+  >> Cases_on `h'`
+  >> Cases_on `h`
+  >> fs [bounded_fused_product_input_covers_object_q_ints_def]
+  >> metis_tac [bounded_interval64_covers_object_q_ints_valid]
+QED
+
+Theorem bounded_interval64_fused_products_covers_object_q_ints:
+  LIST_REL bounded_fused_product_input_covers_object_q_ints
+      products object_products /\
+  bounded_interval64_fused_products products = SOME result ==>
+  bounded_interval64_covers_object_q_ints result
+    (bounded_object_q_interval_products_sum_acc_ints
+      object_products ((0,1),(0,1)))
+Proof
+  strip_tac
+  >> imp_res_tac
+       bounded_fused_product_inputs_covers_object_q_ints_endpoints
+  >> `bounded_interval64_contains_int_fraction result
+        (bounded_int_fraction_sum_acc
+          (MAP bounded_object_q_interval_product_lower_ints object_products)
+          (0,1))` by
+       metis_tac [bounded_interval64_fused_products_contains_int_fraction]
+  >> `bounded_interval64_contains_int_fraction result
+        (bounded_int_fraction_sum_acc
+          (MAP bounded_object_q_interval_product_upper_ints object_products)
+          (0,1))` by
+       metis_tac [bounded_interval64_fused_products_contains_int_fraction]
+  >> `bounded_int_fraction_interval_valid
+        (bounded_object_q_interval_products_sum_acc_ints
+          object_products ((0,1),(0,1)))` by
+       (irule bounded_object_q_interval_products_sum_acc_ints_valid
+        >> simp [bounded_int_fraction_interval_valid_def,
+                 bounded_int_fraction_positive_def,
+                 bounded_int_fraction_le_def]
+        >> metis_tac
+             [bounded_fused_product_inputs_covers_object_q_ints_valid])
+  >> simp
+       [bounded_object_q_interval_products_sum_acc_ints_components]
+  >> irule bounded_interval64_contains_fraction_pair_covers
+  >> fs
+       [bounded_object_q_interval_products_sum_acc_ints_components,
+        bounded_int_fraction_interval_valid_def]
+QED
+
 val _ = export_theory ();
