@@ -148,4 +148,85 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Definition bounded_object_q_taylor_gradient_rows_complete_cv_def:
+  bounded_object_q_taylor_gradient_rows_complete_cv radii [] [] = [] /\
+  bounded_object_q_taylor_gradient_rows_complete_cv radii [] (_::_) = [] /\
+  bounded_object_q_taylor_gradient_rows_complete_cv radii (_::_) [] = [] /\
+  bounded_object_q_taylor_gradient_rows_complete_cv radii
+      (center_entry::center_rest) (hessian_row::hessian_rest) =
+    bounded_object_q_taylor_gradient_row_complete_cv center_entry
+      (bounded_object_q_dot_abs_upper_acc_cv radii hessian_row
+        (bounded_word64_object_q_cv 0w)) ::
+    bounded_object_q_taylor_gradient_rows_complete_cv radii
+      center_rest hessian_rest
+End
+
+Theorem bounded_taylor_gradient_rows_complete_covers_object_q:
+  !center_gradient object_center_gradient hessian_rows
+      object_hessian_rows result.
+    LIST_REL bounded_interval64_covers_object_q
+        center_gradient object_center_gradient /\
+    LIST_REL (LIST_REL bounded_interval64_covers_object_q)
+        hessian_rows object_hessian_rows /\
+    bounded_taylor_gradient_rows_complete
+        radii center_gradient hessian_rows = SOME result ==>
+    LIST_REL bounded_interval64_covers_object_q result
+      (bounded_object_q_taylor_gradient_rows_complete_cv
+        radii object_center_gradient object_hessian_rows)
+Proof
+  Induct_on `center_gradient`
+  >> Cases_on `object_center_gradient`
+  >> Cases_on `hessian_rows`
+  >> Cases_on `object_hessian_rows`
+  >> rw [compute_boundedTaylorGradientTheory.bounded_taylor_gradient_rows_complete_def,
+         bounded_object_q_taylor_gradient_rows_complete_cv_def, LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> metis_tac [bounded_taylor_gradient_row_complete_covers_object_q]
+QED
+
+Theorem bounded_hessian64_rows_list_rel_right:
+  bounded_hessian64_rows left = SOME left_rows /\
+  LIST_REL element_relation left right ==>
+  ?right_rows.
+    bounded_hessian64_rows right = SOME right_rows /\
+    LIST_REL (LIST_REL element_relation) left_rows right_rows
+Proof
+  rw [compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+QED
+
+Definition bounded_object_q_taylor_gradient_complete_cv_def:
+  bounded_object_q_taylor_gradient_complete_cv
+      radii center_gradient hessian =
+    case bounded_hessian64_rows hessian of
+    | NONE => []
+    | SOME rows =>
+        bounded_object_q_taylor_gradient_rows_complete_cv
+          radii center_gradient rows
+End
+
+Theorem bounded_taylor_gradient_complete_covers_object_q:
+  LIST_REL bounded_interval64_covers_object_q
+      center_gradient object_center_gradient /\
+  LIST_REL bounded_interval64_covers_object_q hessian object_hessian /\
+  bounded_taylor_gradient_complete radii center_gradient hessian =
+    SOME result ==>
+  LIST_REL bounded_interval64_covers_object_q result
+    (bounded_object_q_taylor_gradient_complete_cv
+      radii object_center_gradient object_hessian)
+Proof
+  rw [compute_boundedTaylorGradientTheory.bounded_taylor_gradient_complete_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_hessian64_rows_list_rel_right
+  >> rw [bounded_object_q_taylor_gradient_complete_cv_def]
+  >> gvs []
+  >> match_mp_tac bounded_taylor_gradient_rows_complete_covers_object_q
+  >> qexists_tac `center_gradient`
+  >> qexists_tac `x`
+  >> simp []
+QED
+
 val _ = export_theory ();
