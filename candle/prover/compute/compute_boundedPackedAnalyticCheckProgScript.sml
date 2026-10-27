@@ -30,5 +30,17 @@ val bounded_packed_chars_analytic_check_cells_v =
 val bounded_packed_chars_analytic_complete_check_v =
   translate
     compute_boundedPackedAnalyticCheckTheory.bounded_packed_chars_analytic_complete_check_def;
+val bounded_packed_analytic_input_valid_v =
+  translate
+    compute_boundedPackedAnalyticCheckTheory.bounded_packed_analytic_input_valid_def;
+val bounded_packed_chars_analytic_validated_eval_cell_v =
+  translate
+    compute_boundedPackedAnalyticCheckTheory.bounded_packed_chars_analytic_validated_eval_cell_def;
+val bounded_packed_chars_analytic_validated_check_cells_v =
+  translate
+    compute_boundedPackedAnalyticCheckTheory.bounded_packed_chars_analytic_validated_check_cells_def;
+val bounded_packed_chars_analytic_validated_complete_check_v =
+  translate
+    compute_boundedPackedAnalyticCheckTheory.bounded_packed_chars_analytic_validated_complete_check_def;
 
 val _ = export_theory ();

@@ -102,6 +102,128 @@ Definition bounded_packed_chars_analytic_complete_check_def:
             SOME cell_count
 End
 
+(*****************************************************************************
+ * Fail-closed production boundary.
+ *
+ * The legacy case-specific checker predates the exact object-q refinement
+ * and remains below as a regression oracle.  New plan-driven calls use this
+ * wrapper, which authenticates the six-dimensional Taylor shape and the
+ * endpoint ordering needed by the semantic theorem before evaluation.
+ *****************************************************************************)
+
+Definition bounded_packed_analytic_input_valid_def:
+  bounded_packed_analytic_input_valid
+      (box_environment,center_environment,radii) <=>
+    LENGTH box_environment = 6 /\
+    LENGTH center_environment = 6 /\
+    LENGTH radii = 6 /\
+    EVERY bounded_interval64_valid box_environment /\
+    EVERY bounded_interval64_valid center_environment
+End
+
+Definition bounded_packed_chars_analytic_validated_eval_cell_def:
+  bounded_packed_chars_analytic_validated_eval_cell program
+      ((box_environment,center_environment,radii),certificates) <=>
+    bounded_packed_analytic_input_valid
+      (box_environment,center_environment,radii) /\
+    bounded_packed_chars_analytic_eval_cell program
+      ((box_environment,center_environment,radii),certificates)
+End
+
+Definition bounded_packed_chars_analytic_validated_check_cells_def:
+  bounded_packed_chars_analytic_validated_check_cells
+      program dimension certificate_count 0 bytes count =
+      (if bytes = [] then SOME count else NONE) /\
+  bounded_packed_chars_analytic_validated_check_cells
+      program dimension certificate_count (SUC remaining) bytes count =
+    case bounded_packed_chars_analytic_cell
+      dimension certificate_count bytes of
+    | NONE => NONE
+    | SOME (cell,rest) =>
+        if bounded_packed_chars_analytic_validated_eval_cell program cell then
+          bounded_packed_chars_analytic_validated_check_cells
+            program dimension certificate_count remaining rest (SUC count)
+        else NONE
+End
+
+Definition bounded_packed_chars_analytic_validated_complete_check_def:
+  bounded_packed_chars_analytic_validated_complete_check
+      program dimension cell_count certificate_count bytes <=>
+    dimension = 6 /\
+    cell_count < 4294967296 /\
+    certificate_count < 4294967296 /\
+    case bounded_packed_chars_analytic_header
+      ((n2w cell_count):word64) ((n2w certificate_count):word64) bytes of
+    | NONE => F
+    | SOME rest =>
+        bounded_packed_chars_analytic_validated_check_cells
+          program dimension certificate_count cell_count rest 0 =
+            SOME cell_count
+End
+
+Theorem bounded_packed_chars_analytic_validated_eval_cell_contract:
+  bounded_packed_chars_analytic_validated_eval_cell program
+      ((box_environment,center_environment,radii),certificates) ==>
+  LENGTH box_environment = 6 /\
+  LENGTH center_environment = 6 /\
+  LENGTH radii = 6 /\
+  EVERY bounded_interval64_valid box_environment /\
+  EVERY bounded_interval64_valid center_environment /\
+  bounded_packed_chars_analytic_eval_cell program
+      ((box_environment,center_environment,radii),certificates)
+Proof
+  simp [bounded_packed_chars_analytic_validated_eval_cell_def,
+        bounded_packed_analytic_input_valid_def]
+QED
+
+Theorem bounded_packed_analytic_input_valid_rejects_invalid_box_interval:
+  ~bounded_interval64_valid interval ==>
+  ~bounded_packed_analytic_input_valid
+    (interval::box_environment,center_environment,radii)
+Proof
+  simp [bounded_packed_analytic_input_valid_def]
+QED
+
+Theorem bounded_packed_analytic_input_valid_rejects_invalid_center_interval:
+  ~bounded_interval64_valid interval ==>
+  ~bounded_packed_analytic_input_valid
+    (box_environment,interval::center_environment,radii)
+Proof
+  simp [bounded_packed_analytic_input_valid_def]
+QED
+
+Theorem bounded_packed_chars_analytic_validated_check_cells_imp:
+  !remaining bytes count result.
+    bounded_packed_chars_analytic_validated_check_cells
+      program dimension certificate_count remaining bytes count =
+        SOME result ==>
+    bounded_packed_chars_analytic_check_cells
+      program dimension certificate_count remaining bytes count = SOME result
+Proof
+  Induct
+  >> simp [bounded_packed_chars_analytic_validated_check_cells_def,
+           bounded_packed_chars_analytic_check_cells_def]
+  >> rpt gen_tac
+  >> TOP_CASE_TAC
+  >> simp []
+  >> PairCases_on `x`
+  >> simp [bounded_packed_chars_analytic_validated_eval_cell_def]
+QED
+
+Theorem bounded_packed_chars_analytic_validated_complete_check_imp:
+  bounded_packed_chars_analytic_validated_complete_check
+      program dimension cell_count certificate_count bytes ==>
+  bounded_packed_chars_analytic_complete_check
+      program dimension cell_count certificate_count bytes
+Proof
+  rw [bounded_packed_chars_analytic_validated_complete_check_def,
+      bounded_packed_chars_analytic_complete_check_def]
+  >> every_case_tac
+  >> gvs []
+  >> metis_tac
+       [bounded_packed_chars_analytic_validated_check_cells_imp]
+QED
+
 Theorem bounded_packed_chars_analytic_input_case16594:
   bounded_packed_chars_analytic_input 6 bytes =
     bounded_packed_chars_case16594_input bytes

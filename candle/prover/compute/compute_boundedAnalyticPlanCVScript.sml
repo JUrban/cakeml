@@ -44,12 +44,12 @@ Definition bounded_analytic_program_plan_check_def:
     case bounded_analytic_plan_metadata_of_cv metadata of
     | NONE => F
     | SOME (BoundedAnalyticPlanMetadata dimension cell_count) =>
-        0 < dimension /\ dimension < 4294967296 /\
+        dimension = 6 /\
         0 < cell_count /\ cell_count < 4294967296 /\
         case bounded_analytic_compile_program dimension program of
         | NONE => F
         | SOME prepared_program =>
-            bounded_packed_chars_analytic_complete_check
+            bounded_packed_chars_analytic_validated_complete_check
               prepared_program dimension cell_count
               (bounded_analytic64_certificate_count prepared_program) bytes
 End
@@ -87,7 +87,9 @@ Theorem bounded_analytic_program_plan_rejects_invalid_metadata:
       (Pair (Num 1) (Pair (Num 6) (Num 0))) bytes /\
   ~bounded_analytic_program_plan_check bounded_case16594_program
       (Pair (Num 1)
-        (Pair (Num 4294967296) (Num 875))) bytes
+        (Pair (Num 4294967296) (Num 875))) bytes /\
+  ~bounded_analytic_program_plan_check bounded_case16594_program
+      (Pair (Num 1) (Pair (Num 7) (Num 875))) bytes
 Proof
   simp [bounded_analytic_program_plan_check_def,
         bounded_analytic_plan_metadata_of_cv_def]
@@ -100,22 +102,44 @@ Proof
   EVAL_TAC
 QED
 
-Theorem bounded_analytic_program_plan_check_case16594:
+Theorem bounded_analytic_program_plan_check_case16594_validated:
   bounded_analytic_program_plan_check bounded_case16594_program
       bounded_case16594_plan_metadata_cv bytes <=>
-    bounded_packed_chars_case16594_complete_check bytes
+    bounded_packed_chars_analytic_validated_complete_check
+      bounded_case16594_prepared_program 6 875 31 bytes
 Proof
   simp [bounded_analytic_program_plan_check_def,
         bounded_case16594_plan_metadata_cv_def,
         bounded_analytic_plan_metadata_of_cv_def,
         bounded_analytic_compile_program_case16594,
-        bounded_analytic64_certificate_count_case16594,
-        bounded_packed_chars_analytic_complete_check_case16594]
+        bounded_analytic64_certificate_count_case16594]
+QED
+
+Theorem bounded_analytic_program_plan_check_case16594:
+  bounded_analytic_program_plan_check bounded_case16594_program
+      bounded_case16594_plan_metadata_cv bytes ==>
+    bounded_packed_chars_case16594_complete_check bytes
+Proof
+  rw [bounded_analytic_program_plan_check_case16594_validated]
+  >> imp_res_tac
+       compute_boundedPackedAnalyticCheckTheory.bounded_packed_chars_analytic_validated_complete_check_imp
+  >> fs [compute_boundedPackedAnalyticCheckTheory.bounded_packed_chars_analytic_complete_check_case16594]
+QED
+
+Theorem bounded_analytic_source_plan_check_case16594_validated:
+  bounded_analytic_source_plan_check bounded_case16594_source_program_cv
+      bounded_case16594_plan_metadata_cv bytes <=>
+    bounded_packed_chars_analytic_validated_complete_check
+      bounded_case16594_prepared_program 6 875 31 bytes
+Proof
+  simp [bounded_analytic_source_plan_check_def,
+        compute_boundedCase16594SourceCVDataTheory.bounded_case16594_source_program_cv_decodes,
+        bounded_analytic_program_plan_check_case16594_validated]
 QED
 
 Theorem bounded_analytic_source_plan_check_case16594:
   bounded_analytic_source_plan_check bounded_case16594_source_program_cv
-      bounded_case16594_plan_metadata_cv bytes <=>
+      bounded_case16594_plan_metadata_cv bytes ==>
     bounded_packed_chars_case16594_complete_check bytes
 Proof
   simp [bounded_analytic_source_plan_check_def,
