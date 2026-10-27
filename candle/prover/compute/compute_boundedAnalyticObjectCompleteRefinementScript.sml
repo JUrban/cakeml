@@ -1013,4 +1013,214 @@ Proof
   >> simp [bounded192_zero_covers_object_q_zero]
 QED
 
+Theorem bounded_completion_scale41_num_identity:
+  high < 18446744073709551616 /\
+  low < 18446744073709551616 ==>
+  340282366920938463463374607431768211456 *
+      (high DIV 8388608) +
+    ((2199023255552 * low) MOD 18446744073709551616 +
+     18446744073709551616 *
+       (((2199023255552 * high) MOD 18446744073709551616 +
+         low DIV 8388608) MOD 18446744073709551616)) =
+  2199023255552 *
+    (18446744073709551616 * high + low)
+Proof
+  strip_tac
+  >> qabbrev_tac `high_q = high DIV 8388608`
+  >> qabbrev_tac `high_r = high MOD 8388608`
+  >> qabbrev_tac `low_q = low DIV 8388608`
+  >> qabbrev_tac `low_r = low MOD 8388608`
+  >> `high_r < 8388608 /\ low_r < 8388608` by
+       (qunabbrev_tac `high_r`
+        >> qunabbrev_tac `low_r`
+        >> simp [])
+  >> `high_q < 2199023255552 /\ low_q < 2199023255552` by
+       (qunabbrev_tac `high_q`
+        >> qunabbrev_tac `low_q`
+        >> simp [DIV_LT_X])
+  >> `high_r + 8388608 * high_q = high /\
+      low_r + 8388608 * low_q = low` by
+       (conj_tac
+        >> qunabbrev_tac `high_r`
+        >> qunabbrev_tac `high_q`
+        >> qunabbrev_tac `low_r`
+        >> qunabbrev_tac `low_q`
+        >> irule compute_boundedTheory.bounded_division_reconstruct
+        >> simp [])
+  >> `2199023255552 * high =
+        high_q * 18446744073709551616 +
+          2199023255552 * high_r /\
+      2199023255552 * low =
+        low_q * 18446744073709551616 +
+          2199023255552 * low_r` by intLib.ARITH_TAC
+  >> `2199023255552 * high_r < 18446744073709551616 /\
+      2199023255552 * low_r < 18446744073709551616 /\
+      2199023255552 * high_r + low_q < 18446744073709551616` by
+       intLib.ARITH_TAC
+  >> `(2199023255552 * high) MOD 18446744073709551616 =
+        2199023255552 * high_r` by
+       (qpat_x_assum `2199023255552 * high = _`
+          (fn th => once_rewrite_tac [th])
+        >> irule MOD_UNIQUE
+        >> qexists_tac `high_q`
+        >> simp [])
+  >> `(2199023255552 * low) MOD 18446744073709551616 =
+        2199023255552 * low_r` by
+       (qpat_x_assum `2199023255552 * low = _`
+          (fn th => once_rewrite_tac [th])
+        >> irule MOD_UNIQUE
+        >> qexists_tac `low_q`
+        >> simp [])
+  >> asm_rewrite_tac []
+  >> simp [LESS_MOD]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_completion_scale41_value:
+  bounded192_to_num (bounded128_scale41 value) =
+    2199023255552 * bounded128_to_num value
+Proof
+  Cases_on `value`
+  >> rename1 `Bounded128 high low`
+  >> Cases_on `high`
+  >> Cases_on `low`
+  >> simp [compute_boundedWideSignedTheory.bounded128_scale41_def,
+           compute_boundedTheory.bounded128_to_num_def,
+           compute_boundedTheory.bounded192_to_num_def,
+           compute_boundedTheory.bounded_word_base_eq,
+           w2n_lsr, word_lsl_n2w, word_add_n2w, dimword_64]
+  >> fs [dimword_64]
+  >> `((n2w n'):word64) >>> 23 = n2w (n' DIV 8388608)` by
+       (mp_tac
+          (Q.SPECL [`n'`, `23`]
+            (n2w_DIV |> INST_TYPE [alpha |-> ``:64``]))
+        >> simp [dimword_64])
+  >> asm_rewrite_tac []
+  >> simp [word_add_n2w, dimword_64]
+  >> assume_tac
+       (Q.INST [`high` |-> `n`, `low` |-> `n'`]
+          bounded_completion_scale41_num_identity)
+  >> fs []
+QED
+
+Definition bounded_object_q_taylor_error_cv_def:
+  bounded_object_q_taylor_error_cv radii center_gradient weights hessian =
+    let linear =
+      bounded_object_q_dot_abs_upper_acc_cv radii center_gradient
+        (bounded_word64_object_q_cv 0w) in
+    let quadratic =
+      bounded_object_q_quadratic_abs_upper_acc_cv weights hessian
+        (bounded_word64_object_q_cv 0w) in
+      bounded_object_q_add_cv
+        (bounded_object_q_add_cv linear linear) quadratic
+End
+
+Theorem bounded128_scale41_upper_covers_int_fraction_double:
+  bounded128_upper_covers_int_fraction source
+      (numerator,denominator) ==>
+  bounded192_upper_covers_int_fraction (bounded128_scale41 source)
+    (bounded_int_fraction_add
+      (numerator,denominator) (numerator,denominator))
+Proof
+  rw [bounded128_upper_covers_int_fraction_def,
+      bounded192_upper_covers_int_fraction_def,
+      compute_boundedAnalyticObjectFusedProductRefinementTheory.bounded_int_fraction_add_def,
+      bounded_completion_scale41_value]
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> simp [])
+  >> `((&2199023255552:int) * denominator) *
+        ((&1208925819614629174706176:int) * numerator) <=
+      ((&2199023255552:int) * denominator) *
+        (denominator * &(bounded128_to_num source))` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> simp [])
+  >> PURE_REWRITE_TAC [GSYM integerTheory.INT_OF_NUM_MUL]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded128_scale41_upper_covers_object_q_double:
+  bounded128_upper_covers_object_q source object ==>
+  bounded192_upper_covers_object_q (bounded128_scale41 source)
+    (bounded_object_q_add_cv object object)
+Proof
+  strip_tac
+  >> Cases_on `bounded_object_q_ints object`
+  >> fs [bounded128_upper_covers_object_q_def]
+  >> PairCases_on `x`
+  >> `bounded_object_q_ints (bounded_object_q_add_cv object object) =
+      SOME (x0 * x1 + x0 * x1,x1 * x1)` by
+       (irule
+          compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_add_cv_decodes
+        >> simp [])
+  >> rw [bounded192_upper_covers_object_q_def]
+  >> gvs []
+  >> match_mp_tac
+       (Q.INST
+         [`source` |-> `source`, `numerator` |-> `x0`,
+          `denominator` |-> `x1`]
+         (SIMP_RULE (srw_ss())
+           [compute_boundedAnalyticObjectFusedProductRefinementTheory.bounded_int_fraction_add_def]
+           bounded128_scale41_upper_covers_int_fraction_double))
+  >> simp []
+QED
+
+Theorem bounded_taylor_error_covers_object_q:
+  LIST_REL bounded_interval64_covers_object_q
+      center_gradient object_center_gradient /\
+  LIST_REL bounded_interval64_covers_object_q
+      hessian object_hessian /\
+  bounded_taylor_error radii center_gradient hessian = SOME result ==>
+  ?weights.
+    bounded_taylor_radius_pairs radii = SOME weights /\
+    bounded192_upper_covers_object_q result
+      (bounded_object_q_taylor_error_cv
+        radii object_center_gradient weights object_hessian)
+Proof
+  rw [compute_boundedTaylorCompleteTheory.bounded_taylor_error_def]
+  >> every_case_tac
+  >> gvs []
+  >> rename1
+       `bounded192_add_words (bounded128_scale41 linear) quadratic =
+          SOME result`
+  >> `bounded128_upper_covers_object_q linear
+        (bounded_object_q_dot_abs_upper_acc_cv radii
+          object_center_gradient (bounded_word64_object_q_cv 0w))` by
+       (match_mp_tac
+          (Q.INST
+            [`entries` |-> `center_gradient`,
+             `object_entries` |-> `object_center_gradient`,
+             `radii` |-> `radii`, `result` |-> `linear`]
+            bounded_dot_abs_upper_covers_object_q)
+        >> simp [])
+  >> mp_tac
+       (Q.INST
+         [`hessian` |-> `hessian`,
+          `object_hessian` |-> `object_hessian`,
+          `radii` |-> `radii`, `result` |-> `quadratic`]
+         bounded_quadratic_abs_upper_covers_object_q)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `weights` strip_assume_tac)
+  >> qexists_tac `weights`
+  >> simp [bounded_object_q_taylor_error_cv_def, LET_THM]
+  >> match_mp_tac
+       (Q.INST
+         [`left` |-> `bounded128_scale41 linear`,
+          `right` |-> `quadratic`,
+          `result` |-> `result`,
+          `left_object` |->
+            `bounded_object_q_add_cv
+              (bounded_object_q_dot_abs_upper_acc_cv radii
+                object_center_gradient (bounded_word64_object_q_cv 0w))
+              (bounded_object_q_dot_abs_upper_acc_cv radii
+                object_center_gradient (bounded_word64_object_q_cv 0w))`,
+          `right_object` |->
+            `bounded_object_q_quadratic_abs_upper_acc_cv weights
+              object_hessian (bounded_word64_object_q_cv 0w)`]
+         bounded192_add_upper_covers_object_q)
+  >> simp [bounded128_scale41_upper_covers_object_q_double]
+QED
+
 val _ = export_theory ();
