@@ -30,6 +30,12 @@ val bounded_packed_chars_analytic_check_cells_v =
 val bounded_packed_chars_analytic_complete_check_v =
   translate
     compute_boundedPackedAnalyticCheckTheory.bounded_packed_chars_analytic_complete_check_def;
+val bounded_packed_analytic_radius_covers_v =
+  translate
+    compute_boundedPackedAnalyticCheckTheory.bounded_packed_analytic_radius_covers_def;
+val bounded_packed_analytic_geometry_ok_v =
+  translate
+    compute_boundedPackedAnalyticCheckTheory.bounded_packed_analytic_geometry_ok_def;
 val bounded_packed_analytic_input_valid_v =
   translate
     compute_boundedPackedAnalyticCheckTheory.bounded_packed_analytic_input_valid_def;

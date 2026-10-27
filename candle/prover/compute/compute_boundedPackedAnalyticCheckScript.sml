@@ -12,7 +12,7 @@ Ancestors
   compute_boundedCase16594PreparedPlan
   compute_boundedPackedSequentialCase16594Check
 Libs
-  bossLib preamble
+  bossLib preamble intLib
 
 Definition bounded_packed_chars_analytic_input_def:
   bounded_packed_chars_analytic_input dimension bytes =
@@ -107,9 +107,109 @@ End
  *
  * The legacy case-specific checker predates the exact object-q refinement
  * and remains below as a regression oracle.  New plan-driven calls use this
- * wrapper, which authenticates the six-dimensional Taylor shape and the
- * endpoint ordering needed by the semantic theorem before evaluation.
+ * wrapper, which authenticates the six-dimensional Taylor shape, endpoint
+ * ordering, and the relationship between the supplied center box, Taylor
+ * radii, and whole-box environment before evaluation.
  *****************************************************************************)
+
+(* The center environment is an interval rather than a pretrusted point.
+ * Every center interval must lie inside the whole-box environment, and the
+ * box must be covered by expanding the center interval by the supplied
+ * radius.  This is the generic counterpart of the older case-10173 geometry
+ * guard; keeping it at the packed input boundary prevents an untrusted
+ * producer from pairing a successful center calculation with unrelated box
+ * or radius data. *)
+Definition bounded_packed_analytic_radius_covers_def:
+  bounded_packed_analytic_radius_covers box center radius =
+    if ~bounded_interval64_valid box \/
+       ~bounded_interval64_valid center
+    then F
+    else
+      case bounded_signed64_add (bounded_interval64_lower center)
+        (BoundedSigned64 T radius) of
+      | NONE => F
+      | SOME left_extent =>
+        case bounded_signed64_add (bounded_interval64_upper center)
+          (BoundedSigned64 F radius) of
+        | NONE => F
+        | SOME right_extent =>
+            bounded_signed64_le (bounded_interval64_lower box)
+              (bounded_interval64_lower center) /\
+            bounded_signed64_le (bounded_interval64_upper center)
+              (bounded_interval64_upper box) /\
+            bounded_signed64_le left_extent
+              (bounded_interval64_lower box) /\
+            bounded_signed64_le (bounded_interval64_upper box)
+              right_extent
+End
+
+Definition bounded_packed_analytic_geometry_ok_def:
+  bounded_packed_analytic_geometry_ok [] [] [] = T /\
+  bounded_packed_analytic_geometry_ok (box::boxes) (center::centers)
+      (radius::radii) =
+    (bounded_packed_analytic_radius_covers box center radius /\
+     bounded_packed_analytic_geometry_ok boxes centers radii) /\
+  bounded_packed_analytic_geometry_ok _ _ _ = F
+End
+
+(* Mathematical form of the word-level guard.  Later analytic handoff proofs
+ * can work with exact signed integers and need not reason about the branch
+ * structure of checked word addition again. *)
+Theorem bounded_packed_analytic_radius_covers_int:
+  bounded_packed_analytic_radius_covers box center radius ==>
+  bounded_interval64_valid box /\
+  bounded_interval64_valid center /\
+  bounded_signed64_to_int (bounded_interval64_lower box) <=
+    bounded_signed64_to_int (bounded_interval64_lower center) /\
+  bounded_signed64_to_int (bounded_interval64_upper center) <=
+    bounded_signed64_to_int (bounded_interval64_upper box) /\
+  bounded_signed64_to_int (bounded_interval64_lower center) -
+      &(w2n radius) <=
+    bounded_signed64_to_int (bounded_interval64_lower box) /\
+  bounded_signed64_to_int (bounded_interval64_upper box) <=
+    bounded_signed64_to_int (bounded_interval64_upper center) +
+      &(w2n radius)
+Proof
+  rw [bounded_packed_analytic_radius_covers_def]
+  >> every_case_tac
+  >> gvs
+       [compute_boundedSignedEndpointTheory.bounded_signed64_le_correct]
+  >> imp_res_tac
+       compute_boundedSignedEndpointAddTheory.bounded_signed64_add_value
+  >> fs [compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def]
+  >> intLib.ARITH_TAC
+QED
+
+Definition bounded_packed_analytic_int_geometry_def:
+  bounded_packed_analytic_int_geometry [] [] [] = T /\
+  bounded_packed_analytic_int_geometry (box::boxes) (center::centers)
+      (radius::radii) =
+    (bounded_signed64_to_int (bounded_interval64_lower box) <=
+       bounded_signed64_to_int (bounded_interval64_lower center) /\
+     bounded_signed64_to_int (bounded_interval64_upper center) <=
+       bounded_signed64_to_int (bounded_interval64_upper box) /\
+     bounded_signed64_to_int (bounded_interval64_lower center) -
+         &(w2n radius) <=
+       bounded_signed64_to_int (bounded_interval64_lower box) /\
+     bounded_signed64_to_int (bounded_interval64_upper box) <=
+       bounded_signed64_to_int (bounded_interval64_upper center) +
+         &(w2n radius) /\
+     bounded_packed_analytic_int_geometry boxes centers radii) /\
+  bounded_packed_analytic_int_geometry _ _ _ = F
+End
+
+Theorem bounded_packed_analytic_geometry_ok_int:
+  !boxes centers radii.
+    bounded_packed_analytic_geometry_ok boxes centers radii ==>
+    bounded_packed_analytic_int_geometry boxes centers radii
+Proof
+  Induct
+  >> Cases_on `centers`
+  >> Cases_on `radii`
+  >> simp [bounded_packed_analytic_geometry_ok_def,
+           bounded_packed_analytic_int_geometry_def]
+  >> metis_tac [bounded_packed_analytic_radius_covers_int]
+QED
 
 Definition bounded_packed_analytic_input_valid_def:
   bounded_packed_analytic_input_valid
@@ -118,7 +218,9 @@ Definition bounded_packed_analytic_input_valid_def:
     LENGTH center_environment = 6 /\
     LENGTH radii = 6 /\
     EVERY bounded_interval64_valid box_environment /\
-    EVERY bounded_interval64_valid center_environment
+    EVERY bounded_interval64_valid center_environment /\
+    bounded_packed_analytic_geometry_ok
+      box_environment center_environment radii
 End
 
 Definition bounded_packed_chars_analytic_validated_eval_cell_def:
@@ -169,11 +271,22 @@ Theorem bounded_packed_chars_analytic_validated_eval_cell_contract:
   LENGTH radii = 6 /\
   EVERY bounded_interval64_valid box_environment /\
   EVERY bounded_interval64_valid center_environment /\
+  bounded_packed_analytic_geometry_ok
+    box_environment center_environment radii /\
   bounded_packed_chars_analytic_eval_cell program
       ((box_environment,center_environment,radii),certificates)
 Proof
   simp [bounded_packed_chars_analytic_validated_eval_cell_def,
         bounded_packed_analytic_input_valid_def]
+QED
+
+Theorem bounded_packed_analytic_input_valid_rejects_uncovered_geometry:
+  ~bounded_packed_analytic_radius_covers box center radius ==>
+  ~bounded_packed_analytic_input_valid
+    (box::boxes,center::centers,radius::radii)
+Proof
+  simp [bounded_packed_analytic_input_valid_def,
+        bounded_packed_analytic_geometry_ok_def]
 QED
 
 Theorem bounded_packed_analytic_input_valid_rejects_invalid_box_interval:

@@ -88,30 +88,9 @@ Theorem bounded_packed_chars_analytic_validated_eval_cell_refines_object_q:
     source_program prepared_program /\
   bounded_packed_chars_analytic_validated_eval_cell prepared_program
     ((box_environment,center_environment,radii),certificates) ==>
+  bounded_packed_analytic_int_geometry
+    box_environment center_environment radii /\
   ?weights word_result object_result.
-    bounded_taylor_radius_pairs radii = SOME weights /\
-    bounded_analytic64_program_eval radii center_environment box_environment
-      prepared_program certificates = SOME word_result /\
-    bounded_packed_analytic_result_accepts word_result /\
-    bounded_object_q_analytic_run radii weights
-      (MAP bounded_interval64_object_q_cv center_environment)
-      (MAP bounded_interval64_object_q_cv box_environment)
-      source_program prepared_program ([],certificates)
-      ([object_result],[]) /\
-    bounded_taylor64_covers_object_q word_result object_result
-Proof
-  strip_tac
-  >> imp_res_tac
-       compute_boundedPackedAnalyticCheckTheory.bounded_packed_chars_analytic_validated_eval_cell_contract
-  >> imp_res_tac bounded_taylor_radius_pairs_length_six
-  >> imp_res_tac bounded_packed_chars_analytic_eval_cell_refines_object_q
-  >> metis_tac []
-QED
-
-Definition bounded_packed_analytic_object_cell_def:
-  bounded_packed_analytic_object_cell source_program prepared_program
-      ((box_environment,center_environment,radii),certificates) <=>
-    ?weights word_result object_result.
       bounded_taylor_radius_pairs radii = SOME weights /\
       bounded_analytic64_program_eval radii center_environment box_environment
         prepared_program certificates = SOME word_result /\
@@ -122,6 +101,33 @@ Definition bounded_packed_analytic_object_cell_def:
         source_program prepared_program ([],certificates)
         ([object_result],[]) /\
       bounded_taylor64_covers_object_q word_result object_result
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedPackedAnalyticCheckTheory.bounded_packed_chars_analytic_validated_eval_cell_contract
+  >> imp_res_tac
+       compute_boundedPackedAnalyticCheckTheory.bounded_packed_analytic_geometry_ok_int
+  >> imp_res_tac bounded_taylor_radius_pairs_length_six
+  >> imp_res_tac bounded_packed_chars_analytic_eval_cell_refines_object_q
+  >> metis_tac []
+QED
+
+Definition bounded_packed_analytic_object_cell_def:
+  bounded_packed_analytic_object_cell source_program prepared_program
+      ((box_environment,center_environment,radii),certificates) <=>
+    bounded_packed_analytic_int_geometry
+      box_environment center_environment radii /\
+    ?weights word_result object_result.
+        bounded_taylor_radius_pairs radii = SOME weights /\
+        bounded_analytic64_program_eval radii center_environment box_environment
+          prepared_program certificates = SOME word_result /\
+        bounded_packed_analytic_result_accepts word_result /\
+        bounded_object_q_analytic_run radii weights
+          (MAP bounded_interval64_object_q_cv center_environment)
+          (MAP bounded_interval64_object_q_cv box_environment)
+          source_program prepared_program ([],certificates)
+          ([object_result],[]) /\
+        bounded_taylor64_covers_object_q word_result object_result
 End
 
 Definition bounded_packed_chars_analytic_object_cells_def:
