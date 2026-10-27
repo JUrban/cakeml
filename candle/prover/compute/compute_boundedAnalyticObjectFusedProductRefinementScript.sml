@@ -775,4 +775,155 @@ Proof
         bounded_int_fraction_interval_valid_def]
 QED
 
+Definition bounded_fused_product_input_covers_object_q_def:
+  bounded_fused_product_input_covers_object_q
+      (left,right) (left_object_interval,right_object_interval) <=>
+    bounded_interval64_covers_object_q
+      left left_object_interval /\
+    bounded_interval64_covers_object_q
+      right right_object_interval
+End
+
+Definition bounded_object_q_product_input_decodes_def:
+  bounded_object_q_product_input_decodes
+      (left_object_interval,right_object_interval)
+      (left_object_ints,right_object_ints) <=>
+    bounded_object_q_interval_ints left_object_interval =
+      SOME left_object_ints /\
+    bounded_object_q_interval_ints right_object_interval =
+      SOME right_object_ints
+End
+
+Theorem bounded_fused_product_input_covers_object_q_witness:
+  bounded_fused_product_input_covers_object_q input object_input ==>
+  ?object_input_ints.
+    bounded_fused_product_input_covers_object_q_ints
+      input object_input_ints /\
+    bounded_object_q_product_input_decodes
+      object_input object_input_ints
+Proof
+  PairCases_on `input`
+  >> PairCases_on `object_input`
+  >> rw
+       [bounded_fused_product_input_covers_object_q_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+  >> every_case_tac
+  >> gvs []
+  >> qexists_tac `(x',x)`
+  >> simp
+       [bounded_fused_product_input_covers_object_q_ints_def,
+        bounded_object_q_product_input_decodes_def]
+QED
+
+Theorem bounded_fused_product_inputs_covers_object_q_witness:
+  !products object_products.
+    LIST_REL bounded_fused_product_input_covers_object_q
+      products object_products ==>
+    ?object_product_ints.
+      LIST_REL bounded_fused_product_input_covers_object_q_ints
+        products object_product_ints /\
+      LIST_REL bounded_object_q_product_input_decodes
+        object_products object_product_ints
+Proof
+  Induct
+  >> Cases_on `object_products`
+  >> simp [LIST_REL_def]
+  >> metis_tac [bounded_fused_product_input_covers_object_q_witness]
+QED
+
+Definition bounded_object_q_interval_products_sum_acc_cv_def:
+  bounded_object_q_interval_products_sum_acc_cv [] accumulator =
+      accumulator /\
+  bounded_object_q_interval_products_sum_acc_cv
+      (object_input::object_inputs) accumulator =
+    bounded_object_q_interval_products_sum_acc_cv object_inputs
+      (bounded_object_q_interval_add_cv accumulator
+        (bounded_object_q_interval_mul_cv
+          (FST object_input) (SND object_input)))
+End
+
+Theorem bounded_object_q_interval_products_sum_acc_cv_decodes:
+  !object_inputs object_input_ints accumulator accumulator_ints.
+    LIST_REL bounded_object_q_product_input_decodes
+      object_inputs object_input_ints /\
+    bounded_object_q_interval_ints accumulator = SOME accumulator_ints ==>
+    bounded_object_q_interval_ints
+      (bounded_object_q_interval_products_sum_acc_cv
+        object_inputs accumulator) =
+    SOME
+      (bounded_object_q_interval_products_sum_acc_ints
+        object_input_ints accumulator_ints)
+Proof
+  Induct
+  >> Cases_on `object_input_ints`
+  >> rw
+       [LIST_REL_def,
+        bounded_object_q_interval_products_sum_acc_cv_def,
+        bounded_object_q_interval_products_sum_acc_ints_def]
+  >> Cases_on `h'`
+  >> Cases_on `h`
+  >> fs [bounded_object_q_product_input_decodes_def]
+  >> `bounded_object_q_interval_ints
+        (bounded_object_q_interval_mul_cv q r) =
+      SOME (bounded_object_q_interval_mul_ints q' r')` by
+       (irule bounded_object_q_interval_mul_cv_decodes
+        >> simp [])
+  >> `bounded_object_q_interval_ints
+        (bounded_object_q_interval_add_cv accumulator
+          (bounded_object_q_interval_mul_cv q r)) =
+      SOME
+        (bounded_object_q_interval_add_ints accumulator_ints
+          (bounded_object_q_interval_mul_ints q' r'))` by
+       (irule
+          compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_interval_add_cv_decodes
+        >> simp [])
+  >> qpat_x_assum
+       `!object_input_ints accumulator accumulator_ints. _`
+       (mp_tac o Q.SPECL
+          [`t`,
+           `bounded_object_q_interval_add_cv accumulator
+              (bounded_object_q_interval_mul_cv q r)`,
+           `bounded_object_q_interval_add_ints accumulator_ints
+              (bounded_object_q_interval_mul_ints q' r')`])
+  >> simp []
+QED
+
+Theorem bounded_analytic_source_q_zero_interval_cv_decodes:
+  bounded_object_q_interval_ints
+      (bounded_analytic_source_q_interval_cv 0 0 0) =
+    SOME ((0,1),(0,1))
+Proof
+  simp
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_analytic_source_q_interval_cv_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_q_interval_ints_def]
+QED
+
+Theorem bounded_interval64_fused_products_covers_object_q:
+  LIST_REL bounded_fused_product_input_covers_object_q
+      products object_products /\
+  bounded_interval64_fused_products products = SOME result ==>
+  bounded_interval64_covers_object_q result
+    (bounded_object_q_interval_products_sum_acc_cv object_products
+      (bounded_analytic_source_q_interval_cv 0 0 0))
+Proof
+  strip_tac
+  >> imp_res_tac
+       bounded_fused_product_inputs_covers_object_q_witness
+  >> `bounded_object_q_interval_ints
+        (bounded_object_q_interval_products_sum_acc_cv object_products
+          (bounded_analytic_source_q_interval_cv 0 0 0)) =
+      SOME
+        (bounded_object_q_interval_products_sum_acc_ints
+          object_product_ints ((0,1),(0,1)))` by
+       (irule bounded_object_q_interval_products_sum_acc_cv_decodes
+        >> simp [bounded_analytic_source_q_zero_interval_cv_decodes])
+  >> `bounded_interval64_covers_object_q_ints result
+        (bounded_object_q_interval_products_sum_acc_ints
+          object_product_ints ((0,1),(0,1)))` by
+       metis_tac
+         [bounded_interval64_fused_products_covers_object_q_ints]
+  >> simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+QED
+
 val _ = export_theory ();
