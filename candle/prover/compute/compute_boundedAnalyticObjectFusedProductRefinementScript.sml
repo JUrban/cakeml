@@ -926,4 +926,218 @@ Proof
        [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
 QED
 
+Definition bounded_object_q_interval_fused_scale_add_cv_def:
+  bounded_object_q_interval_fused_scale_add_cv
+      left_scale [] right_scale [] = [] /\
+  bounded_object_q_interval_fused_scale_add_cv
+      left_scale (left::left_rest) right_scale (right::right_rest) =
+    bounded_object_q_interval_products_sum_acc_cv
+      [(left_scale,left);(right_scale,right)]
+      (bounded_analytic_source_q_interval_cv 0 0 0) ::
+    bounded_object_q_interval_fused_scale_add_cv
+      left_scale left_rest right_scale right_rest /\
+  bounded_object_q_interval_fused_scale_add_cv
+      left_scale _ right_scale _ = []
+End
+
+Theorem bounded_interval64_fused_scale_add_covers_object_q:
+  !left left_object right right_object result.
+    bounded_interval64_covers_object_q left_scale left_scale_object /\
+    LIST_REL bounded_interval64_covers_object_q left left_object /\
+    bounded_interval64_covers_object_q right_scale right_scale_object /\
+    LIST_REL bounded_interval64_covers_object_q right right_object /\
+    bounded_interval64_fused_scale_add
+      left_scale left right_scale right = SOME result ==>
+    LIST_REL bounded_interval64_covers_object_q result
+      (bounded_object_q_interval_fused_scale_add_cv
+        left_scale_object left_object right_scale_object right_object)
+Proof
+  Induct
+  >> Cases_on `left_object`
+  >> Cases_on `right`
+  >> Cases_on `right_object`
+  >> rw
+       [compute_boundedTaylorMulTheory.bounded_interval64_fused_scale_add_def,
+        bounded_object_q_interval_fused_scale_add_cv_def,
+        LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> conj_tac
+  >- (irule bounded_interval64_fused_products_covers_object_q
+      >> metis_tac
+           [LIST_REL_def,
+            bounded_fused_product_input_covers_object_q_def])
+  >> qpat_x_assum
+       `!left_object right right_object result'. _`
+       (mp_tac o Q.SPECL [`t`, `t'`, `t''`, `x`])
+  >> simp []
+QED
+
+Definition bounded_fused_product_pair_covers_object_q_def:
+  bounded_fused_product_pair_covers_object_q
+      (first,second) (first_object,second_object) <=>
+    bounded_fused_product_input_covers_object_q first first_object /\
+    bounded_fused_product_input_covers_object_q second second_object
+End
+
+Definition bounded_object_q_symmetric_product_pairs_row_cv_def:
+  bounded_object_q_symmetric_product_pairs_row_cv
+      fixed_left fixed_right [] [] = [] /\
+  bounded_object_q_symmetric_product_pairs_row_cv
+      fixed_left fixed_right (left::left_rest) (right::right_rest) =
+    ((fixed_left,right),(fixed_right,left)) ::
+    bounded_object_q_symmetric_product_pairs_row_cv
+      fixed_left fixed_right left_rest right_rest /\
+  bounded_object_q_symmetric_product_pairs_row_cv
+      fixed_left fixed_right _ _ = []
+End
+
+Theorem bounded_interval64_symmetric_product_pairs_row_covers_object_q:
+  !left left_object right right_object result.
+    bounded_interval64_covers_object_q fixed_left fixed_left_object /\
+    bounded_interval64_covers_object_q fixed_right fixed_right_object /\
+    LIST_REL bounded_interval64_covers_object_q left left_object /\
+    LIST_REL bounded_interval64_covers_object_q right right_object /\
+    bounded_interval64_symmetric_product_pairs_row
+      fixed_left fixed_right left right = SOME result ==>
+    LIST_REL bounded_fused_product_pair_covers_object_q result
+      (bounded_object_q_symmetric_product_pairs_row_cv
+        fixed_left_object fixed_right_object left_object right_object)
+Proof
+  Induct
+  >> Cases_on `left_object`
+  >> Cases_on `right`
+  >> Cases_on `right_object`
+  >> rw
+       [compute_boundedTaylorMulTheory.bounded_interval64_symmetric_product_pairs_row_def,
+        bounded_object_q_symmetric_product_pairs_row_cv_def,
+        LIST_REL_def]
+  >> every_case_tac
+  >> gvs
+       [LIST_REL_def,
+        bounded_fused_product_pair_covers_object_q_def,
+        bounded_fused_product_input_covers_object_q_def]
+  >> qpat_x_assum
+       `!left_object right right_object result'. _`
+       (mp_tac o Q.SPECL [`t`, `t'`, `t''`, `x`])
+  >> simp []
+QED
+
+Definition bounded_object_q_symmetric_product_pairs_cv_def:
+  bounded_object_q_symmetric_product_pairs_cv [] [] = [] /\
+  bounded_object_q_symmetric_product_pairs_cv
+      (left::left_rest) (right::right_rest) =
+    bounded_object_q_symmetric_product_pairs_row_cv left right
+      (left::left_rest) (right::right_rest) ++
+    bounded_object_q_symmetric_product_pairs_cv left_rest right_rest /\
+  bounded_object_q_symmetric_product_pairs_cv _ _ = []
+End
+
+Theorem bounded_interval64_symmetric_product_pairs_covers_object_q:
+  !left left_object right right_object result.
+    LIST_REL bounded_interval64_covers_object_q left left_object /\
+    LIST_REL bounded_interval64_covers_object_q right right_object /\
+    bounded_interval64_symmetric_product_pairs left right = SOME result ==>
+    LIST_REL bounded_fused_product_pair_covers_object_q result
+      (bounded_object_q_symmetric_product_pairs_cv
+        left_object right_object)
+Proof
+  Induct
+  >> Cases_on `left_object`
+  >> Cases_on `right`
+  >> Cases_on `right_object`
+  >> rw
+       [compute_boundedTaylorMulTheory.bounded_interval64_symmetric_product_pairs_def,
+        bounded_object_q_symmetric_product_pairs_cv_def,
+        LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> `LIST_REL bounded_fused_product_pair_covers_object_q x'
+        (bounded_object_q_symmetric_product_pairs_row_cv h h''
+          (h::t) (h''::t''))` by
+       metis_tac
+         [bounded_interval64_symmetric_product_pairs_row_covers_object_q,
+          LIST_REL_def]
+  >> `LIST_REL bounded_fused_product_pair_covers_object_q x
+        (bounded_object_q_symmetric_product_pairs_cv t t'')` by
+       (qpat_x_assum
+          `!left_object right right_object result. _`
+          (mp_tac o Q.SPECL [`t`, `t'`, `t''`, `x`])
+        >> simp [])
+  >> irule listTheory.LIST_REL_APPEND_suff
+  >> simp []
+QED
+
+Theorem bounded_fused_product_pair_covers_object_q_components:
+  bounded_fused_product_pair_covers_object_q outer object_outer ==>
+  bounded_fused_product_input_covers_object_q
+    (FST outer) (FST object_outer) /\
+  bounded_fused_product_input_covers_object_q
+    (SND outer) (SND object_outer)
+Proof
+  PairCases_on `outer`
+  >> PairCases_on `object_outer`
+  >> simp [bounded_fused_product_pair_covers_object_q_def]
+QED
+
+Definition bounded_object_q_interval_fused_hessian_cv_def:
+  bounded_object_q_interval_fused_hessian_cv
+      left_value right_value [] [] [] = [] /\
+  bounded_object_q_interval_fused_hessian_cv left_value right_value
+      (left_hessian::left_rest) (right_hessian::right_rest)
+      (outer::outer_rest) =
+    bounded_object_q_interval_products_sum_acc_cv
+      [(right_value,left_hessian);FST outer;SND outer;
+       (left_value,right_hessian)]
+      (bounded_analytic_source_q_interval_cv 0 0 0) ::
+    bounded_object_q_interval_fused_hessian_cv left_value right_value
+      left_rest right_rest outer_rest /\
+  bounded_object_q_interval_fused_hessian_cv
+      left_value right_value _ _ _ = []
+End
+
+Theorem bounded_interval64_fused_hessian_covers_object_q:
+  !left_hessian left_object_hessian
+    right_hessian right_object_hessian outer object_outer result.
+    bounded_interval64_covers_object_q left_value left_object_value /\
+    bounded_interval64_covers_object_q right_value right_object_value /\
+    LIST_REL bounded_interval64_covers_object_q
+      left_hessian left_object_hessian /\
+    LIST_REL bounded_interval64_covers_object_q
+      right_hessian right_object_hessian /\
+    LIST_REL bounded_fused_product_pair_covers_object_q
+      outer object_outer /\
+    bounded_interval64_fused_hessian left_value right_value
+      left_hessian right_hessian outer = SOME result ==>
+    LIST_REL bounded_interval64_covers_object_q result
+      (bounded_object_q_interval_fused_hessian_cv
+        left_object_value right_object_value
+        left_object_hessian right_object_hessian object_outer)
+Proof
+  Induct
+  >> Cases_on `left_object_hessian`
+  >> Cases_on `right_hessian`
+  >> Cases_on `right_object_hessian`
+  >> Cases_on `outer`
+  >> Cases_on `object_outer`
+  >> rw
+       [compute_boundedTaylorMulTheory.bounded_interval64_fused_hessian_def,
+        bounded_object_q_interval_fused_hessian_cv_def,
+        LIST_REL_def]
+  >> every_case_tac
+  >> gvs [LIST_REL_def]
+  >> imp_res_tac bounded_fused_product_pair_covers_object_q_components
+  >> conj_tac
+  >- (irule bounded_interval64_fused_products_covers_object_q
+      >> metis_tac
+           [LIST_REL_def,
+            bounded_fused_product_input_covers_object_q_def])
+  >> qpat_x_assum
+       `!left_object_hessian right_hessian right_object_hessian outer
+          object_outer result'. _`
+       (mp_tac o Q.SPECL
+          [`t`, `t'`, `t''`, `t'³'`, `t'⁴'`, `x`])
+  >> simp []
+QED
+
 val _ = export_theory ();
