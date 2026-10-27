@@ -954,4 +954,63 @@ Proof
   >> simp []
 QED
 
+Theorem bounded128_zero_covers_object_q_zero:
+  bounded128_upper_covers_object_q (Bounded128 0w 0w)
+    (bounded_word64_object_q_cv 0w)
+Proof
+  simp [bounded128_upper_covers_object_q_def,
+        bounded128_upper_covers_int_fraction_def,
+        bounded_word64_object_q_cv_decodes,
+        compute_boundedTheory.bounded128_to_num_def]
+QED
+
+Theorem bounded192_zero_covers_object_q_zero:
+  bounded192_upper_covers_object_q bounded192_zero
+    (bounded_word64_object_q_cv 0w)
+Proof
+  simp [bounded192_upper_covers_object_q_def,
+        bounded192_upper_covers_int_fraction_def,
+        bounded_word64_object_q_cv_decodes,
+        compute_boundedWideTheory.bounded192_zero_def,
+        compute_boundedTheory.bounded192_to_num_def]
+QED
+
+Theorem bounded_dot_abs_upper_covers_object_q:
+  LIST_REL bounded_interval64_covers_object_q
+      entries object_entries /\
+  bounded_dot_abs_upper radii entries = SOME result ==>
+  bounded128_upper_covers_object_q result
+    (bounded_object_q_dot_abs_upper_acc_cv radii object_entries
+      (bounded_word64_object_q_cv 0w))
+Proof
+  rw [compute_boundedTaylorCompleteTheory.bounded_dot_abs_upper_def]
+  >> match_mp_tac
+       (Q.SPECL
+         [`radii`, `entries`, `object_entries`, `Bounded128 0w 0w`,
+          `bounded_word64_object_q_cv 0w`, `result`]
+         bounded_dot_abs_upper_acc_covers_object_q)
+  >> simp [bounded128_zero_covers_object_q_zero]
+QED
+
+Theorem bounded_quadratic_abs_upper_covers_object_q:
+  LIST_REL bounded_interval64_covers_object_q
+      hessian object_hessian /\
+  bounded_quadratic_abs_upper radii hessian = SOME result ==>
+  ?weights.
+    bounded_taylor_radius_pairs radii = SOME weights /\
+    bounded192_upper_covers_object_q result
+      (bounded_object_q_quadratic_abs_upper_acc_cv
+        weights object_hessian (bounded_word64_object_q_cv 0w))
+Proof
+  rw [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_def]
+  >> every_case_tac
+  >> gvs []
+  >> match_mp_tac
+       (Q.SPECL
+         [`x`, `hessian`, `object_hessian`, `bounded192_zero`,
+          `bounded_word64_object_q_cv 0w`, `result`]
+         bounded_quadratic_abs_upper_acc_covers_object_q)
+  >> simp [bounded192_zero_covers_object_q_zero]
+QED
+
 val _ = export_theory ();
