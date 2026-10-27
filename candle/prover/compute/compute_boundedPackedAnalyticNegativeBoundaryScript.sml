@@ -78,4 +78,39 @@ Proof
        [bounded_interval64_covers_object_q_strict_negative_upper]
 QED
 
+Theorem bounded_packed_analytic_object_cell_negative:
+  bounded_packed_analytic_object_cell source_program prepared_program
+      ((box_environment,center_environment,radii),certificates) ==>
+  bounded_packed_analytic_int_geometry
+    box_environment center_environment radii /\
+  ?weights word_result object_domain object_center_value
+   object_center_gradient object_value_bound object_gradient_bounds
+   object_hessian.
+    bounded_taylor_radius_pairs radii = SOME weights /\
+    bounded_analytic64_program_eval radii center_environment box_environment
+      prepared_program certificates = SOME word_result /\
+    bounded_packed_analytic_result_accepts word_result /\
+    bounded_object_q_analytic_run radii weights
+      (MAP bounded_interval64_object_q_cv center_environment)
+      (MAP bounded_interval64_object_q_cv box_environment)
+      source_program prepared_program ([],certificates)
+      ([BoundedObjectQTaylor object_domain object_center_value
+          object_center_gradient object_value_bound object_gradient_bounds
+          object_hessian],[]) /\
+    bounded_taylor64_covers_object_q word_result
+      (BoundedObjectQTaylor object_domain object_center_value
+        object_center_gradient object_value_bound object_gradient_bounds
+        object_hessian) /\
+    object_domain /\
+    bounded_object_q_interval_upper_strict_negative object_value_bound
+Proof
+  strip_tac
+  >> fs
+    [compute_boundedPackedAnalyticSoundBoundaryTheory.bounded_packed_analytic_object_cell_def]
+  >> Cases_on `object_result`
+  >> imp_res_tac bounded_packed_analytic_result_accepts_object_q_negative
+  >> gvs []
+  >> metis_tac []
+QED
+
 val _ = export_theory ();
