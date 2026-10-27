@@ -7,6 +7,62 @@ Ancestors
 Libs
   bossLib preamble
 
+Definition bounded_object_q_delta_value_cv_def:
+  bounded_object_q_delta_value_cv environment =
+    case environment of
+    | x0::x1::x2::x3::x4::x5::[] =>
+        SOME (bounded_object_q_delta_value_six_cv x0 x1 x2 x3 x4 x5)
+    | _ => NONE
+End
+
+Theorem bounded_delta64_value_six_shape:
+  bounded_delta64_value environment = SOME result ==>
+  ?x0 x1 x2 x3 x4 x5.
+    environment = [x0;x1;x2;x3;x4;x5]
+Proof
+  strip_tac
+  >> fs [compute_boundedDeltaTaylorTheory.bounded_delta64_value_def]
+  >> every_case_tac
+  >> gvs []
+  >> metis_tac []
+QED
+
+Theorem bounded_delta64_value_covers_object_q:
+  LIST_REL bounded_interval64_covers_object_q
+    word_environment object_environment /\
+  bounded_delta64_value word_environment = SOME word_result ==>
+  ?object_result.
+    bounded_object_q_delta_value_cv object_environment = SOME object_result /\
+    bounded_interval64_covers_object_q word_result object_result
+Proof
+  strip_tac
+  >> drule bounded_delta64_value_six_shape
+  >> strip_tac
+  >> rename1 `word_environment = [word0;word1;word2;word3;word4;word5]`
+  >> gvs []
+  >> rename1 `bounded_interval64_covers_object_q word0 object0`
+  >> rename1 `bounded_interval64_covers_object_q word1 object1`
+  >> rename1 `bounded_interval64_covers_object_q word2 object2`
+  >> rename1 `bounded_interval64_covers_object_q word3 object3`
+  >> rename1 `bounded_interval64_covers_object_q word4 object4`
+  >> rename1 `bounded_interval64_covers_object_q word5 object5`
+  >> qexists_tac
+       `bounded_object_q_delta_value_six_cv
+          object0 object1 object2 object3 object4 object5`
+  >> simp [bounded_object_q_delta_value_cv_def]
+  >> match_mp_tac
+       (Q.INST
+         [`word0` |-> `word0`, `word1` |-> `word1`,
+          `word2` |-> `word2`, `word3` |-> `word3`,
+          `word4` |-> `word4`, `word5` |-> `word5`,
+          `object0` |-> `object0`, `object1` |-> `object1`,
+          `object2` |-> `object2`, `object3` |-> `object3`,
+          `object4` |-> `object4`, `object5` |-> `object5`,
+          `result` |-> `word_result`]
+         compute_boundedAnalyticObjectDeltaValueRefinementTheory.bounded_delta64_value_six_covers_object_q)
+  >> fs [compute_boundedDeltaTaylorTheory.bounded_delta64_value_def]
+QED
+
 Definition bounded_object_q_delta_pair_products_cv_def:
   bounded_object_q_delta_pair_products_cv environment =
     case environment of
