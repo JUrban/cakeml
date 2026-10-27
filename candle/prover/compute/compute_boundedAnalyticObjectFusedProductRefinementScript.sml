@@ -1140,4 +1140,82 @@ Proof
   >> simp []
 QED
 
+Definition bounded_taylor64_complete_inputs_cover_object_q_def:
+  bounded_taylor64_complete_inputs_cover_object_q
+      domain center_value center_gradient hessian
+      object_domain object_center_value object_center_gradient
+      object_hessian <=>
+    domain = object_domain /\
+    bounded_interval64_covers_object_q
+      center_value object_center_value /\
+    LIST_REL bounded_interval64_covers_object_q
+      center_gradient object_center_gradient /\
+    LIST_REL bounded_interval64_covers_object_q
+      hessian object_hessian
+End
+
+Theorem bounded_taylor64_mul_reaches_object_q_complete_inputs:
+  bounded_taylor64_covers_object_q_state left left_object_domain
+      left_object_center_value left_object_center_gradient
+      left_object_value_bound left_object_gradient_bounds
+      left_object_hessian /\
+  bounded_taylor64_covers_object_q_state right right_object_domain
+      right_object_center_value right_object_center_gradient
+      right_object_value_bound right_object_gradient_bounds
+      right_object_hessian /\
+  bounded_taylor64_mul radii left right = SOME result ==>
+  ?center_value center_gradient hessian.
+    bounded_taylor64_complete radii
+      (left_object_domain /\ right_object_domain)
+      center_value center_gradient hessian = SOME result /\
+    bounded_taylor64_complete_inputs_cover_object_q
+      (left_object_domain /\ right_object_domain)
+      center_value center_gradient hessian
+      (left_object_domain /\ right_object_domain)
+      (bounded_object_q_interval_mul_cv
+        left_object_center_value right_object_center_value)
+      (bounded_object_q_interval_fused_scale_add_cv
+        right_object_center_value left_object_center_gradient
+        left_object_center_value right_object_center_gradient)
+      (bounded_object_q_interval_fused_hessian_cv
+        left_object_value_bound right_object_value_bound
+        left_object_hessian right_object_hessian
+        (bounded_object_q_symmetric_product_pairs_cv
+          left_object_gradient_bounds right_object_gradient_bounds))
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> rw
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_taylor64_covers_object_q_state_def,
+        compute_boundedTaylorMulTheory.bounded_taylor64_mul_def]
+  >> every_case_tac
+  >> gvs
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_taylor64_covers_object_q_state_def]
+  >> `bounded_interval64_covers_object_q x'³'
+        (bounded_object_q_interval_mul_cv
+          left_object_center_value right_object_center_value)` by
+       metis_tac [bounded_interval64_mul_covers_object_q]
+  >> `LIST_REL bounded_interval64_covers_object_q x''
+        (bounded_object_q_interval_fused_scale_add_cv
+          right_object_center_value left_object_center_gradient
+          left_object_center_value right_object_center_gradient)` by
+       metis_tac [bounded_interval64_fused_scale_add_covers_object_q]
+  >> `LIST_REL bounded_fused_product_pair_covers_object_q x
+        (bounded_object_q_symmetric_product_pairs_cv
+          left_object_gradient_bounds right_object_gradient_bounds)` by
+       metis_tac
+         [bounded_interval64_symmetric_product_pairs_covers_object_q]
+  >> `LIST_REL bounded_interval64_covers_object_q x'
+        (bounded_object_q_interval_fused_hessian_cv
+          left_object_value_bound right_object_value_bound
+          left_object_hessian right_object_hessian
+          (bounded_object_q_symmetric_product_pairs_cv
+            left_object_gradient_bounds right_object_gradient_bounds))` by
+       metis_tac [bounded_interval64_fused_hessian_covers_object_q]
+  >> qexists_tac `x'³'`
+  >> qexists_tac `x''`
+  >> qexists_tac `x'`
+  >> simp [bounded_taylor64_complete_inputs_cover_object_q_def]
+QED
+
 val _ = export_theory ();
