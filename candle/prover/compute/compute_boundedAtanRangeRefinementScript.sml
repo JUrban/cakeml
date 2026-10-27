@@ -5,6 +5,7 @@ Theory compute_boundedAtanRangeRefinement
 Ancestors
   compute_boundedAtanWordRefinement compute_boundedWordRealRefinement
   compute_boundedAnalyticObjectCertificateRefinement
+  compute_boundedAnalyticObjectInverseOperationRefinement
 Libs
   bossLib preamble realLib RealField
 
@@ -893,6 +894,174 @@ Proof
        [compute_boundedSignedEndpointAddTheory.bounded_signed64_neg_value,
         intrealTheory.real_of_int_neg]
   >> simp [real_div]
+QED
+
+Theorem bounded_interval64_neg_contains_real:
+  bounded_interval64_contains_real source value ==>
+  bounded_interval64_contains_real
+    (bounded_interval64_neg source) (-value)
+Proof
+  Cases_on `source`
+  >> simp
+       [bounded_interval64_contains_real_def,
+        compute_boundedIntervalAddTheory.bounded_interval64_neg_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def,
+        bounded_signed64_neg_real]
+QED
+
+Theorem bounded_interval64_add_contains_real:
+  bounded_interval64_contains_real left left_value /\
+  bounded_interval64_contains_real right right_value /\
+  bounded_interval64_add left right = SOME result ==>
+  bounded_interval64_contains_real result (left_value + right_value)
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedIntervalAddTheory.bounded_interval64_add_value
+  >> fs [bounded_interval64_contains_real_def,
+         bounded_signed64_real_def, intrealTheory.real_of_int_add,
+         real_div, REAL_ADD_RDISTRIB]
+  >> REAL_ASM_ARITH_TAC
+QED
+
+Theorem bounded_signed64_neg_involutive:
+  bounded_signed64_normalized value ==>
+  bounded_signed64_neg (bounded_signed64_neg value) = value
+Proof
+  Cases_on `value`
+  >> rename1 `BoundedSigned64 negative magnitude`
+  >> Cases_on `negative`
+  >> Cases_on `magnitude = 0w`
+  >> simp
+       [compute_boundedSignedEndpointAddTheory.bounded_signed64_neg_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_make_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_normalized_def]
+QED
+
+Theorem bounded_interval64_neg_involutive:
+  bounded_interval64_valid source ==>
+  bounded_interval64_neg (bounded_interval64_neg source) = source
+Proof
+  Cases_on `source`
+  >> simp
+       [compute_boundedIntervalTheory.bounded_interval64_valid_def,
+        compute_boundedIntervalAddTheory.bounded_interval64_neg_def,
+        bounded_signed64_neg_involutive]
+QED
+
+Theorem bounded_atan_word_scale_int_positive:
+  (0:int) < bounded_word_scale_int
+Proof
+  simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_word_scale_int_def]
+QED
+
+Theorem bounded_atan_word_scale_int_squared:
+  (bounded_word_scale_int:int) * bounded_word_scale_int =
+    1208925819614629174706176
+Proof
+  simp
+       [compute_boundedObjectIntervalRelationTheory.bounded_word_scale_int_def]
+QED
+
+Theorem bounded_interval64_positive_inv_certificate_singleton_contains_real:
+  bounded_interval64_inv_certificate
+      (BoundedInterval64 endpoint endpoint) output /\
+  bounded_signed64_strict_positive endpoint ==>
+  bounded_interval64_contains_real output
+    (inv (bounded_signed64_real endpoint))
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`input` |-> `BoundedInterval64 endpoint endpoint`,
+          `output` |-> `output`]
+         compute_boundedAnalyticObjectReciprocalRefinementTheory.bounded_interval64_inv_certificate_positive_components)
+  >> impl_tac
+  >- simp [compute_boundedIntervalTheory.bounded_interval64_lower_def]
+  >> strip_tac
+  >> fs [compute_boundedIntervalTheory.bounded_interval64_lower_def,
+         compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> `bounded_int_fraction_real
+        (bounded_signed64_to_int (bounded_interval64_lower output),
+         bounded_word_scale_int) <=
+      bounded_int_fraction_real
+        (bounded_word_scale_int,bounded_signed64_to_int endpoint)` by
+       (irule bounded_int_fraction_real_le
+        >> asm_rewrite_tac
+             [bounded_atan_word_scale_int_positive,
+              bounded_atan_word_scale_int_squared,
+              compute_boundedIntervalTheory.bounded_interval64_lower_def,
+              compute_boundedIntervalTheory.bounded_interval64_upper_def])
+  >> `bounded_int_fraction_real
+        (bounded_word_scale_int,bounded_signed64_to_int endpoint) <=
+      bounded_int_fraction_real
+        (bounded_signed64_to_int (bounded_interval64_upper output),
+         bounded_word_scale_int)` by
+       (irule bounded_int_fraction_real_le
+        >> asm_rewrite_tac
+             [bounded_atan_word_scale_int_positive,
+              bounded_atan_word_scale_int_squared,
+              compute_boundedIntervalTheory.bounded_interval64_lower_def,
+              compute_boundedIntervalTheory.bounded_interval64_upper_def])
+  >> `bounded_int_fraction_real
+        (bounded_word_scale_int,bounded_signed64_to_int endpoint) =
+      inv (bounded_signed64_real endpoint)` by
+       (rw [bounded_int_fraction_real_def, bounded_signed64_real_def,
+            bounded_word_scale_real_def]
+        >> `real_of_int (bounded_signed64_to_int endpoint) <> 0` by
+             (simp [GSYM intrealTheory.real_of_int_lt]
+              >> intLib.ARITH_TAC)
+        >> REAL_ASM_FIELD_TAC)
+  >> fs [bounded_interval64_contains_real_def,
+         bounded_signed64_real_def, bounded_word_scale_real_def,
+         bounded_int_fraction_real_def]
+QED
+
+Theorem bounded_interval64_negative_inv_certificate_singleton_contains_real:
+  bounded_interval64_inv_certificate
+      (BoundedInterval64 endpoint endpoint) output /\
+  bounded_signed64_strict_negative endpoint ==>
+  bounded_interval64_contains_real output
+    (inv (bounded_signed64_real endpoint))
+Proof
+  strip_tac
+  >> `bounded_interval64_valid output` by
+       metis_tac
+         [compute_boundedAnalyticObjectReciprocalRefinementTheory.bounded_interval64_inv_certificate_valid_components]
+  >> `bounded_interval64_inv_certificate
+        (bounded_interval64_neg
+          (BoundedInterval64 endpoint endpoint))
+        (bounded_interval64_neg output)` by
+       (irule
+          compute_boundedAnalyticObjectInverseOperationRefinementTheory.bounded_interval64_inv_certificate_negative_negates
+        >> simp [compute_boundedIntervalTheory.bounded_interval64_upper_def])
+  >> `bounded_signed64_strict_positive
+        (bounded_signed64_neg endpoint)` by
+       metis_tac
+         [compute_boundedAnalyticObjectInverseOperationRefinementTheory.bounded_signed64_strict_negative_neg_positive]
+  >> `bounded_interval64_contains_real
+        (bounded_interval64_neg output)
+        (inv (bounded_signed64_real
+          (bounded_signed64_neg endpoint)))` by
+       (irule
+          bounded_interval64_positive_inv_certificate_singleton_contains_real
+        >> qpat_x_assum
+             `bounded_interval64_inv_certificate
+               (bounded_interval64_neg
+                 (BoundedInterval64 endpoint endpoint))
+               (bounded_interval64_neg output)` mp_tac
+        >> simp
+             [compute_boundedIntervalAddTheory.bounded_interval64_neg_def])
+  >> `bounded_interval64_contains_real
+        (bounded_interval64_neg (bounded_interval64_neg output))
+        (-(inv (bounded_signed64_real
+          (bounded_signed64_neg endpoint))))` by
+       metis_tac [bounded_interval64_neg_contains_real]
+  >> fs [bounded_interval64_neg_involutive, bounded_signed64_neg_real,
+         REAL_INV_NEG]
+  >> metis_tac [bounded_interval64_neg_involutive]
 QED
 
 Theorem bounded_atan_negative_magnitude_real:
