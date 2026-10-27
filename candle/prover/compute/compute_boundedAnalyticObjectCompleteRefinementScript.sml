@@ -91,6 +91,22 @@ Definition bounded128_upper_covers_object_q_def:
         bounded128_upper_covers_int_fraction magnitude fraction
 End
 
+Definition bounded192_upper_covers_int_fraction_def:
+  bounded192_upper_covers_int_fraction magnitude
+      ((numerator,denominator):int # int) <=>
+    0 < denominator /\
+    (&1329227995784915872903807060280344576:int) * numerator <=
+      denominator * &(bounded192_to_num magnitude)
+End
+
+Definition bounded192_upper_covers_object_q_def:
+  bounded192_upper_covers_object_q magnitude encoded <=>
+    case bounded_object_q_ints encoded of
+    | NONE => F
+    | SOME fraction =>
+        bounded192_upper_covers_int_fraction magnitude fraction
+End
+
 Definition bounded_object_q_dot_abs_upper_acc_cv_def:
   bounded_object_q_dot_abs_upper_acc_cv [] [] accumulator = accumulator /\
   bounded_object_q_dot_abs_upper_acc_cv [] (_::_) accumulator = Num 0 /\
@@ -102,6 +118,35 @@ Definition bounded_object_q_dot_abs_upper_acc_cv_def:
         (bounded_object_q_mul_cv
           (bounded_word64_object_q_cv radius)
           (bounded_object_q_interval_abs_upper_cv entry)))
+End
+
+Definition bounded_object_q_quadratic_contribution_cv_def:
+  bounded_object_q_quadratic_contribution_cv
+      (left_radius:word64) (right_radius:word64) double entry =
+    let raw =
+      bounded_object_q_mul_cv
+        (bounded_object_q_mul_cv
+          (bounded_word64_object_q_cv left_radius)
+          (bounded_word64_object_q_cv right_radius))
+        (bounded_object_q_interval_abs_upper_cv entry)
+    in
+      if double then bounded_object_q_add_cv raw raw else raw
+End
+
+Definition bounded_object_q_quadratic_abs_upper_acc_cv_def:
+  bounded_object_q_quadratic_abs_upper_acc_cv [] [] accumulator =
+      accumulator /\
+  bounded_object_q_quadratic_abs_upper_acc_cv [] (_::_) accumulator =
+      Num 0 /\
+  bounded_object_q_quadratic_abs_upper_acc_cv (_::_) [] accumulator =
+      Num 0 /\
+  bounded_object_q_quadratic_abs_upper_acc_cv
+      ((left_radius,right_radius,double)::weights)
+      (entry::entries) accumulator =
+    bounded_object_q_quadratic_abs_upper_acc_cv weights entries
+      (bounded_object_q_add_cv accumulator
+        (bounded_object_q_quadratic_contribution_cv
+          left_radius right_radius double entry))
 End
 
 Theorem bounded_object_q_abs_cv_decodes:
@@ -492,6 +537,331 @@ Proof
          bounded128_add_upper_covers_int_fraction)
   >> qexists_tac `left`
   >> qexists_tac `right`
+  >> simp []
+QED
+
+Theorem bounded128_word64_product192_upper_covers_int_fraction:
+  bounded128_upper_covers_int_fraction left
+      (left_numerator,left_denominator) /\
+  bounded_word64_upper_covers_int_fraction right
+      (right_numerator,right_denominator) /\
+  0 <= left_numerator /\ 0 <= right_numerator /\
+  bounded128_mul_word64_to_192_words left right = SOME result ==>
+  bounded192_upper_covers_int_fraction result
+    (bounded_int_fraction_mul
+      (left_numerator,left_denominator)
+      (right_numerator,right_denominator))
+Proof
+  rw [bounded128_upper_covers_int_fraction_def,
+      bounded_word64_upper_covers_int_fraction_def,
+      bounded192_upper_covers_int_fraction_def,
+      compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_mul_def]
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> simp [])
+  >> imp_res_tac
+       compute_boundedWideTheory.bounded128_mul_word64_to_192_words_some
+  >> gvs []
+  >> `0 <= left_denominator * &(bounded128_to_num left)` by
+       (irule integerTheory.INT_LE_MUL >> simp [] >> intLib.ARITH_TAC)
+  >> `0 <= (&1099511627776:int) * right_numerator` by
+       (irule integerTheory.INT_LE_MUL >> simp [])
+  >> `0 <= right_denominator * &(w2n right)` by
+       (irule integerTheory.INT_LE_MUL >> simp [] >> intLib.ARITH_TAC)
+  >> `((&1208925819614629174706176:int) * left_numerator) *
+        ((&1099511627776:int) * right_numerator) <=
+      (left_denominator * &(bounded128_to_num left)) *
+        ((&1099511627776:int) * right_numerator)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_right_mono_nonnegative
+        >> simp [])
+  >> `(left_denominator * &(bounded128_to_num left)) *
+        ((&1099511627776:int) * right_numerator) <=
+      (left_denominator * &(bounded128_to_num left)) *
+        (right_denominator * &(w2n right))` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> simp [])
+  >> PURE_REWRITE_TAC [GSYM integerTheory.INT_OF_NUM_MUL]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded192_add_upper_covers_int_fraction:
+  bounded192_upper_covers_int_fraction left
+      (left_numerator,left_denominator) /\
+  bounded192_upper_covers_int_fraction right
+      (right_numerator,right_denominator) /\
+  bounded192_add_words left right = SOME result ==>
+  bounded192_upper_covers_int_fraction result
+    (bounded_int_fraction_add
+      (left_numerator,left_denominator)
+      (right_numerator,right_denominator))
+Proof
+  rw [bounded192_upper_covers_int_fraction_def,
+      compute_boundedAnalyticObjectFusedProductRefinementTheory.bounded_int_fraction_add_def]
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> simp [])
+  >> fs [compute_boundedTheory.bounded192_add_words_refines]
+  >> imp_res_tac compute_boundedTheory.bounded192_add_some
+  >> gvs []
+  >> PURE_REWRITE_TAC [GSYM integerTheory.INT_ADD]
+  >> irule
+       compute_boundedAnalyticObjectRefinementTheory.bounded_int_fraction_add_upper_bound
+  >> simp []
+QED
+
+Theorem bounded_object_q_mul_cv_nonnegative:
+  bounded_object_q_nonnegative left_object /\
+  bounded_object_q_nonnegative right_object ==>
+  bounded_object_q_nonnegative
+    (bounded_object_q_mul_cv left_object right_object)
+Proof
+  strip_tac
+  >> Cases_on `bounded_object_q_ints left_object`
+  >> fs [bounded_object_q_nonnegative_def]
+  >> PairCases_on `x`
+  >> Cases_on `bounded_object_q_ints right_object`
+  >> fs [bounded_object_q_nonnegative_def]
+  >> PairCases_on `x`
+  >> `bounded_object_q_ints
+        (bounded_object_q_mul_cv left_object right_object) =
+      SOME (bounded_int_fraction_mul (x0,x1) (x0',x1'))` by
+       (irule
+          compute_boundedAnalyticObjectProductRefinementTheory.bounded_object_q_mul_cv_decodes
+        >> simp [])
+  >> fs
+       [compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_mul_def]
+  >> irule
+       (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+  >> simp []
+QED
+
+Theorem bounded128_word64_product192_upper_covers_object_q:
+  bounded128_upper_covers_object_q left left_object /\
+  bounded_word64_upper_covers_object_q right right_object /\
+  bounded_object_q_nonnegative left_object /\
+  bounded_object_q_nonnegative right_object /\
+  bounded128_mul_word64_to_192_words left right = SOME result ==>
+  bounded192_upper_covers_object_q result
+    (bounded_object_q_mul_cv left_object right_object)
+Proof
+  strip_tac
+  >> Cases_on `bounded_object_q_ints left_object`
+  >> fs [bounded128_upper_covers_object_q_def,
+         bounded_object_q_nonnegative_def]
+  >> PairCases_on `x`
+  >> Cases_on `bounded_object_q_ints right_object`
+  >> fs [bounded_word64_upper_covers_object_q_def,
+         bounded_object_q_nonnegative_def]
+  >> PairCases_on `x`
+  >> `bounded_object_q_ints
+        (bounded_object_q_mul_cv left_object right_object) =
+      SOME (bounded_int_fraction_mul (x0,x1) (x0',x1'))` by
+       (irule
+          compute_boundedAnalyticObjectProductRefinementTheory.bounded_object_q_mul_cv_decodes
+        >> simp [])
+  >> rw [bounded192_upper_covers_object_q_def]
+  >> gvs
+       [compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_mul_def]
+  >> match_mp_tac
+       (Q.INST
+         [`left` |-> `left`, `right` |-> `right`, `result` |-> `result`,
+          `left_numerator` |-> `x0`, `left_denominator` |-> `x1`,
+          `right_numerator` |-> `x0'`, `right_denominator` |-> `x1'`]
+         (SIMP_RULE (srw_ss())
+           [compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_mul_def]
+           bounded128_word64_product192_upper_covers_int_fraction))
+  >> simp []
+QED
+
+Theorem bounded192_add_upper_covers_object_q:
+  bounded192_upper_covers_object_q left left_object /\
+  bounded192_upper_covers_object_q right right_object /\
+  bounded192_add_words left right = SOME result ==>
+  bounded192_upper_covers_object_q result
+    (bounded_object_q_add_cv left_object right_object)
+Proof
+  strip_tac
+  >> Cases_on `bounded_object_q_ints left_object`
+  >> fs [bounded192_upper_covers_object_q_def]
+  >> PairCases_on `x`
+  >> Cases_on `bounded_object_q_ints right_object`
+  >> fs [bounded192_upper_covers_object_q_def]
+  >> PairCases_on `x`
+  >> `bounded_object_q_ints
+        (bounded_object_q_add_cv left_object right_object) =
+      SOME (x0 * x1' + x0' * x1,x1 * x1')` by
+       (irule
+          compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_add_cv_decodes
+        >> simp [])
+  >> rw [bounded192_upper_covers_object_q_def]
+  >> gvs []
+  >> match_mp_tac
+       (Q.INST
+         [`left` |-> `left`, `right` |-> `right`, `result` |-> `result`,
+          `left_numerator` |-> `x0`, `left_denominator` |-> `x1`,
+          `right_numerator` |-> `x0'`, `right_denominator` |-> `x1'`]
+         (SIMP_RULE (srw_ss())
+           [compute_boundedAnalyticObjectFusedProductRefinementTheory.bounded_int_fraction_add_def]
+           bounded192_add_upper_covers_int_fraction))
+  >> simp []
+QED
+
+Theorem bounded_quadratic_abs_contribution_covers_object_q:
+  bounded_interval64_covers_object_q entry object_entry /\
+  bounded128_mul_word64_to_192_words
+      (bounded_word64_product128 left_radius right_radius)
+      (bounded_interval64_abs_upper entry) = SOME raw /\
+  (if double then bounded192_add_words raw raw else SOME raw) =
+    SOME contribution ==>
+  bounded192_upper_covers_object_q contribution
+    (bounded_object_q_quadratic_contribution_cv
+      left_radius right_radius double object_entry)
+Proof
+  strip_tac
+  >> Cases_on `bounded_object_q_interval_ints object_entry`
+  >> fs
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+  >> PairCases_on `x`
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_interval_abs_upper_cv object_entry)` by
+       (irule bounded_object_q_interval_abs_upper_cv_nonnegative
+        >> simp [])
+  >> `bounded_interval64_covers_object_q entry object_entry` by
+       (rw
+          [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+        >> simp [])
+  >> `bounded_word64_upper_covers_object_q
+        (bounded_interval64_abs_upper entry)
+        (bounded_object_q_interval_abs_upper_cv object_entry)` by
+       metis_tac [bounded_interval64_abs_upper_covers_object_q]
+  >> `bounded128_upper_covers_object_q
+        (bounded_word64_product128 left_radius right_radius)
+        (bounded_object_q_mul_cv
+          (bounded_word64_object_q_cv left_radius)
+          (bounded_word64_object_q_cv right_radius))` by
+       (irule bounded_word64_product128_upper_covers_object_q
+        >> simp [bounded_word64_object_q_cv_exact,
+                 bounded_word64_object_q_cv_nonnegative])
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_mul_cv
+          (bounded_word64_object_q_cv left_radius)
+          (bounded_word64_object_q_cv right_radius))` by
+       (irule bounded_object_q_mul_cv_nonnegative
+        >> simp [bounded_word64_object_q_cv_nonnegative])
+  >> `bounded192_upper_covers_object_q raw
+        (bounded_object_q_mul_cv
+          (bounded_object_q_mul_cv
+            (bounded_word64_object_q_cv left_radius)
+            (bounded_word64_object_q_cv right_radius))
+          (bounded_object_q_interval_abs_upper_cv object_entry))` by
+       (match_mp_tac
+          (Q.INST
+            [`left` |->
+               `bounded_word64_product128 left_radius right_radius`,
+             `right` |-> `bounded_interval64_abs_upper entry`,
+             `result` |-> `raw`,
+             `left_object` |->
+               `bounded_object_q_mul_cv
+                  (bounded_word64_object_q_cv left_radius)
+                  (bounded_word64_object_q_cv right_radius)`,
+             `right_object` |->
+               `bounded_object_q_interval_abs_upper_cv object_entry`]
+            bounded128_word64_product192_upper_covers_object_q)
+        >> simp [])
+  >> Cases_on `double`
+  >> gvs [bounded_object_q_quadratic_contribution_cv_def, LET_THM]
+  >> match_mp_tac
+       (Q.INST
+         [`left` |-> `raw`, `right` |-> `raw`,
+          `result` |-> `contribution`,
+          `left_object` |->
+            `bounded_object_q_mul_cv
+              (bounded_object_q_mul_cv
+                (bounded_word64_object_q_cv left_radius)
+                (bounded_word64_object_q_cv right_radius))
+              (bounded_object_q_interval_abs_upper_cv object_entry)`,
+          `right_object` |->
+            `bounded_object_q_mul_cv
+              (bounded_object_q_mul_cv
+                (bounded_word64_object_q_cv left_radius)
+                (bounded_word64_object_q_cv right_radius))
+              (bounded_object_q_interval_abs_upper_cv object_entry)`]
+         bounded192_add_upper_covers_object_q)
+  >> simp []
+QED
+
+Theorem bounded_quadratic_abs_upper_acc_covers_object_q:
+  !weights entries object_entries accumulator object_accumulator result.
+    LIST_REL bounded_interval64_covers_object_q
+      entries object_entries /\
+    bounded192_upper_covers_object_q accumulator object_accumulator /\
+    bounded_quadratic_abs_upper_acc weights entries accumulator =
+      SOME result ==>
+    bounded192_upper_covers_object_q result
+      (bounded_object_q_quadratic_abs_upper_acc_cv
+        weights object_entries object_accumulator)
+Proof
+  Induct
+  >- (Cases_on `entries`
+      >> Cases_on `object_entries`
+      >> gvs
+           [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_acc_def,
+            bounded_object_q_quadratic_abs_upper_acc_cv_def, LIST_REL_def])
+  >> gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `entries`
+  >- gvs
+       [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_acc_def,
+        LIST_REL_def]
+  >> Cases_on `object_entries`
+  >- gvs [LIST_REL_def]
+  >> rpt gen_tac
+  >> strip_tac
+  >> fs [LIST_REL_def]
+  >> fs
+       [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_acc_def,
+        bounded_object_q_quadratic_abs_upper_acc_cv_def, LET_THM]
+  >> Cases_on
+       `bounded128_mul_word64_to_192_words
+          (bounded_word64_product128 h0 h1)
+          (bounded_interval64_abs_upper h)`
+  >> fs []
+  >> Cases_on
+       `if h2 then bounded192_add_words x x else SOME x`
+  >> fs []
+  >> Cases_on `bounded192_add_words accumulator x'`
+  >> fs []
+  >> `bounded192_upper_covers_object_q x'
+        (bounded_object_q_quadratic_contribution_cv h0 h1 h2 h')` by
+       (match_mp_tac
+          (Q.INST
+            [`left_radius` |-> `h0`, `right_radius` |-> `h1`,
+             `double` |-> `h2`, `entry` |-> `h`,
+             `object_entry` |-> `h'`, `raw` |-> `x`,
+             `contribution` |-> `x'`]
+            bounded_quadratic_abs_contribution_covers_object_q)
+        >> simp [])
+  >> `bounded192_upper_covers_object_q x''
+        (bounded_object_q_add_cv object_accumulator
+          (bounded_object_q_quadratic_contribution_cv h0 h1 h2 h'))` by
+       (match_mp_tac
+          (Q.INST
+            [`left` |-> `accumulator`, `right` |-> `x'`,
+             `result` |-> `x''`,
+             `left_object` |-> `object_accumulator`,
+             `right_object` |->
+               `bounded_object_q_quadratic_contribution_cv h0 h1 h2 h'`]
+            bounded192_add_upper_covers_object_q)
+        >> simp [])
+  >> qpat_x_assum
+       `!entries object_entries accumulator object_accumulator result. _`
+       (match_mp_tac o Q.SPECL
+         [`t`, `t'`, `x''`,
+          `bounded_object_q_add_cv object_accumulator
+            (bounded_object_q_quadratic_contribution_cv h0 h1 h2 h')`,
+          `result`])
   >> simp []
 QED
 
