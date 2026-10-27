@@ -8,7 +8,7 @@
  *****************************************************************************)
 Theory compute_boundedAnalyticPreparedPlanSound
 Ancestors
-  compute_boundedAnalyticPreparedPlan
+  compute_boundedAnalyticRationalConstant
 Libs
   bossLib preamble intLib wordsLib
 

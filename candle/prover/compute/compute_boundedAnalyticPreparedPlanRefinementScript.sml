@@ -9,7 +9,7 @@
  *****************************************************************************)
 Theory compute_boundedAnalyticPreparedPlanRefinement
 Ancestors
-  compute_boundedAnalyticPreparedPlanSound
+  compute_boundedAnalyticPreparedPlanSound compute_boundedAnalyticPreparedPlan
 Libs
   bossLib preamble
 

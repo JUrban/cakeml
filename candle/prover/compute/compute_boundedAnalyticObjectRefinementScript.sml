@@ -10,7 +10,7 @@
 Theory compute_boundedAnalyticObjectRefinement
 Ancestors
   compute_boundedAnalyticPreparedPlanSound
-  compute_boundedObjectIntervalRelation
+  compute_boundedObjectIntervalRelation compute_boundedTaylorBase
 Libs
   bossLib preamble intLib
 
@@ -120,7 +120,7 @@ Proof
          compute_boundedObjectIntervalRelationTheory.bounded_object_q_ints_def,
          compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def,
          compute_boundedObjectIntervalRelationTheory.bounded_word_scale_int_def,
-         compute_boundedAnalyticPreparedPlanTheory.bounded_analytic_scale40_def]
+         compute_boundedAnalyticRationalConstantTheory.bounded_analytic_scale40_def]
 QED
 
 Theorem bounded_interval64_zero_covers_object_q_zero:

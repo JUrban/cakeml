@@ -10,13 +10,13 @@ val _ = translation_extends "compute_boundedPackedAnalyticCheckProg";
 
 val bounded_analytic_scale40_v =
   translate
-    compute_boundedAnalyticPreparedPlanTheory.bounded_analytic_scale40_def;
+    compute_boundedAnalyticRationalConstantTheory.bounded_analytic_scale40_def;
 val bounded_analytic_nat_ceil_div_v =
   translate
-    compute_boundedAnalyticPreparedPlanTheory.bounded_analytic_nat_ceil_div_def;
+    compute_boundedAnalyticRationalConstantTheory.bounded_analytic_nat_ceil_div_def;
 val bounded_analytic_rational_constant64_v =
   translate
-    compute_boundedAnalyticPreparedPlanTheory.bounded_analytic_rational_constant64_def;
+    compute_boundedAnalyticRationalConstantTheory.bounded_analytic_rational_constant64_def;
 val bounded_analytic_compile_poly_instruction_v =
   translate
     compute_boundedAnalyticPreparedPlanTheory.bounded_analytic_compile_poly_instruction_def;
