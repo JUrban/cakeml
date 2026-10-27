@@ -637,6 +637,232 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_object_q_add_cv_nonnegative:
+  bounded_object_q_nonnegative left_object /\
+  bounded_object_q_nonnegative right_object ==>
+  bounded_object_q_nonnegative
+    (bounded_object_q_add_cv left_object right_object)
+Proof
+  strip_tac
+  >> Cases_on `bounded_object_q_ints left_object`
+  >> fs [bounded_object_q_nonnegative_def]
+  >> PairCases_on `x`
+  >> Cases_on `bounded_object_q_ints right_object`
+  >> fs [bounded_object_q_nonnegative_def]
+  >> PairCases_on `x`
+  >> `bounded_object_q_ints
+        (bounded_object_q_add_cv left_object right_object) =
+      SOME (x0 * x1' + x0' * x1,x1 * x1')` by
+       (irule
+          compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_add_cv_decodes
+        >> simp [])
+  >> rw [bounded_object_q_nonnegative_def]
+  >> gvs []
+  >> irule
+       (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+  >> simp []
+QED
+
+Theorem bounded_object_q_quadratic_contribution_cv_nonnegative:
+  bounded_interval64_covers_object_q entry object_entry ==>
+  bounded_object_q_nonnegative
+    (bounded_object_q_quadratic_contribution_cv
+      left_radius right_radius double object_entry)
+Proof
+  strip_tac
+  >> Cases_on `bounded_object_q_interval_ints object_entry`
+  >> fs
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+  >> PairCases_on `x`
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_interval_abs_upper_cv object_entry)` by
+       (irule bounded_object_q_interval_abs_upper_cv_nonnegative
+        >> simp [])
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_mul_cv
+          (bounded_word64_object_q_cv left_radius)
+          (bounded_word64_object_q_cv right_radius))` by
+       (irule bounded_object_q_mul_cv_nonnegative
+        >> simp [bounded_word64_object_q_cv_nonnegative])
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_mul_cv
+          (bounded_object_q_mul_cv
+            (bounded_word64_object_q_cv left_radius)
+            (bounded_word64_object_q_cv right_radius))
+          (bounded_object_q_interval_abs_upper_cv object_entry))` by
+       (irule bounded_object_q_mul_cv_nonnegative
+        >> simp [])
+  >> Cases_on `double`
+  >> simp [bounded_object_q_quadratic_contribution_cv_def, LET_THM]
+  >> irule bounded_object_q_add_cv_nonnegative
+  >> simp []
+QED
+
+Theorem bounded_object_q_dot_abs_upper_acc_cv_nonnegative:
+  !radii entries object_entries accumulator object_accumulator result.
+    LIST_REL bounded_interval64_covers_object_q
+      entries object_entries /\
+    bounded_object_q_nonnegative object_accumulator /\
+    bounded_dot_abs_upper_acc radii entries accumulator = SOME result ==>
+    bounded_object_q_nonnegative
+      (bounded_object_q_dot_abs_upper_acc_cv
+        radii object_entries object_accumulator)
+Proof
+  Induct
+  >- (Cases_on `entries`
+      >> Cases_on `object_entries`
+      >> gvs
+           [compute_boundedTaylorCompleteTheory.bounded_dot_abs_upper_acc_def,
+            bounded_object_q_dot_abs_upper_acc_cv_def, LIST_REL_def])
+  >> Cases_on `entries`
+  >- gvs
+       [compute_boundedTaylorCompleteTheory.bounded_dot_abs_upper_acc_def,
+        LIST_REL_def]
+  >> Cases_on `object_entries`
+  >- gvs [LIST_REL_def]
+  >> rpt gen_tac
+  >> strip_tac
+  >> fs [LIST_REL_def]
+  >> Cases_on `bounded_object_q_interval_ints h'`
+  >> fs
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+  >> PairCases_on `x`
+  >> fs
+       [compute_boundedTaylorCompleteTheory.bounded_dot_abs_upper_acc_def,
+        bounded_object_q_dot_abs_upper_acc_cv_def, LET_THM]
+  >> Cases_on
+       `bounded128_add_words accumulator
+          (bounded_word64_product128 h''
+            (bounded_interval64_abs_upper h))`
+  >> fs []
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_interval_abs_upper_cv h')` by
+       (irule bounded_object_q_interval_abs_upper_cv_nonnegative
+        >> simp [])
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_mul_cv
+          (bounded_word64_object_q_cv h'')
+          (bounded_object_q_interval_abs_upper_cv h'))` by
+       (irule bounded_object_q_mul_cv_nonnegative
+        >> simp [bounded_word64_object_q_cv_nonnegative])
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_add_cv object_accumulator
+          (bounded_object_q_mul_cv
+            (bounded_word64_object_q_cv h'')
+            (bounded_object_q_interval_abs_upper_cv h')))` by
+       (irule bounded_object_q_add_cv_nonnegative
+        >> simp [])
+  >> qpat_x_assum
+       `!entries object_entries accumulator object_accumulator result. _`
+       (match_mp_tac o Q.SPECL
+         [`t`, `t'`, `x`,
+          `bounded_object_q_add_cv object_accumulator
+            (bounded_object_q_mul_cv
+              (bounded_word64_object_q_cv h'')
+              (bounded_object_q_interval_abs_upper_cv h'))`,
+          `result`])
+  >> simp []
+QED
+
+Theorem bounded_object_q_quadratic_abs_upper_acc_cv_nonnegative:
+  !weights entries object_entries accumulator object_accumulator result.
+    LIST_REL bounded_interval64_covers_object_q
+      entries object_entries /\
+    bounded_object_q_nonnegative object_accumulator /\
+    bounded_quadratic_abs_upper_acc weights entries accumulator =
+      SOME result ==>
+    bounded_object_q_nonnegative
+      (bounded_object_q_quadratic_abs_upper_acc_cv
+        weights object_entries object_accumulator)
+Proof
+  Induct
+  >- (Cases_on `entries`
+      >> Cases_on `object_entries`
+      >> gvs
+           [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_acc_def,
+            bounded_object_q_quadratic_abs_upper_acc_cv_def, LIST_REL_def])
+  >> gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `entries`
+  >- gvs
+       [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_acc_def,
+        LIST_REL_def]
+  >> Cases_on `object_entries`
+  >- gvs [LIST_REL_def]
+  >> rpt gen_tac
+  >> strip_tac
+  >> fs [LIST_REL_def]
+  >> fs
+       [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_acc_def,
+        bounded_object_q_quadratic_abs_upper_acc_cv_def, LET_THM]
+  >> Cases_on
+       `bounded128_mul_word64_to_192_words
+          (bounded_word64_product128 h0 h1)
+          (bounded_interval64_abs_upper h)`
+  >> fs []
+  >> Cases_on
+       `if h2 then bounded192_add_words x x else SOME x`
+  >> fs []
+  >> Cases_on `bounded192_add_words accumulator x'`
+  >> fs []
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_quadratic_contribution_cv h0 h1 h2 h')` by
+       (irule bounded_object_q_quadratic_contribution_cv_nonnegative
+        >> qexists_tac `h`
+        >> simp [])
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_add_cv object_accumulator
+          (bounded_object_q_quadratic_contribution_cv h0 h1 h2 h'))` by
+       (irule bounded_object_q_add_cv_nonnegative
+        >> simp [])
+  >> qpat_x_assum
+       `!entries object_entries accumulator object_accumulator result. _`
+       (match_mp_tac o Q.SPECL
+         [`t`, `t'`, `x''`,
+          `bounded_object_q_add_cv object_accumulator
+            (bounded_object_q_quadratic_contribution_cv h0 h1 h2 h')`,
+          `result`])
+  >> simp []
+QED
+
+Theorem bounded_object_q_dot_abs_upper_cv_nonnegative:
+  LIST_REL bounded_interval64_covers_object_q
+      entries object_entries /\
+  bounded_dot_abs_upper radii entries = SOME result ==>
+  bounded_object_q_nonnegative
+    (bounded_object_q_dot_abs_upper_acc_cv radii object_entries
+      (bounded_word64_object_q_cv 0w))
+Proof
+  rw [compute_boundedTaylorCompleteTheory.bounded_dot_abs_upper_def]
+  >> match_mp_tac
+       (Q.SPECL
+         [`radii`, `entries`, `object_entries`, `Bounded128 0w 0w`,
+          `bounded_word64_object_q_cv 0w`, `result`]
+         bounded_object_q_dot_abs_upper_acc_cv_nonnegative)
+  >> simp [bounded_word64_object_q_cv_nonnegative]
+QED
+
+Theorem bounded_object_q_quadratic_abs_upper_cv_nonnegative:
+  LIST_REL bounded_interval64_covers_object_q
+      hessian object_hessian /\
+  bounded_quadratic_abs_upper radii hessian = SOME result ==>
+  ?weights.
+    bounded_taylor_radius_pairs radii = SOME weights /\
+    bounded_object_q_nonnegative
+      (bounded_object_q_quadratic_abs_upper_acc_cv
+        weights object_hessian (bounded_word64_object_q_cv 0w))
+Proof
+  rw [compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_def]
+  >> every_case_tac
+  >> gvs []
+  >> match_mp_tac
+       (Q.SPECL
+         [`x`, `hessian`, `object_hessian`, `bounded192_zero`,
+          `bounded_word64_object_q_cv 0w`, `result`]
+         bounded_object_q_quadratic_abs_upper_acc_cv_nonnegative)
+  >> simp [bounded_word64_object_q_cv_nonnegative]
+QED
+
 Theorem bounded128_word64_product192_upper_covers_object_q:
   bounded128_upper_covers_object_q left left_object /\
   bounded_word64_upper_covers_object_q right right_object /\
@@ -1159,6 +1385,18 @@ Proof
        [compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_mul_def]
 QED
 
+Theorem bounded_object_q_half_cv_nonnegative:
+  bounded_object_q_nonnegative source ==>
+  bounded_object_q_nonnegative (bounded_object_q_half_cv source)
+Proof
+  strip_tac
+  >> rw [bounded_object_q_half_cv_def]
+  >> irule bounded_object_q_mul_cv_nonnegative
+  >> simp
+       [bounded_object_q_nonnegative_def,
+        compute_boundedAnalyticObjectRefinementTheory.bounded_analytic_source_q_cv_decodes]
+QED
+
 Theorem bounded_object_q_symmetric_half_interval_cv_decodes:
   bounded_object_q_ints error = SOME (numerator,denominator) ==>
   bounded_object_q_interval_ints
@@ -1180,6 +1418,38 @@ Proof
   >> simp
        [bounded_object_q_symmetric_half_interval_cv_def, LET_THM,
         compute_boundedObjectIntervalRelationTheory.bounded_object_q_interval_ints_def]
+QED
+
+Theorem bounded_object_q_symmetric_half_interval_cv_ordered:
+  bounded_object_q_nonnegative error /\
+  bounded_object_q_interval_ints
+      (bounded_object_q_symmetric_half_interval_cv error) =
+    SOME ((lower_numerator,lower_denominator),
+          (upper_numerator,upper_denominator)) ==>
+  0 < lower_denominator /\
+  0 < upper_denominator /\
+  lower_numerator * upper_denominator <=
+    upper_numerator * lower_denominator
+Proof
+  strip_tac
+  >> Cases_on `bounded_object_q_ints error`
+  >> fs [bounded_object_q_nonnegative_def]
+  >> PairCases_on `x`
+  >> imp_res_tac bounded_object_q_symmetric_half_interval_cv_decodes
+  >> gvs []
+  >> conj_tac
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> simp [])
+  >> conj_tac
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> simp [])
+  >> `0 <= upper_numerator * (x1 * (&2:int))` by
+       (irule integerTheory.INT_LE_MUL
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> intLib.ARITH_TAC
 QED
 
 Theorem bounded_object_q_taylor_value_complete_cv_decodes:
@@ -1312,6 +1582,49 @@ Proof
               object_hessian (bounded_word64_object_q_cv 0w)`]
          bounded192_add_upper_covers_object_q)
   >> simp [bounded128_scale41_upper_covers_object_q_double]
+QED
+
+Theorem bounded_object_q_taylor_error_cv_nonnegative:
+  LIST_REL bounded_interval64_covers_object_q
+      center_gradient object_center_gradient /\
+  LIST_REL bounded_interval64_covers_object_q
+      hessian object_hessian /\
+  bounded_taylor_error radii center_gradient hessian = SOME result ==>
+  ?weights.
+    bounded_taylor_radius_pairs radii = SOME weights /\
+    bounded_object_q_nonnegative
+      (bounded_object_q_taylor_error_cv
+        radii object_center_gradient weights object_hessian)
+Proof
+  rw [compute_boundedTaylorCompleteTheory.bounded_taylor_error_def]
+  >> every_case_tac
+  >> gvs []
+  >> rename1
+       `bounded192_add_words (bounded128_scale41 linear) quadratic =
+          SOME result`
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_dot_abs_upper_acc_cv radii
+          object_center_gradient (bounded_word64_object_q_cv 0w))` by
+       (match_mp_tac
+          (Q.INST
+            [`entries` |-> `center_gradient`,
+             `object_entries` |-> `object_center_gradient`,
+             `radii` |-> `radii`, `result` |-> `linear`]
+            bounded_object_q_dot_abs_upper_cv_nonnegative)
+        >> simp [])
+  >> mp_tac
+       (Q.INST
+         [`hessian` |-> `hessian`,
+          `object_hessian` |-> `object_hessian`,
+          `radii` |-> `radii`, `result` |-> `quadratic`]
+         bounded_object_q_quadratic_abs_upper_cv_nonnegative)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `weights` strip_assume_tac)
+  >> qexists_tac `weights`
+  >> simp [bounded_object_q_taylor_error_cv_def, LET_THM]
+  >> irule bounded_object_q_add_cv_nonnegative
+  >> simp [bounded_object_q_add_cv_nonnegative]
 QED
 
 val _ = export_theory ();
