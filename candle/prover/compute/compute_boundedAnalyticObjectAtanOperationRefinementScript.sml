@@ -323,4 +323,302 @@ Proof
   >> rpt (first_assum (irule_at Any))
 QED
 
+Definition bounded_object_q_atan_denominator_cv_def:
+  bounded_object_q_atan_denominator_cv square =
+    bounded_object_q_interval_add_cv
+      (bounded_analytic_source_q_interval_cv 1 0 0) square
+End
+
+Definition bounded_object_q_atan_second_cv_def:
+  bounded_object_q_atan_second_cv source derivative_square =
+    bounded_object_q_interval_neg_cv
+      (bounded_object_q_interval_mul_cv
+        (bounded_object_q_interval_add_cv source source)
+        derivative_square)
+End
+
+Theorem bounded_interval64_atan_range_valid_components:
+  bounded_interval64_atan_range input lower_reciprocal upper_reciprocal =
+      SOME result ==>
+  bounded_interval64_valid input /\ bounded_interval64_valid result
+Proof
+  strip_tac
+  >> conj_tac
+  >- (CCONTR_TAC
+      >> imp_res_tac
+           compute_boundedAtanTheory.bounded_interval64_atan_range_rejects_invalid
+      >> fs [])
+  >> metis_tac [compute_boundedAtanTheory.bounded_interval64_atan_range_some]
+QED
+
+Theorem bounded_interval64_square_some_valid_input:
+  bounded_interval64_square input = SOME result ==>
+  bounded_interval64_valid input
+Proof
+  rw [compute_boundedIntervalSquareTheory.bounded_interval64_square_def]
+QED
+
+Theorem bounded_interval64_add_some_valid_components:
+  bounded_interval64_add left right = SOME result ==>
+  bounded_interval64_valid left /\ bounded_interval64_valid right /\
+  bounded_interval64_valid result
+Proof
+  rw [compute_boundedIntervalAddTheory.bounded_interval64_add_def]
+  >> metis_tac
+       [compute_boundedIntervalAddTheory.bounded_interval64_add_unchecked_valid]
+QED
+
+Theorem bounded_interval64_mul_some_valid_inputs:
+  bounded_interval64_mul left right = SOME result ==>
+  bounded_interval64_valid left /\ bounded_interval64_valid right
+Proof
+  rw [compute_boundedIntervalTheory.bounded_interval64_mul_def]
+QED
+
+Theorem bounded_taylor64_atan_reaches_object_q_unary_inputs:
+  bounded_taylor64_covers_object_q_state source object_source_domain
+      object_source_center object_source_center_gradient object_source_value
+      object_source_gradient_bounds object_source_hessian /\
+  bounded_taylor64_atan radii center_lower_reciprocal
+      center_upper_reciprocal center_derivative box_derivative source =
+      SOME result ==>
+  ?center_value value_bound center_result center_square center_denominator box_square
+      box_denominator box_derivative_square box_twice box_second_magnitude.
+    bounded_interval64_atan_range center_value center_lower_reciprocal
+      center_upper_reciprocal = SOME center_result /\
+    bounded_object_q_interval_encloses
+      (bounded_interval64_object_q_cv center_value) object_source_center /\
+    bounded_object_q_square_certificate_exact object_source_center
+      (bounded_interval64_object_q_cv center_value)
+      (bounded_interval64_object_q_cv center_square) /\
+    bounded_object_q_square_certificate_exact object_source_value
+      (bounded_interval64_object_q_cv value_bound)
+      (bounded_interval64_object_q_cv box_square) /\
+    bounded_object_q_inv_certificate_exact
+      (bounded_object_q_atan_denominator_cv
+        (bounded_interval64_object_q_cv center_square))
+      (bounded_interval64_object_q_cv center_derivative) /\
+    bounded_object_q_inv_certificate_exact
+      (bounded_object_q_atan_denominator_cv
+        (bounded_interval64_object_q_cv box_square))
+      (bounded_interval64_object_q_cv box_derivative) /\
+    bounded_object_q_square_certificate_exact
+      (bounded_interval64_object_q_cv box_derivative)
+      (bounded_interval64_object_q_cv box_derivative)
+      (bounded_interval64_object_q_cv box_derivative_square) /\
+    bounded_interval64_square center_value = SOME center_square /\
+    bounded_interval64_add bounded_atan_one center_square =
+      SOME center_denominator /\
+    bounded_interval64_square value_bound = SOME box_square /\
+    bounded_interval64_add bounded_atan_one box_square =
+      SOME box_denominator /\
+    bounded_interval64_square box_derivative =
+      SOME box_derivative_square /\
+    bounded_interval64_add value_bound value_bound = SOME box_twice /\
+    bounded_interval64_mul box_twice box_derivative_square =
+      SOME box_second_magnitude /\
+    bounded_interval64_covers_object_q center_result
+      (bounded_interval64_object_q_cv center_result) /\
+    bounded_interval64_covers_object_q center_derivative
+      (bounded_interval64_object_q_cv center_derivative) /\
+    bounded_interval64_covers_object_q box_derivative
+      (bounded_interval64_object_q_cv box_derivative) /\
+    bounded_interval64_covers_object_q
+      (bounded_interval64_neg box_second_magnitude)
+      (bounded_object_q_atan_second_cv object_source_value
+        (bounded_interval64_object_q_cv box_derivative_square)) /\
+    bounded_taylor64_unary_complete radii T center_result
+      center_derivative box_derivative
+      (bounded_interval64_neg box_second_magnitude) source = SOME result
+Proof
+  strip_tac
+  >> drule bounded_taylor64_atan_refinement_trace
+  >> disch_then
+       (qx_choose_then `source_domain`
+         (qx_choose_then `center_value`
+           (qx_choose_then `center_gradient`
+             (qx_choose_then `value_bound`
+               (qx_choose_then `gradient_bounds`
+                 (qx_choose_then `hessian`
+                   (qx_choose_then `center_result`
+                     (qx_choose_then `center_square`
+                       (qx_choose_then `center_denominator`
+                         (qx_choose_then `box_square`
+                           (qx_choose_then `box_denominator`
+                             (qx_choose_then `box_derivative_square`
+                               (qx_choose_then `box_twice`
+                                 (qx_choose_then `box_second_magnitude`
+                                   strip_assume_tac))))))))))))))
+  >> qexists_tac `center_value`
+  >> qexists_tac `value_bound`
+  >> qexists_tac `center_result`
+  >> qexists_tac `center_square`
+  >> qexists_tac `center_denominator`
+  >> qexists_tac `box_square`
+  >> qexists_tac `box_denominator`
+  >> qexists_tac `box_derivative_square`
+  >> qexists_tac `box_twice`
+  >> qexists_tac `box_second_magnitude`
+  >> fs
+       [compute_boundedAnalyticObjectRefinementTheory.bounded_taylor64_covers_object_q_state_def]
+  >> `bounded_interval64_valid center_value /\
+      bounded_interval64_valid center_result` by
+       (mp_tac
+          (Q.INST
+            [`input` |-> `center_value`,
+             `lower_reciprocal` |-> `center_lower_reciprocal`,
+             `upper_reciprocal` |-> `center_upper_reciprocal`,
+             `result` |-> `center_result`]
+            bounded_interval64_atan_range_valid_components)
+        >> impl_tac >- asm_rewrite_tac []
+        >> simp [])
+  >> `bounded_interval64_valid value_bound` by
+       (mp_tac
+          (Q.INST
+            [`input` |-> `value_bound`, `result` |-> `box_square`]
+            bounded_interval64_square_some_valid_input)
+        >> impl_tac >- asm_rewrite_tac []
+        >> simp [])
+  >> `bounded_interval64_valid center_square` by
+       (mp_tac
+          (Q.INST
+            [`left` |-> `bounded_atan_one`, `right` |-> `center_square`,
+             `result` |-> `center_denominator`]
+            bounded_interval64_add_some_valid_components)
+        >> impl_tac >- asm_rewrite_tac []
+        >> simp [])
+  >> `bounded_interval64_valid box_square` by
+       (mp_tac
+          (Q.INST
+            [`left` |-> `bounded_atan_one`, `right` |-> `box_square`,
+             `result` |-> `box_denominator`]
+            bounded_interval64_add_some_valid_components)
+        >> impl_tac >- asm_rewrite_tac []
+        >> simp [])
+  >> `bounded_interval64_valid center_denominator /\
+      bounded_interval64_valid center_derivative` by
+       (irule
+          compute_boundedAnalyticObjectReciprocalRefinementTheory.bounded_interval64_inv_certificate_valid_components
+        >> asm_rewrite_tac [])
+  >> `bounded_interval64_valid box_denominator /\
+      bounded_interval64_valid box_derivative` by
+       (irule
+          compute_boundedAnalyticObjectReciprocalRefinementTheory.bounded_interval64_inv_certificate_valid_components
+        >> asm_rewrite_tac [])
+  >> `bounded_interval64_valid box_derivative_square` by
+       (mp_tac
+          (Q.INST
+            [`left` |-> `box_twice`,
+             `right` |-> `box_derivative_square`,
+             `result` |-> `box_second_magnitude`]
+            bounded_interval64_mul_some_valid_inputs)
+        >> impl_tac >- asm_rewrite_tac []
+        >> simp [])
+  >> `bounded_interval64_covers_object_q center_square
+        (bounded_interval64_object_q_cv center_square)` by
+       metis_tac
+         [compute_boundedAnalyticObjectCertificateRefinementTheory.bounded_interval64_covers_own_object_q]
+  >> `bounded_interval64_covers_object_q box_square
+        (bounded_interval64_object_q_cv box_square)` by
+       metis_tac
+         [compute_boundedAnalyticObjectCertificateRefinementTheory.bounded_interval64_covers_own_object_q]
+  >> `bounded_interval64_covers_object_q center_denominator
+        (bounded_object_q_atan_denominator_cv
+          (bounded_interval64_object_q_cv center_square))` by
+       (rw [bounded_object_q_atan_denominator_cv_def]
+        >> metis_tac
+             [compute_boundedAnalyticObjectRefinementTheory.bounded_atan_one_covers_object_q_one,
+              compute_boundedAnalyticObjectLinearRefinementTheory.bounded_interval64_add_covers_object_q])
+  >> `bounded_interval64_covers_object_q box_denominator
+        (bounded_object_q_atan_denominator_cv
+          (bounded_interval64_object_q_cv box_square))` by
+       (rw [bounded_object_q_atan_denominator_cv_def]
+        >> metis_tac
+             [compute_boundedAnalyticObjectRefinementTheory.bounded_atan_one_covers_object_q_one,
+              compute_boundedAnalyticObjectLinearRefinementTheory.bounded_interval64_add_covers_object_q])
+  >> `bounded_interval64_covers_object_q center_derivative
+        (bounded_interval64_object_q_cv center_derivative)` by
+       metis_tac
+         [compute_boundedAnalyticObjectCertificateRefinementTheory.bounded_interval64_covers_own_object_q]
+  >> `bounded_interval64_covers_object_q box_derivative
+        (bounded_interval64_object_q_cv box_derivative)` by
+       metis_tac
+         [compute_boundedAnalyticObjectCertificateRefinementTheory.bounded_interval64_covers_own_object_q]
+  >> `bounded_interval64_covers_object_q box_derivative_square
+        (bounded_interval64_object_q_cv box_derivative_square)` by
+       metis_tac
+         [compute_boundedAnalyticObjectCertificateRefinementTheory.bounded_interval64_covers_own_object_q]
+  >> `bounded_interval64_covers_object_q box_twice
+        (bounded_object_q_interval_add_cv
+          object_source_value object_source_value)` by
+       metis_tac
+         [compute_boundedAnalyticObjectLinearRefinementTheory.bounded_interval64_add_covers_object_q]
+  >> `bounded_interval64_covers_object_q box_second_magnitude
+        (bounded_object_q_interval_mul_cv
+          (bounded_object_q_interval_add_cv
+            object_source_value object_source_value)
+          (bounded_interval64_object_q_cv box_derivative_square))` by
+       metis_tac
+         [compute_boundedAnalyticObjectProductRefinementTheory.bounded_interval64_mul_covers_object_q]
+  >> `bounded_interval64_covers_object_q
+        (bounded_interval64_neg box_second_magnitude)
+        (bounded_object_q_atan_second_cv object_source_value
+          (bounded_interval64_object_q_cv box_derivative_square))` by
+       (rw [bounded_object_q_atan_second_cv_def]
+        >> metis_tac
+             [compute_boundedAnalyticObjectLinearRefinementTheory.bounded_interval64_neg_covers_object_q])
+  >> `bounded_interval64_covers_object_q center_result
+        (bounded_interval64_object_q_cv center_result)` by
+       metis_tac
+         [compute_boundedAnalyticObjectCertificateRefinementTheory.bounded_interval64_covers_own_object_q]
+  >> `bounded_object_q_interval_encloses
+        (bounded_interval64_object_q_cv center_value)
+        object_source_center` by
+       metis_tac [bounded_interval64_covers_object_q_encloses]
+  >> `bounded_object_q_square_certificate_exact object_source_center
+        (bounded_interval64_object_q_cv center_value)
+        (bounded_interval64_object_q_cv center_square)` by
+       metis_tac [bounded_interval64_square_own_object_q_exact]
+  >> `bounded_object_q_square_certificate_exact object_source_value
+        (bounded_interval64_object_q_cv value_bound)
+        (bounded_interval64_object_q_cv box_square)` by
+       metis_tac [bounded_interval64_square_own_object_q_exact]
+  >> `bounded_object_q_square_certificate_exact
+        (bounded_interval64_object_q_cv box_derivative)
+        (bounded_interval64_object_q_cv box_derivative)
+        (bounded_interval64_object_q_cv box_derivative_square)` by
+       metis_tac
+         [bounded_interval64_square_own_object_q_exact,
+          compute_boundedAnalyticObjectCertificateRefinementTheory.bounded_interval64_covers_own_object_q]
+  >> `bounded_object_q_inv_certificate_exact
+        (bounded_object_q_atan_denominator_cv
+          (bounded_interval64_object_q_cv center_square))
+        (bounded_interval64_object_q_cv center_derivative)` by
+       (mp_tac
+          (Q.INST
+            [`input` |-> `center_denominator`,
+             `object_input` |->
+               `bounded_object_q_atan_denominator_cv
+                  (bounded_interval64_object_q_cv center_square)`,
+             `output` |-> `center_derivative`]
+            bounded_interval64_inv_certificate_covers_object_q)
+        >> impl_tac >- asm_rewrite_tac []
+        >> simp [])
+  >> `bounded_object_q_inv_certificate_exact
+        (bounded_object_q_atan_denominator_cv
+          (bounded_interval64_object_q_cv box_square))
+        (bounded_interval64_object_q_cv box_derivative)` by
+       (mp_tac
+          (Q.INST
+            [`input` |-> `box_denominator`,
+             `object_input` |->
+               `bounded_object_q_atan_denominator_cv
+                  (bounded_interval64_object_q_cv box_square)`,
+             `output` |-> `box_derivative`]
+            bounded_interval64_inv_certificate_covers_object_q)
+        >> impl_tac >- asm_rewrite_tac []
+        >> simp [])
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
