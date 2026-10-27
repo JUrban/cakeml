@@ -122,6 +122,20 @@ Proof
   >> metis_tac []
 QED
 
+Theorem bounded_taylor64_complete_radius_pairs:
+  bounded_taylor64_complete radii result_domain center_value
+      center_gradient hessian = SOME result ==>
+  ?weights. bounded_taylor_radius_pairs radii = SOME weights
+Proof
+  strip_tac
+  >> fs [compute_boundedTaylorGradientTheory.bounded_taylor64_complete_def,
+         compute_boundedTaylorCompleteTheory.bounded_taylor_value_complete_def,
+         compute_boundedTaylorCompleteTheory.bounded_taylor_error_def,
+         compute_boundedTaylorCompleteTheory.bounded_quadratic_abs_upper_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
 Definition bounded_object_q_taylor_complete_cv_def:
   bounded_object_q_taylor_complete_cv radii weights result_domain
       center_value center_gradient hessian =
