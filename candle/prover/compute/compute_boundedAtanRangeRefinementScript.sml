@@ -4,6 +4,7 @@
 Theory compute_boundedAtanRangeRefinement
 Ancestors
   compute_boundedAtanWordRefinement compute_boundedWordRealRefinement
+  compute_boundedAtanPiRefinement
   compute_boundedAnalyticObjectCertificateRefinement
   compute_boundedAnalyticObjectInverseOperationRefinement
 Libs
@@ -896,6 +897,185 @@ Proof
   >> simp [real_div]
 QED
 
+Theorem bounded_atan_negative_reciprocal_algebra:
+  !a b p:real. -a = p - -b ==> a = -b - p
+Proof
+  REAL_ARITH_TAC
+QED
+
+Theorem bounded_atan_negative_reciprocal_identity:
+  x < &0 ==> atn x = atn (-(inv x)) - pi / &2
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST [`x` |-> `-x`]
+         compute_boundedAtanPiRefinementTheory.bounded_atan_positive_reciprocal_identity)
+  >> impl_tac >- REAL_ASM_ARITH_TAC
+  >> rw [bounded_atan_neg, REAL_INV_NEG]
+  >> metis_tac [bounded_atan_negative_reciprocal_algebra]
+QED
+
+Theorem bounded_atan_negative_magnitude_real:
+  bounded_signed64_real (BoundedSigned64 T magnitude) =
+    -(bounded_atan_magnitude_real magnitude)
+Proof
+  simp [bounded_atan_magnitude_real_def, bounded_signed64_real_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def,
+        intrealTheory.real_of_int_neg, real_div]
+QED
+
+Theorem bounded_atan_positive_magnitude_real:
+  bounded_signed64_real (BoundedSigned64 F magnitude) =
+    bounded_atan_magnitude_real magnitude
+Proof
+  simp [bounded_atan_magnitude_real_def, bounded_signed64_real_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def]
+QED
+
+Theorem bounded_atan_signed_zero_real:
+  bounded_signed64_real (BoundedSigned64 T 0w) =
+    bounded_signed64_real (BoundedSigned64 F 0w)
+Proof
+  simp [bounded_signed64_real_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def]
+QED
+
+Theorem bounded_interval64_atan_pos_lower_endpoint_sound:
+  bounded_interval64_atan_pos_lower magnitude = SOME enclosure ==>
+  bounded_signed64_real (bounded_interval64_lower enclosure) <=
+    atn (bounded_signed64_real (BoundedSigned64 F magnitude))
+Proof
+  strip_tac
+  >> `bounded_interval64_contains_real enclosure
+        (bounded_atan_lower_real
+          (bounded_atan_magnitude_real magnitude))` by
+       metis_tac [bounded_interval64_atan_pos_lower_contains_real]
+  >> mp_tac
+       (Q.INST [`x` |-> `bounded_atan_magnitude_real magnitude`]
+         compute_boundedAtanRealRefinementTheory.bounded_atan_alternating_bounds_nonnegative)
+  >> impl_tac
+  >- MATCH_ACCEPT_TAC bounded_atan_magnitude_real_nonnegative
+  >> fs [bounded_interval64_contains_real_def]
+  >> metis_tac [REAL_LE_TRANS, bounded_atan_positive_magnitude_real]
+QED
+
+Theorem bounded_interval64_atan_pos_upper_endpoint_sound:
+  bounded_interval64_atan_pos_upper magnitude = SOME enclosure ==>
+  atn (bounded_signed64_real (BoundedSigned64 F magnitude)) <=
+    bounded_signed64_real (bounded_interval64_upper enclosure)
+Proof
+  strip_tac
+  >> `bounded_interval64_contains_real enclosure
+        (bounded_atan_upper_real
+          (bounded_atan_magnitude_real magnitude))` by
+       metis_tac [bounded_interval64_atan_pos_upper_contains_real]
+  >> mp_tac
+       (Q.INST [`x` |-> `bounded_atan_magnitude_real magnitude`]
+         compute_boundedAtanRealRefinementTheory.bounded_atan_alternating_bounds_nonnegative)
+  >> impl_tac
+  >- MATCH_ACCEPT_TAC bounded_atan_magnitude_real_nonnegative
+  >> fs [bounded_interval64_contains_real_def]
+  >> metis_tac [REAL_LE_TRANS, bounded_atan_positive_magnitude_real]
+QED
+
+Theorem bounded_interval64_atan_neg_lower_endpoint_sound:
+  bounded_interval64_atan_pos_upper magnitude = SOME enclosure ==>
+  bounded_signed64_real
+      (bounded_signed64_neg (bounded_interval64_upper enclosure)) <=
+    atn (bounded_signed64_real (BoundedSigned64 T magnitude))
+Proof
+  strip_tac
+  >> `atn (bounded_signed64_real (BoundedSigned64 F magnitude)) <=
+        bounded_signed64_real (bounded_interval64_upper enclosure)` by
+       metis_tac [bounded_interval64_atan_pos_upper_endpoint_sound]
+  >> fs [bounded_signed64_neg_real,
+         bounded_atan_negative_magnitude_real,
+         bounded_atan_positive_magnitude_real, bounded_atan_neg]
+QED
+
+Theorem bounded_interval64_atan_neg_upper_endpoint_sound:
+  bounded_interval64_atan_pos_lower magnitude = SOME enclosure ==>
+  atn (bounded_signed64_real (BoundedSigned64 T magnitude)) <=
+    bounded_signed64_real
+      (bounded_signed64_neg (bounded_interval64_lower enclosure))
+Proof
+  strip_tac
+  >> `bounded_signed64_real (bounded_interval64_lower enclosure) <=
+        atn (bounded_signed64_real (BoundedSigned64 F magnitude))` by
+       metis_tac [bounded_interval64_atan_pos_lower_endpoint_sound]
+  >> fs [bounded_signed64_neg_real,
+         bounded_atan_negative_magnitude_real,
+         bounded_atan_positive_magnitude_real, bounded_atan_neg]
+QED
+
+Theorem bounded_interval64_atan_unit_lower_sound:
+  bounded_interval64_atan_unit_lower endpoint = SOME output ==>
+  bounded_signed64_real output <= atn (bounded_signed64_real endpoint)
+Proof
+  Cases_on `endpoint`
+  >> rename1 `BoundedSigned64 negative magnitude`
+  >> Cases_on `negative`
+  >> fs [compute_boundedAtanTheory.bounded_interval64_atan_unit_lower_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def]
+  >> every_case_tac
+  >> gvs []
+  >> metis_tac
+       [bounded_interval64_atan_pos_lower_endpoint_sound,
+        bounded_interval64_atan_neg_lower_endpoint_sound,
+        bounded_atan_negative_magnitude_real,
+        bounded_atan_signed_zero_real,
+        bounded_atan_magnitude_real_def,
+        compute_boundedAtanRealRefinementTheory.bounded_atan_zero]
+QED
+
+Theorem bounded_interval64_atan_unit_upper_sound:
+  bounded_interval64_atan_unit_upper endpoint = SOME output ==>
+  atn (bounded_signed64_real endpoint) <= bounded_signed64_real output
+Proof
+  Cases_on `endpoint`
+  >> rename1 `BoundedSigned64 negative magnitude`
+  >> Cases_on `negative`
+  >> fs [compute_boundedAtanTheory.bounded_interval64_atan_unit_upper_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def,
+         compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def]
+  >> every_case_tac
+  >> gvs []
+  >> metis_tac
+       [bounded_interval64_atan_pos_upper_endpoint_sound,
+        bounded_interval64_atan_neg_upper_endpoint_sound,
+        bounded_atan_negative_magnitude_real,
+        bounded_atan_signed_zero_real,
+        bounded_atan_magnitude_real_def,
+        compute_boundedAtanRealRefinementTheory.bounded_atan_zero]
+QED
+
+Theorem bounded_interval64_atan_unit_contains_real:
+  bounded_interval64_contains_real input value /\
+  bounded_interval64_atan_unit input = SOME result ==>
+  bounded_interval64_contains_real result (atn value)
+Proof
+  strip_tac
+  >> fs [compute_boundedAtanTheory.bounded_interval64_atan_unit_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_interval64_atan_unit_lower_sound
+  >> imp_res_tac bounded_interval64_atan_unit_upper_sound
+  >> fs [bounded_interval64_contains_real_def,
+         compute_boundedIntervalTheory.bounded_interval64_lower_def,
+         compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> `atn
+        (bounded_signed64_real (bounded_interval64_lower input)) <=
+      atn value` by
+       metis_tac
+         [compute_boundedAtanPiRefinementTheory.bounded_atan_mono]
+  >> `atn value <=
+      atn (bounded_signed64_real (bounded_interval64_upper input))` by
+       metis_tac
+         [compute_boundedAtanPiRefinementTheory.bounded_atan_mono]
+  >> metis_tac [REAL_LE_TRANS]
+QED
+
 Theorem bounded_interval64_neg_contains_real:
   bounded_interval64_contains_real source value ==>
   bounded_interval64_contains_real
@@ -1064,15 +1244,6 @@ Proof
   >> metis_tac [bounded_interval64_neg_involutive]
 QED
 
-Theorem bounded_atan_negative_magnitude_real:
-  bounded_signed64_real (BoundedSigned64 T magnitude) =
-    -(bounded_atan_magnitude_real magnitude)
-Proof
-  simp [bounded_atan_magnitude_real_def, bounded_signed64_real_def,
-        compute_boundedSignedEndpointTheory.bounded_signed64_to_int_def,
-        intrealTheory.real_of_int_neg, real_div]
-QED
-
 Theorem bounded_interval64_atan_negative_unit_contains_real:
   magnitude <> 0w /\
   word_lo magnitude bounded_atan_scale /\
@@ -1134,6 +1305,237 @@ Proof
         bounded_interval64_atan_negative_unit_contains_real,
         bounded_atan_magnitude_interval_def,
         bounded_atan_magnitude_real_def]
+QED
+
+Theorem bounded_signed64_strict_positive_real:
+  bounded_signed64_strict_positive endpoint ==>
+  &0 < bounded_signed64_real endpoint
+Proof
+  strip_tac
+  >> fs [compute_boundedReciprocalCertificateTheory.bounded_signed64_strict_positive_correct]
+  >> rw [bounded_signed64_real_def, bounded_word_scale_real_def,
+         compute_boundedObjectIntervalRelationTheory.bounded_word_scale_int_def]
+  >> once_rewrite_tac
+       [GSYM (Q.INST [`n` |-> `0`] intrealTheory.real_of_int_num)]
+  >> rw [intrealTheory.real_of_int_lt]
+QED
+
+Theorem bounded_signed64_strict_negative_real:
+  bounded_signed64_strict_negative endpoint ==>
+  bounded_signed64_real endpoint < &0
+Proof
+  strip_tac
+  >> fs [compute_boundedReciprocalCertificateTheory.bounded_signed64_strict_negative_correct]
+  >> rw [bounded_signed64_real_def, bounded_word_scale_real_def,
+         compute_boundedObjectIntervalRelationTheory.bounded_word_scale_int_def]
+  >> once_rewrite_tac
+       [GSYM (Q.INST [`n` |-> `0`] intrealTheory.real_of_int_num)]
+  >> rw [intrealTheory.real_of_int_lt]
+QED
+
+Theorem bounded_interval64_singleton_contains_real:
+  bounded_interval64_contains_real
+    (BoundedInterval64 endpoint endpoint) (bounded_signed64_real endpoint)
+Proof
+  simp [bounded_interval64_contains_real_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+QED
+
+Theorem bounded_interval64_atan_positive_outer_contains_real:
+  bounded_signed64_strict_positive endpoint /\
+  bounded_interval64_inv_certificate
+    (BoundedInterval64 endpoint endpoint) reciprocal /\
+  bounded_interval64_atan_unit reciprocal = SOME reduced_atan /\
+  bounded_interval64_add bounded_atan_pi_half
+    (bounded_interval64_neg reduced_atan) = SOME result ==>
+  bounded_interval64_contains_real result
+    (atn (bounded_signed64_real endpoint))
+Proof
+  strip_tac
+  >> `bounded_interval64_contains_real reciprocal
+        (inv (bounded_signed64_real endpoint))` by
+       metis_tac
+         [bounded_interval64_positive_inv_certificate_singleton_contains_real]
+  >> `bounded_interval64_contains_real reduced_atan
+        (atn (inv (bounded_signed64_real endpoint)))` by
+       metis_tac [bounded_interval64_atan_unit_contains_real]
+  >> `bounded_interval64_contains_real
+        (bounded_interval64_neg reduced_atan)
+        (-(atn (inv (bounded_signed64_real endpoint))))` by
+       metis_tac [bounded_interval64_neg_contains_real]
+  >> `bounded_interval64_contains_real bounded_atan_pi_half (pi / &2)` by
+       MATCH_ACCEPT_TAC
+         compute_boundedAtanPiRefinementTheory.bounded_atan_pi_half_contains_real
+  >> `bounded_interval64_contains_real result
+        (pi / &2 + -(atn (inv (bounded_signed64_real endpoint))))` by
+       metis_tac [bounded_interval64_add_contains_real]
+  >> `&0 < bounded_signed64_real endpoint` by
+       metis_tac [bounded_signed64_strict_positive_real]
+  >> mp_tac
+       (Q.INST [`x` |-> `bounded_signed64_real endpoint`]
+         compute_boundedAtanPiRefinementTheory.bounded_atan_positive_reciprocal_identity)
+  >> asm_rewrite_tac [real_sub]
+  >> metis_tac []
+QED
+
+Theorem bounded_interval64_atan_negative_outer_contains_real:
+  bounded_signed64_strict_negative endpoint /\
+  bounded_interval64_inv_certificate
+    (BoundedInterval64 endpoint endpoint) reciprocal /\
+  bounded_interval64_atan_unit
+    (bounded_interval64_neg reciprocal) = SOME reduced_atan /\
+  bounded_interval64_add reduced_atan
+    (bounded_interval64_neg bounded_atan_pi_half) = SOME result ==>
+  bounded_interval64_contains_real result
+    (atn (bounded_signed64_real endpoint))
+Proof
+  strip_tac
+  >> `bounded_interval64_contains_real reciprocal
+        (inv (bounded_signed64_real endpoint))` by
+       metis_tac
+         [bounded_interval64_negative_inv_certificate_singleton_contains_real]
+  >> `bounded_interval64_contains_real
+        (bounded_interval64_neg reciprocal)
+        (-(inv (bounded_signed64_real endpoint)))` by
+       metis_tac [bounded_interval64_neg_contains_real]
+  >> `bounded_interval64_contains_real reduced_atan
+        (atn (-(inv (bounded_signed64_real endpoint))))` by
+       metis_tac [bounded_interval64_atan_unit_contains_real]
+  >> `bounded_interval64_contains_real
+        (bounded_interval64_neg bounded_atan_pi_half) (-(pi / &2))` by
+       metis_tac
+         [bounded_interval64_neg_contains_real,
+          compute_boundedAtanPiRefinementTheory.bounded_atan_pi_half_contains_real]
+  >> `bounded_interval64_contains_real result
+        (atn (-(inv (bounded_signed64_real endpoint))) + -(pi / &2))` by
+       metis_tac [bounded_interval64_add_contains_real]
+  >> `bounded_signed64_real endpoint < &0` by
+       metis_tac [bounded_signed64_strict_negative_real]
+  >> mp_tac
+       (Q.INST [`x` |-> `bounded_signed64_real endpoint`]
+         bounded_atan_negative_reciprocal_identity)
+  >> asm_rewrite_tac [real_sub]
+  >> metis_tac []
+QED
+
+Theorem bounded_atan_outer_positive_endpoint:
+  ~word_lo magnitude bounded_atan_scale /\
+  magnitude <> bounded_atan_scale ==>
+  bounded_signed64_strict_positive (BoundedSigned64 F magnitude)
+Proof
+  strip_tac
+  >> `magnitude <> 0w` by
+       (CCONTR_TAC
+        >> fs [compute_boundedAtanTheory.bounded_atan_scale_def,
+               compute_boundedAtanTheory.bounded_atan_word64_def])
+  >> simp
+       [compute_boundedReciprocalCertificateTheory.bounded_signed64_strict_positive_def,
+        compute_boundedIntervalTheory.bounded_signed64_nonnegative_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def]
+QED
+
+Theorem bounded_atan_outer_negative_endpoint:
+  ~word_lo magnitude bounded_atan_scale /\
+  magnitude <> bounded_atan_scale ==>
+  bounded_signed64_strict_negative (BoundedSigned64 T magnitude)
+Proof
+  strip_tac
+  >> `magnitude <> 0w` by
+       (CCONTR_TAC
+        >> fs [compute_boundedAtanTheory.bounded_atan_scale_def,
+               compute_boundedAtanTheory.bounded_atan_word64_def])
+  >> simp
+       [compute_boundedReciprocalCertificateTheory.bounded_signed64_strict_negative_def,
+        compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def]
+QED
+
+Theorem bounded_interval64_atan_positive_range_point_contains_real:
+  bounded_interval64_atan_range_point
+    (BoundedSigned64 F magnitude) reciprocal = SOME result ==>
+  bounded_interval64_contains_real result
+    (atn (bounded_signed64_real (BoundedSigned64 F magnitude)))
+Proof
+  rw [compute_boundedAtanTheory.bounded_interval64_atan_range_point_def,
+      compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def,
+      compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def]
+  >- (irule bounded_interval64_atan_unit_singleton_contains_real
+      >> asm_simp_tac (srw_ss())
+           [compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def])
+  >> Cases_on `reciprocal`
+  >> gvs []
+  >> every_case_tac
+  >> gvs []
+  >> metis_tac
+       [bounded_interval64_atan_positive_outer_contains_real,
+        bounded_atan_outer_positive_endpoint]
+QED
+
+Theorem bounded_interval64_atan_negative_range_point_contains_real:
+  bounded_interval64_atan_range_point
+    (BoundedSigned64 T magnitude) reciprocal = SOME result ==>
+  bounded_interval64_contains_real result
+    (atn (bounded_signed64_real (BoundedSigned64 T magnitude)))
+Proof
+  rw [compute_boundedAtanTheory.bounded_interval64_atan_range_point_def,
+      compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def,
+      compute_boundedSignedEndpointTheory.bounded_signed64_effective_negative_def]
+  >- (irule bounded_interval64_atan_unit_singleton_contains_real
+      >> asm_simp_tac (srw_ss())
+           [compute_boundedSignedEndpointTheory.bounded_signed64_magnitude_def])
+  >> Cases_on `reciprocal`
+  >> gvs []
+  >> `magnitude <> 0w` by
+       (CCONTR_TAC
+        >> fs [compute_boundedAtanTheory.bounded_atan_scale_def,
+               compute_boundedAtanTheory.bounded_atan_word64_def])
+  >> fs []
+  >> Cases_on `bounded_interval64_atan_unit (bounded_interval64_neg x)`
+  >> gvs []
+  >> metis_tac
+       [bounded_interval64_atan_negative_outer_contains_real,
+        bounded_atan_outer_negative_endpoint]
+QED
+
+Theorem bounded_interval64_atan_range_point_contains_real:
+  bounded_interval64_atan_range_point endpoint reciprocal = SOME result ==>
+  bounded_interval64_contains_real result
+    (atn (bounded_signed64_real endpoint))
+Proof
+  Cases_on `endpoint`
+  >> rename1 `BoundedSigned64 negative magnitude`
+  >> Cases_on `negative`
+  >> metis_tac
+       [bounded_interval64_atan_positive_range_point_contains_real,
+        bounded_interval64_atan_negative_range_point_contains_real]
+QED
+
+Theorem bounded_interval64_atan_range_contains_real:
+  bounded_interval64_contains_real input value /\
+  bounded_interval64_atan_range input
+    lower_reciprocal upper_reciprocal = SOME result ==>
+  bounded_interval64_contains_real result (atn value)
+Proof
+  Cases_on `input`
+  >> rename1 `BoundedInterval64 input_lower input_upper`
+  >> rw [compute_boundedAtanTheory.bounded_interval64_atan_range_def]
+  >> every_case_tac
+  >> gvs [bounded_interval64_contains_real_def,
+          compute_boundedIntervalTheory.bounded_interval64_lower_def,
+          compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> `bounded_interval64_contains_real x'
+        (atn (bounded_signed64_real input_lower))` by
+       metis_tac [bounded_interval64_atan_range_point_contains_real]
+  >> `bounded_interval64_contains_real x
+        (atn (bounded_signed64_real input_upper))` by
+       metis_tac [bounded_interval64_atan_range_point_contains_real]
+  >> `atn (bounded_signed64_real input_lower) <= atn value` by
+       metis_tac [compute_boundedAtanPiRefinementTheory.bounded_atan_mono]
+  >> `atn value <= atn (bounded_signed64_real input_upper)` by
+       metis_tac [compute_boundedAtanPiRefinementTheory.bounded_atan_mono]
+  >> fs [bounded_interval64_contains_real_def]
+  >> metis_tac [REAL_LE_TRANS]
 QED
 
 val _ = export_theory ();

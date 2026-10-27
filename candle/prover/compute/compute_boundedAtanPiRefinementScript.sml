@@ -390,4 +390,78 @@ Proof
                 bounded_atan_pi_half_rational_bounds]
 QED
 
+Theorem bounded_atan_positive:
+  &0 < x ==> &0 < atn x
+Proof
+  strip_tac
+  >> mp_tac (Q.SPEC `x` ATN)
+  >> strip_tac
+  >> Cases_on `atn x = &0`
+  >- fs [TAN_0]
+  >> Cases_on `&0 < atn x`
+  >- asm_rewrite_tac []
+  >> `atn x < &0` by REAL_ASM_ARITH_TAC
+  >> mp_tac (Q.SPEC `-(atn x)` TAN_POS_PI2)
+  >> impl_tac
+  >- REAL_ASM_ARITH_TAC
+  >> simp [TAN_NEG, ATN_TAN]
+  >> REAL_ASM_ARITH_TAC
+QED
+
+Theorem bounded_atan_strict_mono:
+  x < y ==> atn x < atn y
+Proof
+  strip_tac
+  >> mp_tac (Q.SPEC `atn` DIFF_POS_MONO_LT_UU)
+  >> impl_tac
+  >- (gen_tac
+      >> qexists_tac `inv (&1 + z pow 2)`
+      >> conj_tac
+      >- (irule REAL_INV_POS
+          >> `&0 <= z pow 2` by simp [POW_2, REAL_LE_SQUARE]
+          >> REAL_ASM_ARITH_TAC)
+      >> MATCH_ACCEPT_TAC (Q.SPEC `z` DIFF_ATN))
+  >> disch_then (qspecl_then [`x`, `y`] mp_tac)
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_atan_mono:
+  x <= y ==> atn x <= atn y
+Proof
+  strip_tac
+  >> Cases_on `x = y`
+  >- simp []
+  >> irule REAL_LT_IMP_LE
+  >> irule bounded_atan_strict_mono
+  >> REAL_ASM_ARITH_TAC
+QED
+
+Theorem bounded_atan_pi_half_sub_tan:
+  &0 < x ==> tan (pi / &2 - atn x) = inv x
+Proof
+  strip_tac
+  >> `cos (atn x) <> &0` by
+       MATCH_ACCEPT_TAC bounded_atan_cos_nonzero
+  >> `sin (atn x) <> &0` by
+       (irule REAL_POS_NZ
+        >> irule SIN_POS_PI2
+        >> metis_tac [bounded_atan_positive, ATN_BOUNDS])
+  >> mp_tac (Q.SPEC `x` ATN_TAN)
+  >> rw [tan, GSYM COS_SIN, GSYM SIN_COS]
+QED
+
+Theorem bounded_atan_positive_reciprocal_identity:
+  &0 < x ==> atn x = pi / &2 - atn (inv x)
+Proof
+  strip_tac
+  >> `&0 < atn x` by metis_tac [bounded_atan_positive]
+  >> mp_tac (Q.SPEC `x` ATN_BOUNDS)
+  >> strip_tac
+  >> mp_tac (Q.SPEC `pi / &2 - atn x` TAN_ATN)
+  >> impl_tac
+  >- (mp_tac PI2_BOUNDS >> REAL_ASM_ARITH_TAC)
+  >> rw [bounded_atan_pi_half_sub_tan]
+  >> REAL_ARITH_TAC
+QED
+
 val _ = export_theory ();
