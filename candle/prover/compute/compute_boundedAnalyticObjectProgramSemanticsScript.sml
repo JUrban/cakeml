@@ -97,6 +97,27 @@ Theorem bounded_taylor64_sqrt_refines_object_q_taylor:
   bounded_object_q_sqrt_certificate_exact
     (case object_source of BoundedObjectQTaylor _ _ _ value _ _ => value)
     (bounded_interval64_object_q_cv box_sqrt) /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_interval_add_cv
+      (bounded_interval64_object_q_cv center_sqrt)
+      (bounded_interval64_object_q_cv center_sqrt))
+    (bounded_interval64_object_q_cv center_derivative) /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_interval_add_cv
+      (bounded_interval64_object_q_cv box_sqrt)
+      (bounded_interval64_object_q_cv box_sqrt))
+    (bounded_interval64_object_q_cv box_derivative) /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_interval_mul_cv
+      (bounded_object_q_interval_add_cv
+        (bounded_interval64_object_q_cv box_sqrt)
+        (bounded_interval64_object_q_cv box_sqrt))
+      (bounded_object_q_interval_add_cv
+        (case object_source of
+         | BoundedObjectQTaylor _ _ _ value _ _ => value)
+        (case object_source of
+         | BoundedObjectQTaylor _ _ _ value _ _ => value)))
+    (bounded_interval64_object_q_cv box_second_reciprocal) /\
   bounded_taylor64_covers_object_q result
     (bounded_object_q_taylor_sqrt radii weights
       (bounded_interval64_object_q_cv center_sqrt)
