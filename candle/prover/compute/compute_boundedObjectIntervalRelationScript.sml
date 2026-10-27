@@ -11,7 +11,7 @@
  *****************************************************************************)
 Theory compute_boundedObjectIntervalRelation
 Ancestors
-  compute_boundedInterval compute_exec
+  compute_boundedCase10173Packet
 Libs
   bossLib preamble intLib
 

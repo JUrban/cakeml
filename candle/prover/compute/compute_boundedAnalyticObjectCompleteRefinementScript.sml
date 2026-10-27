@@ -9,6 +9,7 @@
 Theory compute_boundedAnalyticObjectCompleteRefinement
 Ancestors
   compute_boundedAnalyticObjectFusedProductRefinement
+  compute_boundedTaylorCompleteBounds compute_boundedTaylorGradientBounds
 Libs
   bossLib preamble intLib
 
@@ -1476,6 +1477,167 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_taylor_value_completion_covers_object_q_ints:
+  bounded_interval64_covers_object_q_ints
+      (BoundedInterval64 center_lower center_upper)
+      ((center_lower_numerator,center_lower_denominator),
+       (center_upper_numerator,center_upper_denominator)) /\
+  bounded192_upper_covers_int_fraction error
+      (error_numerator,error_denominator) /\
+  0 <= error_numerator /\
+  (&2417851639229258349412352:int) *
+      bounded_signed64_to_int result_lower <=
+    (&2417851639229258349412352:int) *
+      bounded_signed64_to_int center_lower -
+    &(bounded192_to_num error) /\
+  (&2417851639229258349412352:int) *
+      bounded_signed64_to_int center_upper +
+    &(bounded192_to_num error) <=
+  (&2417851639229258349412352:int) *
+      bounded_signed64_to_int result_upper ==>
+  bounded_interval64_covers_object_q_ints
+    (BoundedInterval64 result_lower result_upper)
+    (bounded_object_q_interval_add_ints
+      ((center_lower_numerator,center_lower_denominator),
+       (center_upper_numerator,center_upper_denominator))
+      ((-error_numerator,error_denominator * (&2:int)),
+       (error_numerator,error_denominator * (&2:int))))
+Proof
+  strip_tac
+  >> fs
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_ints_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_word_scale_int_def,
+        bounded192_upper_covers_int_fraction_def,
+        compute_boundedAnalyticObjectRefinementTheory.bounded_object_q_interval_add_ints_def,
+        compute_boundedIntervalTheory.bounded_interval64_lower_def,
+        compute_boundedIntervalTheory.bounded_interval64_upper_def]
+  >> rpt conj_tac
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> conj_tac
+      >- simp []
+      >> irule
+           (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> simp [])
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> conj_tac
+      >- simp []
+      >> irule
+           (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> simp [])
+  >- (match_mp_tac
+        compute_boundedAnalyticObjectRefinementTheory.bounded_int_fraction_interval_add_ordered
+      >> simp []
+      >> conj_tac
+      >- intLib.ARITH_TAC
+      >> conj_tac
+      >- intLib.ARITH_TAC
+      >> `0 <= error_numerator * (error_denominator * (&2:int))` by
+           (irule integerTheory.INT_LE_MUL
+            >> simp []
+            >> intLib.ARITH_TAC)
+      >> intLib.ARITH_TAC)
+  >- (`0 <= (&2:int) * error_denominator` by
+        (irule integerTheory.INT_LE_MUL
+         >> simp []
+         >> intLib.ARITH_TAC)
+      >> `0 <= (&2:int) * error_denominator *
+            center_lower_denominator` by
+           (irule integerTheory.INT_LE_MUL
+            >> simp []
+            >> intLib.ARITH_TAC)
+      >> `((&2:int) * error_denominator * center_lower_denominator) *
+            ((&2417851639229258349412352:int) *
+              bounded_signed64_to_int result_lower) <=
+          ((&2:int) * error_denominator * center_lower_denominator) *
+            ((&2417851639229258349412352:int) *
+                bounded_signed64_to_int center_lower -
+              &(bounded192_to_num error))` by
+           (irule
+              compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+            >> simp [])
+      >> `0 <= (&2:int) * error_denominator *
+            (&2417851639229258349412352:int)` by
+           (irule integerTheory.INT_LE_MUL
+            >> simp [])
+      >> `((&2:int) * error_denominator *
+              (&2417851639229258349412352:int)) *
+            (center_lower_denominator *
+              bounded_signed64_to_int center_lower) <=
+          ((&2:int) * error_denominator *
+              (&2417851639229258349412352:int)) *
+            ((&1099511627776:int) * center_lower_numerator)` by
+           (irule
+              compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+            >> simp [])
+      >> `0 <= (&2:int) * center_lower_denominator` by
+           (irule integerTheory.INT_LE_MUL
+            >> simp []
+            >> intLib.ARITH_TAC)
+      >> `((&2:int) * center_lower_denominator) *
+            ((&1329227995784915872903807060280344576:int) *
+              error_numerator) <=
+          ((&2:int) * center_lower_denominator) *
+            (error_denominator * &(bounded192_to_num error))` by
+           (irule
+              compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+            >> simp [])
+      >> RULE_ASSUM_TAC
+           (CONV_RULE (BINOP_CONV intLib.INT_POLY_CONV))
+      >> CONV_TAC (BINOP_CONV intLib.INT_POLY_CONV)
+      >> intLib.ARITH_TAC)
+  >> `0 <= (&2:int) * error_denominator` by
+       (irule integerTheory.INT_LE_MUL
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> `0 <= (&2:int) * error_denominator *
+        center_upper_denominator` by
+       (irule integerTheory.INT_LE_MUL
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> `((&2:int) * error_denominator * center_upper_denominator) *
+        ((&2417851639229258349412352:int) *
+            bounded_signed64_to_int center_upper +
+          &(bounded192_to_num error)) <=
+      ((&2:int) * error_denominator * center_upper_denominator) *
+        ((&2417851639229258349412352:int) *
+          bounded_signed64_to_int result_upper)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> simp [])
+  >> `0 <= (&2:int) * error_denominator *
+        (&2417851639229258349412352:int)` by
+       (irule integerTheory.INT_LE_MUL
+        >> simp [])
+  >> `((&2:int) * error_denominator *
+          (&2417851639229258349412352:int)) *
+        ((&1099511627776:int) * center_upper_numerator) <=
+      ((&2:int) * error_denominator *
+          (&2417851639229258349412352:int)) *
+        (center_upper_denominator *
+          bounded_signed64_to_int center_upper)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> simp [])
+  >> `0 <= (&2:int) * center_upper_denominator` by
+       (irule integerTheory.INT_LE_MUL
+        >> simp []
+        >> intLib.ARITH_TAC)
+  >> `((&2:int) * center_upper_denominator) *
+        ((&1329227995784915872903807060280344576:int) *
+          error_numerator) <=
+      ((&2:int) * center_upper_denominator) *
+        (error_denominator * &(bounded192_to_num error))` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> simp [])
+  >> RULE_ASSUM_TAC
+       (CONV_RULE (BINOP_CONV intLib.INT_POLY_CONV))
+  >> CONV_TAC (BINOP_CONV intLib.INT_POLY_CONV)
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded128_scale41_upper_covers_int_fraction_double:
   bounded128_upper_covers_int_fraction source
       (numerator,denominator) ==>
@@ -1625,6 +1787,92 @@ Proof
   >> simp [bounded_object_q_taylor_error_cv_def, LET_THM]
   >> irule bounded_object_q_add_cv_nonnegative
   >> simp [bounded_object_q_add_cv_nonnegative]
+QED
+
+Theorem bounded_taylor_value_complete_covers_object_q:
+  bounded_interval64_covers_object_q center_value object_center_value /\
+  LIST_REL bounded_interval64_covers_object_q
+      center_gradient object_center_gradient /\
+  LIST_REL bounded_interval64_covers_object_q
+      hessian object_hessian /\
+  bounded_taylor_value_complete radii center_value center_gradient hessian =
+    SOME result ==>
+  ?weights.
+    bounded_taylor_radius_pairs radii = SOME weights /\
+    bounded_interval64_covers_object_q result
+      (bounded_object_q_taylor_value_complete_cv object_center_value
+        (bounded_object_q_taylor_error_cv
+          radii object_center_gradient weights object_hessian))
+Proof
+  Cases_on `center_value`
+  >> Cases_on `result`
+  >> strip_tac
+  >> rename1
+       `bounded_taylor_value_complete radii
+          (BoundedInterval64 center_lower center_upper)
+          center_gradient hessian =
+        SOME (BoundedInterval64 result_lower result_upper)`
+  >> mp_tac
+       (Q.INST
+         [`radii` |-> `radii`, `center_lower` |-> `center_lower`,
+          `center_upper` |-> `center_upper`,
+          `center_gradient` |-> `center_gradient`,
+          `hessian` |-> `hessian`, `result_lower` |-> `result_lower`,
+          `result_upper` |-> `result_upper`]
+         compute_boundedTaylorCompleteBoundsTheory.bounded_taylor_value_complete_bounds)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `error` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`center_gradient` |-> `center_gradient`,
+          `object_center_gradient` |-> `object_center_gradient`,
+          `hessian` |-> `hessian`,
+          `object_hessian` |-> `object_hessian`,
+          `radii` |-> `radii`, `result` |-> `error`]
+         bounded_taylor_error_covers_object_q)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `weights` strip_assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`center_gradient` |-> `center_gradient`,
+          `object_center_gradient` |-> `object_center_gradient`,
+          `hessian` |-> `hessian`,
+          `object_hessian` |-> `object_hessian`,
+          `radii` |-> `radii`, `result` |-> `error`]
+         bounded_object_q_taylor_error_cv_nonnegative)
+  >> impl_tac
+  >- simp []
+  >> disch_then (qx_choose_then `weights'` strip_assume_tac)
+  >> `weights' = weights` by gvs []
+  >> gvs []
+  >> Cases_on `bounded_object_q_interval_ints object_center_value`
+  >> fs
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+  >> PairCases_on `x`
+  >> Cases_on
+       `bounded_object_q_ints
+          (bounded_object_q_taylor_error_cv
+            radii object_center_gradient weights object_hessian)`
+  >> fs [bounded192_upper_covers_object_q_def,
+         bounded_object_q_nonnegative_def]
+  >> PairCases_on `x`
+  >> `bounded_object_q_interval_ints
+        (bounded_object_q_taylor_value_complete_cv object_center_value
+          (bounded_object_q_taylor_error_cv
+            radii object_center_gradient weights object_hessian)) =
+      SOME
+        (bounded_object_q_interval_add_ints
+          ((x0,x1),(x2,x3))
+          ((-x0',x1' * (&2:int)),(x0',x1' * (&2:int))))` by
+       (irule bounded_object_q_taylor_value_complete_cv_decodes
+        >> simp [])
+  >> rw
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+  >> gvs []
+  >> match_mp_tac bounded_taylor_value_completion_covers_object_q_ints
+  >> simp []
 QED
 
 val _ = export_theory ();
