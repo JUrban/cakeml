@@ -229,6 +229,72 @@ Proof
       compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_max_def]
 QED
 
+Theorem bounded_int_fraction_abs_nonnegative:
+  0 < denominator ==>
+  0 < SND (bounded_int_fraction_abs (numerator,denominator)) /\
+  0 <= FST (bounded_int_fraction_abs (numerator,denominator))
+Proof
+  rw [bounded_int_fraction_abs_def,
+      bounded_int_fraction_neg_def,
+      compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_max_def,
+      compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_le_def]
+  >> fs [integerTheory.INT_MUL_COMM, integerTheory.INT_LE_MONO]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_int_fraction_interval_abs_upper_nonnegative:
+  0 < SND lower /\ 0 < SND upper ==>
+  0 < SND (bounded_int_fraction_interval_abs_upper (lower,upper)) /\
+  0 <= FST (bounded_int_fraction_interval_abs_upper (lower,upper))
+Proof
+  PairCases_on `lower`
+  >> PairCases_on `upper`
+  >> strip_tac
+  >> assume_tac
+       (Q.INST [`numerator` |-> `lower0`, `denominator` |-> `lower1`]
+          bounded_int_fraction_abs_nonnegative)
+  >> assume_tac
+       (Q.INST [`numerator` |-> `upper0`, `denominator` |-> `upper1`]
+          bounded_int_fraction_abs_nonnegative)
+  >> fs []
+  >> rw [bounded_int_fraction_interval_abs_upper_def,
+         compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_max_def]
+  >> fs []
+QED
+
+Theorem bounded_object_q_interval_abs_upper_cv_nonnegative:
+  bounded_object_q_interval_ints object_interval =
+    SOME (lower,upper) ==>
+  bounded_object_q_nonnegative
+    (bounded_object_q_interval_abs_upper_cv object_interval)
+Proof
+  strip_tac
+  >> PairCases_on `lower`
+  >> PairCases_on `upper`
+  >> `bounded_object_q_ints
+        (bounded_object_q_interval_abs_upper_cv object_interval) =
+      SOME
+        (bounded_int_fraction_interval_abs_upper
+          ((lower0,lower1),(upper0,upper1)))` by
+       (irule bounded_object_q_interval_abs_upper_cv_decodes
+        >> simp [])
+  >> rw [bounded_object_q_nonnegative_def]
+  >> gvs []
+  >> Cases_on `object_interval`
+  >> fs
+       [compute_boundedObjectIntervalRelationTheory.bounded_object_q_interval_ints_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedObjectIntervalRelationTheory.bounded_object_q_ints_denominator_positive
+  >> assume_tac
+       (Q.INST
+         [`lower` |-> `(lower0,lower1)`,
+          `upper` |-> `(upper0,upper1)`]
+         bounded_int_fraction_interval_abs_upper_nonnegative)
+  >> gvs []
+QED
+
 Theorem bounded_interval64_abs_upper_covers_object_q:
   bounded_interval64_covers_object_q interval object_interval ==>
   bounded_word64_upper_covers_object_q
@@ -324,6 +390,62 @@ Proof
        compute_boundedAnalyticObjectProductRefinementTheory.bounded_object_q_mul_cv_decodes
   >> gvs []
   >> irule bounded_word64_product128_upper_covers_int_fraction
+  >> simp []
+QED
+
+Theorem bounded128_add_upper_covers_int_fraction:
+  bounded128_upper_covers_int_fraction left
+      (left_numerator,left_denominator) /\
+  bounded128_upper_covers_int_fraction right
+      (right_numerator,right_denominator) /\
+  bounded128_add_words left right = SOME result ==>
+  bounded128_upper_covers_int_fraction result
+    (bounded_int_fraction_add
+      (left_numerator,left_denominator)
+      (right_numerator,right_denominator))
+Proof
+  rw [bounded128_upper_covers_int_fraction_def,
+      compute_boundedAnalyticObjectFusedProductRefinementTheory.bounded_int_fraction_add_def]
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> simp [])
+  >> fs [compute_boundedTheory.bounded128_add_words_refines]
+  >> imp_res_tac compute_boundedTheory.bounded128_add_some
+  >> gvs []
+  >> PURE_REWRITE_TAC [GSYM integerTheory.INT_ADD]
+  >> irule
+       compute_boundedAnalyticObjectRefinementTheory.bounded_int_fraction_add_upper_bound
+  >> simp []
+QED
+
+Theorem bounded128_add_upper_covers_object_q:
+  bounded128_upper_covers_object_q left left_object /\
+  bounded128_upper_covers_object_q right right_object /\
+  bounded128_add_words left right = SOME result ==>
+  bounded128_upper_covers_object_q result
+    (bounded_object_q_add_cv left_object right_object)
+Proof
+  strip_tac
+  >> Cases_on `bounded_object_q_ints left_object`
+  >> fs [bounded128_upper_covers_object_q_def]
+  >> PairCases_on `x`
+  >> Cases_on `bounded_object_q_ints right_object`
+  >> fs [bounded128_upper_covers_object_q_def]
+  >> PairCases_on `x`
+  >> `bounded_object_q_ints
+        (bounded_object_q_add_cv left_object right_object) =
+      SOME (x0 * x1' + x0' * x1,x1 * x1')` by
+       (irule
+          compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_add_cv_decodes
+        >> simp [])
+  >> rw [bounded128_upper_covers_object_q_def]
+  >> gvs []
+  >> irule
+       (SIMP_RULE (srw_ss())
+         [compute_boundedAnalyticObjectFusedProductRefinementTheory.bounded_int_fraction_add_def]
+         bounded128_add_upper_covers_int_fraction)
+  >> qexists_tac `left`
+  >> qexists_tac `right`
   >> simp []
 QED
 
