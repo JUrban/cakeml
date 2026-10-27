@@ -44,14 +44,44 @@ Definition bounded_object_q_interval_abs_upper_cv_def:
   bounded_object_q_interval_abs_upper_cv _ = Num 0
 End
 
+Definition bounded_word64_upper_covers_int_fraction_def:
+  bounded_word64_upper_covers_int_fraction magnitude
+      ((numerator,denominator):int # int) <=>
+    0 < denominator /\
+    (&1099511627776:int) * numerator <=
+      denominator * &(w2n magnitude)
+End
+
 Definition bounded_word64_upper_covers_object_q_def:
   bounded_word64_upper_covers_object_q magnitude encoded <=>
     case bounded_object_q_ints encoded of
     | NONE => F
+    | SOME fraction =>
+        bounded_word64_upper_covers_int_fraction magnitude fraction
+End
+
+Definition bounded_object_q_nonnegative_def:
+  bounded_object_q_nonnegative encoded <=>
+    case bounded_object_q_ints encoded of
+    | NONE => F
     | SOME (numerator,denominator) =>
-        0 < denominator /\
-        (&1099511627776:int) * numerator <=
-          denominator * &(w2n magnitude)
+        0 < denominator /\ 0 <= numerator
+End
+
+Definition bounded128_upper_covers_int_fraction_def:
+  bounded128_upper_covers_int_fraction magnitude
+      ((numerator,denominator):int # int) <=>
+    0 < denominator /\
+    (&1208925819614629174706176:int) * numerator <=
+      denominator * &(bounded128_to_num magnitude)
+End
+
+Definition bounded128_upper_covers_object_q_def:
+  bounded128_upper_covers_object_q magnitude encoded <=>
+    case bounded_object_q_ints encoded of
+    | NONE => F
+    | SOME fraction =>
+        bounded128_upper_covers_int_fraction magnitude fraction
 End
 
 Theorem bounded_object_q_abs_cv_decodes:
@@ -226,9 +256,75 @@ Proof
   >> rw [bounded_int_fraction_interval_abs_upper_def,
          bounded_int_fraction_abs_def,
          bounded_int_fraction_neg_def,
+         bounded_word64_upper_covers_int_fraction_def,
          compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_max_def]
   >> every_case_tac
   >> gvs []
+QED
+
+Theorem bounded_word64_product128_upper_covers_int_fraction:
+  bounded_word64_upper_covers_int_fraction left
+      (left_numerator,left_denominator) /\
+  bounded_word64_upper_covers_int_fraction right
+      (right_numerator,right_denominator) /\
+  0 <= left_numerator /\ 0 <= right_numerator ==>
+  bounded128_upper_covers_int_fraction
+    (bounded_word64_product128 left right)
+    (bounded_int_fraction_mul
+      (left_numerator,left_denominator)
+      (right_numerator,right_denominator))
+Proof
+  rw [bounded_word64_upper_covers_int_fraction_def,
+      bounded128_upper_covers_int_fraction_def,
+      compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_mul_def,
+      compute_boundedTaylorCompleteTheory.bounded_word64_product128_value]
+  >- (irule
+        (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+      >> simp [])
+  >> `0 <= left_denominator * &(w2n left)` by
+       (irule integerTheory.INT_LE_MUL >> simp [] >> intLib.ARITH_TAC)
+  >> `0 <= (&1099511627776:int) * right_numerator` by
+       (irule integerTheory.INT_LE_MUL >> simp [])
+  >> `0 <= right_denominator * &(w2n right)` by
+       (irule integerTheory.INT_LE_MUL >> simp [] >> intLib.ARITH_TAC)
+  >> `((&1099511627776:int) * left_numerator) *
+        ((&1099511627776:int) * right_numerator) <=
+      (left_denominator * &(w2n left)) *
+        ((&1099511627776:int) * right_numerator)` by
+       (irule
+          compute_boundedIntervalTheory.bounded_int_mul_right_mono_nonnegative
+        >> simp [])
+  >> `(left_denominator * &(w2n left)) *
+        ((&1099511627776:int) * right_numerator) <=
+      (left_denominator * &(w2n left)) *
+        (right_denominator * &(w2n right))` by
+        (irule
+          compute_boundedIntervalTheory.bounded_int_mul_left_mono_nonnegative
+        >> simp [])
+  >> PURE_REWRITE_TAC
+       [GSYM integerTheory.INT_OF_NUM_MUL]
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_word64_product128_upper_covers_object_q:
+  bounded_word64_upper_covers_object_q left left_object /\
+  bounded_word64_upper_covers_object_q right right_object /\
+  bounded_object_q_nonnegative left_object /\
+  bounded_object_q_nonnegative right_object ==>
+  bounded128_upper_covers_object_q
+    (bounded_word64_product128 left right)
+    (bounded_object_q_mul_cv left_object right_object)
+Proof
+  rw [bounded_word64_upper_covers_object_q_def,
+      bounded_object_q_nonnegative_def,
+      bounded128_upper_covers_object_q_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedAnalyticObjectProductRefinementTheory.bounded_object_q_mul_cv_decodes
+  >> gvs []
+  >> irule bounded_word64_product128_upper_covers_int_fraction
+  >> simp []
 QED
 
 val _ = export_theory ();
