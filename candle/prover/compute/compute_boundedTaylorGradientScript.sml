@@ -302,6 +302,31 @@ Proof
   >> simp [integerTheory.INT_MUL_CALCULATE]
 QED
 
+Theorem bounded_taylor_gradient_row_complete_bounds:
+  bounded_taylor_gradient_row_complete radii
+      (BoundedInterval64 center_lower center_upper) hessian_row =
+    SOME (BoundedInterval64 result_lower result_upper) ==>
+  ?variation.
+    bounded_dot_abs_upper radii hessian_row = SOME variation /\
+    (&1099511627776:int) * bounded_signed64_to_int result_lower <=
+      (&1099511627776:int) * bounded_signed64_to_int center_lower -
+        &(bounded128_to_num variation) /\
+    (&1099511627776:int) * bounded_signed64_to_int center_upper +
+        &(bounded128_to_num variation) <=
+      (&1099511627776:int) * bounded_signed64_to_int result_upper
+Proof
+  rw [bounded_taylor_gradient_row_complete_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedSignedEndpointAddTheory.bounded_signed128_add_value
+  >> imp_res_tac bounded_signed128_shift_floor40_64_lower_bound
+  >> imp_res_tac bounded_signed128_shift_ceil40_64_upper_bound
+  >> fs [bounded_signed64_scale40_128_value,
+         compute_boundedSignedEndpointAddTheory.bounded_signed128_make_value]
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_hessian64_rows_shape_tests:
   bounded_hessian64_rows
       (REPLICATE 20 bounded_interval64_zero) = NONE ∧

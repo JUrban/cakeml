@@ -14,7 +14,7 @@ Theory compute_boundedTaylorComplete
 Ancestors
   compute_boundedTaylorState compute_boundedWideSigned compute_bounded
 Libs
-  bossLib preamble
+  bossLib preamble intLib
 
 Definition bounded_interval64_abs_upper_def:
   bounded_interval64_abs_upper (BoundedInterval64 lower upper) =
@@ -145,6 +145,38 @@ Definition bounded_taylor_value_complete_def:
               | NONE => NONE
               | SOME upper => SOME (BoundedInterval64 lower upper)
 End
+
+Theorem bounded_taylor_value_complete_bounds:
+  bounded_taylor_value_complete radii
+      (BoundedInterval64 center_lower center_upper)
+      center_gradient hessian =
+    SOME (BoundedInterval64 result_lower result_upper) ==>
+  ?error.
+    bounded_taylor_error radii center_gradient hessian = SOME error /\
+    (&2417851639229258349412352:int) *
+        bounded_signed64_to_int result_lower <=
+      (&2417851639229258349412352:int) *
+        bounded_signed64_to_int center_lower -
+      &(bounded192_to_num error) /\
+    (&2417851639229258349412352:int) *
+        bounded_signed64_to_int center_upper +
+      &(bounded192_to_num error) <=
+    (&2417851639229258349412352:int) *
+        bounded_signed64_to_int result_upper
+Proof
+  rw [bounded_taylor_value_complete_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac
+       compute_boundedWideSignedTheory.bounded_signed192_add_value
+  >> imp_res_tac
+       compute_boundedWideSignedTheory.bounded_signed192_shift_floor81_64_lower_bound
+  >> imp_res_tac
+       compute_boundedWideSignedTheory.bounded_signed192_shift_ceil81_64_upper_bound
+  >> fs [compute_boundedWideSignedTheory.bounded_signed64_scale81_value,
+         compute_boundedWideSignedTheory.bounded_signed192_make_value]
+  >> intLib.ARITH_TAC
+QED
 
 Theorem bounded_taylor_radius_pairs_shape_tests:
   bounded_taylor_radius_pairs [1w;2w;3w;4w;5w] = NONE ∧
