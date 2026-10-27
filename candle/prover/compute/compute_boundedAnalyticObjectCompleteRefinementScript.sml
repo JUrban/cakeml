@@ -44,6 +44,13 @@ Definition bounded_object_q_interval_abs_upper_cv_def:
   bounded_object_q_interval_abs_upper_cv _ = Num 0
 End
 
+Definition bounded_word64_object_q_cv_def:
+  bounded_word64_object_q_cv (magnitude:word64) =
+    Pair
+      (Pair (Num (w2n magnitude)) (Num 0))
+      (Num 1099511627775)
+End
+
 Definition bounded_word64_upper_covers_int_fraction_def:
   bounded_word64_upper_covers_int_fraction magnitude
       ((numerator,denominator):int # int) <=>
@@ -84,6 +91,19 @@ Definition bounded128_upper_covers_object_q_def:
         bounded128_upper_covers_int_fraction magnitude fraction
 End
 
+Definition bounded_object_q_dot_abs_upper_acc_cv_def:
+  bounded_object_q_dot_abs_upper_acc_cv [] [] accumulator = accumulator /\
+  bounded_object_q_dot_abs_upper_acc_cv [] (_::_) accumulator = Num 0 /\
+  bounded_object_q_dot_abs_upper_acc_cv (_::_) [] accumulator = Num 0 /\
+  bounded_object_q_dot_abs_upper_acc_cv
+      (radius::radii) (entry::entries) accumulator =
+    bounded_object_q_dot_abs_upper_acc_cv radii entries
+      (bounded_object_q_add_cv accumulator
+        (bounded_object_q_mul_cv
+          (bounded_word64_object_q_cv radius)
+          (bounded_object_q_interval_abs_upper_cv entry)))
+End
+
 Theorem bounded_object_q_abs_cv_decodes:
   bounded_object_q_ints source = SOME fraction ==>
   bounded_object_q_ints (bounded_object_q_abs_cv source) =
@@ -101,6 +121,32 @@ Proof
   >> irule
        compute_boundedAnalyticObjectProductRefinementTheory.bounded_object_q_max_cv_decodes
   >> simp []
+QED
+
+Theorem bounded_word64_object_q_cv_decodes:
+  bounded_object_q_ints (bounded_word64_object_q_cv magnitude) =
+    SOME (&(w2n magnitude),&1099511627776)
+Proof
+  simp [bounded_word64_object_q_cv_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_q_ints_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_signed_int_def]
+QED
+
+Theorem bounded_word64_object_q_cv_nonnegative:
+  bounded_object_q_nonnegative
+    (bounded_word64_object_q_cv magnitude)
+Proof
+  simp [bounded_object_q_nonnegative_def,
+        bounded_word64_object_q_cv_decodes]
+QED
+
+Theorem bounded_word64_object_q_cv_exact:
+  bounded_word64_upper_covers_object_q magnitude
+    (bounded_word64_object_q_cv magnitude)
+Proof
+  simp [bounded_word64_upper_covers_object_q_def,
+        bounded_word64_upper_covers_int_fraction_def,
+        bounded_word64_object_q_cv_decodes]
 QED
 
 Theorem bounded_object_q_interval_abs_upper_cv_decodes:
@@ -446,6 +492,95 @@ Proof
          bounded128_add_upper_covers_int_fraction)
   >> qexists_tac `left`
   >> qexists_tac `right`
+  >> simp []
+QED
+
+Theorem bounded_dot_abs_upper_acc_covers_object_q:
+  !radii entries object_entries accumulator object_accumulator result.
+    LIST_REL bounded_interval64_covers_object_q
+      entries object_entries /\
+    bounded128_upper_covers_object_q accumulator object_accumulator /\
+    bounded_dot_abs_upper_acc radii entries accumulator = SOME result ==>
+    bounded128_upper_covers_object_q result
+      (bounded_object_q_dot_abs_upper_acc_cv
+        radii object_entries object_accumulator)
+Proof
+  Induct
+  >- (Cases_on `entries`
+      >> Cases_on `object_entries`
+      >> gvs
+           [compute_boundedTaylorCompleteTheory.bounded_dot_abs_upper_acc_def,
+            bounded_object_q_dot_abs_upper_acc_cv_def, LIST_REL_def])
+  >> Cases_on `entries`
+  >- gvs
+       [compute_boundedTaylorCompleteTheory.bounded_dot_abs_upper_acc_def,
+        LIST_REL_def]
+  >> Cases_on `object_entries`
+  >- gvs [LIST_REL_def]
+  >> rpt gen_tac
+  >> strip_tac
+  >> fs [LIST_REL_def]
+  >> Cases_on `bounded_object_q_interval_ints h'`
+  >> fs
+       [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+  >> PairCases_on `x`
+  >> fs
+       [compute_boundedTaylorCompleteTheory.bounded_dot_abs_upper_acc_def,
+        bounded_object_q_dot_abs_upper_acc_cv_def, LET_THM]
+  >> Cases_on
+       `bounded128_add_words accumulator
+          (bounded_word64_product128 h''
+            (bounded_interval64_abs_upper h))`
+  >> fs []
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_interval_abs_upper_cv h')` by
+       (irule bounded_object_q_interval_abs_upper_cv_nonnegative
+        >> simp [])
+  >> `bounded_interval64_covers_object_q h h'` by
+       (rw
+          [compute_boundedObjectIntervalRelationTheory.bounded_interval64_covers_object_q_def]
+        >> simp [])
+  >> `bounded_word64_upper_covers_object_q
+        (bounded_interval64_abs_upper h)
+        (bounded_object_q_interval_abs_upper_cv h')` by
+       metis_tac [bounded_interval64_abs_upper_covers_object_q]
+  >> `bounded128_upper_covers_object_q
+        (bounded_word64_product128 h''
+          (bounded_interval64_abs_upper h))
+        (bounded_object_q_mul_cv
+          (bounded_word64_object_q_cv h'')
+          (bounded_object_q_interval_abs_upper_cv h'))` by
+       (irule bounded_word64_product128_upper_covers_object_q
+        >> simp [bounded_word64_object_q_cv_exact,
+                 bounded_word64_object_q_cv_nonnegative])
+  >> `bounded128_upper_covers_object_q x
+        (bounded_object_q_add_cv object_accumulator
+          (bounded_object_q_mul_cv
+            (bounded_word64_object_q_cv h'')
+            (bounded_object_q_interval_abs_upper_cv h')))` by
+       (match_mp_tac
+          (Q.INST
+            [`left` |-> `accumulator`,
+             `right` |->
+               `bounded_word64_product128 h''
+                  (bounded_interval64_abs_upper h)`,
+             `result` |-> `x`,
+             `left_object` |-> `object_accumulator`,
+             `right_object` |->
+               `bounded_object_q_mul_cv
+                  (bounded_word64_object_q_cv h'')
+                  (bounded_object_q_interval_abs_upper_cv h')`]
+            bounded128_add_upper_covers_object_q)
+        >> simp [])
+  >> qpat_x_assum
+       `!entries object_entries accumulator object_accumulator result. _`
+       (match_mp_tac o Q.SPECL
+         [`t`, `t'`, `x`,
+          `bounded_object_q_add_cv object_accumulator
+            (bounded_object_q_mul_cv
+              (bounded_word64_object_q_cv h'')
+              (bounded_object_q_interval_abs_upper_cv h'))`,
+          `result`])
   >> simp []
 QED
 
