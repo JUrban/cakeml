@@ -10,6 +10,7 @@
 Theory compute_boundedAnalyticObjectAtanOperationRefinement
 Ancestors
   compute_boundedAnalyticObjectInverseOperationRefinement
+  compute_boundedAtanRangeRefinement
 Libs
   bossLib preamble intLib
 
@@ -120,12 +121,12 @@ Definition bounded_object_q_interval_encloses_def:
 End
 
 Theorem bounded_interval64_covers_object_q_encloses:
-  bounded_interval64_valid interval /\
-  bounded_interval64_covers_object_q interval object_interval ==>
+  bounded_interval64_valid word_interval /\
+  bounded_interval64_covers_object_q word_interval object_interval ==>
   bounded_object_q_interval_encloses
-    (bounded_interval64_object_q_cv interval) object_interval
+    (bounded_interval64_object_q_cv word_interval) object_interval
 Proof
-  Cases_on `interval`
+  Cases_on `word_interval`
   >> rename1 `BoundedInterval64 lower upper`
   >> strip_tac
   >> Cases_on `bounded_object_q_interval_ints object_interval`
@@ -321,6 +322,46 @@ Proof
   >> every_case_tac
   >> gvs []
   >> rpt (first_assum (irule_at Any))
+QED
+
+Theorem bounded_taylor64_unary_complete_center_value:
+  bounded_taylor64_unary_complete radii result_domain center_result
+      center_derivative box_derivative box_second source =
+    SOME
+      (BoundedTaylor64 output_domain output_center output_center_gradient
+        output_value output_gradient_bounds output_hessian) ==>
+  output_center = center_result
+Proof
+  Cases_on `source`
+  >> rw [compute_boundedTaylorUnaryTheory.bounded_taylor64_unary_complete_def]
+  >> every_case_tac
+  >> gvs [compute_boundedTaylorGradientTheory.bounded_taylor64_complete_def,
+          compute_boundedTaylorStateTheory.bounded_taylor64_make_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
+Theorem bounded_taylor64_atan_center_contains_real:
+  bounded_interval64_contains_real center_value value /\
+  bounded_taylor64_atan radii center_lower_reciprocal
+      center_upper_reciprocal center_derivative box_derivative
+      (BoundedTaylor64 source_domain center_value center_gradient
+        value_bound gradient_bounds hessian) =
+    SOME
+      (BoundedTaylor64 result_domain result_center result_center_gradient
+        result_value result_gradient_bounds result_hessian) ==>
+  bounded_interval64_contains_real result_center (atn value)
+Proof
+  strip_tac
+  >> drule bounded_taylor64_atan_refinement_trace
+  >> strip_tac
+  >> gvs []
+  >> `bounded_interval64_contains_real center_result (atn value)` by
+       metis_tac
+         [compute_boundedAtanRangeRefinementTheory.bounded_interval64_atan_range_contains_real]
+  >> `result_center = center_result` by
+       metis_tac [bounded_taylor64_unary_complete_center_value]
+  >> asm_rewrite_tac []
 QED
 
 Definition bounded_object_q_atan_denominator_cv_def:
@@ -618,6 +659,116 @@ Proof
             bounded_interval64_inv_certificate_covers_object_q)
         >> impl_tac >- asm_rewrite_tac []
         >> simp [])
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_taylor64_atan_covers_object_q_state:
+  bounded_taylor64_covers_object_q_state source object_source_domain
+      object_source_center object_source_center_gradient object_source_value
+      object_source_gradient_bounds object_source_hessian /\
+  bounded_taylor64_atan radii center_lower_reciprocal
+      center_upper_reciprocal center_derivative box_derivative source =
+      SOME result ==>
+  ?center_value center_result box_derivative_square weights.
+    bounded_interval64_atan_range center_value center_lower_reciprocal
+      center_upper_reciprocal = SOME center_result /\
+    bounded_object_q_interval_encloses
+      (bounded_interval64_object_q_cv center_value) object_source_center /\
+    bounded_taylor_radius_pairs radii = SOME weights /\
+    bounded_taylor64_covers_object_q_state result
+      (object_source_domain /\ T)
+      (bounded_interval64_object_q_cv center_result)
+      (bounded_object_q_interval_list_scale_cv
+        (bounded_interval64_object_q_cv center_derivative)
+        object_source_center_gradient)
+      (bounded_object_q_taylor_value_complete_cv
+        (bounded_interval64_object_q_cv center_result)
+        (bounded_object_q_taylor_error_cv radii
+          (bounded_object_q_interval_list_scale_cv
+            (bounded_interval64_object_q_cv center_derivative)
+            object_source_center_gradient)
+          weights
+          (bounded_object_q_taylor_unary_hessian_cv
+            (bounded_interval64_object_q_cv box_derivative)
+            (bounded_object_q_atan_second_cv object_source_value
+              (bounded_interval64_object_q_cv box_derivative_square))
+            object_source_gradient_bounds object_source_hessian)))
+      (bounded_object_q_taylor_gradient_complete_cv radii
+        (bounded_object_q_interval_list_scale_cv
+          (bounded_interval64_object_q_cv center_derivative)
+          object_source_center_gradient)
+        (bounded_object_q_taylor_unary_hessian_cv
+          (bounded_interval64_object_q_cv box_derivative)
+          (bounded_object_q_atan_second_cv object_source_value
+            (bounded_interval64_object_q_cv box_derivative_square))
+          object_source_gradient_bounds object_source_hessian))
+      (bounded_object_q_taylor_unary_hessian_cv
+        (bounded_interval64_object_q_cv box_derivative)
+        (bounded_object_q_atan_second_cv object_source_value
+          (bounded_interval64_object_q_cv box_derivative_square))
+        object_source_gradient_bounds object_source_hessian)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`source` |-> `source`,
+          `object_source_domain` |-> `object_source_domain`,
+          `object_source_center` |-> `object_source_center`,
+          `object_source_center_gradient` |-> `object_source_center_gradient`,
+          `object_source_value` |-> `object_source_value`,
+          `object_source_gradient_bounds` |-> `object_source_gradient_bounds`,
+          `object_source_hessian` |-> `object_source_hessian`,
+          `radii` |-> `radii`,
+          `center_lower_reciprocal` |-> `center_lower_reciprocal`,
+          `center_upper_reciprocal` |-> `center_upper_reciprocal`,
+          `center_derivative` |-> `center_derivative`,
+          `box_derivative` |-> `box_derivative`,
+          `result` |-> `result`]
+         bounded_taylor64_atan_reaches_object_q_unary_inputs)
+  >> impl_tac >- asm_rewrite_tac []
+  >> disch_then
+       (qx_choose_then `center_value`
+         (qx_choose_then `value_bound`
+           (qx_choose_then `center_result`
+             (qx_choose_then `center_square`
+               (qx_choose_then `center_denominator`
+                 (qx_choose_then `box_square`
+                   (qx_choose_then `box_denominator`
+                     (qx_choose_then `box_derivative_square`
+                       (qx_choose_then `box_twice`
+                         (qx_choose_then `box_second_magnitude`
+                           strip_assume_tac))))))))))
+  >> mp_tac
+       (Q.INST
+         [`source` |-> `source`,
+          `object_source_domain` |-> `object_source_domain`,
+          `object_source_center` |-> `object_source_center`,
+          `object_source_center_gradient` |-> `object_source_center_gradient`,
+          `object_source_value` |-> `object_source_value`,
+          `object_source_gradient_bounds` |-> `object_source_gradient_bounds`,
+          `object_source_hessian` |-> `object_source_hessian`,
+          `result_domain` |-> `T`, `object_result_domain` |-> `T`,
+          `center_result` |-> `center_result`,
+          `object_center_result` |->
+            `bounded_interval64_object_q_cv center_result`,
+          `center_derivative` |-> `center_derivative`,
+          `object_center_derivative` |->
+            `bounded_interval64_object_q_cv center_derivative`,
+          `box_derivative` |-> `box_derivative`,
+          `object_box_derivative` |->
+            `bounded_interval64_object_q_cv box_derivative`,
+          `box_second` |-> `bounded_interval64_neg box_second_magnitude`,
+          `object_box_second` |->
+            `bounded_object_q_atan_second_cv object_source_value
+              (bounded_interval64_object_q_cv box_derivative_square)`,
+          `radii` |-> `radii`, `result` |-> `result`]
+         compute_boundedAnalyticObjectUnaryRefinementTheory.bounded_taylor64_unary_covers_object_q_state)
+  >> impl_tac >- asm_rewrite_tac []
+  >> strip_tac
+  >> qexists_tac `center_value`
+  >> qexists_tac `center_result`
+  >> qexists_tac `box_derivative_square`
+  >> qexists_tac `weights`
   >> asm_rewrite_tac []
 QED
 
