@@ -1115,6 +1115,97 @@ Definition bounded_object_q_taylor_error_cv_def:
         (bounded_object_q_add_cv linear linear) quadratic
 End
 
+(* The executable completion stores twice the linear term plus the quadratic
+ * term at scale 2^120, then shifts by 81 bits into scale-2^40 endpoints.
+ * Hence the exact object-q value interval expands by one half of that error.
+ * Keeping this half explicit prevents the completion bridge from silently
+ * losing the Taylor 1/2 convention. *)
+Definition bounded_object_q_half_cv_def:
+  bounded_object_q_half_cv source =
+    bounded_object_q_mul_cv source
+      (bounded_analytic_source_q_cv 1 0 1)
+End
+
+Definition bounded_object_q_symmetric_half_interval_cv_def:
+  bounded_object_q_symmetric_half_interval_cv error =
+    let half = bounded_object_q_half_cv error in
+      Pair (bounded_object_q_neg_cv half) half
+End
+
+Definition bounded_object_q_taylor_value_complete_cv_def:
+  bounded_object_q_taylor_value_complete_cv center_value error =
+    bounded_object_q_interval_add_cv center_value
+      (bounded_object_q_symmetric_half_interval_cv error)
+End
+
+Theorem bounded_object_q_half_cv_decodes:
+  bounded_object_q_ints source = SOME (numerator,denominator) ==>
+  bounded_object_q_ints (bounded_object_q_half_cv source) =
+    SOME (numerator,denominator * (&2:int))
+Proof
+  strip_tac
+  >> rw [bounded_object_q_half_cv_def]
+  >> `bounded_object_q_ints
+        (bounded_analytic_source_q_cv 1 0 1) = SOME ((&1:int),&2)` by
+       simp [compute_boundedAnalyticObjectRefinementTheory.bounded_analytic_source_q_cv_decodes]
+  >> mp_tac
+       (Q.INST
+         [`left` |-> `source`,
+          `right` |-> `bounded_analytic_source_q_cv 1 0 1`,
+          `left_fraction` |-> `(numerator,denominator)`,
+          `right_fraction` |-> `((&1:int),&2)`]
+         compute_boundedAnalyticObjectProductRefinementTheory.bounded_object_q_mul_cv_decodes)
+  >> simp
+       [compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_mul_def]
+QED
+
+Theorem bounded_object_q_symmetric_half_interval_cv_decodes:
+  bounded_object_q_ints error = SOME (numerator,denominator) ==>
+  bounded_object_q_interval_ints
+      (bounded_object_q_symmetric_half_interval_cv error) =
+    SOME
+      ((-numerator,denominator * (&2:int)),
+       (numerator,denominator * (&2:int)))
+Proof
+  strip_tac
+  >> `bounded_object_q_ints (bounded_object_q_half_cv error) =
+        SOME (numerator,denominator * (&2:int))` by
+       (irule bounded_object_q_half_cv_decodes >> simp [])
+  >> `bounded_object_q_ints
+        (bounded_object_q_neg_cv (bounded_object_q_half_cv error)) =
+      SOME (-numerator,denominator * (&2:int))` by
+       (irule
+          compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_neg_cv_decodes
+        >> simp [])
+  >> simp
+       [bounded_object_q_symmetric_half_interval_cv_def, LET_THM,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_q_interval_ints_def]
+QED
+
+Theorem bounded_object_q_taylor_value_complete_cv_decodes:
+  bounded_object_q_interval_ints center_value = SOME center_interval /\
+  bounded_object_q_ints error = SOME (numerator,denominator) ==>
+  bounded_object_q_interval_ints
+      (bounded_object_q_taylor_value_complete_cv center_value error) =
+    SOME
+      (bounded_object_q_interval_add_ints center_interval
+        ((-numerator,denominator * (&2:int)),
+         (numerator,denominator * (&2:int))))
+Proof
+  strip_tac
+  >> `bounded_object_q_interval_ints
+        (bounded_object_q_symmetric_half_interval_cv error) =
+      SOME
+        ((-numerator,denominator * (&2:int)),
+         (numerator,denominator * (&2:int)))` by
+       (irule bounded_object_q_symmetric_half_interval_cv_decodes
+        >> simp [])
+  >> rw [bounded_object_q_taylor_value_complete_cv_def]
+  >> irule
+       compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_interval_add_cv_decodes
+  >> simp []
+QED
+
 Theorem bounded128_scale41_upper_covers_int_fraction_double:
   bounded128_upper_covers_int_fraction source
       (numerator,denominator) ==>
