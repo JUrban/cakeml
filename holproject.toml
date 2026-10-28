@@ -6,7 +6,8 @@ exclude = [
   "compiler/backend/San",                        # broken, see #1104
   "compiler/benchmarks/cakeml_benchmarks/sml",   # plain SML programs, built by their own Makefile
   "compiler/benchmarks/mlton_benchmarks/sml",
-  "tutorial/problems"                            # exercises generated from tutorial/solutions
+  "tutorial/problems",                           # exercises generated from tutorial/solutions
+  "candle/prover/compute/external_witness_probe_scratch" # disposable NL proof/build probes
 ]
 
 external_includes = [
@@ -25,5 +26,4 @@ external_includes = [
   "$(HOLDIR)/examples/l3-machine-code/riscv/model",
   "$(HOLDIR)/examples/l3-machine-code/x64/model",
 ]
-
 
