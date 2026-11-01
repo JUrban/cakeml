@@ -25,6 +25,7 @@ Definition bounded_case16594_packed_source_cell_contract_def:
       bounded_analytic64_program_eval radii center_environment
         box_environment bounded_case16594_prepared_program certificates =
           SOME word_result /\
+      bounded_taylor64_well_formed word_result /\
       bounded_taylor64_covers_object_q word_result
         (BoundedObjectQTaylor object_domain center_value center_gradient
           (bounded_object_q_taylor_value_complete_cv center_value
@@ -44,7 +45,8 @@ Proof
   PairCases_on `cell`
   >> simp [bounded_case16594_packed_source_cell_contract_def]
   >> metis_tac
-       [compute_boundedPackedObjectSourceContractRefinementTheory.bounded_case16594_packed_cell_source_accept6]
+       [compute_boundedPackedObjectSourceContractRefinementTheory.bounded_case16594_packed_cell_source_accept6,
+        compute_boundedAnalyticProgramTheory.bounded_analytic64_program_eval_some]
 QED
 
 Definition bounded_case16594_packed_source_cells_contract_def:
