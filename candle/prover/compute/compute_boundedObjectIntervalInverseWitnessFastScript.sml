@@ -156,6 +156,17 @@ Definition bounded_object_interval_inverse_witness_ceqs_def:
      («candle_cv_q_neg»,([«x»],object_inverse_q_neg_body))]
 End
 
+Definition bounded_object_interval_inverse_witness_checker_def:
+  bounded_object_interval_inverse_witness_checker payloads =
+    case payloads of
+    | [reciprocal;candidate] =>
+        bounded_packed_q_interval_encoded reciprocal /\
+        candidate =
+          bounded_object_q_interval_neg_cv
+            (bounded_object_q_interval_mul_cv reciprocal reciprocal)
+    | _ => F
+End
+
 Theorem object_inverse_q_mul_lookup:
   ALOOKUP bounded_object_interval_inverse_witness_ceqs «candle_cv_q_mul» =
     SOME ([«x»;«y»],object_inverse_q_mul_body)
@@ -216,6 +227,30 @@ Theorem object_inverse_q_interval_mul_lookup:
   ALOOKUP bounded_object_interval_inverse_witness_ceqs
       «candle_cv_q_interval_mul» =
     SOME ([«i»;«j»],object_inverse_q_interval_mul_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem object_inverse_q_interval_neg_lookup:
+  ALOOKUP bounded_object_interval_inverse_witness_ceqs
+      «candle_cv_q_interval_neg» =
+    SOME ([«x»],object_inverse_q_interval_neg_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem object_inverse_derivative_lookup:
+  ALOOKUP bounded_object_interval_inverse_witness_ceqs
+      «candle_cv_q_packed_object_inverse_derivative» =
+    SOME ([«reciprocal»],object_inverse_derivative_body)
+Proof
+  EVAL_TAC
+QED
+
+Theorem object_inverse_witness_lookup:
+  ALOOKUP bounded_object_interval_inverse_witness_ceqs
+      «candle_cv_q_packed_object_inverse_derivative_witness» =
+    SOME ([«reciprocal»;«candidate»],object_inverse_witness_body)
 Proof
   EVAL_TAC
 QED
@@ -335,6 +370,47 @@ Proof
      ml_monadBaseTheory.st_ex_return_def]
 QED
 
+Theorem object_inverse_compute_eval_list1_from_cv:
+  compute_eval_list clock ceqs [from_cv q1] refs =
+    (M_success [from_cv q1],refs)
+Proof
+  simp
+    [compute_evalTheory.compute_eval_def,
+     compute_execProofTheory.compute_eval_from_cv,
+     ml_monadBaseTheory.st_ex_bind_def,
+     ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem object_inverse_compute_eval_app1_argument_result:
+  0 < clock /\
+  compute_eval clock ceqs argument (refs:hol_refs) =
+      (M_success (from_cv result),refs) ==>
+  compute_eval clock ceqs (App function_name [argument]) refs =
+    compute_eval clock ceqs (App function_name [from_cv result]) refs
+Proof
+  Cases_on `clock`
+  >> simp []
+  >> strip_tac
+  >> Cases_on `ALOOKUP ceqs function_name`
+  >- simp
+       [compute_evalTheory.compute_eval_def,
+        compute_evalTheory.option_def,
+        holKernelTheory.raise_Failure_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> Cases_on `x`
+  >> Cases_on `LENGTH q = 1`
+  >> simp
+       [compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        holKernelTheory.raise_Failure_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
 Theorem object_inverse_compute_eval_app2_argument_results:
   0 < clock /\
   compute_eval clock ceqs argument1 (refs:hol_refs) =
@@ -447,6 +523,24 @@ Proof
      compute_execTheory.from_cv_def,
      compute_evalTheory.do_uop_def,
      compute_evalTheory.do_snd_def,
+     ml_monadBaseTheory.st_ex_bind_def,
+     ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem object_inverse_compute_eval_eq_same_results:
+  compute_eval clock ceqs left_expression (refs:hol_refs) =
+      (M_success (from_cv value),refs) /\
+  compute_eval clock ceqs right_expression refs =
+      (M_success (from_cv value),refs) ==>
+  compute_eval clock ceqs
+      (Binop Eq left_expression right_expression) refs =
+    (M_success (from_cv (Num 1)),refs)
+Proof
+  simp
+    [Once compute_evalTheory.compute_eval_def,
+     compute_evalTheory.do_binop_def,
+     compute_evalTheory.do_eq_def,
+     compute_execTheory.from_cv_def,
      ml_monadBaseTheory.st_ex_bind_def,
      ml_monadBaseTheory.st_ex_return_def]
 QED
@@ -717,6 +811,27 @@ Proof
   >> simp [object_inverse_q_mul_eval]
 QED
 
+Theorem object_inverse_q_neg_results_eval:
+  compute_eval clock bounded_object_interval_inverse_witness_ceqs
+      expression (refs:hol_refs) = (M_success (from_cv value),refs) /\
+  bounded_object_q_encoded value /\
+  1 < clock ==>
+  compute_eval clock bounded_object_interval_inverse_witness_ceqs
+      (App «candle_cv_q_neg» [expression]) refs =
+    (M_success (from_cv (bounded_object_q_neg_cv value)),refs)
+Proof
+  strip_tac
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval clock bounded_object_interval_inverse_witness_ceqs
+          (App «candle_cv_q_neg» [from_cv value]) refs`
+  >> conj_tac
+  >- (irule object_inverse_compute_eval_app1_argument_result
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> simp [object_inverse_q_neg_eval]
+QED
+
 Theorem object_inverse_q_min4_cv_encoded:
   bounded_object_q_encoded q1 /\
   bounded_object_q_encoded q2 /\
@@ -959,6 +1074,262 @@ Proof
         SIMP_RULE std_ss [compute_execTheory.from_cv_def]
           object_inverse_compute_eval_snd_from_pair,
         compute_boundedQFoldRelationTheory.bounded_object_q_mul_cv_encoded]
+QED
+
+Theorem object_inverse_q_neg_cv_encoded:
+  bounded_object_q_encoded value ==>
+  bounded_object_q_encoded (bounded_object_q_neg_cv value)
+Proof
+  rw [compute_boundedQFoldRelationTheory.bounded_object_q_encoded_def]
+  >> PairCases_on `fraction`
+  >> qexists_tac `(-fraction0,fraction1)`
+  >> irule
+       compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_neg_cv_decodes
+  >> asm_rewrite_tac []
+QED
+
+Theorem object_inverse_q_interval_neg_cv_encoded:
+  bounded_packed_q_interval_encoded value ==>
+  bounded_packed_q_interval_encoded (bounded_object_q_interval_neg_cv value)
+Proof
+  rw
+    [compute_boundedPackedObjectPrimitiveEvalTheory.bounded_packed_q_interval_encoded_def]
+  >> gvs
+       [compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_interval_neg_cv_def]
+  >> simp [object_inverse_q_neg_cv_encoded]
+QED
+
+Theorem object_inverse_q_interval_neg_unfold:
+  0 < clock ==>
+  compute_eval clock bounded_object_interval_inverse_witness_ceqs
+      (App «candle_cv_q_interval_neg» [from_cv value]) (refs:hol_refs) =
+    compute_eval (clock - 1) bounded_object_interval_inverse_witness_ceqs
+      (subst [(«x»,from_cv value)] object_inverse_q_interval_neg_body) refs
+Proof
+  Cases_on `clock`
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        object_inverse_q_interval_neg_lookup,
+        object_inverse_compute_eval_list1_from_cv,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem object_inverse_q_interval_neg_eval:
+  bounded_packed_q_interval_encoded value /\
+  3 < clock ==>
+  compute_eval clock bounded_object_interval_inverse_witness_ceqs
+      (App «candle_cv_q_interval_neg» [from_cv value]) (refs:hol_refs) =
+    (M_success (from_cv (bounded_object_q_interval_neg_cv value)),refs)
+Proof
+  rw
+    [compute_boundedPackedObjectPrimitiveEvalTheory.bounded_packed_q_interval_encoded_def]
+  >> simp [object_inverse_q_interval_neg_unfold]
+  >> simp
+       [object_inverse_q_interval_neg_body_def,
+        compute_evalTheory.subst_def]
+  >> simp_tac std_ss
+       [compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_interval_neg_cv_def,
+        compute_execTheory.from_cv_def]
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         object_inverse_compute_eval_pair_results)
+  >> simp
+       [object_inverse_q_neg_results_eval,
+        SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+          object_inverse_compute_eval_fst_from_pair,
+        SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+          object_inverse_compute_eval_snd_from_pair]
+QED
+
+Theorem object_inverse_q_interval_neg_results_eval:
+  compute_eval clock bounded_object_interval_inverse_witness_ceqs
+      expression (refs:hol_refs) = (M_success (from_cv value),refs) /\
+  bounded_packed_q_interval_encoded value /\
+  3 < clock ==>
+  compute_eval clock bounded_object_interval_inverse_witness_ceqs
+      (App «candle_cv_q_interval_neg» [expression]) refs =
+    (M_success (from_cv (bounded_object_q_interval_neg_cv value)),refs)
+Proof
+  strip_tac
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval clock bounded_object_interval_inverse_witness_ceqs
+          (App «candle_cv_q_interval_neg» [from_cv value]) refs`
+  >> conj_tac
+  >- (irule object_inverse_compute_eval_app1_argument_result
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> simp [object_inverse_q_interval_neg_eval]
+QED
+
+Theorem object_inverse_derivative_unfold:
+  0 < clock ==>
+  compute_eval clock bounded_object_interval_inverse_witness_ceqs
+      (App «candle_cv_q_packed_object_inverse_derivative»
+        [from_cv reciprocal]) (refs:hol_refs) =
+    compute_eval (clock - 1) bounded_object_interval_inverse_witness_ceqs
+      (subst [(«reciprocal»,from_cv reciprocal)]
+        object_inverse_derivative_body) refs
+Proof
+  Cases_on `clock`
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        object_inverse_derivative_lookup,
+        object_inverse_compute_eval_list1_from_cv,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem object_inverse_derivative_eval:
+  bounded_packed_q_interval_encoded reciprocal /\
+  10 < clock ==>
+  compute_eval clock bounded_object_interval_inverse_witness_ceqs
+      (App «candle_cv_q_packed_object_inverse_derivative»
+        [from_cv reciprocal]) (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (bounded_object_q_interval_neg_cv
+          (bounded_object_q_interval_mul_cv reciprocal reciprocal))),refs)
+Proof
+  strip_tac
+  >> simp [object_inverse_derivative_unfold]
+  >> simp
+       [object_inverse_derivative_body_def,
+        compute_evalTheory.subst_def]
+  >> irule object_inverse_q_interval_neg_results_eval
+  >> simp
+       [object_inverse_q_interval_mul_eval,
+        object_inverse_q_interval_mul_cv_encoded]
+QED
+
+Theorem object_inverse_witness_unfold:
+  0 < clock ==>
+  compute_eval clock bounded_object_interval_inverse_witness_ceqs
+      (App «candle_cv_q_packed_object_inverse_derivative_witness»
+        [from_cv reciprocal;from_cv candidate]) (refs:hol_refs) =
+    compute_eval (clock - 1) bounded_object_interval_inverse_witness_ceqs
+      (subst
+        [(«reciprocal»,from_cv reciprocal);(«candidate»,from_cv candidate)]
+        object_inverse_witness_body) refs
+Proof
+  Cases_on `clock`
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        object_inverse_witness_lookup,
+        object_inverse_compute_eval_list2_from_cv,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem object_inverse_witness_entry_eval:
+  bounded_packed_q_interval_encoded reciprocal /\
+  candidate =
+    bounded_object_q_interval_neg_cv
+      (bounded_object_q_interval_mul_cv reciprocal reciprocal) ==>
+  compute_eval compute_default_clock
+      bounded_object_interval_inverse_witness_ceqs
+      (App «candle_cv_q_packed_object_inverse_derivative_witness»
+        [from_cv reciprocal;from_cv candidate]) (refs:hol_refs) =
+    (M_success (from_cv (Num 1)),refs)
+Proof
+  strip_tac
+  >> simp
+       [object_inverse_witness_unfold,
+        computeTheory.compute_default_clock]
+  >> simp
+       [object_inverse_witness_body_def,
+        compute_evalTheory.subst_def]
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         object_inverse_compute_eval_eq_same_results)
+  >> qexists_tac
+       `bounded_object_q_interval_neg_cv
+          (bounded_object_q_interval_mul_cv reciprocal reciprocal)`
+  >> simp
+       [object_inverse_derivative_eval,
+        compute_execProofTheory.compute_eval_from_cv,
+        computeTheory.compute_default_clock]
+QED
+
+Theorem object_inverse_witness_fast_refines:
+  compute_payloads_call_refines bounded_object_interval_inverse_witness_ceqs
+    «candle_cv_q_packed_object_inverse_derivative_witness»
+    bounded_object_interval_inverse_witness_checker
+Proof
+  rw [compute_payloadListFastTheory.compute_payloads_call_refines_def]
+  >> imp_res_tac
+       compute_payloadListFastTheory.compute_literal_call_payloads_sound
+  >> gvs []
+  >> fs [bounded_object_interval_inverse_witness_checker_def]
+  >> every_case_tac
+  >> gvs []
+  >> irule
+       (SIMP_RULE bool_ss [compute_execTheory.from_cv_def]
+         object_inverse_witness_entry_eval)
+  >> simp []
+QED
+
+Definition bounded_object_interval_inverse_witness_fast_eval_def:
+  bounded_object_interval_inverse_witness_fast_eval =
+    compute_payloads_call_fast_eval bounded_object_interval_inverse_witness_ceqs
+      «candle_cv_q_packed_object_inverse_derivative_witness»
+      bounded_object_interval_inverse_witness_checker
+End
+
+Theorem bounded_object_interval_inverse_witness_fast_eval_ok:
+  compute_fast_eval_ok bounded_object_interval_inverse_witness_fast_eval
+Proof
+  rw [bounded_object_interval_inverse_witness_fast_eval_def]
+  >> irule compute_payloadListFastTheory.compute_payloads_call_fast_eval_ok
+  >> ACCEPT_TAC object_inverse_witness_fast_refines
+QED
+
+Theorem bounded_object_interval_inverse_witness_fast_eval_hit:
+  bounded_packed_q_interval_encoded reciprocal ==>
+  bounded_object_interval_inverse_witness_fast_eval
+    bounded_object_interval_inverse_witness_ceqs
+    (App «candle_cv_q_packed_object_inverse_derivative_witness»
+      [from_cv reciprocal;
+       from_cv
+         (bounded_object_q_interval_neg_cv
+           (bounded_object_q_interval_mul_cv reciprocal reciprocal))]) =
+    SOME (Num 1)
+Proof
+  simp
+    [bounded_object_interval_inverse_witness_fast_eval_def,
+     compute_payloadListFastTheory.compute_payloads_call_fast_eval_def,
+     bounded_object_interval_inverse_witness_checker_def,
+     compute_payloadListFastTheory.compute_literal_call_payloads_def,
+     compute_payloadListFastTheory.compute_literal_payloads_def,
+     compute_pureFastTheory.compute_exp_to_cv_def]
+QED
+
+Theorem bounded_object_interval_inverse_witness_fast_eval_rejects_changed_candidate:
+  changed_candidate <>
+    bounded_object_q_interval_neg_cv
+      (bounded_object_q_interval_mul_cv reciprocal reciprocal) ==>
+  bounded_object_interval_inverse_witness_fast_eval
+    bounded_object_interval_inverse_witness_ceqs
+    (App «candle_cv_q_packed_object_inverse_derivative_witness»
+      [from_cv reciprocal;from_cv changed_candidate]) = NONE
+Proof
+  simp
+    [bounded_object_interval_inverse_witness_fast_eval_def,
+     compute_payloadListFastTheory.compute_payloads_call_fast_eval_def,
+     bounded_object_interval_inverse_witness_checker_def,
+     compute_payloadListFastTheory.compute_literal_call_payloads_def,
+     compute_payloadListFastTheory.compute_literal_payloads_def,
+     compute_pureFastTheory.compute_exp_to_cv_def]
 QED
 
 val _ = export_theory ();
