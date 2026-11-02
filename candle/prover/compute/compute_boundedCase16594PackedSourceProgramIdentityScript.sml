@@ -9,6 +9,7 @@
 Theory compute_boundedCase16594PackedSourceProgramIdentity
 Ancestors
   compute_boundedPackedSourceSpecializedStepControlEval
+  compute_boundedPackedSourceSharedNumericEval
   compute_boundedCase16594ProgramData
 Libs
   bossLib preamble
@@ -51,6 +52,39 @@ Definition bounded_case16594_packed_source_entry_argument_def:
     | _ => NONE
 End
 
+Definition bounded_case16594_literal_cv_def:
+  bounded_case16594_literal_cv (Num numeral : compute_exp) =
+      SOME (Num numeral : cv) /\
+  bounded_case16594_literal_cv (Pair left right : compute_exp) =
+    (case bounded_case16594_literal_cv left of
+     | NONE => NONE
+     | SOME left_cv =>
+         case bounded_case16594_literal_cv right of
+         | NONE => NONE
+         | SOME right_cv => SOME (Pair left_cv right_cv)) /\
+  bounded_case16594_literal_cv _ = NONE
+End
+
+Definition bounded_case16594_packed_source_entry_cv_argument_def:
+  bounded_case16594_packed_source_entry_cv_argument index =
+    case bounded_case16594_packed_source_entry_argument index of
+    | NONE => NONE
+    | SOME expression => bounded_case16594_literal_cv expression
+End
+
+Definition bounded_case16594_source_radii_cv_def:
+  bounded_case16594_source_radii_cv boxes =
+    case bounded_packed_source_radii_raw_naturals boxes of
+    | NONE => NONE
+    | SOME radii =>
+        SOME
+          (bounded_packed_source_q_cv_list
+            (MAP
+              (\radius.
+                (Pair (Num radius) (Num 0),Num 999999999999))
+              radii))
+End
+
 Theorem bounded_case16594_specialization_codes_length:
   bounded_packed_source_cv_list_length
     bounded_case16594_specialization_codes_cv = 167
@@ -88,6 +122,28 @@ QED
 Theorem bounded_case16594_packed_source_entry_sources_authenticated:
   bounded_case16594_packed_source_entry_argument 3 =
     SOME (from_cv bounded_case16594_source_program_cv)
+Proof
+  EVAL_TAC
+QED
+
+Theorem bounded_case16594_packed_source_entry_cell0_radii_separation:
+  case
+    (bounded_case16594_packed_source_entry_cv_argument 0,
+     bounded_case16594_packed_source_entry_cv_argument 1,
+     bounded_case16594_packed_source_entry_cv_argument 6)
+  of
+  | (SOME center_boxes,SOME outer_boxes,SOME supplied_radii) =>
+      bounded_packed_source_radii_raw_naturals center_boxes =
+        SOME [1;1;1;1;1;1] /\
+      bounded_packed_source_radii_raw_naturals outer_boxes =
+        SOME
+          [146900000003;146900000003;146900000003;
+           293800000002;192184375002;293800000002] /\
+      bounded_case16594_source_radii_cv center_boxes <>
+        SOME supplied_radii /\
+      bounded_case16594_source_radii_cv outer_boxes <>
+        SOME supplied_radii
+  | _ => F
 Proof
   EVAL_TAC
 QED
