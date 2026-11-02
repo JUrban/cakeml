@@ -669,11 +669,30 @@ Theorem bounded_taylor64_atan_covers_object_q_state:
   bounded_taylor64_atan radii center_lower_reciprocal
       center_upper_reciprocal center_derivative box_derivative source =
       SOME result ==>
-  ?center_value center_result box_derivative_square weights.
+  ?center_value value_bound center_result center_square box_square
+      box_derivative_square weights.
     bounded_interval64_atan_range center_value center_lower_reciprocal
       center_upper_reciprocal = SOME center_result /\
     bounded_object_q_interval_encloses
       (bounded_interval64_object_q_cv center_value) object_source_center /\
+    bounded_object_q_square_certificate_exact object_source_center
+      (bounded_interval64_object_q_cv center_value)
+      (bounded_interval64_object_q_cv center_square) /\
+    bounded_object_q_square_certificate_exact object_source_value
+      (bounded_interval64_object_q_cv value_bound)
+      (bounded_interval64_object_q_cv box_square) /\
+    bounded_object_q_inv_certificate_exact
+      (bounded_object_q_atan_denominator_cv
+        (bounded_interval64_object_q_cv center_square))
+      (bounded_interval64_object_q_cv center_derivative) /\
+    bounded_object_q_inv_certificate_exact
+      (bounded_object_q_atan_denominator_cv
+        (bounded_interval64_object_q_cv box_square))
+      (bounded_interval64_object_q_cv box_derivative) /\
+    bounded_object_q_square_certificate_exact
+      (bounded_interval64_object_q_cv box_derivative)
+      (bounded_interval64_object_q_cv box_derivative)
+      (bounded_interval64_object_q_cv box_derivative_square) /\
     bounded_taylor_radius_pairs radii = SOME weights /\
     bounded_taylor64_covers_object_q_state result
       (object_source_domain /\ T)
@@ -766,7 +785,10 @@ Proof
   >> impl_tac >- asm_rewrite_tac []
   >> strip_tac
   >> qexists_tac `center_value`
+  >> qexists_tac `value_bound`
   >> qexists_tac `center_result`
+  >> qexists_tac `center_square`
+  >> qexists_tac `box_square`
   >> qexists_tac `box_derivative_square`
   >> qexists_tac `weights`
   >> asm_rewrite_tac []

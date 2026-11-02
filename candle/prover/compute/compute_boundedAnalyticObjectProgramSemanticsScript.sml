@@ -175,13 +175,36 @@ Theorem bounded_taylor64_atan_refines_object_q_taylor:
   bounded_taylor64_atan radii center_lower_reciprocal
     center_upper_reciprocal center_derivative box_derivative source =
     SOME result ==>
-  ?center_value center_result box_derivative_square.
+  ?center_value value_bound center_result center_square box_square
+      box_derivative_square.
     bounded_interval64_atan_range center_value center_lower_reciprocal
       center_upper_reciprocal = SOME center_result /\
     bounded_object_q_interval_encloses
       (bounded_interval64_object_q_cv center_value)
       (case object_source of
        | BoundedObjectQTaylor _ center _ _ _ _ => center) /\
+    bounded_object_q_square_certificate_exact
+      (case object_source of
+       | BoundedObjectQTaylor _ center _ _ _ _ => center)
+      (bounded_interval64_object_q_cv center_value)
+      (bounded_interval64_object_q_cv center_square) /\
+    bounded_object_q_square_certificate_exact
+      (case object_source of
+       | BoundedObjectQTaylor _ _ _ value _ _ => value)
+      (bounded_interval64_object_q_cv value_bound)
+      (bounded_interval64_object_q_cv box_square) /\
+    bounded_object_q_inv_certificate_exact
+      (bounded_object_q_atan_denominator_cv
+        (bounded_interval64_object_q_cv center_square))
+      (bounded_interval64_object_q_cv center_derivative) /\
+    bounded_object_q_inv_certificate_exact
+      (bounded_object_q_atan_denominator_cv
+        (bounded_interval64_object_q_cv box_square))
+      (bounded_interval64_object_q_cv box_derivative) /\
+    bounded_object_q_square_certificate_exact
+      (bounded_interval64_object_q_cv box_derivative)
+      (bounded_interval64_object_q_cv box_derivative)
+      (bounded_interval64_object_q_cv box_derivative_square) /\
     bounded_taylor64_covers_object_q result
       (bounded_object_q_taylor_atan radii weights
         (bounded_interval64_object_q_cv center_result)
@@ -198,7 +221,9 @@ Proof
   >> imp_res_tac
        compute_boundedAnalyticObjectAtanOperationRefinementTheory.bounded_taylor64_atan_covers_object_q_state
   >> gvs []
-  >> qexistsl_tac [`center_value`, `center_result`, `box_derivative_square`]
+  >> qexistsl_tac
+       [`center_value`, `value_bound`, `center_result`, `center_square`,
+        `box_square`, `box_derivative_square`]
   >> asm_rewrite_tac []
   >> fs [bounded_object_q_taylor_atan_def,
          bounded_object_q_taylor_unary_def,

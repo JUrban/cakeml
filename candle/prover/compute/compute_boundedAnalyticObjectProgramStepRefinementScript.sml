@@ -108,12 +108,31 @@ Definition bounded_object_q_analytic_ordinary_step_def:
          BoundedAnalytic64AtanCertificate center_lower_reciprocal
            center_upper_reciprocal center_derivative box_derivative::
            certificate_rest)) =>
-        ?center_value center_result box_derivative_square.
+        ?center_value value_bound center_result center_square box_square
+            box_derivative_square.
           bounded_interval64_atan_range center_value
             center_lower_reciprocal center_upper_reciprocal =
               SOME center_result /\
           bounded_object_q_interval_encloses
             (bounded_interval64_object_q_cv center_value) object_center /\
+          bounded_object_q_square_certificate_exact object_center
+            (bounded_interval64_object_q_cv center_value)
+            (bounded_interval64_object_q_cv center_square) /\
+          bounded_object_q_square_certificate_exact object_value
+            (bounded_interval64_object_q_cv value_bound)
+            (bounded_interval64_object_q_cv box_square) /\
+          bounded_object_q_inv_certificate_exact
+            (bounded_object_q_atan_denominator_cv
+              (bounded_interval64_object_q_cv center_square))
+            (bounded_interval64_object_q_cv center_derivative) /\
+          bounded_object_q_inv_certificate_exact
+            (bounded_object_q_atan_denominator_cv
+              (bounded_interval64_object_q_cv box_square))
+            (bounded_interval64_object_q_cv box_derivative) /\
+          bounded_object_q_square_certificate_exact
+            (bounded_interval64_object_q_cv box_derivative)
+            (bounded_interval64_object_q_cv box_derivative)
+            (bounded_interval64_object_q_cv box_derivative_square) /\
           object_next =
             (bounded_object_q_taylor_atan radii weights
                (bounded_interval64_object_q_cv center_result)
@@ -546,8 +565,12 @@ Proof
   >> impl_tac >- asm_rewrite_tac []
   >> disch_then
        (qx_choose_then `center_value`
-         (qx_choose_then `center_result`
-           (qx_choose_then `box_derivative_square` strip_assume_tac)))
+         (qx_choose_then `value_bound`
+           (qx_choose_then `center_result`
+             (qx_choose_then `center_square`
+               (qx_choose_then `box_square`
+                 (qx_choose_then `box_derivative_square`
+                   strip_assume_tac))))))
   >> qexists_tac
        `(bounded_object_q_taylor_atan radii weights
            (bounded_interval64_object_q_cv center_result)
