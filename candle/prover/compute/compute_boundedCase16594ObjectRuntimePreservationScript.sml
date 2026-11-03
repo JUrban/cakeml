@@ -44,6 +44,103 @@ Proof
   >> simp [LIST_REL_def,bounded_object_q_interval_cv_equiv_refl]
 QED
 
+Theorem bounded_object_q_neg_cv_equiv_cong:
+  bounded_case10173_q_cv_equiv left right ==>
+  bounded_case10173_q_cv_equiv
+    (bounded_object_q_neg_cv left)
+    (bounded_object_q_neg_cv right)
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedQFoldRelationTheory.bounded_object_q_cv_equiv_decodes
+  >> `bounded_object_q_ints (bounded_object_q_neg_cv left) =
+        SOME (-left_numerator,left_denominator)` by
+       metis_tac
+         [compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_neg_cv_decodes]
+  >> `bounded_object_q_ints (bounded_object_q_neg_cv right) =
+        SOME (-right_numerator,right_denominator)` by
+       metis_tac
+         [compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_neg_cv_decodes]
+  >> simp
+       [compute_boundedQNormalizeRelationTheory.bounded_case10173_q_cv_equiv_def,
+        integerTheory.INT_MUL_LNEG]
+QED
+
+Theorem bounded_object_q_interval_neg_cv_equiv_cong:
+  bounded_object_q_interval_cv_equiv left right ==>
+  bounded_object_q_interval_cv_equiv
+    (bounded_object_q_interval_neg_cv left)
+    (bounded_object_q_interval_neg_cv right)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> simp
+    [bounded_object_q_interval_cv_equiv_def,
+     compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_interval_neg_cv_def]
+  >> metis_tac [bounded_object_q_neg_cv_equiv_cong]
+QED
+
+Theorem bounded_object_q_interval_list_neg_rel:
+  !left right.
+    LIST_REL bounded_object_q_interval_cv_equiv left right ==>
+    LIST_REL bounded_object_q_interval_cv_equiv
+      (MAP bounded_object_q_interval_neg_cv left)
+      (MAP bounded_object_q_interval_neg_cv right)
+Proof
+  Induct
+  >> Cases_on `right`
+  >> simp [LIST_REL_def,bounded_object_q_interval_neg_cv_equiv_cong]
+QED
+
+Theorem bounded_object_q_interval_list_cv_equiv_right_encoded:
+  !runtime semantic.
+    bounded_object_q_interval_list_cv_equiv runtime
+      (bounded_object_q_cv_list semantic) ==>
+    ?runtime_values.
+      runtime = bounded_object_q_cv_list runtime_values /\
+      LIST_REL bounded_object_q_interval_cv_equiv
+        runtime_values semantic
+Proof
+  Induct_on `semantic`
+  >> Cases_on `runtime`
+  >> simp
+    [bounded_object_q_interval_list_cv_equiv_def,
+     compute_boundedPackedObjectEntryContractTheory.bounded_object_q_cv_list_def,
+     LIST_REL_def]
+  >- (Cases_on `n`
+      >> simp [bounded_object_q_interval_list_cv_equiv_def])
+  >> gen_tac
+  >> strip_tac
+  >> first_x_assum (qspec_then `c0` mp_tac)
+  >> impl_tac
+  >- fs []
+  >> strip_tac
+  >> qexists_tac `c::runtime_values`
+  >> simp
+    [compute_boundedPackedObjectEntryContractTheory.bounded_object_q_cv_list_def,
+     LIST_REL_def]
+  >> fs []
+QED
+
+Theorem bounded_object_q_interval_list_neg_cv_equiv:
+  bounded_object_q_interval_list_cv_equiv runtime
+      (bounded_object_q_cv_list semantic) ==>
+  ?runtime_values.
+    runtime = bounded_object_q_cv_list runtime_values /\
+    bounded_object_q_interval_list_cv_equiv
+      (bounded_object_q_cv_list
+        (MAP bounded_object_q_interval_neg_cv runtime_values))
+      (bounded_object_q_cv_list
+        (MAP bounded_object_q_interval_neg_cv semantic))
+Proof
+  strip_tac
+  >> drule bounded_object_q_interval_list_cv_equiv_right_encoded
+  >> strip_tac
+  >> qexists_tac `runtime_values`
+  >> simp [bounded_object_q_interval_list_cv_equiv_encoded]
+  >> metis_tac [bounded_object_q_interval_list_neg_rel]
+QED
+
 Theorem bounded_case16594_object_cv_list_identity:
   !values.
     bounded_case16594_object_cv_list values =
