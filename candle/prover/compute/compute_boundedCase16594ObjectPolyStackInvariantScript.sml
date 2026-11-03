@@ -40,6 +40,99 @@ Definition bounded_object_q_taylor_stack_runtime_refines_def:
       runtime_stack semantic_stack
 End
 
+Theorem bounded_object_q_interval_cv_equiv_left_encoded:
+  bounded_object_q_interval_cv_equiv runtime semantic ==>
+  bounded_object_q_interval_encoded runtime
+Proof
+  Cases_on `runtime`
+  >> Cases_on `semantic`
+  >> rw
+       [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_interval_cv_equiv_def,
+        compute_boundedPackedObjectAcceptRefinementTheory.bounded_object_q_interval_encoded_def,
+        compute_boundedObjectIntervalRelationTheory.bounded_object_q_interval_ints_def]
+  >> fs
+       [compute_boundedQNormalizeRelationTheory.bounded_case10173_q_cv_equiv_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
+Theorem bounded_object_q_interval_list_rel_left_encoded:
+  !runtime semantic.
+    LIST_REL bounded_object_q_interval_cv_equiv runtime semantic ==>
+    EVERY bounded_object_q_interval_encoded runtime
+Proof
+  Induct
+  >> Cases_on `semantic`
+  >> simp [LIST_REL_def]
+  >> metis_tac [bounded_object_q_interval_cv_equiv_left_encoded]
+QED
+
+Theorem bounded_object_q_taylor_runtime_refines_shape:
+  bounded_object_q_taylor_runtime_refines runtime
+    (BoundedObjectQTaylor domain_flag center center_gradient value_bound
+      gradient_bounds hessian) ==>
+  ?runtime_center runtime_center_gradient runtime_value_bound
+      runtime_gradient_bounds runtime_hessian.
+    runtime =
+      bounded_case16594_object_state_cv
+        (if domain_flag then Num 1 else Num 0)
+        runtime_center
+        (bounded_object_q_cv_list runtime_center_gradient)
+        runtime_value_bound
+        (bounded_object_q_cv_list runtime_gradient_bounds)
+        (bounded_object_q_cv_list runtime_hessian) /\
+    bounded_object_q_interval_cv_equiv runtime_center center /\
+    LIST_REL bounded_object_q_interval_cv_equiv
+      runtime_center_gradient center_gradient /\
+    bounded_object_q_interval_cv_equiv runtime_value_bound value_bound /\
+    LIST_REL bounded_object_q_interval_cv_equiv
+      runtime_gradient_bounds gradient_bounds /\
+    LIST_REL bounded_object_q_interval_cv_equiv runtime_hessian hessian
+Proof
+  strip_tac
+  >> fs
+       [bounded_object_q_taylor_runtime_refines_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_runtime_equiv_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_state_encoded_cv_def]
+  >> Cases_on `runtime`
+  >- fs
+       [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_state_cv_equiv_def]
+  >> rename1 `Pair runtime_domain runtime_tail1`
+  >> Cases_on `runtime_tail1`
+  >- fs
+       [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_state_cv_equiv_def]
+  >> rename1 `Pair runtime_domain (Pair runtime_center runtime_tail2)`
+  >> Cases_on `runtime_tail2`
+  >- fs
+       [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_state_cv_equiv_def]
+  >> rename1
+       `Pair runtime_domain
+          (Pair runtime_center (Pair runtime_center_gradient_cv runtime_tail3))`
+  >> Cases_on `runtime_tail3`
+  >- fs
+       [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_state_cv_equiv_def]
+  >> rename1
+       `Pair runtime_domain
+          (Pair runtime_center
+            (Pair runtime_center_gradient_cv
+              (Pair runtime_value_bound runtime_tail4)))`
+  >> Cases_on `runtime_tail4`
+  >- fs
+       [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_state_cv_equiv_def]
+  >> rename1
+       `Pair runtime_domain
+          (Pair runtime_center
+            (Pair runtime_center_gradient_cv
+              (Pair runtime_value_bound
+                (Pair runtime_gradient_bounds_cv runtime_hessian_cv))))`
+  >> fs
+       [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_state_cv_equiv_def]
+  >> imp_res_tac
+       compute_boundedCase16594ObjectRuntimePreservationTheory.bounded_object_q_interval_list_cv_equiv_right_encoded
+  >> metis_tac
+       [compute_boundedCase16594ObjectStateControlEvalTheory.bounded_case16594_object_state_cv_def]
+QED
+
 Theorem bounded_object_q_taylor_constant_semantic_valid:
   bounded_object_q_taylor_semantic_valid
     (bounded_object_q_taylor_constant positive negative
