@@ -711,4 +711,180 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_case16594_object_poly_step_add_eval_runtime_refines:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_object_q_taylor_runtime_refines
+    runtime_left_state semantic_left_state /\
+  bounded_object_q_taylor_runtime_refines
+    runtime_right_state semantic_right_state /\
+  4102 < clock ==>
+  ?result_state.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_poly_step»
+        [from_cv center_boxes;from_cv outer_boxes;
+         from_cv (bounded_object_q_cv_list runtime_radii);
+         from_cv (compute_exec$Num 3);
+         from_cv
+           (Pair runtime_right_state
+             (Pair runtime_left_state rest))]) (refs:hol_refs) =
+      (M_success
+        (from_cv
+          (Pair (compute_exec$Num 1) (Pair result_state rest))),refs) /\
+    bounded_object_q_taylor_runtime_refines result_state
+      (bounded_object_q_taylor_add semantic_radii weights
+        semantic_left_state semantic_right_state)
+Proof
+  Cases_on `semantic_left_state`
+  >> Cases_on `semantic_right_state`
+  >> strip_tac
+  >> `bounded_object_q_taylor_semantic_valid
+        (BoundedObjectQTaylor b c l c0 l0 l1) /\
+      bounded_object_q_taylor_semantic_valid
+        (BoundedObjectQTaylor b' c' l' c0' l0' l1')` by
+       fs [bounded_object_q_taylor_runtime_refines_def]
+  >> qpat_x_assum
+       `bounded_object_q_taylor_runtime_refines runtime_left_state
+          (BoundedObjectQTaylor b c l c0 l0 l1)`
+       (fn th =>
+         mp_tac
+           (MATCH_MP bounded_object_q_taylor_runtime_refines_contract th))
+  >> disch_then
+       (qx_choose_then `runtime_left_center`
+         (qx_choose_then `runtime_left_center_gradient`
+           (qx_choose_then `runtime_left_value_bound`
+             (qx_choose_then `runtime_left_gradient_bounds`
+               (qx_choose_then `runtime_left_hessian`
+                 strip_assume_tac)))))
+  >> qpat_x_assum
+       `bounded_object_q_taylor_runtime_refines runtime_right_state
+          (BoundedObjectQTaylor b' c' l' c0' l0' l1')`
+       (fn th =>
+         mp_tac
+           (MATCH_MP bounded_object_q_taylor_runtime_refines_contract th))
+  >> disch_then
+       (qx_choose_then `runtime_right_center`
+         (qx_choose_then `runtime_right_center_gradient`
+           (qx_choose_then `runtime_right_value_bound`
+             (qx_choose_then `runtime_right_gradient_bounds`
+               (qx_choose_then `runtime_right_hessian`
+                 strip_assume_tac)))))
+  >> gvs []
+  >> mp_tac
+       (Q.INST
+         [`runtime_left_value` |-> `runtime_left_value_bound`,
+          `runtime_right_value` |-> `runtime_right_value_bound`,
+          `semantic_left_center` |-> `c`,
+          `semantic_left_center_gradient` |-> `l`,
+          `semantic_left_value` |-> `c0`,
+          `semantic_left_gradient_bounds` |-> `l0`,
+          `semantic_left_hessian` |-> `l1`,
+          `semantic_right_center` |-> `c'`,
+          `semantic_right_center_gradient` |-> `l'`,
+          `semantic_right_value` |-> `c0'`,
+          `semantic_right_gradient_bounds` |-> `l0'`,
+          `semantic_right_hessian` |-> `l1'`]
+         (Q.SPECL [`b`,`b'`]
+           compute_boundedCase16594ObjectPolyAddStepSemanticEvalTheory.bounded_case16594_object_poly_step_add_eval_semantic))
+  >> impl_tac
+  >- fs [bounded_object_q_taylor_semantic_valid_def]
+  >> disch_then (qx_choose_then `result_state` strip_assume_tac)
+  >> qexists_tac `result_state`
+  >> fs [compute_execTheory.from_cv_def]
+  >> rw [bounded_object_q_taylor_runtime_refines_def]
+  >> irule bounded_object_q_taylor_add_semantic_valid
+  >> simp []
+QED
+
+Theorem bounded_case16594_object_poly_step_mul_eval_runtime_refines:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_object_q_taylor_runtime_refines
+    runtime_left_state semantic_left_state /\
+  bounded_object_q_taylor_runtime_refines
+    runtime_right_state semantic_right_state /\
+  4102 < clock ==>
+  ?result_state.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_poly_step»
+        [from_cv center_boxes;from_cv outer_boxes;
+         from_cv (bounded_object_q_cv_list runtime_radii);
+         from_cv (compute_exec$Num 4);
+         from_cv
+           (Pair runtime_right_state
+             (Pair runtime_left_state rest))]) (refs:hol_refs) =
+      (M_success
+        (from_cv
+          (Pair (compute_exec$Num 1) (Pair result_state rest))),refs) /\
+    bounded_object_q_taylor_runtime_refines result_state
+      (bounded_object_q_taylor_mul semantic_radii weights
+        semantic_left_state semantic_right_state)
+Proof
+  Cases_on `semantic_left_state`
+  >> Cases_on `semantic_right_state`
+  >> strip_tac
+  >> `bounded_object_q_taylor_semantic_valid
+        (BoundedObjectQTaylor b c l c0 l0 l1) /\
+      bounded_object_q_taylor_semantic_valid
+        (BoundedObjectQTaylor b' c' l' c0' l0' l1')` by
+       fs [bounded_object_q_taylor_runtime_refines_def]
+  >> qpat_x_assum
+       `bounded_object_q_taylor_runtime_refines runtime_left_state
+          (BoundedObjectQTaylor b c l c0 l0 l1)`
+       (fn th =>
+         mp_tac
+           (MATCH_MP bounded_object_q_taylor_runtime_refines_contract th))
+  >> disch_then
+       (qx_choose_then `runtime_left_center`
+         (qx_choose_then `runtime_left_center_gradient`
+           (qx_choose_then `runtime_left_value_bound`
+             (qx_choose_then `runtime_left_gradient_bounds`
+               (qx_choose_then `runtime_left_hessian`
+                 strip_assume_tac)))))
+  >> qpat_x_assum
+       `bounded_object_q_taylor_runtime_refines runtime_right_state
+          (BoundedObjectQTaylor b' c' l' c0' l0' l1')`
+       (fn th =>
+         mp_tac
+           (MATCH_MP bounded_object_q_taylor_runtime_refines_contract th))
+  >> disch_then
+       (qx_choose_then `runtime_right_center`
+         (qx_choose_then `runtime_right_center_gradient`
+           (qx_choose_then `runtime_right_value_bound`
+             (qx_choose_then `runtime_right_gradient_bounds`
+               (qx_choose_then `runtime_right_hessian`
+                 strip_assume_tac)))))
+  >> gvs []
+  >> mp_tac
+       (Q.INST
+         [`runtime_left_value` |-> `runtime_left_value_bound`,
+          `runtime_right_value` |-> `runtime_right_value_bound`,
+          `semantic_left_center` |-> `c`,
+          `semantic_left_center_gradient` |-> `l`,
+          `semantic_left_value` |-> `c0`,
+          `semantic_left_gradient_bounds` |-> `l0`,
+          `semantic_left_hessian` |-> `l1`,
+          `semantic_right_center` |-> `c'`,
+          `semantic_right_center_gradient` |-> `l'`,
+          `semantic_right_value` |-> `c0'`,
+          `semantic_right_gradient_bounds` |-> `l0'`,
+          `semantic_right_hessian` |-> `l1'`]
+         (Q.SPECL [`b`,`b'`]
+           compute_boundedCase16594ObjectPolyMulStepSemanticEvalTheory.bounded_case16594_object_poly_step_mul_eval_semantic))
+  >> impl_tac
+  >- fs [bounded_object_q_taylor_semantic_valid_def]
+  >> disch_then (qx_choose_then `result_state` strip_assume_tac)
+  >> qexists_tac `result_state`
+  >> fs [compute_execTheory.from_cv_def]
+  >> rw [bounded_object_q_taylor_runtime_refines_def]
+  >> irule bounded_object_q_taylor_mul_semantic_valid
+  >> simp []
+QED
+
 val _ = export_theory ();
