@@ -11,6 +11,7 @@ Theory compute_boundedCase16594ObjectPolyStackInvariant
 Ancestors
   compute_boundedCase16594ObjectPolyBaseStepSemanticEval
   compute_boundedCase16594ObjectPolyVariableStepSemanticEval
+  compute_boundedCase16594ObjectPolyAddStepSemanticEval
 Libs
   bossLib preamble intLib
 
@@ -131,6 +132,53 @@ Proof
        compute_boundedCase16594ObjectRuntimePreservationTheory.bounded_object_q_interval_list_cv_equiv_right_encoded
   >> metis_tac
        [compute_boundedCase16594ObjectStateControlEvalTheory.bounded_case16594_object_state_cv_def]
+QED
+
+Theorem bounded_object_q_taylor_runtime_refines_contract:
+  bounded_object_q_taylor_runtime_refines runtime
+    (BoundedObjectQTaylor domain_flag center center_gradient value_bound
+      gradient_bounds hessian) ==>
+  ?runtime_center runtime_center_gradient runtime_value_bound
+      runtime_gradient_bounds runtime_hessian.
+    runtime =
+      bounded_case16594_object_state_cv
+        (if domain_flag then Num 1 else Num 0)
+        runtime_center
+        (bounded_object_q_cv_list runtime_center_gradient)
+        runtime_value_bound
+        (bounded_object_q_cv_list runtime_gradient_bounds)
+        (bounded_object_q_cv_list runtime_hessian) /\
+    bounded_object_q_interval_encoded runtime_center /\
+    EVERY bounded_object_q_interval_encoded runtime_center_gradient /\
+    LENGTH runtime_center_gradient = 6 /\
+    bounded_object_q_interval_encoded runtime_value_bound /\
+    EVERY bounded_object_q_interval_encoded runtime_gradient_bounds /\
+    LENGTH runtime_gradient_bounds = 6 /\
+    EVERY bounded_object_q_interval_encoded runtime_hessian /\
+    LENGTH runtime_hessian = 21 /\
+    bounded_object_q_interval_cv_equiv runtime_center center /\
+    LIST_REL bounded_object_q_interval_cv_equiv
+      runtime_center_gradient center_gradient /\
+    bounded_object_q_interval_cv_equiv runtime_value_bound value_bound /\
+    LIST_REL bounded_object_q_interval_cv_equiv
+      runtime_gradient_bounds gradient_bounds /\
+    LIST_REL bounded_object_q_interval_cv_equiv runtime_hessian hessian
+Proof
+  strip_tac
+  >> drule bounded_object_q_taylor_runtime_refines_shape
+  >> strip_tac
+  >> qexists_tac `runtime_center`
+  >> qexists_tac `runtime_center_gradient`
+  >> qexists_tac `runtime_value_bound`
+  >> qexists_tac `runtime_gradient_bounds`
+  >> qexists_tac `runtime_hessian`
+  >> fs
+       [bounded_object_q_taylor_runtime_refines_def,
+        bounded_object_q_taylor_semantic_valid_def]
+  >> metis_tac
+       [bounded_object_q_interval_cv_equiv_left_encoded,
+        bounded_object_q_interval_list_rel_left_encoded,
+        LIST_REL_LENGTH]
 QED
 
 Theorem bounded_object_q_taylor_constant_semantic_valid:
@@ -604,6 +652,63 @@ Proof
       >> irule
            compute_boundedCase16594ObjectMulRelationTheory.bounded_packed_q_symmetric_product_pairs_cv_valid
       >> simp [])
+QED
+
+Theorem bounded_case16594_object_poly_step_neg_eval_runtime_refines:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_object_q_taylor_runtime_refines runtime_state semantic_state /\
+  4102 < clock ==>
+  ?result_state.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_poly_step»
+        [from_cv center_boxes;from_cv outer_boxes;
+         from_cv (bounded_object_q_cv_list runtime_radii);
+         from_cv (compute_exec$Num 2);
+         from_cv (Pair runtime_state rest)]) (refs:hol_refs) =
+      (M_success
+        (from_cv
+          (Pair (compute_exec$Num 1) (Pair result_state rest))),refs) /\
+    bounded_object_q_taylor_runtime_refines result_state
+      (bounded_object_q_taylor_neg semantic_radii weights semantic_state)
+Proof
+  Cases_on `semantic_state`
+  >> strip_tac
+  >> `bounded_object_q_taylor_semantic_valid
+        (BoundedObjectQTaylor b c l c0 l0 l1)` by
+       fs [bounded_object_q_taylor_runtime_refines_def]
+  >> drule bounded_object_q_taylor_runtime_refines_contract
+  >> disch_then
+       (qx_choose_then `runtime_center`
+         (qx_choose_then `runtime_center_gradient`
+           (qx_choose_then `runtime_value_bound`
+             (qx_choose_then `runtime_gradient_bounds`
+               (qx_choose_then `runtime_hessian` strip_assume_tac)))))
+  >> gvs []
+  >> mp_tac
+       (Q.INST
+         [`semantic_center` |-> `c`,
+          `semantic_center_gradient` |-> `l`,
+          `semantic_value` |-> `c0`,
+          `semantic_gradient_bounds` |-> `l0`,
+          `semantic_hessian` |-> `l1`]
+         (INST
+           [mk_var ("runtime_gradient_bounds",``:cv``) |->
+              ``bounded_object_q_cv_list runtime_gradient_bounds``]
+           (Q.INST [`runtime_value` |-> `runtime_value_bound`]
+             (Q.SPEC `b`
+               compute_boundedCase16594ObjectPolyBaseStepSemanticEvalTheory.bounded_case16594_object_poly_step_neg_eval_semantic))))
+  >> impl_tac
+  >- fs [bounded_object_q_taylor_semantic_valid_def]
+  >> disch_then (qx_choose_then `result_state` strip_assume_tac)
+  >> qexists_tac `result_state`
+  >> fs [compute_execTheory.from_cv_def]
+  >> rw [bounded_object_q_taylor_runtime_refines_def]
+  >> irule bounded_object_q_taylor_neg_semantic_valid
+  >> simp []
 QED
 
 val _ = export_theory ();
