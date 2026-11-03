@@ -63,51 +63,6 @@ Proof
   >> simp [compute_execTheory.from_cv_def]
 QED
 
-Theorem bounded_case16594_object_compute_eval_app6_argument_results:
-  0 < clock /\
-  compute_eval clock ceqs argument1 (refs:hol_refs) =
-      (M_success (from_cv result1),refs) /\
-  compute_eval clock ceqs argument2 refs =
-      (M_success (from_cv result2),refs) /\
-  compute_eval clock ceqs argument3 refs =
-      (M_success (from_cv result3),refs) /\
-  compute_eval clock ceqs argument4 refs =
-      (M_success (from_cv result4),refs) /\
-  compute_eval clock ceqs argument5 refs =
-      (M_success (from_cv result5),refs) /\
-  compute_eval clock ceqs argument6 refs =
-      (M_success (from_cv result6),refs) ==>
-  compute_eval clock ceqs
-      (App function_name
-        [argument1;argument2;argument3;argument4;argument5;argument6]) refs =
-    compute_eval clock ceqs
-      (App function_name
-        [from_cv result1;from_cv result2;from_cv result3;
-         from_cv result4;from_cv result5;from_cv result6]) refs
-Proof
-  Cases_on `clock`
-  >> simp []
-  >> strip_tac
-  >> Cases_on `ALOOKUP ceqs function_name`
-  >- simp
-       [compute_evalTheory.compute_eval_def,
-        compute_evalTheory.option_def,
-        holKernelTheory.raise_Failure_def,
-        ml_monadBaseTheory.st_ex_bind_def,
-        ml_monadBaseTheory.st_ex_return_def]
-  >> Cases_on `x`
-  >> Cases_on `LENGTH q = 6`
-  >> simp
-       [compute_evalTheory.compute_eval_def,
-        compute_execProofTheory.compute_eval_from_cv,
-        compute_evalTheory.option_def,
-        compute_evalTheory.check_def,
-        holKernelTheory.raise_Failure_def,
-        ml_monadBaseTheory.st_ex_bind_def,
-        ml_monadBaseTheory.st_ex_ignore_bind_def,
-        ml_monadBaseTheory.st_ex_return_def]
-QED
-
 Theorem bounded_case16594_object_state_inverse_unfold:
   0 < clock ==>
   compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
