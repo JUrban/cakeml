@@ -511,4 +511,86 @@ Proof
         compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_runtime_equiv_fields]
 QED
 
+Theorem bounded_case16594_object_recomplete_runtime_semantic_equiv:
+  !domain_flag.
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_object_q_interval_cv_equiv runtime_center semantic_center /\
+  bounded_packed_q_interval_valid_cv semantic_center /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    runtime_center_gradient semantic_center_gradient /\
+  EVERY bounded_packed_q_interval_valid_cv semantic_center_gradient /\
+  LENGTH semantic_center_gradient = 6 /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    runtime_hessian semantic_hessian /\
+  EVERY bounded_packed_q_interval_valid_cv semantic_hessian /\
+  LENGTH semantic_hessian = 21 ==>
+  bounded_object_q_taylor_runtime_equiv
+    (bounded_case16594_object_state_cv
+      (if domain_flag then Num 1 else Num 0)
+      runtime_center
+      (bounded_object_q_cv_list runtime_center_gradient)
+      (bounded_packed_q_source_value_bound6_cv runtime_radii
+        runtime_center runtime_center_gradient runtime_hessian)
+      (bounded_object_q_cv_list
+        (bounded_packed_q_source_gradient_complete6_cv runtime_radii
+          runtime_center_gradient runtime_hessian))
+      (bounded_object_q_cv_list runtime_hessian))
+    (BoundedObjectQTaylor domain_flag semantic_center
+      semantic_center_gradient
+      (bounded_object_q_taylor_value_complete_cv semantic_center
+        (bounded_object_q_taylor_error_cv semantic_radii
+          semantic_center_gradient weights semantic_hessian))
+      (bounded_object_q_taylor_gradient_complete_cv semantic_radii
+        semantic_center_gradient semantic_hessian)
+      semantic_hessian)
+Proof
+  gen_tac
+  >> strip_tac
+  >> `LENGTH semantic_radii = 6 /\ LENGTH weights = 21` by
+       metis_tac
+         [compute_boundedPackedObjectAcceptRefinementTheory.bounded_taylor_radius_pairs_lengths]
+  >> `LENGTH runtime_radii = 6` by
+       metis_tac [LIST_REL_LENGTH,rich_listTheory.LENGTH_MAP]
+  >> `LENGTH runtime_hessian = 21` by
+       metis_tac [LIST_REL_LENGTH]
+  >> `bounded_object_q_interval_cv_equiv
+        (bounded_packed_q_source_value_bound6_cv runtime_radii
+          runtime_center runtime_center_gradient runtime_hessian)
+        (bounded_packed_q_source_value_bound6_cv
+          (MAP bounded_word64_object_q_cv semantic_radii)
+          semantic_center semantic_center_gradient semantic_hessian)` by
+       metis_tac
+         [compute_boundedCase16594ObjectRuntimePreservationTheory.bounded_packed_q_source_value_bound6_cv_rel]
+  >> `bounded_object_q_interval_cv_equiv
+        (bounded_packed_q_source_value_bound6_cv runtime_radii
+          runtime_center runtime_center_gradient runtime_hessian)
+        (bounded_object_q_taylor_value_complete_cv semantic_center
+          (bounded_object_q_taylor_error_cv semantic_radii
+            semantic_center_gradient weights semantic_hessian))` by
+       metis_tac
+         [bounded_packed_q_source_value_bound6_word_semantic_equiv,
+          compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_interval_cv_equiv_trans]
+  >> `LIST_REL bounded_object_q_interval_cv_equiv
+        (bounded_packed_q_source_gradient_complete6_cv runtime_radii
+          runtime_center_gradient runtime_hessian)
+        (bounded_packed_q_source_gradient_complete6_cv
+          (MAP bounded_word64_object_q_cv semantic_radii)
+          semantic_center_gradient semantic_hessian)` by
+       metis_tac
+         [compute_boundedCase16594ObjectRuntimePreservationTheory.bounded_packed_q_source_gradient_complete6_cv_rel]
+  >> `LIST_REL bounded_object_q_interval_cv_equiv
+        (bounded_packed_q_source_gradient_complete6_cv runtime_radii
+          runtime_center_gradient runtime_hessian)
+        (bounded_object_q_taylor_gradient_complete_cv semantic_radii
+          semantic_center_gradient semantic_hessian)` by
+       metis_tac
+         [bounded_packed_q_source_gradient_complete6_word_semantic_rel,
+          compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_interval_list_rel_trans]
+  >> rw
+       [compute_boundedCase16594ObjectStateControlEvalTheory.bounded_case16594_object_state_cv_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_runtime_equiv_fields]
+QED
+
 val _ = export_theory ();
