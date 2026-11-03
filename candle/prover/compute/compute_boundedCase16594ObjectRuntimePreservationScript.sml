@@ -11,6 +11,7 @@ open compute_boundedObjectTaylorZeroAlgebraTheory
 open compute_boundedCase16594ObjectPolyStepControlEvalTheory
 open compute_boundedCase16594ObjectLinearEvalTheory
 open compute_boundedPackedObjectPrimitiveAbsEvalTheory
+open compute_boundedPackedObjectDotEvalTheory
 open preamble
 
 Theory compute_boundedCase16594ObjectRuntimePreservation
@@ -20,6 +21,7 @@ Ancestors
   compute_boundedCase16594ObjectPolyStepControlEval
   compute_boundedCase16594ObjectLinearEval
   compute_boundedPackedObjectPrimitiveAbsEval
+  compute_boundedPackedObjectDotEval
 Libs
   bossLib preamble
 
@@ -333,6 +335,38 @@ Proof
   >> metis_tac
     [bounded_object_q_max_cv_equiv_cong,
      bounded_object_q_neg_cv_equiv_cong]
+QED
+
+Theorem bounded_packed_q_source_dot_abs_upper_cv_rel:
+  !left_radii right_radii left_entries right_entries.
+    LIST_REL bounded_case10173_q_cv_equiv
+      left_radii right_radii /\
+    LIST_REL bounded_object_q_interval_cv_equiv
+      left_entries right_entries ==>
+    bounded_case10173_q_cv_equiv
+      (bounded_packed_q_source_dot_abs_upper_cv
+        left_radii left_entries)
+      (bounded_packed_q_source_dot_abs_upper_cv
+        right_radii right_entries)
+Proof
+  Induct_on `left_radii`
+  >> Cases_on `right_radii`
+  >> Cases_on `left_entries`
+  >> Cases_on `right_entries`
+  >> simp
+    [LIST_REL_def,
+     compute_boundedPackedObjectDotEvalTheory.bounded_packed_q_source_dot_abs_upper_cv_def,
+     compute_boundedQFoldRelationTheory.bounded_object_q_zero_cv_encoded,
+     compute_boundedQFoldRelationTheory.bounded_object_q_encoded_equiv_refl]
+  >> rpt strip_tac
+  >> irule
+       compute_boundedQFoldRelationTheory.bounded_object_q_add_cv_equiv_cong
+  >> conj_tac
+  >- (irule
+        compute_boundedQFoldRelationTheory.bounded_object_q_mul_cv_equiv_cong
+      >> simp [bounded_packed_q_source_abs_upper_cv_equiv_cong])
+  >> first_x_assum irule
+  >> simp []
 QED
 
 Theorem bounded_object_q_interval_neg_cv_equiv_cong:
