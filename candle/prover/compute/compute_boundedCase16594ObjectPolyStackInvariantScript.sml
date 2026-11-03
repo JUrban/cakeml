@@ -510,4 +510,100 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_object_q_taylor_neg_semantic_valid:
+  bounded_taylor_radius_pairs radii = SOME weights /\
+  bounded_object_q_taylor_semantic_valid semantic_state ==>
+  bounded_object_q_taylor_semantic_valid
+    (bounded_object_q_taylor_neg radii weights semantic_state)
+Proof
+  Cases_on `semantic_state`
+  >> strip_tac
+  >> fs [bounded_object_q_taylor_semantic_valid_def]
+  >> `LENGTH radii = 6 /\ LENGTH weights = 21` by
+       metis_tac
+         [compute_boundedPackedObjectAcceptRefinementTheory.bounded_taylor_radius_pairs_lengths]
+  >> PURE_REWRITE_TAC
+       [compute_boundedAnalyticObjectPolyProgramRefinementTheory.bounded_object_q_taylor_neg_def,
+        LET_THM]
+  >> simp [LET_THM]
+  >> irule bounded_object_q_taylor_recomplete_semantic_valid
+  >> simp
+       [compute_boundedCase16594ObjectNegRelationTheory.bounded_packed_q_interval_valid_cv_neg,
+        compute_boundedCase16594ObjectNegRelationTheory.bounded_packed_q_interval_valid_cv_map_neg]
+QED
+
+Theorem bounded_object_q_taylor_add_semantic_valid:
+  bounded_taylor_radius_pairs radii = SOME weights /\
+  bounded_object_q_taylor_semantic_valid left /\
+  bounded_object_q_taylor_semantic_valid right ==>
+  bounded_object_q_taylor_semantic_valid
+    (bounded_object_q_taylor_add radii weights left right)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> strip_tac
+  >> fs [bounded_object_q_taylor_semantic_valid_def]
+  >> `LENGTH radii = 6 /\ LENGTH weights = 21` by
+       metis_tac
+         [compute_boundedPackedObjectAcceptRefinementTheory.bounded_taylor_radius_pairs_lengths]
+  >> PURE_REWRITE_TAC
+       [compute_boundedAnalyticObjectPolyProgramRefinementTheory.bounded_object_q_taylor_add_def,
+        LET_THM]
+  >> simp [LET_THM]
+  >> irule bounded_object_q_taylor_recomplete_semantic_valid
+  >> simp []
+  >> rpt conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectMulRelationTheory.bounded_packed_q_interval_valid_cv_add
+      >> simp [])
+  >- (irule
+        compute_boundedCase16594ObjectAddRelationTheory.bounded_case16594_object_interval_list_add_cv_valid
+      >> simp [])
+  >> irule
+       compute_boundedCase16594ObjectAddRelationTheory.bounded_case16594_object_interval_list_add_cv_valid
+  >> simp []
+QED
+
+Theorem bounded_object_q_taylor_mul_semantic_valid:
+  bounded_taylor_radius_pairs radii = SOME weights /\
+  bounded_object_q_taylor_semantic_valid left /\
+  bounded_object_q_taylor_semantic_valid right ==>
+  bounded_object_q_taylor_semantic_valid
+    (bounded_object_q_taylor_mul radii weights left right)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> strip_tac
+  >> fs [bounded_object_q_taylor_semantic_valid_def]
+  >> `LENGTH radii = 6 /\ LENGTH weights = 21` by
+       metis_tac
+         [compute_boundedPackedObjectAcceptRefinementTheory.bounded_taylor_radius_pairs_lengths]
+  >> PURE_REWRITE_TAC
+       [compute_boundedAnalyticObjectPolyProgramRefinementTheory.bounded_object_q_taylor_mul_def,
+        LET_THM]
+  >> simp [LET_THM]
+  >> irule bounded_object_q_taylor_recomplete_semantic_valid
+  >> simp []
+  >> rpt conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectMulRelationTheory.bounded_packed_q_interval_valid_cv_mul
+      >> simp [])
+  >- (irule
+        compute_boundedCase16594ObjectMulRelationTheory.bounded_object_q_interval_fused_scale_add_cv_length6_relation
+      >> simp [])
+  >- (irule
+        compute_boundedCase16594ObjectMulRelationTheory.bounded_object_q_interval_fused_hessian_cv_length21_relation
+      >> simp
+        [compute_boundedCase16594ObjectMulRelationTheory.bounded_object_q_symmetric_product_pairs_cv_length6_relation])
+  >- (irule
+        compute_boundedCase16594ObjectMulRelationTheory.bounded_packed_q_interval_valid_cv_fused_scale_add
+      >> simp [])
+  >- (irule
+        compute_boundedCase16594ObjectMulRelationTheory.bounded_packed_q_interval_fused_hessian_cv_valid
+      >> simp []
+      >> irule
+           compute_boundedCase16594ObjectMulRelationTheory.bounded_packed_q_symmetric_product_pairs_cv_valid
+      >> simp [])
+QED
+
 val _ = export_theory ();
