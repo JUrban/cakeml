@@ -55,6 +55,14 @@ Proof
 QED
 
 Theorem bounded_case16594_object_source0_authenticated_instruction_bridge:
+  bounded_object_q_cv_list_decode
+      bounded_case16594_object_cell0_radii_cv <> NONE /\
+  LIST_REL bounded_case10173_q_cv_equiv
+    (THE
+      (bounded_object_q_cv_list_decode
+        bounded_case16594_object_cell0_radii_cv))
+    (MAP bounded_word64_object_q_cv
+      bounded_case16594_object_cell0_word_radii) /\
   bounded_analytic_instruction_of_cv
       bounded_case16594_object_cell0_source0_cv =
     SOME
@@ -79,7 +87,8 @@ Theorem bounded_case16594_object_source0_authenticated_instruction_bridge:
     bounded_case16594_object_source0_result
 Proof
   simp
-    [bounded_case16594_object_source0_decodes,
+    [bounded_case16594_object_cell0_radii_equivalent,
+     bounded_case16594_object_source0_decodes,
      bounded_case16594_object_source0_ordinary_semantic_step,
      bounded_case16594_object_source0_dispatch_step_eval_above,
      bounded_case16594_object_first_mul_runtime_semantic_equiv]
