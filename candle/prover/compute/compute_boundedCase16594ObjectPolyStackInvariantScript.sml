@@ -236,4 +236,278 @@ Proof
   >> simp []
 QED
 
+Theorem bounded_object_q_dot_abs_upper_acc_cv_nonnegative_valid:
+  !radii entries accumulator.
+    LENGTH radii = LENGTH entries /\
+    EVERY bounded_packed_q_interval_valid_cv entries /\
+    bounded_object_q_nonnegative accumulator ==>
+    bounded_object_q_nonnegative
+      (bounded_object_q_dot_abs_upper_acc_cv radii entries accumulator)
+Proof
+  Induct
+  >> Cases_on `entries`
+  >> simp
+       [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_dot_abs_upper_acc_cv_def]
+  >> rpt strip_tac
+  >> first_x_assum match_mp_tac
+  >> simp []
+  >> irule
+       compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_add_cv_nonnegative
+  >> simp []
+  >> irule
+       compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_mul_cv_nonnegative
+  >> simp
+       [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_word64_object_q_cv_nonnegative]
+  >> irule
+       compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_interval_abs_upper_cv_nonnegative
+  >> fs
+       [compute_boundedPackedObjectSourceContractRefinementTheory.bounded_packed_q_interval_valid_cv_def]
+  >> PairCases_on `decoded`
+  >> simp []
+QED
+
+Theorem bounded_object_q_quadratic_contribution_cv_nonnegative_valid:
+  bounded_packed_q_interval_valid_cv entry ==>
+  bounded_object_q_nonnegative
+    (bounded_object_q_quadratic_contribution_cv
+      left_radius right_radius double entry)
+Proof
+  strip_tac
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_interval_abs_upper_cv entry)` by
+       (irule
+          compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_interval_abs_upper_cv_nonnegative
+        >> fs
+          [compute_boundedPackedObjectSourceContractRefinementTheory.bounded_packed_q_interval_valid_cv_def]
+        >> PairCases_on `decoded`
+        >> simp [])
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_mul_cv
+          (bounded_word64_object_q_cv left_radius)
+          (bounded_word64_object_q_cv right_radius))` by
+       (irule
+          compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_mul_cv_nonnegative
+        >> simp
+          [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_word64_object_q_cv_nonnegative])
+  >> `bounded_object_q_nonnegative
+        (bounded_object_q_mul_cv
+          (bounded_object_q_mul_cv
+            (bounded_word64_object_q_cv left_radius)
+            (bounded_word64_object_q_cv right_radius))
+          (bounded_object_q_interval_abs_upper_cv entry))` by
+       (irule
+          compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_mul_cv_nonnegative
+        >> simp [])
+  >> Cases_on `double`
+  >> simp
+       [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_quadratic_contribution_cv_def,
+        LET_THM]
+  >> irule
+       compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_add_cv_nonnegative
+  >> simp []
+QED
+
+Theorem bounded_object_q_quadratic_abs_upper_acc_cv_nonnegative_valid:
+  !weights entries accumulator.
+    LENGTH weights = LENGTH entries /\
+    EVERY bounded_packed_q_interval_valid_cv entries /\
+    bounded_object_q_nonnegative accumulator ==>
+    bounded_object_q_nonnegative
+      (bounded_object_q_quadratic_abs_upper_acc_cv
+        weights entries accumulator)
+Proof
+  Induct
+  >- (Cases_on `entries`
+      >> simp
+        [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_quadratic_abs_upper_acc_cv_def])
+  >> gen_tac
+  >> PairCases_on `h`
+  >> Cases_on `entries`
+  >> simp
+       [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_quadratic_abs_upper_acc_cv_def]
+  >> rpt strip_tac
+  >> first_x_assum match_mp_tac
+  >> simp []
+  >> irule
+       compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_add_cv_nonnegative
+  >> simp [bounded_object_q_quadratic_contribution_cv_nonnegative_valid]
+QED
+
+Theorem bounded_object_q_taylor_error_cv_nonnegative_valid:
+  LENGTH radii = LENGTH center_gradient /\
+  LENGTH weights = LENGTH hessian /\
+  EVERY bounded_packed_q_interval_valid_cv center_gradient /\
+  EVERY bounded_packed_q_interval_valid_cv hessian ==>
+  bounded_object_q_nonnegative
+    (bounded_object_q_taylor_error_cv
+      radii center_gradient weights hessian)
+Proof
+  strip_tac
+  >> simp
+       [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_taylor_error_cv_def,
+        LET_THM]
+  >> irule
+       compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_add_cv_nonnegative
+  >> conj_tac
+  >- (irule
+        compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_add_cv_nonnegative
+      >> metis_tac
+        [bounded_object_q_dot_abs_upper_acc_cv_nonnegative_valid,
+         compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_word64_object_q_cv_nonnegative])
+  >> metis_tac
+       [bounded_object_q_quadratic_abs_upper_acc_cv_nonnegative_valid,
+        compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_word64_object_q_cv_nonnegative]
+QED
+
+Theorem bounded_packed_q_interval_valid_cv_symmetric_half:
+  bounded_object_q_nonnegative error ==>
+  bounded_packed_q_interval_valid_cv
+    (bounded_object_q_symmetric_half_interval_cv error)
+Proof
+  strip_tac
+  >> Cases_on `bounded_object_q_ints error`
+  >- fs
+       [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_nonnegative_def]
+  >> PairCases_on `x`
+  >> `0 < x1 /\ 0 <= x0` by
+       fs
+         [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_nonnegative_def]
+  >> `bounded_object_q_interval_ints
+        (bounded_object_q_symmetric_half_interval_cv error) =
+      SOME ((-x0,x1 * (&2:int)),(x0,x1 * (&2:int)))` by
+       (irule
+          compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_symmetric_half_interval_cv_decodes
+        >> simp [])
+  >> `0 < x1 * (&2:int) /\ 0 < x1 * (&2:int) /\
+      (-x0) * (x1 * (&2:int)) <= x0 * (x1 * (&2:int))` by
+       metis_tac
+         [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_symmetric_half_interval_cv_ordered]
+  >> rw
+       [compute_boundedPackedObjectSourceContractRefinementTheory.bounded_packed_q_interval_valid_cv_def]
+  >> simp
+       [compute_boundedAnalyticObjectFusedProductRefinementTheory.bounded_int_fraction_interval_valid_def,
+        compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_positive_def,
+        compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_le_def]
+QED
+
+Theorem bounded_packed_q_interval_valid_cv_taylor_value_complete:
+  bounded_packed_q_interval_valid_cv center /\
+  bounded_object_q_nonnegative error ==>
+  bounded_packed_q_interval_valid_cv
+    (bounded_object_q_taylor_value_complete_cv center error)
+Proof
+  strip_tac
+  >> rw
+       [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_taylor_value_complete_cv_def]
+  >> irule
+       compute_boundedCase16594ObjectMulRelationTheory.bounded_packed_q_interval_valid_cv_add
+  >> simp [bounded_packed_q_interval_valid_cv_symmetric_half]
+QED
+
+Theorem bounded_packed_q_interval_valid_cv_taylor_gradient_row_complete:
+  LENGTH radii = LENGTH hessian_row /\
+  bounded_packed_q_interval_valid_cv center_entry /\
+  EVERY bounded_packed_q_interval_valid_cv hessian_row ==>
+  bounded_packed_q_interval_valid_cv
+    (bounded_object_q_taylor_gradient_row_complete_cv center_entry
+      (bounded_object_q_dot_abs_upper_acc_cv radii hessian_row
+        (bounded_word64_object_q_cv 0w)))
+Proof
+  strip_tac
+  >> rw
+       [compute_boundedAnalyticObjectGradientRefinementTheory.bounded_object_q_taylor_gradient_row_complete_cv_def]
+  >> irule bounded_packed_q_interval_valid_cv_taylor_value_complete
+  >> simp []
+  >> irule
+       compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_add_cv_nonnegative
+  >> metis_tac
+       [bounded_object_q_dot_abs_upper_acc_cv_nonnegative_valid,
+        compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_word64_object_q_cv_nonnegative]
+QED
+
+Theorem bounded_object_q_taylor_gradient_rows_complete_cv_valid:
+  !center_gradient rows.
+    LENGTH center_gradient = LENGTH rows /\
+    EVERY bounded_packed_q_interval_valid_cv center_gradient /\
+    EVERY
+      (\row.
+        LENGTH row = LENGTH radii /\
+        EVERY bounded_packed_q_interval_valid_cv row) rows ==>
+    EVERY bounded_packed_q_interval_valid_cv
+      (bounded_object_q_taylor_gradient_rows_complete_cv
+        radii center_gradient rows)
+Proof
+  Induct
+  >> Cases_on `rows`
+  >> simp
+       [compute_boundedAnalyticObjectGradientRefinementTheory.bounded_object_q_taylor_gradient_rows_complete_cv_def]
+  >> metis_tac
+       [bounded_packed_q_interval_valid_cv_taylor_gradient_row_complete]
+QED
+
+Theorem bounded_hessian64_rows_valid:
+  bounded_hessian64_rows hessian = SOME rows /\
+  EVERY bounded_packed_q_interval_valid_cv hessian ==>
+  LENGTH rows = 6 /\
+  EVERY
+    (\row.
+      LENGTH row = 6 /\
+      EVERY bounded_packed_q_interval_valid_cv row) rows
+Proof
+  rw [compute_boundedTaylorGradientTheory.bounded_hessian64_rows_def]
+  >> every_case_tac
+  >> gvs []
+QED
+
+Theorem bounded_object_q_taylor_gradient_complete_cv_valid:
+  LENGTH radii = 6 /\
+  LENGTH center_gradient = 6 /\
+  LENGTH hessian = 21 /\
+  EVERY bounded_packed_q_interval_valid_cv center_gradient /\
+  EVERY bounded_packed_q_interval_valid_cv hessian ==>
+  EVERY bounded_packed_q_interval_valid_cv
+    (bounded_object_q_taylor_gradient_complete_cv
+      radii center_gradient hessian)
+Proof
+  strip_tac
+  >> rw
+       [compute_boundedAnalyticObjectGradientRefinementTheory.bounded_object_q_taylor_gradient_complete_cv_def]
+  >> every_case_tac
+  >> gvs []
+  >> imp_res_tac bounded_hessian64_rows_valid
+  >> irule bounded_object_q_taylor_gradient_rows_complete_cv_valid
+  >> simp []
+QED
+
+Theorem bounded_object_q_taylor_recomplete_semantic_valid:
+  LENGTH radii = 6 /\
+  LENGTH weights = 21 /\
+  bounded_packed_q_interval_valid_cv center /\
+  EVERY bounded_packed_q_interval_valid_cv center_gradient /\
+  LENGTH center_gradient = 6 /\
+  EVERY bounded_packed_q_interval_valid_cv hessian /\
+  LENGTH hessian = 21 ==>
+  bounded_object_q_taylor_semantic_valid
+    (BoundedObjectQTaylor domain_flag center center_gradient
+      (bounded_object_q_taylor_value_complete_cv center
+        (bounded_object_q_taylor_error_cv
+          radii center_gradient weights hessian))
+      (bounded_object_q_taylor_gradient_complete_cv
+        radii center_gradient hessian)
+      hessian)
+Proof
+  strip_tac
+  >> simp [bounded_object_q_taylor_semantic_valid_def]
+  >> rpt conj_tac
+  >- (irule bounded_packed_q_interval_valid_cv_taylor_value_complete
+      >> simp []
+      >> irule bounded_object_q_taylor_error_cv_nonnegative_valid
+      >> simp [])
+  >- (irule bounded_object_q_taylor_gradient_complete_cv_valid
+      >> simp [])
+  >> irule
+       compute_boundedObjectTaylorZeroAlgebraTheory.bounded_object_q_taylor_gradient_complete_cv_length6
+  >> simp []
+QED
+
 val _ = export_theory ();
