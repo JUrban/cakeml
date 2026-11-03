@@ -13,6 +13,7 @@ open compute_boundedCase16594ObjectLinearEvalTheory
 open compute_boundedPackedObjectPrimitiveAbsEvalTheory
 open compute_boundedPackedObjectDotEvalTheory
 open compute_boundedPackedObjectQuadraticEvalTheory
+open compute_boundedPackedObjectErrorEvalTheory
 open preamble
 
 Theory compute_boundedCase16594ObjectRuntimePreservation
@@ -24,6 +25,7 @@ Ancestors
   compute_boundedPackedObjectPrimitiveAbsEval
   compute_boundedPackedObjectDotEval
   compute_boundedPackedObjectQuadraticEval
+  compute_boundedPackedObjectErrorEval
 Libs
   bossLib preamble
 
@@ -486,6 +488,65 @@ Proof
     [compute_boundedPackedObjectQuadraticEvalTheory.bounded_packed_q_source_quadratic_suffix6_cv_def]
   >> irule bounded_object_q_right_sum_cv_rel
   >> simp [bounded_packed_q_source_quadratic_terms6_cv_rel]
+QED
+
+Theorem bounded_packed_q_source_error6_cv_rel:
+  LIST_REL bounded_case10173_q_cv_equiv
+    left_radii right_radii /\
+  LENGTH left_radii = 6 /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    left_center_gradient right_center_gradient /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    left_packed right_packed /\
+  LENGTH left_packed = 21 ==>
+  bounded_case10173_q_cv_equiv
+    (bounded_packed_q_source_error6_cv
+      left_radii left_center_gradient left_packed)
+    (bounded_packed_q_source_error6_cv
+      right_radii right_center_gradient right_packed)
+Proof
+  strip_tac
+  >> `LENGTH right_radii = 6` by
+       metis_tac [LIST_REL_LENGTH]
+  >> `!index. index < 6 ==>
+        bounded_case10173_q_cv_equiv
+          (EL index left_radii) (EL index right_radii)` by
+       fs [LIST_REL_EL_EQN]
+  >> `bounded_case10173_q_cv_equiv
+        (HD left_radii) (HD right_radii)` by
+       (qpat_x_assum `!index. index < 6 ==> _`
+          (mp_tac o Q.SPEC `0`)
+        >> simp [])
+  >> `bounded_case10173_q_cv_equiv
+        (bounded_packed_q_source_dot_abs_upper_cv
+          left_radii left_center_gradient)
+        (bounded_packed_q_source_dot_abs_upper_cv
+          right_radii right_center_gradient)` by
+       metis_tac [bounded_packed_q_source_dot_abs_upper_cv_rel]
+  >> `bounded_case10173_q_cv_equiv
+        (bounded_packed_q_source_quadratic_suffix6_cv
+          0 (HD left_radii) (EL 1 left_radii) (EL 2 left_radii)
+          (EL 3 left_radii) (EL 4 left_radii) (EL 5 left_radii)
+          left_packed)
+        (bounded_packed_q_source_quadratic_suffix6_cv
+          0 (HD right_radii) (EL 1 right_radii) (EL 2 right_radii)
+          (EL 3 right_radii) (EL 4 right_radii) (EL 5 right_radii)
+          right_packed)` by
+       (irule bounded_packed_q_source_quadratic_suffix6_cv_rel
+        >> rpt conj_tac
+        >> FIRST
+          [first_assum ACCEPT_TAC,
+           qpat_x_assum `!index. index < 6 ==> _` match_mp_tac
+           >> decide_tac])
+  >> rw
+    [compute_boundedPackedObjectErrorEvalTheory.bounded_packed_q_source_error6_cv_def,
+     LET_THM]
+  >> irule
+       compute_boundedQFoldRelationTheory.bounded_object_q_add_cv_equiv_cong
+  >> simp []
+  >> irule
+       compute_boundedQFoldRelationTheory.bounded_object_q_add_cv_equiv_cong
+  >> simp []
 QED
 
 Theorem bounded_object_q_interval_neg_cv_equiv_cong:
