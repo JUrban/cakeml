@@ -652,4 +652,355 @@ Proof
   >> intLib.ARITH_TAC
 QED
 
+Definition bounded_case16594_object_gradient_rows_complete_body_def:
+  bounded_case16594_object_gradient_rows_complete_body =
+    If (Uop Ispair (Var «center_gradient»))
+      (If (Uop Ispair (Var «interval_rows»))
+        (Pair
+          (App «candle_cv_q_packed_object_gradient_row_complete»
+            [Var «radii»;Uop Fst (Var «center_gradient»);
+             Uop Fst (Var «interval_rows»)])
+          (App «candle_cv_q_packed_object_gradient_rows_complete»
+            [Var «radii»;Uop Snd (Var «center_gradient»);
+             Uop Snd (Var «interval_rows»)]))
+        (Num 0))
+      (Num 0)
+End
+
+Theorem bounded_case16594_object_gradient_rows_complete_lookup:
+  ALOOKUP bounded_case16594_object_dispatch_cell0_ceqs
+      «candle_cv_q_packed_object_gradient_rows_complete» =
+    SOME
+      ([«radii»;«center_gradient»;«interval_rows»],
+       bounded_case16594_object_gradient_rows_complete_body)
+Proof
+  rw [bounded_case16594_object_gradient_rows_complete_body_def]
+  >> EVAL_TAC
+QED
+
+Theorem bounded_case16594_object_gradient_rows_complete_unfold:
+  0 < clock ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_gradient_rows_complete»
+        [from_cv radii;from_cv center_gradient;from_cv interval_rows])
+      (refs:hol_refs) =
+    compute_eval (clock - 1)
+      bounded_case16594_object_dispatch_cell0_ceqs
+      (subst
+        [(«radii»,from_cv radii);
+         («center_gradient»,from_cv center_gradient);
+         («interval_rows»,from_cv interval_rows)]
+        bounded_case16594_object_gradient_rows_complete_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_boundedCase16594ObjectPolyStepControlEvalTheory.bounded_case16594_object_compute_eval_literal_app3
+  >> asm_rewrite_tac []
+  >> ACCEPT_TAC bounded_case16594_object_gradient_rows_complete_lookup
+QED
+
+Theorem bounded_case16594_object_gradient_rows_complete_nil_eval:
+  0 < clock ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_gradient_rows_complete»
+        [from_cv radii;from_cv (Num 0);from_cv (Num 0)])
+      (refs:hol_refs) =
+    (M_success (from_cv (Num 0)),refs)
+Proof
+  strip_tac
+  >> rw [bounded_case16594_object_gradient_rows_complete_unfold]
+  >> simp
+       [bounded_case16594_object_gradient_rows_complete_body_def,
+        compute_evalTheory.subst_def,
+        compute_execTheory.from_cv_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_evalTheory.do_uop_def,
+        compute_evalTheory.do_ispair_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem bounded_case16594_object_compute_eval_app3_argument_results:
+  0 < clock /\
+  compute_eval clock ceqs argument1 (refs:hol_refs) =
+      (M_success (from_cv result1),refs) /\
+  compute_eval clock ceqs argument2 refs =
+      (M_success (from_cv result2),refs) /\
+  compute_eval clock ceqs argument3 refs =
+      (M_success (from_cv result3),refs) ==>
+  compute_eval clock ceqs
+      (App function_name [argument1;argument2;argument3]) refs =
+    compute_eval clock ceqs
+      (App function_name
+        [from_cv result1;from_cv result2;from_cv result3]) refs
+Proof
+  Cases_on `clock`
+  >> simp []
+  >> strip_tac
+  >> Cases_on `ALOOKUP ceqs function_name`
+  >- simp
+       [compute_evalTheory.compute_eval_def,
+        compute_evalTheory.option_def,
+        holKernelTheory.raise_Failure_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> Cases_on `x`
+  >> Cases_on `LENGTH q = 3`
+  >> simp
+       [compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.option_def,
+        compute_evalTheory.check_def,
+        holKernelTheory.raise_Failure_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem bounded_case16594_object_compute_eval_if_ispair_pair_components:
+  compute_eval clock ceqs
+      (If (Uop Ispair (Pair (from_cv left) (from_cv right)))
+        yes_branch no_branch) (refs:hol_refs) =
+    compute_eval clock ceqs yes_branch refs
+Proof
+  ACCEPT_TAC
+    (REWRITE_RULE [compute_execTheory.from_cv_def]
+      compute_boundedCase16594ObjectLinearEvalTheory.bounded_case16594_object_compute_eval_if_ispair_from_cv_pair)
+QED
+
+Theorem bounded_case16594_object_compute_eval_pair_fst_components:
+  compute_eval clock ceqs
+      (Uop Fst (Pair (from_cv left) (from_cv right))) (refs:hol_refs) =
+    (M_success (from_cv left),refs)
+Proof
+  ACCEPT_TAC
+    (REWRITE_RULE [compute_execTheory.from_cv_def]
+      compute_boundedCase16594ObjectLinearEvalTheory.bounded_case16594_object_compute_eval_pair_fst)
+QED
+
+Theorem bounded_case16594_object_compute_eval_pair_snd_components:
+  compute_eval clock ceqs
+      (Uop Snd (Pair (from_cv left) (from_cv right))) (refs:hol_refs) =
+    (M_success (from_cv right),refs)
+Proof
+  ACCEPT_TAC
+    (REWRITE_RULE [compute_execTheory.from_cv_def]
+      compute_boundedCase16594ObjectLinearEvalTheory.bounded_case16594_object_compute_eval_pair_snd)
+QED
+
+Theorem bounded_case16594_object_gradient_rows_complete_cons_eval:
+  1 < clock /\
+  compute_eval (clock - 1)
+      bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_gradient_row_complete»
+        [from_cv radii;from_cv center_entry;from_cv interval_row])
+      (refs:hol_refs) =
+    (M_success (from_cv completed_entry),refs) /\
+  compute_eval (clock - 1)
+      bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_gradient_rows_complete»
+        [from_cv radii;from_cv center_rest;from_cv row_rest]) refs =
+    (M_success (from_cv completed_rest),refs) ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_gradient_rows_complete»
+        [from_cv radii;
+         from_cv (Pair center_entry center_rest);
+         from_cv (Pair interval_row row_rest)]) refs =
+    (M_success (from_cv (Pair completed_entry completed_rest)),refs)
+Proof
+  strip_tac
+  >> rw [bounded_case16594_object_gradient_rows_complete_unfold]
+  >> simp
+       [bounded_case16594_object_gradient_rows_complete_body_def,
+        compute_evalTheory.subst_def,
+        bounded_case16594_object_compute_eval_if_ispair_pair_components]
+  >> irule
+       compute_boundedCase16594ObjectPolyStepControlEvalTheory.bounded_case16594_object_compute_eval_pair_from_raw_results
+  >> conj_tac
+  >- (irule EQ_TRANS
+      >> qexists_tac
+           `compute_eval (clock - 1)
+              bounded_case16594_object_dispatch_cell0_ceqs
+              (App «candle_cv_q_packed_object_gradient_row_complete»
+                [from_cv radii;from_cv center_entry;from_cv interval_row]) refs`
+      >> conj_tac
+      >- (irule bounded_case16594_object_compute_eval_app3_argument_results
+          >> simp
+               [compute_execProofTheory.compute_eval_from_cv,
+                bounded_case16594_object_compute_eval_pair_fst_components]
+          >> intLib.ARITH_TAC)
+      >> asm_rewrite_tac [])
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval (clock - 1)
+          bounded_case16594_object_dispatch_cell0_ceqs
+          (App «candle_cv_q_packed_object_gradient_rows_complete»
+            [from_cv radii;from_cv center_rest;from_cv row_rest]) refs`
+  >> conj_tac
+  >- (irule bounded_case16594_object_compute_eval_app3_argument_results
+      >> simp
+           [compute_execProofTheory.compute_eval_from_cv,
+            bounded_case16594_object_compute_eval_pair_snd_components]
+      >> intLib.ARITH_TAC)
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_gradient_rows_complete_eval:
+  !center_gradient interval_rows clock refs.
+    EVERY bounded_object_q_encoded radii /\
+    LENGTH radii = 6 /\
+    EVERY bounded_packed_q_interval_encoded center_gradient /\
+    EVERY (EVERY bounded_packed_q_interval_encoded) interval_rows /\
+    LENGTH center_gradient = LENGTH interval_rows /\
+    512 * (LENGTH center_gradient + 1) < clock ==>
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+        (App «candle_cv_q_packed_object_gradient_rows_complete»
+          [from_cv (bounded_object_q_cv_list radii);
+           from_cv (bounded_object_q_cv_list center_gradient);
+           from_cv
+             (bounded_object_q_cv_list
+               (MAP bounded_object_q_cv_list interval_rows))])
+        (refs:hol_refs) =
+      (M_success
+        (from_cv
+          (bounded_object_q_cv_list
+            (bounded_packed_q_source_gradient_rows_complete_cv
+              radii center_gradient interval_rows))),refs)
+Proof
+  Induct_on `center_gradient`
+  >- (rpt gen_tac
+      >> Cases_on `interval_rows`
+      >> simp []
+      >> strip_tac
+      >> PURE_REWRITE_TAC
+           [compute_boundedPackedObjectEntryContractTheory.bounded_object_q_cv_list_def,
+            bounded_packed_q_source_gradient_rows_complete_cv_def]
+      >> irule bounded_case16594_object_gradient_rows_complete_nil_eval
+      >> intLib.ARITH_TAC)
+  >> rpt gen_tac
+  >> Cases_on `interval_rows`
+  >- simp []
+  >> strip_tac
+  >> gvs []
+  >> PURE_REWRITE_TAC
+       [compute_boundedPackedObjectEntryContractTheory.bounded_object_q_cv_list_def,
+        listTheory.MAP,
+        bounded_packed_q_source_gradient_rows_complete_cv_def]
+  >> irule bounded_case16594_object_gradient_rows_complete_cons_eval
+  >> conj_tac
+  >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule bounded_case16594_object_gradient_row_complete_eval
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> first_x_assum irule
+  >> asm_rewrite_tac []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_packed_q_source_hessian6_rows_encoded:
+  LENGTH packed = 21 /\
+  EVERY bounded_packed_q_interval_encoded packed ==>
+  EVERY (EVERY bounded_packed_q_interval_encoded)
+    (bounded_packed_q_source_hessian6_rows packed)
+Proof
+  rw [listTheory.LENGTH_EQ_NUM_compute]
+  >> gvs
+       [bounded_packed_q_source_hessian6_rows_def,
+        listTheory.EVERY_DEF]
+QED
+
+Definition bounded_case16594_object_gradient_complete6_body_def:
+  bounded_case16594_object_gradient_complete6_body =
+    App «candle_cv_q_packed_object_gradient_rows_complete»
+      [Var «radii»;Var «center_gradient»;
+       App «candle_cv_q_packed_hessian6_expand»
+         [Var «packed_hessian»]]
+End
+
+Theorem bounded_case16594_object_gradient_complete6_lookup:
+  ALOOKUP bounded_case16594_object_dispatch_cell0_ceqs
+      «candle_cv_q_packed_object_gradient_complete6» =
+    SOME
+      ([«radii»;«center_gradient»;«packed_hessian»],
+       bounded_case16594_object_gradient_complete6_body)
+Proof
+  rw [bounded_case16594_object_gradient_complete6_body_def]
+  >> EVAL_TAC
+QED
+
+Theorem bounded_case16594_object_gradient_complete6_unfold:
+  0 < clock ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_gradient_complete6»
+        [from_cv radii;from_cv center_gradient;from_cv packed_hessian])
+      (refs:hol_refs) =
+    compute_eval (clock - 1)
+      bounded_case16594_object_dispatch_cell0_ceqs
+      (subst
+        [(«radii»,from_cv radii);
+         («center_gradient»,from_cv center_gradient);
+         («packed_hessian»,from_cv packed_hessian)]
+        bounded_case16594_object_gradient_complete6_body) refs
+Proof
+  strip_tac
+  >> irule
+       compute_boundedCase16594ObjectPolyStepControlEvalTheory.bounded_case16594_object_compute_eval_literal_app3
+  >> asm_rewrite_tac []
+  >> ACCEPT_TAC bounded_case16594_object_gradient_complete6_lookup
+QED
+
+Theorem bounded_case16594_object_gradient_complete6_eval:
+  EVERY bounded_object_q_encoded radii /\
+  LENGTH radii = 6 /\
+  EVERY bounded_packed_q_interval_encoded center_gradient /\
+  LENGTH center_gradient = 6 /\
+  EVERY bounded_packed_q_interval_encoded packed_hessian /\
+  LENGTH packed_hessian = 21 /\
+  4096 < clock ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_gradient_complete6»
+        [from_cv (bounded_object_q_cv_list radii);
+         from_cv (bounded_object_q_cv_list center_gradient);
+         from_cv (bounded_object_q_cv_list packed_hessian)])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (bounded_object_q_cv_list
+          (bounded_packed_q_source_gradient_complete6_cv
+            radii center_gradient packed_hessian))),refs)
+Proof
+  strip_tac
+  >> rw [bounded_case16594_object_gradient_complete6_unfold]
+  >> simp
+       [bounded_case16594_object_gradient_complete6_body_def,
+        compute_evalTheory.subst_def]
+  >> irule EQ_TRANS
+  >> qexists_tac
+       `compute_eval (clock - 1)
+          bounded_case16594_object_dispatch_cell0_ceqs
+          (App «candle_cv_q_packed_object_gradient_rows_complete»
+            [from_cv (bounded_object_q_cv_list radii);
+             from_cv (bounded_object_q_cv_list center_gradient);
+             from_cv
+               (bounded_object_q_cv_list
+                 (MAP bounded_object_q_cv_list
+                   (bounded_packed_q_source_hessian6_rows
+                     packed_hessian)))]) refs`
+  >> conj_tac
+  >- (irule bounded_case16594_object_compute_eval_app3_argument_results
+      >> simp [compute_execProofTheory.compute_eval_from_cv]
+      >> irule bounded_case16594_object_hessian6_expand_eval
+      >> intLib.ARITH_TAC)
+  >> simp
+       [bounded_packed_q_source_gradient_complete6_cv_def,
+        bounded_packed_q_source_hessian6_rows_exact]
+  >> irule bounded_case16594_object_gradient_rows_complete_eval
+  >> simp
+       [bounded_packed_q_source_hessian6_rows_def,
+        bounded_packed_q_source_hessian6_rows_encoded]
+QED
+
 val _ = export_theory ();
