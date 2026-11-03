@@ -12,6 +12,7 @@ open compute_boundedCase16594ObjectPolyStepControlEvalTheory
 open compute_boundedCase16594ObjectLinearEvalTheory
 open compute_boundedPackedObjectPrimitiveAbsEvalTheory
 open compute_boundedPackedObjectDotEvalTheory
+open compute_boundedPackedObjectQuadraticEvalTheory
 open preamble
 
 Theory compute_boundedCase16594ObjectRuntimePreservation
@@ -22,6 +23,7 @@ Ancestors
   compute_boundedCase16594ObjectLinearEval
   compute_boundedPackedObjectPrimitiveAbsEval
   compute_boundedPackedObjectDotEval
+  compute_boundedPackedObjectQuadraticEval
 Libs
   bossLib preamble
 
@@ -367,6 +369,123 @@ Proof
       >> simp [bounded_packed_q_source_abs_upper_cv_equiv_cong])
   >> first_x_assum irule
   >> simp []
+QED
+
+Theorem bounded_packed_q_source_quadratic_raw_cv_equiv_cong:
+  bounded_case10173_q_cv_equiv left left' /\
+  bounded_case10173_q_cv_equiv right right' /\
+  bounded_object_q_interval_cv_equiv entry entry' ==>
+  bounded_case10173_q_cv_equiv
+    (bounded_packed_q_source_quadratic_raw_cv left right entry)
+    (bounded_packed_q_source_quadratic_raw_cv left' right' entry')
+Proof
+  strip_tac
+  >> rw
+    [compute_boundedPackedObjectQuadraticTermEvalTheory.bounded_packed_q_source_quadratic_raw_cv_def]
+  >> irule
+       compute_boundedQFoldRelationTheory.bounded_object_q_mul_cv_equiv_cong
+  >> simp [bounded_packed_q_source_abs_upper_cv_equiv_cong]
+  >> irule
+       compute_boundedQFoldRelationTheory.bounded_object_q_mul_cv_equiv_cong
+  >> simp []
+QED
+
+Theorem bounded_packed_q_source_quadratic_term_cv_equiv_cong:
+  bounded_case10173_q_cv_equiv left left' /\
+  bounded_case10173_q_cv_equiv right right' /\
+  bounded_object_q_interval_cv_equiv entry entry' ==>
+  bounded_case10173_q_cv_equiv
+    (bounded_packed_q_source_quadratic_term_cv
+      left right twice entry)
+    (bounded_packed_q_source_quadratic_term_cv
+      left' right' twice entry')
+Proof
+  strip_tac
+  >> Cases_on `twice`
+  >> simp
+    [compute_boundedPackedObjectQuadraticTermEvalTheory.bounded_packed_q_source_quadratic_term_cv_def,
+     bounded_packed_q_source_quadratic_raw_cv_equiv_cong]
+  >> irule
+       compute_boundedQFoldRelationTheory.bounded_object_q_add_cv_equiv_cong
+  >> simp [bounded_packed_q_source_quadratic_raw_cv_equiv_cong]
+QED
+
+Theorem bounded_object_q_right_sum_cv_rel:
+  !left right.
+    LIST_REL bounded_case10173_q_cv_equiv left right ==>
+    bounded_case10173_q_cv_equiv
+      (bounded_object_q_right_sum_cv left)
+      (bounded_object_q_right_sum_cv right)
+Proof
+  Induct
+  >> Cases_on `right`
+  >> simp
+    [LIST_REL_def,
+     compute_boundedQFoldRelationTheory.bounded_object_q_right_sum_cv_def,
+     compute_boundedQFoldRelationTheory.bounded_object_q_zero_cv_encoded,
+     compute_boundedQFoldRelationTheory.bounded_object_q_encoded_equiv_refl]
+  >> metis_tac
+    [compute_boundedQFoldRelationTheory.bounded_object_q_add_cv_equiv_cong]
+QED
+
+Theorem bounded_packed_q_source_quadratic_terms6_cv_rel:
+  bounded_case10173_q_cv_equiv left0 right0 /\
+  bounded_case10173_q_cv_equiv left1 right1 /\
+  bounded_case10173_q_cv_equiv left2 right2 /\
+  bounded_case10173_q_cv_equiv left3 right3 /\
+  bounded_case10173_q_cv_equiv left4 right4 /\
+  bounded_case10173_q_cv_equiv left5 right5 /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    left_packed right_packed /\
+  LENGTH left_packed = 21 ==>
+  LIST_REL bounded_case10173_q_cv_equiv
+    (bounded_packed_q_source_quadratic_terms6_cv
+      left0 left1 left2 left3 left4 left5 left_packed)
+    (bounded_packed_q_source_quadratic_terms6_cv
+      right0 right1 right2 right3 right4 right5 right_packed)
+Proof
+  strip_tac
+  >> `LENGTH right_packed = 21` by
+       metis_tac [LIST_REL_LENGTH]
+  >> `!index. index < 21 ==>
+        bounded_object_q_interval_cv_equiv
+          (EL index left_packed) (EL index right_packed)` by
+       fs [LIST_REL_EL_EQN]
+  >> PURE_REWRITE_TAC
+    [compute_boundedPackedObjectQuadraticEvalTheory.bounded_packed_q_source_quadratic_terms6_cv_def,
+     LIST_REL_def]
+  >> rpt conj_tac
+  >> FIRST
+    [irule bounded_packed_q_source_quadratic_term_cv_equiv_cong
+     >> rpt conj_tac
+     >> FIRST
+       [first_assum ACCEPT_TAC,
+        qpat_x_assum `!index. index < 21 ==> _` match_mp_tac
+        >> decide_tac],
+     simp []]
+QED
+
+Theorem bounded_packed_q_source_quadratic_suffix6_cv_rel:
+  bounded_case10173_q_cv_equiv left0 right0 /\
+  bounded_case10173_q_cv_equiv left1 right1 /\
+  bounded_case10173_q_cv_equiv left2 right2 /\
+  bounded_case10173_q_cv_equiv left3 right3 /\
+  bounded_case10173_q_cv_equiv left4 right4 /\
+  bounded_case10173_q_cv_equiv left5 right5 /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    left_packed right_packed /\
+  LENGTH left_packed = 21 ==>
+  bounded_case10173_q_cv_equiv
+    (bounded_packed_q_source_quadratic_suffix6_cv
+      0 left0 left1 left2 left3 left4 left5 left_packed)
+    (bounded_packed_q_source_quadratic_suffix6_cv
+      0 right0 right1 right2 right3 right4 right5 right_packed)
+Proof
+  strip_tac
+  >> rw
+    [compute_boundedPackedObjectQuadraticEvalTheory.bounded_packed_q_source_quadratic_suffix6_cv_def]
+  >> irule bounded_object_q_right_sum_cv_rel
+  >> simp [bounded_packed_q_source_quadratic_terms6_cv_rel]
 QED
 
 Theorem bounded_object_q_interval_neg_cv_equiv_cong:
