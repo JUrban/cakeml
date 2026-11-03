@@ -9,6 +9,7 @@
 open compute_boundedObjectTaylorEquivalenceTheory
 open compute_boundedObjectTaylorZeroAlgebraTheory
 open compute_boundedCase16594ObjectPolyStepControlEvalTheory
+open compute_boundedCase16594ObjectLinearEvalTheory
 open preamble
 
 Theory compute_boundedCase16594ObjectRuntimePreservation
@@ -16,6 +17,7 @@ Ancestors
   compute_boundedObjectTaylorEquivalence
   compute_boundedObjectTaylorZeroAlgebra
   compute_boundedCase16594ObjectPolyStepControlEval
+  compute_boundedCase16594ObjectLinearEval
 Libs
   bossLib preamble
 
@@ -42,6 +44,120 @@ Theorem bounded_object_q_interval_list_rel_refl:
 Proof
   Induct
   >> simp [LIST_REL_def,bounded_object_q_interval_cv_equiv_refl]
+QED
+
+Theorem bounded_case16594_object_q_neg_encoded_eval:
+  bounded_object_q_encoded value /\
+  0 < clock ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_neg» [from_cv value]) (refs:hol_refs) =
+    (M_success (from_cv (bounded_object_q_neg_cv value)),refs)
+Proof
+  rw [compute_boundedQFoldRelationTheory.bounded_object_q_encoded_def]
+  >> PairCases_on `fraction`
+  >> imp_res_tac
+       compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_ints_components
+  >> gvs
+    [compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_neg_cv_def]
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         (INST
+           [mk_var ("positive",``:cv``) |-> ``Num positive``,
+            mk_var ("negative",``:cv``) |-> ``Num negative``,
+            mk_var ("denominator",``:cv``) |->
+              ``Num denominator_minus_one``]
+           bounded_case16594_object_q_neg_eval))
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_interval_neg_encoded_eval:
+  bounded_object_q_interval_encoded value /\
+  1 < clock ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_interval_neg» [from_cv value]) (refs:hol_refs) =
+    (M_success
+      (from_cv (bounded_object_q_interval_neg_cv value)),refs)
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedPackedObjectAcceptRefinementTheory.bounded_object_q_interval_encoded_shape
+  >> gvs []
+  >> fs [compute_boundedQFoldRelationTheory.bounded_object_q_encoded_def]
+  >> PairCases_on `fraction`
+  >> PairCases_on `fraction'`
+  >> imp_res_tac
+       compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_ints_components
+  >> gvs
+    [compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_interval_neg_cv_def,
+     compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_neg_cv_def]
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         (INST
+           [mk_var ("lower_positive",``:cv``) |-> ``Num positive'``,
+            mk_var ("lower_negative",``:cv``) |-> ``Num negative'``,
+            mk_var ("lower_denominator",``:cv``) |->
+              ``Num denominator_minus_one'``,
+            mk_var ("upper_positive",``:cv``) |-> ``Num positive``,
+            mk_var ("upper_negative",``:cv``) |-> ``Num negative``,
+            mk_var ("upper_denominator",``:cv``) |->
+              ``Num denominator_minus_one``]
+           bounded_case16594_object_q_interval_neg_eval))
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_interval_list_neg_encoded_eval:
+  !values clock refs.
+    EVERY bounded_object_q_interval_encoded values /\
+    LENGTH values + 2 < clock ==>
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_dim_interval_list_neg»
+        [from_cv (bounded_object_q_cv_list values)])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (bounded_object_q_cv_list
+          (MAP bounded_object_q_interval_neg_cv values))),refs)
+Proof
+  Induct_on `values`
+  >- (rpt strip_tac
+      >> simp
+        [compute_boundedPackedObjectEntryContractTheory.bounded_object_q_cv_list_def]
+      >> irule
+           (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+             bounded_case16594_object_interval_list_neg_nil_eval)
+      >> intLib.ARITH_TAC)
+  >> rpt strip_tac
+  >> gvs []
+  >> rw
+    [compute_boundedPackedObjectEntryContractTheory.bounded_object_q_cv_list_def]
+  >> imp_res_tac
+       compute_boundedPackedObjectAcceptRefinementTheory.bounded_object_q_interval_encoded_shape
+  >> gvs []
+  >> fs [compute_boundedQFoldRelationTheory.bounded_object_q_encoded_def]
+  >> PairCases_on `fraction`
+  >> PairCases_on `fraction'`
+  >> imp_res_tac
+       compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_ints_components
+  >> gvs []
+  >> simp
+    [compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_interval_neg_cv_def,
+     compute_boundedAnalyticObjectLinearRefinementTheory.bounded_object_q_neg_cv_def]
+  >> irule
+       (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+         (INST
+           [mk_var ("lower_positive",``:cv``) |-> ``Num positive'``,
+            mk_var ("lower_negative",``:cv``) |-> ``Num negative'``,
+            mk_var ("lower_denominator",``:cv``) |->
+              ``Num denominator_minus_one'``,
+            mk_var ("upper_positive",``:cv``) |-> ``Num positive``,
+            mk_var ("upper_negative",``:cv``) |-> ``Num negative``,
+            mk_var ("upper_denominator",``:cv``) |->
+              ``Num denominator_minus_one``]
+           bounded_case16594_object_interval_list_neg_cons_eval))
+  >> conj_tac >- intLib.ARITH_TAC
+  >> first_x_assum irule
+  >> asm_rewrite_tac []
+  >> intLib.ARITH_TAC
 QED
 
 Theorem bounded_object_q_neg_cv_equiv_cong:
