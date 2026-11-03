@@ -630,6 +630,153 @@ Proof
      bounded_object_q_neg_cv_equiv_cong]
 QED
 
+Definition bounded_packed_q_source_gradient_row_complete_cv_def:
+  bounded_packed_q_source_gradient_row_complete_cv
+      radii center_entry interval_row =
+    let variation =
+      bounded_packed_q_source_dot_abs_upper_cv radii interval_row in
+    let error = bounded_object_q_add_cv variation variation in
+    let half_error =
+      bounded_object_q_mul_cv error
+        (bounded_analytic_source_q_cv 1 0 1) in
+      bounded_packed_q_source_interval_add_cv center_entry
+        (Pair (bounded_object_q_neg_cv half_error) half_error)
+End
+
+Definition bounded_packed_q_source_gradient_rows_complete_cv_def:
+  bounded_packed_q_source_gradient_rows_complete_cv
+      radii [] rows = [] /\
+  bounded_packed_q_source_gradient_rows_complete_cv
+      radii (_::_) [] = [] /\
+  bounded_packed_q_source_gradient_rows_complete_cv
+      radii (center_entry::center_rest) (row::row_rest) =
+    bounded_packed_q_source_gradient_row_complete_cv
+      radii center_entry row ::
+    bounded_packed_q_source_gradient_rows_complete_cv
+      radii center_rest row_rest
+End
+
+Definition bounded_packed_q_source_gradient_complete6_cv_def:
+  bounded_packed_q_source_gradient_complete6_cv
+      radii center_gradient packed_hessian =
+    case bounded_hessian64_rows packed_hessian of
+    | NONE => []
+    | SOME rows =>
+        bounded_packed_q_source_gradient_rows_complete_cv
+          radii center_gradient rows
+End
+
+Theorem bounded_packed_q_source_gradient_row_complete_cv_rel:
+  LIST_REL bounded_case10173_q_cv_equiv
+    left_radii right_radii /\
+  bounded_object_q_interval_cv_equiv
+    left_center_entry right_center_entry /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    left_row right_row ==>
+  bounded_object_q_interval_cv_equiv
+    (bounded_packed_q_source_gradient_row_complete_cv
+      left_radii left_center_entry left_row)
+    (bounded_packed_q_source_gradient_row_complete_cv
+      right_radii right_center_entry right_row)
+Proof
+  strip_tac
+  >> `bounded_case10173_q_cv_equiv
+        (bounded_packed_q_source_dot_abs_upper_cv
+          left_radii left_row)
+        (bounded_packed_q_source_dot_abs_upper_cv
+          right_radii right_row)` by
+       metis_tac [bounded_packed_q_source_dot_abs_upper_cv_rel]
+  >> `bounded_case10173_q_cv_equiv
+        (bounded_object_q_add_cv
+          (bounded_packed_q_source_dot_abs_upper_cv
+            left_radii left_row)
+          (bounded_packed_q_source_dot_abs_upper_cv
+            left_radii left_row))
+        (bounded_object_q_add_cv
+          (bounded_packed_q_source_dot_abs_upper_cv
+            right_radii right_row)
+          (bounded_packed_q_source_dot_abs_upper_cv
+            right_radii right_row))` by
+       metis_tac
+         [compute_boundedQFoldRelationTheory.bounded_object_q_add_cv_equiv_cong]
+  >> `bounded_case10173_q_cv_equiv
+        (bounded_object_q_mul_cv
+          (bounded_object_q_add_cv
+            (bounded_packed_q_source_dot_abs_upper_cv
+              left_radii left_row)
+            (bounded_packed_q_source_dot_abs_upper_cv
+              left_radii left_row))
+          (bounded_analytic_source_q_cv 1 0 1))
+        (bounded_object_q_mul_cv
+          (bounded_object_q_add_cv
+            (bounded_packed_q_source_dot_abs_upper_cv
+              right_radii right_row)
+            (bounded_packed_q_source_dot_abs_upper_cv
+              right_radii right_row))
+          (bounded_analytic_source_q_cv 1 0 1))` by
+       (irule
+          compute_boundedQFoldRelationTheory.bounded_object_q_mul_cv_equiv_cong
+        >> simp []
+        >> irule
+             compute_boundedQFoldRelationTheory.bounded_object_q_encoded_equiv_refl
+        >> ACCEPT_TAC
+             compute_boundedPackedObjectAcceptRefinementTheory.bounded_object_q_half_constant_encoded)
+  >> rw [bounded_packed_q_source_gradient_row_complete_cv_def,LET_THM]
+  >> irule bounded_packed_q_source_interval_add_cv_equiv_cong
+  >> simp []
+  >> simp
+    [bounded_object_q_interval_cv_equiv_def,
+     bounded_object_q_neg_cv_equiv_cong]
+QED
+
+Theorem bounded_packed_q_source_gradient_rows_complete_cv_rel:
+  !left_center right_center left_rows right_rows.
+    LIST_REL bounded_case10173_q_cv_equiv
+      left_radii right_radii /\
+    LIST_REL bounded_object_q_interval_cv_equiv
+      left_center right_center /\
+    LIST_REL (LIST_REL bounded_object_q_interval_cv_equiv)
+      left_rows right_rows ==>
+    LIST_REL bounded_object_q_interval_cv_equiv
+      (bounded_packed_q_source_gradient_rows_complete_cv
+        left_radii left_center left_rows)
+      (bounded_packed_q_source_gradient_rows_complete_cv
+        right_radii right_center right_rows)
+Proof
+  Induct_on `left_center`
+  >> Cases_on `right_center`
+  >> Cases_on `left_rows`
+  >> Cases_on `right_rows`
+  >> simp
+    [LIST_REL_def,
+     bounded_packed_q_source_gradient_rows_complete_cv_def]
+  >> metis_tac [bounded_packed_q_source_gradient_row_complete_cv_rel]
+QED
+
+Theorem bounded_packed_q_source_gradient_complete6_cv_rel:
+  LIST_REL bounded_case10173_q_cv_equiv
+    left_radii right_radii /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    left_center_gradient right_center_gradient /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    left_packed right_packed /\
+  LENGTH left_packed = 21 ==>
+  LIST_REL bounded_object_q_interval_cv_equiv
+    (bounded_packed_q_source_gradient_complete6_cv
+      left_radii left_center_gradient left_packed)
+    (bounded_packed_q_source_gradient_complete6_cv
+      right_radii right_center_gradient right_packed)
+Proof
+  strip_tac
+  >> drule bounded_hessian64_rows_length21
+  >> strip_tac
+  >> imp_res_tac
+       compute_boundedAnalyticObjectGradientRefinementTheory.bounded_hessian64_rows_list_rel_right
+  >> rw [bounded_packed_q_source_gradient_complete6_cv_def]
+  >> irule bounded_packed_q_source_gradient_rows_complete_cv_rel
+  >> simp []
+QED
+
 Theorem bounded_object_q_interval_neg_cv_equiv_cong:
   bounded_object_q_interval_cv_equiv left right ==>
   bounded_object_q_interval_cv_equiv
