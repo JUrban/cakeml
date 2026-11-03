@@ -654,6 +654,71 @@ Proof
       >> simp [])
 QED
 
+Theorem bounded_case16594_object_poly_step_square_control_eval:
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (subst
+        [(«center_boxes»,from_cv center_boxes);
+         («outer_boxes»,from_cv outer_boxes);(«radii»,from_cv radii);
+         («instruction»,from_cv (Num 5));
+         («stack»,from_cv (Pair operand rest))]
+        bounded_case16594_object_poly_step_body) (refs:hol_refs) =
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (Pair (Num 1)
+        (Pair
+          (App «candle_cv_q_packed_object_state_mul»
+            [from_cv radii;from_cv operand;from_cv operand])
+          (from_cv rest))) refs
+Proof
+  simp
+    [compute_boundedCase16594ObjectPolyStepControlEvalTheory.bounded_case16594_object_poly_step_body_def,
+     Once compute_evalTheory.compute_eval_def,
+     compute_evalTheory.compute_eval_def,
+     compute_evalTheory.subst_def,
+     compute_execTheory.from_cv_def,
+     compute_execProofTheory.compute_eval_from_cv,
+     compute_evalTheory.option_def,
+     compute_evalTheory.check_def,
+     compute_evalTheory.do_uop_def,
+     compute_evalTheory.do_ispair_def,
+     compute_evalTheory.do_fst_def,
+     compute_evalTheory.do_snd_def,
+     compute_evalTheory.do_binop_def,
+     compute_evalTheory.do_eq_def,
+     ml_monadBaseTheory.st_ex_bind_def,
+     ml_monadBaseTheory.st_ex_ignore_bind_def,
+     ml_monadBaseTheory.st_ex_return_def]
+QED
+
+Theorem bounded_case16594_object_poly_step_square_eval_from_state:
+  1 < clock /\
+  compute_eval (clock - 1)
+      bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_state_mul»
+        [from_cv radii;from_cv operand;from_cv operand])
+      (refs:hol_refs) = (M_success (from_cv result_state),refs) ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_poly_step»
+        [from_cv center_boxes;from_cv outer_boxes;from_cv radii;
+         from_cv (Num 5);from_cv (Pair operand rest)]) refs =
+    (M_success
+      (from_cv (Pair (Num 1) (Pair result_state rest))),refs)
+Proof
+  strip_tac
+  >> rw
+       [compute_boundedCase16594ObjectPolyStepControlEvalTheory.bounded_case16594_object_poly_step_unfold]
+  >> PURE_REWRITE_TAC
+       [SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+          bounded_case16594_object_poly_step_square_control_eval]
+  >> irule
+       compute_boundedCase16594ObjectPolyStepControlEvalTheory.bounded_case16594_object_compute_eval_pair_from_raw_results
+  >> conj_tac
+  >- simp
+       [compute_boundedCase16594ObjectPolyStepControlEvalTheory.bounded_case16594_object_compute_eval_num]
+  >> irule
+       compute_boundedCase16594ObjectPolyStepControlEvalTheory.bounded_case16594_object_compute_eval_pair_from_raw_results
+  >> asm_simp_tac std_ss [compute_execProofTheory.compute_eval_from_cv]
+QED
+
 Theorem bounded_case16594_object_poly_step_neg_eval_runtime_refines:
   EVERY bounded_object_q_encoded runtime_radii /\
   LENGTH runtime_radii = 6 /\
@@ -882,6 +947,82 @@ Proof
   >> disch_then (qx_choose_then `result_state` strip_assume_tac)
   >> qexists_tac `result_state`
   >> fs [compute_execTheory.from_cv_def]
+  >> rw [bounded_object_q_taylor_runtime_refines_def]
+  >> irule bounded_object_q_taylor_mul_semantic_valid
+  >> simp []
+QED
+
+Theorem bounded_case16594_object_poly_step_square_eval_runtime_refines:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_object_q_taylor_runtime_refines runtime_state semantic_state /\
+  4102 < clock ==>
+  ?result_state.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_poly_step»
+        [from_cv center_boxes;from_cv outer_boxes;
+         from_cv (bounded_object_q_cv_list runtime_radii);
+         from_cv (compute_exec$Num 5);
+         from_cv (Pair runtime_state rest)]) (refs:hol_refs) =
+      (M_success
+        (from_cv
+          (Pair (compute_exec$Num 1) (Pair result_state rest))),refs) /\
+    bounded_object_q_taylor_runtime_refines result_state
+      (bounded_object_q_taylor_mul semantic_radii weights
+        semantic_state semantic_state)
+Proof
+  Cases_on `semantic_state`
+  >> strip_tac
+  >> `bounded_object_q_taylor_semantic_valid
+        (BoundedObjectQTaylor b c l c0 l0 l1)` by
+       fs [bounded_object_q_taylor_runtime_refines_def]
+  >> drule bounded_object_q_taylor_runtime_refines_contract
+  >> disch_then
+       (qx_choose_then `runtime_center`
+         (qx_choose_then `runtime_center_gradient`
+           (qx_choose_then `runtime_value_bound`
+             (qx_choose_then `runtime_gradient_bounds`
+               (qx_choose_then `runtime_hessian` strip_assume_tac)))))
+  >> gvs []
+  >> mp_tac
+       (Q.INST
+         [`clock` |-> `clock - 1`,
+          `runtime_left_center` |-> `runtime_center`,
+          `runtime_left_center_gradient` |-> `runtime_center_gradient`,
+          `runtime_left_value` |-> `runtime_value_bound`,
+          `runtime_left_gradient_bounds` |-> `runtime_gradient_bounds`,
+          `runtime_left_hessian` |-> `runtime_hessian`,
+          `runtime_right_center` |-> `runtime_center`,
+          `runtime_right_center_gradient` |-> `runtime_center_gradient`,
+          `runtime_right_value` |-> `runtime_value_bound`,
+          `runtime_right_gradient_bounds` |-> `runtime_gradient_bounds`,
+          `runtime_right_hessian` |-> `runtime_hessian`,
+          `semantic_left_center` |-> `c`,
+          `semantic_left_center_gradient` |-> `l`,
+          `semantic_left_value` |-> `c0`,
+          `semantic_left_gradient_bounds` |-> `l0`,
+          `semantic_left_hessian` |-> `l1`,
+          `semantic_right_center` |-> `c`,
+          `semantic_right_center_gradient` |-> `l`,
+          `semantic_right_value` |-> `c0`,
+          `semantic_right_gradient_bounds` |-> `l0`,
+          `semantic_right_hessian` |-> `l1`]
+         (Q.SPECL [`b`,`b`]
+           compute_boundedCase16594ObjectMulCompleteEvalTheory.bounded_case16594_object_state_mul_eval_semantic))
+  >> impl_tac
+  >- (fs [bounded_object_q_taylor_semantic_valid_def]
+      >> intLib.ARITH_TAC)
+  >> disch_then (qx_choose_then `result_state` strip_assume_tac)
+  >> qexists_tac `result_state`
+  >> conj_tac
+  >- (irule
+        (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+          bounded_case16594_object_poly_step_square_eval_from_state)
+      >> simp []
+      >> intLib.ARITH_TAC)
   >> rw [bounded_object_q_taylor_runtime_refines_def]
   >> irule bounded_object_q_taylor_mul_semantic_valid
   >> simp []
