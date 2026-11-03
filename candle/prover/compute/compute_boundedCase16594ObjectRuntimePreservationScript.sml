@@ -10,6 +10,7 @@ open compute_boundedObjectTaylorEquivalenceTheory
 open compute_boundedObjectTaylorZeroAlgebraTheory
 open compute_boundedCase16594ObjectPolyStepControlEvalTheory
 open compute_boundedCase16594ObjectLinearEvalTheory
+open compute_boundedPackedObjectPrimitiveAbsEvalTheory
 open preamble
 
 Theory compute_boundedCase16594ObjectRuntimePreservation
@@ -18,6 +19,7 @@ Ancestors
   compute_boundedObjectTaylorZeroAlgebra
   compute_boundedCase16594ObjectPolyStepControlEval
   compute_boundedCase16594ObjectLinearEval
+  compute_boundedPackedObjectPrimitiveAbsEval
 Libs
   bossLib preamble
 
@@ -180,6 +182,157 @@ Proof
   >> simp
        [compute_boundedQNormalizeRelationTheory.bounded_case10173_q_cv_equiv_def,
         integerTheory.INT_MUL_LNEG]
+QED
+
+Theorem bounded_object_int_le_justify_multiplication:
+  !multiplier left right:int.
+    0 < multiplier ==>
+    (left <= right <=> multiplier * left <= multiplier * right)
+Proof
+  rpt strip_tac
+  >> mp_tac
+       (Q.SPECL [`multiplier`,`right`,`left`]
+         int_arithTheory.lt_justify_multiplication)
+  >> metis_tac [integerTheory.INT_NOT_LT]
+QED
+
+Theorem bounded_object_q_le_cv_rep_equiv:
+  bounded_object_q_ints left = SOME (left_numerator,left_denominator) /\
+  bounded_object_q_ints left' = SOME (left_numerator',left_denominator') /\
+  bounded_object_q_ints right = SOME (right_numerator,right_denominator) /\
+  bounded_object_q_ints right' = SOME (right_numerator',right_denominator') /\
+  left_numerator * left_denominator' =
+    left_numerator' * left_denominator /\
+  right_numerator * right_denominator' =
+    right_numerator' * right_denominator ==>
+  (bounded_object_q_le_cv left right =
+   bounded_object_q_le_cv left' right')
+Proof
+  strip_tac
+  >> `0 < left_denominator` by
+       metis_tac
+         [compute_boundedObjectIntervalRelationTheory.bounded_object_q_ints_denominator_positive]
+  >> `0 < left_denominator'` by
+       metis_tac
+         [compute_boundedObjectIntervalRelationTheory.bounded_object_q_ints_denominator_positive]
+  >> `0 < right_denominator` by
+       metis_tac
+         [compute_boundedObjectIntervalRelationTheory.bounded_object_q_ints_denominator_positive]
+  >> `0 < right_denominator'` by
+       metis_tac
+         [compute_boundedObjectIntervalRelationTheory.bounded_object_q_ints_denominator_positive]
+  >> `0 < left_denominator' * right_denominator'` by
+       (irule
+          (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+        >> simp [])
+  >> `0 < left_denominator * right_denominator` by
+       (irule
+          (REWRITE_RULE [integerTheory.INT_0] integerTheory.INT_LT_MUL)
+        >> simp [])
+  >> `((left_numerator * right_denominator <=
+          right_numerator * left_denominator) <=>
+       (left_denominator' * right_denominator') *
+          (left_numerator * right_denominator) <=
+       (left_denominator' * right_denominator') *
+          (right_numerator * left_denominator))` by
+       metis_tac [bounded_object_int_le_justify_multiplication]
+  >> `((left_numerator' * right_denominator' <=
+          right_numerator' * left_denominator') <=>
+       (left_denominator * right_denominator) *
+          (left_numerator' * right_denominator') <=
+       (left_denominator * right_denominator) *
+          (right_numerator' * left_denominator'))` by
+       metis_tac [bounded_object_int_le_justify_multiplication]
+  >> `(left_denominator' * right_denominator') *
+        (left_numerator * right_denominator) =
+      (left_denominator * right_denominator) *
+        (left_numerator' * right_denominator')` by
+       metis_tac
+         [integerTheory.INT_MUL_ASSOC,integerTheory.INT_MUL_COMM]
+  >> `(left_denominator' * right_denominator') *
+        (right_numerator * left_denominator) =
+      (left_denominator * right_denominator) *
+        (right_numerator' * left_denominator')` by
+       metis_tac
+         [integerTheory.INT_MUL_ASSOC,integerTheory.INT_MUL_COMM]
+  >> imp_res_tac
+       compute_boundedAnalyticObjectProductRefinementTheory.bounded_object_q_le_cv_correct
+  >> fs
+    [compute_boundedAnalyticObjectProductRefinementTheory.bounded_int_fraction_le_def]
+QED
+
+Theorem bounded_object_q_le_cv_equiv_cong:
+  bounded_case10173_q_cv_equiv left left' /\
+  bounded_case10173_q_cv_equiv right right' ==>
+  (bounded_object_q_le_cv left right =
+   bounded_object_q_le_cv left' right')
+Proof
+  strip_tac
+  >> imp_res_tac
+       compute_boundedQFoldRelationTheory.bounded_object_q_cv_equiv_decodes
+  >> metis_tac [bounded_object_q_le_cv_rep_equiv]
+QED
+
+Theorem bounded_object_q_max_cv_equiv_cong:
+  bounded_case10173_q_cv_equiv left left' /\
+  bounded_case10173_q_cv_equiv right right' ==>
+  bounded_case10173_q_cv_equiv
+    (bounded_object_q_max_cv left right)
+    (bounded_object_q_max_cv left' right')
+Proof
+  strip_tac
+  >> `bounded_object_q_le_cv left right =
+      bounded_object_q_le_cv left' right'` by
+       metis_tac [bounded_object_q_le_cv_equiv_cong]
+  >> rw
+    [compute_boundedAnalyticObjectProductRefinementTheory.bounded_object_q_max_cv_def]
+  >> every_case_tac
+  >> fs []
+QED
+
+Theorem bounded_object_q_abs_cv_equiv_cong:
+  bounded_case10173_q_cv_equiv left right ==>
+  bounded_case10173_q_cv_equiv
+    (bounded_object_q_abs_cv left)
+    (bounded_object_q_abs_cv right)
+Proof
+  strip_tac
+  >> rw
+    [compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_abs_cv_def]
+  >> irule bounded_object_q_max_cv_equiv_cong
+  >> simp [bounded_object_q_neg_cv_equiv_cong]
+QED
+
+Theorem bounded_object_q_interval_abs_upper_cv_equiv_cong:
+  bounded_object_q_interval_cv_equiv left right ==>
+  bounded_case10173_q_cv_equiv
+    (bounded_object_q_interval_abs_upper_cv left)
+    (bounded_object_q_interval_abs_upper_cv right)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> simp
+    [bounded_object_q_interval_cv_equiv_def,
+     compute_boundedAnalyticObjectCompleteRefinementTheory.bounded_object_q_interval_abs_upper_cv_def]
+  >> strip_tac
+  >> irule bounded_object_q_max_cv_equiv_cong
+  >> simp [bounded_object_q_abs_cv_equiv_cong]
+QED
+
+Theorem bounded_packed_q_source_abs_upper_cv_equiv_cong:
+  bounded_object_q_interval_cv_equiv left right ==>
+  bounded_case10173_q_cv_equiv
+    (bounded_packed_q_source_abs_upper_cv left)
+    (bounded_packed_q_source_abs_upper_cv right)
+Proof
+  Cases_on `left`
+  >> Cases_on `right`
+  >> simp
+    [bounded_object_q_interval_cv_equiv_def,
+     compute_boundedPackedObjectPrimitiveAbsEvalTheory.bounded_packed_q_source_abs_upper_cv_def]
+  >> metis_tac
+    [bounded_object_q_max_cv_equiv_cong,
+     bounded_object_q_neg_cv_equiv_cong]
 QED
 
 Theorem bounded_object_q_interval_neg_cv_equiv_cong:
