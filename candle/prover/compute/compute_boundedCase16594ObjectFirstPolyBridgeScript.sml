@@ -7,12 +7,14 @@
  *****************************************************************************)
 open compute_boundedCase16594ObjectFirstPolyEvalTheory
 open compute_boundedCase16594ObjectFirstPolySemanticTheory
+open compute_boundedObjectTaylorEquivalenceTheory
 open preamble
 
 Theory compute_boundedCase16594ObjectFirstPolyBridge
 Ancestors
   compute_boundedCase16594ObjectFirstPolyEval
   compute_boundedCase16594ObjectFirstPolySemantic
+  compute_boundedObjectTaylorEquivalence
 Libs
   bossLib preamble wordsLib
 
@@ -42,6 +44,17 @@ Proof
   simp
     [compute_boundedCase16594ObjectFirstPolySemanticTheory.bounded_case16594_object_taylor_state_cv_def,
      bounded_case16594_object_semantic_state_cv_identity]
+QED
+
+Theorem bounded_case16594_object_taylor_state_generic_encoding:
+  bounded_case16594_object_taylor_state_cv semantic_state =
+    bounded_object_q_taylor_state_encoded_cv semantic_state
+Proof
+  Cases_on `semantic_state`
+  >> simp
+    [compute_boundedCase16594ObjectFirstPolySemanticTheory.bounded_case16594_object_taylor_state_cv_def,
+     compute_boundedCase16594ObjectFirstPolySemanticTheory.bounded_case16594_object_semantic_state_cv_def,
+     compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_state_encoded_cv_def]
 QED
 
 Theorem bounded_case16594_object_cell0_radii_equivalent:
