@@ -1095,4 +1095,115 @@ Proof
   >> asm_rewrite_tac []
 QED
 
+Theorem bounded_case16594_object_genuine_atan_fixed_pure_contract:
+  bounded_case16594_object_atan_fixed_pure_contract
+    bounded_case16594_object_cell0_atan_center_input_cv
+    bounded_case16594_object_cell0_atan_box_input_cv
+    bounded_case16594_object_cell0_atan_center_result_cv
+    bounded_case16594_object_cell0_atan_center_square_cv
+    bounded_case16594_object_cell0_atan_center_derivative_cv
+    bounded_case16594_object_cell0_atan_box_square_cv
+    bounded_case16594_object_cell0_atan_box_derivative_cv
+    bounded_case16594_object_cell0_atan_box_derivative_square_cv
+Proof
+  simp
+    [bounded_case16594_object_atan_fixed_pure_contract_def,
+     compute_boundedCase16594ObjectAtanCertificateEvalTheory.bounded_case16594_object_atan_center_inner_certificate_pure_eval,
+     compute_boundedCase16594ObjectAtanAlgebraicCertificateEvalTheory.bounded_case16594_object_atan_center_square_tail_pure_eval,
+     compute_boundedCase16594ObjectAtanAlgebraicCertificateEvalTheory.bounded_case16594_object_atan_box_square_tail_pure_eval,
+     compute_boundedCase16594ObjectAtanAlgebraicCertificateEvalTheory.bounded_case16594_object_atan_center_inverse_pure_eval,
+     compute_boundedCase16594ObjectAtanAlgebraicCertificateEvalTheory.bounded_case16594_object_atan_box_inverse_pure_eval,
+     compute_boundedCase16594ObjectAtanAlgebraicCertificateEvalTheory.bounded_case16594_object_atan_derivative_square_pure_eval]
+QED
+
+Theorem bounded_case16594_object_genuine_atan_dispatch_eval_runtime_refines:
+  bounded_object_q_taylor_runtime_refines runtime_item
+    bounded_case16594_object_source8_result /\
+  16387 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_dispatch_step»
+        [from_cv bounded_case16594_object_cell0_center_boxes_cv;
+         from_cv bounded_case16594_object_cell0_outer_boxes_cv;
+         from_cv bounded_case16594_object_cell0_radii_cv;
+         from_cv (Num 0);
+         from_cv bounded_case16594_object_cell0_source9_cv;
+         from_cv bounded_case16594_object_cell0_after_inverse_certificates_cv;
+         from_cv (Pair runtime_item stack_rest)]) (refs:hol_refs) =
+      (M_success
+        (Pair (Num 1)
+          (Pair
+            (Pair (from_cv runtime_result) (from_cv stack_rest))
+            (from_cv
+              bounded_case16594_object_cell0_after_atan_certificates_cv))),
+       refs) /\
+    bounded_object_q_taylor_runtime_refines runtime_result
+      bounded_case16594_object_source9_result
+Proof
+  strip_tac
+  >> mp_tac
+       compute_boundedCase16594ObjectAtanStepRuntimeEvalTheory.bounded_case16594_object_after_atan_certificates_encode
+  >> disch_then (qx_choose_then `certificate_rest` assume_tac)
+  >> mp_tac
+       (Q.INST
+         [`runtime_radii` |-> `bounded_case16594_object_cell0_runtime_radii`,
+          `semantic_radii` |-> `bounded_case16594_object_cell0_word_radii`,
+          `weights` |-> `bounded_case16594_object_cell0_weights`,
+          `center_input` |->
+            `bounded_case16594_object_cell0_atan_center_input_cv`,
+          `box_input` |->
+            `bounded_case16594_object_cell0_atan_box_input_cv`,
+          `center_result` |->
+            `bounded_case16594_object_cell0_atan_center_result_cv`,
+          `center_square` |->
+            `bounded_case16594_object_cell0_atan_center_square_cv`,
+          `center_derivative` |->
+            `bounded_case16594_object_cell0_atan_center_derivative_cv`,
+          `box_square` |->
+            `bounded_case16594_object_cell0_atan_box_square_cv`,
+          `box_derivative` |->
+            `bounded_case16594_object_cell0_atan_box_derivative_cv`,
+          `box_derivative_square` |->
+            `bounded_case16594_object_cell0_atan_box_derivative_square_cv`,
+          `center_boxes` |->
+            `bounded_case16594_object_cell0_center_boxes_cv`,
+          `outer_boxes` |->
+            `bounded_case16594_object_cell0_outer_boxes_cv`,
+          `certificate_rest` |-> `certificate_rest`,
+          `runtime_item` |-> `runtime_item`,
+          `semantic_state` |-> `bounded_case16594_object_source8_result`,
+          `stack_rest` |-> `stack_rest`,
+          `clock` |-> `clock`, `refs` |-> `refs`]
+         bounded_case16594_object_atan_dispatch_eval_runtime_refines)
+  >> impl_tac
+  >- (asm_rewrite_tac []
+      >> simp
+           [compute_boundedCase16594ObjectFirstNegSemanticEvalTheory.bounded_case16594_object_cell0_runtime_radii_encoded,
+            compute_boundedCase16594ObjectFirstPolyRunBridgeTheory.bounded_case16594_object_source0_runtime_radii_length,
+            compute_boundedCase16594ObjectFirstPolySemanticTheory.bounded_case16594_object_cell0_radius_pairs,
+            compute_boundedCase16594ObjectFirstNegSemanticEvalTheory.bounded_case16594_object_cell0_runtime_radii_equivalent,
+            compute_boundedCase16594ObjectAtanStepSemanticEvalTheory.bounded_case16594_object_atan_certificate_outputs_valid,
+            compute_boundedCase16594ObjectAtanInputContractTheory.bounded_case16594_object_atan_center_input_encoded,
+            compute_boundedCase16594ObjectAtanCertificateRelationsTheory.bounded_case16594_object_atan_inputs_identical,
+            compute_boundedCase16594ObjectSource8SemanticShapeTheory.bounded_case16594_object_source8_center_certificate_encloses,
+            compute_boundedCase16594ObjectAtanInputContractTheory.bounded_case16594_object_source8_value_bound_certificate_encloses,
+            bounded_case16594_object_genuine_atan_fixed_pure_contract])
+  >> disch_then (qx_choose_then `runtime_result` strip_assume_tac)
+  >> qexists_tac `runtime_result`
+  >> fs
+       [compute_boundedCase16594ObjectFirstNegSemanticEvalTheory.bounded_case16594_object_cell0_runtime_radii_encode,
+        compute_boundedCase16594ObjectSource9IdentityTheory.bounded_case16594_object_cell0_source9_identity,
+        compute_boundedCase16594ObjectAtanCertificateIdentityTheory.bounded_case16594_object_cell0_certificates_atan_split,
+        compute_boundedCase16594ObjectAtanStepSemanticEvalTheory.bounded_case16594_object_source9_result_def,
+        listTheory.APPEND,
+        compute_boundedPackedObjectEntryContractTheory.bounded_object_q_cv_list_def]
+  >> qpat_x_assum
+       `compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+          _ refs = _` mp_tac
+  >> qpat_x_assum
+       `bounded_object_q_cv_list certificate_rest = _`
+       (fn th => PURE_REWRITE_TAC [th])
+  >> simp []
+QED
+
 val _ = export_theory ();
