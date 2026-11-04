@@ -276,4 +276,159 @@ Proof
   >> asm_rewrite_tac []
 QED
 
+Theorem bounded_case16594_object_nonpoly_sqrt_control_eval:
+  1 < clock /\
+  compute_eval (clock - 1) bounded_case16594_object_dispatch_cell0_ceqs
+    (App «candle_cv_q_packed_object_sqrt_step»
+      [from_cv radii;
+       from_cv certificates;
+       from_cv stack]) (refs:hol_refs) = result ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+    (App «candle_cv_q_packed_object_nonpoly_step»
+      [from_cv center_boxes;
+       from_cv outer_boxes;
+       from_cv radii;
+       from_cv (Pair (Num 1) source_payload);
+       from_cv certificates;
+       from_cv stack]) refs = result
+Proof
+  strip_tac
+  >> rw
+       [compute_boundedCase16594ObjectPiHalfInvariantTheory.bounded_case16594_object_nonpoly_step_unfold]
+  >> simp
+       [compute_boundedCase16594ObjectPiHalfInvariantTheory.bounded_case16594_object_nonpoly_step_body_def,
+        compute_evalTheory.subst_def,
+        compute_execProofTheory.subst_from_cv,
+        compute_boundedCase16594ObjectDispatchStepControlEvalTheory.bounded_case16594_object_compute_eval_if_ispair_pair,
+        compute_boundedCase16594ObjectDispatchStepControlEvalTheory.bounded_case16594_object_compute_eval_if_ispair_num_pair,
+        compute_boundedCase16594ObjectDispatchStepControlEvalTheory.bounded_case16594_object_compute_eval_if_fst_num_pair_eq]
+QED
+
+Theorem bounded_case16594_object_genuine_sqrt_nonpoly_eval_semantic:
+  bounded_object_q_taylor_runtime_refines runtime_item
+      bounded_case16594_object_source5_result /\
+  8211 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_nonpoly_step»
+        [from_cv bounded_case16594_object_cell0_center_boxes_cv;
+         from_cv bounded_case16594_object_cell0_outer_boxes_cv;
+         from_cv bounded_case16594_object_cell0_radii_cv;
+         from_cv bounded_case16594_object_cell0_source6_cv;
+         from_cv bounded_case16594_object_cell0_full_certificates_cv;
+         from_cv (Pair runtime_item stack_rest)]) (refs:hol_refs) =
+    (M_success
+      (Pair (Num 1)
+        (Pair
+          (Pair (from_cv runtime_result) (from_cv stack_rest))
+          (from_cv
+            bounded_case16594_object_cell0_after_sqrt_certificates_cv))),
+     refs) /\
+    bounded_object_q_taylor_runtime_refines runtime_result
+      bounded_case16594_object_source6_result
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST [`clock` |-> `clock - 1`, `refs` |-> `refs`]
+          bounded_case16594_object_genuine_sqrt_step_eval_semantic)
+  >> impl_tac
+  >- (simp [] >> intLib.ARITH_TAC)
+  >> strip_tac
+  >> qexists_tac `runtime_result`
+  >> conj_tac
+  >- (PURE_REWRITE_TAC
+        [compute_boundedCase16594ObjectPrefix8IdentityTheory.bounded_case16594_object_cell0_source6_cv_def]
+      >> irule bounded_case16594_object_nonpoly_sqrt_control_eval
+      >> conj_tac
+      >- intLib.ARITH_TAC
+      >> asm_rewrite_tac [])
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_genuine_sqrt_ordinary_eval_semantic:
+  bounded_object_q_taylor_runtime_refines runtime_item
+      bounded_case16594_object_source5_result /\
+  8212 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_ordinary_step»
+        [from_cv bounded_case16594_object_cell0_center_boxes_cv;
+         from_cv bounded_case16594_object_cell0_outer_boxes_cv;
+         from_cv bounded_case16594_object_cell0_radii_cv;
+         from_cv bounded_case16594_object_cell0_source6_cv;
+         from_cv bounded_case16594_object_cell0_full_certificates_cv;
+         from_cv (Pair runtime_item stack_rest)]) (refs:hol_refs) =
+    (M_success
+      (Pair (Num 1)
+        (Pair
+          (Pair (from_cv runtime_result) (from_cv stack_rest))
+          (from_cv
+            bounded_case16594_object_cell0_after_sqrt_certificates_cv))),
+     refs) /\
+    bounded_object_q_taylor_runtime_refines runtime_result
+      bounded_case16594_object_source6_result
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST [`clock` |-> `clock - 1`, `refs` |-> `refs`]
+          bounded_case16594_object_genuine_sqrt_nonpoly_eval_semantic)
+  >> impl_tac
+  >- (simp [] >> intLib.ARITH_TAC)
+  >> strip_tac
+  >> qexists_tac `runtime_result`
+  >> conj_tac
+  >- (PURE_REWRITE_TAC
+        [compute_boundedCase16594ObjectPrefix8IdentityTheory.bounded_case16594_object_cell0_source6_cv_def]
+      >> irule
+           compute_boundedCase16594ObjectDispatchStepControlEvalTheory.bounded_case16594_object_ordinary_nonzero_pair_eval
+      >> conj_tac
+      >- simp []
+      >> conj_tac
+      >- intLib.ARITH_TAC
+      >> fs
+           [compute_boundedCase16594ObjectPrefix8IdentityTheory.bounded_case16594_object_cell0_source6_cv_def])
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_genuine_sqrt_dispatch_eval_semantic:
+  bounded_object_q_taylor_runtime_refines runtime_item
+      bounded_case16594_object_source5_result /\
+  8213 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_dispatch_step»
+        [from_cv bounded_case16594_object_cell0_center_boxes_cv;
+         from_cv bounded_case16594_object_cell0_outer_boxes_cv;
+         from_cv bounded_case16594_object_cell0_radii_cv;
+         from_cv (Num 0);
+         from_cv bounded_case16594_object_cell0_source6_cv;
+         from_cv bounded_case16594_object_cell0_full_certificates_cv;
+         from_cv (Pair runtime_item stack_rest)]) (refs:hol_refs) =
+    (M_success
+      (Pair (Num 1)
+        (Pair
+          (Pair (from_cv runtime_result) (from_cv stack_rest))
+          (from_cv
+            bounded_case16594_object_cell0_after_sqrt_certificates_cv))),
+     refs) /\
+    bounded_object_q_taylor_runtime_refines runtime_result
+      bounded_case16594_object_source6_result
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST [`clock` |-> `clock - 1`, `refs` |-> `refs`]
+          bounded_case16594_object_genuine_sqrt_ordinary_eval_semantic)
+  >> impl_tac
+  >- (simp [] >> intLib.ARITH_TAC)
+  >> strip_tac
+  >> qexists_tac `runtime_result`
+  >> conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectDispatchStepControlEvalTheory.bounded_case16594_object_dispatch_ordinary_eval
+      >> conj_tac
+      >- intLib.ARITH_TAC
+      >> asm_rewrite_tac [])
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
