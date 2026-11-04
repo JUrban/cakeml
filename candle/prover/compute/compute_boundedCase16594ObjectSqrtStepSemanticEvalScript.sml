@@ -174,4 +174,106 @@ Proof
   >> ACCEPT_TAC bounded_case16594_object_source6_semantic_valid
 QED
 
+Theorem bounded_case16594_object_genuine_sqrt_decomposition_refines:
+  bounded_object_q_taylor_runtime_refines runtime_item
+      bounded_case16594_object_source5_result /\
+  runtime_item =
+    bounded_case16594_object_state_cv runtime_domain runtime_center
+      (bounded_object_q_cv_list runtime_center_gradient)
+      runtime_value_bound
+      (bounded_object_q_cv_list runtime_gradient_bounds)
+      (bounded_object_q_cv_list runtime_hessian) ==>
+  runtime_domain =
+    (if bounded_object_q_taylor_domain
+          bounded_case16594_object_source5_result
+     then Num 1 else Num 0) /\
+  bounded_object_q_taylor_runtime_refines
+    (bounded_case16594_object_state_unary_cv
+      bounded_case16594_object_cell0_runtime_radii
+      runtime_domain
+      bounded_case16594_object_cell0_sqrt_center_root_cv
+      bounded_case16594_object_cell0_sqrt_center_derivative_cv
+      bounded_case16594_object_cell0_sqrt_box_derivative_cv
+      (bounded_object_q_interval_neg_cv
+        bounded_case16594_object_cell0_sqrt_box_second_reciprocal_cv)
+      runtime_center_gradient runtime_gradient_bounds runtime_hessian)
+    bounded_case16594_object_source6_result
+Proof
+  Cases_on `bounded_case16594_object_source5_result`
+  >> strip_tac
+  >> fs
+       [compute_boundedCase16594ObjectPolyStackInvariantTheory.bounded_object_q_taylor_runtime_refines_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_runtime_equiv_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_state_encoded_cv_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_state_cv_equiv_def,
+        compute_boundedCase16594ObjectStateControlEvalTheory.bounded_case16594_object_state_cv_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_domain_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_interval_list_cv_equiv_encoded]
+  >> conj_tac
+  >- (asm_simp_tac std_ss
+        [bounded_case16594_object_source6_result_def,
+         compute_boundedAnalyticObjectProgramSemanticsTheory.bounded_object_q_taylor_sqrt_def]
+      >> qpat_x_assum
+           `BoundedObjectQTaylor b c l c0 l0 l1 =
+              bounded_case16594_object_source5_result`
+           (assume_tac o GSYM)
+      >> asm_rewrite_tac []
+      >> irule
+           (REWRITE_RULE
+             [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_runtime_equiv_def]
+             compute_boundedCase16594ObjectUnaryRelationTheory.bounded_case16594_object_unary_runtime_semantic_equiv)
+      >> fs
+           [compute_boundedCase16594ObjectPolyStackInvariantTheory.bounded_object_q_taylor_semantic_valid_def]
+      >> simp
+           [compute_boundedCase16594ObjectFirstPolySemanticTheory.bounded_case16594_object_cell0_radius_pairs,
+            compute_boundedCase16594ObjectFirstNegSemanticEvalTheory.bounded_case16594_object_cell0_runtime_radii_equivalent,
+            bounded_case16594_object_sqrt_certificate_outputs_valid,
+            bounded_case16594_object_sqrt_box_second_valid,
+            bounded_case16594_object_sqrt_unary_inputs_equiv_refl])
+  >> ACCEPT_TAC bounded_case16594_object_source6_semantic_valid
+QED
+
+Theorem bounded_case16594_object_genuine_sqrt_step_eval_semantic:
+  bounded_object_q_taylor_runtime_refines runtime_item
+      bounded_case16594_object_source5_result /\
+  8210 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_sqrt_step»
+        [from_cv bounded_case16594_object_cell0_radii_cv;
+         from_cv bounded_case16594_object_cell0_full_certificates_cv;
+         from_cv (Pair runtime_item stack_rest)]) (refs:hol_refs) =
+    (M_success
+      (Pair (Num 1)
+        (Pair
+          (Pair (from_cv runtime_result) (from_cv stack_rest))
+          (from_cv
+            bounded_case16594_object_cell0_after_sqrt_certificates_cv))),
+     refs) /\
+    bounded_object_q_taylor_runtime_refines runtime_result
+      bounded_case16594_object_source6_result
+Proof
+  strip_tac
+  >> mp_tac
+       compute_boundedCase16594ObjectSqrtStepRuntimeEvalTheory.bounded_case16594_object_genuine_sqrt_step_eval
+  >> impl_tac
+  >- simp []
+  >> strip_tac
+  >> mp_tac bounded_case16594_object_genuine_sqrt_decomposition_refines
+  >> impl_tac
+  >- simp []
+  >> strip_tac
+  >> qexists_tac
+       `bounded_case16594_object_state_unary_cv
+          bounded_case16594_object_cell0_runtime_radii
+          runtime_domain
+          bounded_case16594_object_cell0_sqrt_center_root_cv
+          bounded_case16594_object_cell0_sqrt_center_derivative_cv
+          bounded_case16594_object_cell0_sqrt_box_derivative_cv
+          (bounded_object_q_interval_neg_cv
+            bounded_case16594_object_cell0_sqrt_box_second_reciprocal_cv)
+          runtime_center_gradient runtime_gradient_bounds runtime_hessian`
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
