@@ -237,6 +237,38 @@ Proof
   >> simp [inherited_packed_interval_object_encoded]
 QED
 
+Theorem bounded_case16594_object_delta_sum_aux_packed_encoded:
+  !values accumulator.
+    EVERY bounded_packed_q_interval_encoded values /\
+    bounded_packed_q_interval_encoded accumulator ==>
+    bounded_packed_q_interval_encoded
+      (bounded_object_q_interval_sum_aux_cv values accumulator)
+Proof
+  Induct_on `values`
+  >- simp [inherited_interval_sum_aux_cv_def]
+  >> rpt strip_tac
+  >> gvs []
+  >> PURE_REWRITE_TAC [inherited_interval_sum_aux_cv_def]
+  >> first_x_assum irule
+  >> simp []
+  >> irule inherited_interval_packed_encoded
+  >> irule inherited_interval_add_cv_encoded
+  >> simp [inherited_packed_interval_object_encoded]
+QED
+
+Theorem bounded_case16594_object_delta_sum_packed_encoded:
+  EVERY bounded_packed_q_interval_encoded values ==>
+  bounded_packed_q_interval_encoded
+    (bounded_object_q_interval_sum_cv values)
+Proof
+  strip_tac
+  >> rw [inherited_interval_sum_cv_def]
+  >> irule bounded_case16594_object_delta_sum_aux_packed_encoded
+  >> simp []
+  >> irule inherited_interval_packed_encoded
+  >> simp [inherited_source_interval_encoded]
+QED
+
 Theorem bounded_case16594_object_delta_sum_eval:
   EVERY bounded_packed_q_interval_encoded values /\
   10 * (LENGTH values + 1) + 1 < clock ==>
