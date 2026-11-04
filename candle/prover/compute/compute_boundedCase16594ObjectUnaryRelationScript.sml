@@ -164,6 +164,98 @@ Proof
         compute_boundedCase16594ObjectUnaryCoreEvalTheory.bounded_case16594_object_self_outer_length6]
 QED
 
+Theorem bounded_case16594_object_unary_runtime_semantic_equiv:
+  !source_domain.
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_object_q_interval_cv_equiv
+    runtime_center_result semantic_center_result /\
+  bounded_packed_q_interval_valid_cv semantic_center_result /\
+  bounded_object_q_interval_cv_equiv
+    runtime_center_derivative semantic_center_derivative /\
+  bounded_packed_q_interval_valid_cv semantic_center_derivative /\
+  bounded_object_q_interval_cv_equiv
+    runtime_box_derivative semantic_box_derivative /\
+  bounded_packed_q_interval_valid_cv semantic_box_derivative /\
+  bounded_object_q_interval_cv_equiv
+    runtime_box_second semantic_box_second /\
+  bounded_packed_q_interval_valid_cv semantic_box_second /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    runtime_source_center_gradient semantic_source_center_gradient /\
+  EVERY bounded_packed_q_interval_valid_cv
+    semantic_source_center_gradient /\
+  LENGTH semantic_source_center_gradient = 6 /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    runtime_source_gradient_bounds semantic_source_gradient_bounds /\
+  EVERY bounded_packed_q_interval_valid_cv
+    semantic_source_gradient_bounds /\
+  LENGTH semantic_source_gradient_bounds = 6 /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    runtime_source_hessian semantic_source_hessian /\
+  EVERY bounded_packed_q_interval_valid_cv semantic_source_hessian /\
+  LENGTH semantic_source_hessian = 21 ==>
+  bounded_object_q_taylor_runtime_equiv
+    (bounded_case16594_object_state_unary_cv
+      runtime_radii
+      (if source_domain then Num 1 else Num 0)
+      runtime_center_result runtime_center_derivative
+      runtime_box_derivative runtime_box_second
+      runtime_source_center_gradient runtime_source_gradient_bounds
+      runtime_source_hessian)
+    (bounded_object_q_taylor_unary semantic_radii weights T
+      semantic_center_result semantic_center_derivative
+      semantic_box_derivative semantic_box_second
+      (BoundedObjectQTaylor source_domain semantic_source_center
+        semantic_source_center_gradient semantic_source_value
+        semantic_source_gradient_bounds semantic_source_hessian))
+Proof
+  gen_tac
+  >> strip_tac
+  >> `LIST_REL bounded_object_q_interval_cv_equiv
+        (bounded_object_q_interval_list_scale_cv
+          runtime_center_derivative runtime_source_center_gradient)
+        (bounded_object_q_interval_list_scale_cv
+          semantic_center_derivative semantic_source_center_gradient)` by
+       metis_tac [bounded_object_q_interval_list_scale_cv_rel]
+  >> `LIST_REL bounded_object_q_interval_cv_equiv
+        (bounded_object_q_taylor_unary_hessian_cv
+          runtime_box_derivative runtime_box_second
+          runtime_source_gradient_bounds runtime_source_hessian)
+        (bounded_object_q_taylor_unary_hessian_cv
+          semantic_box_derivative semantic_box_second
+          semantic_source_gradient_bounds semantic_source_hessian)` by
+       metis_tac [bounded_object_q_taylor_unary_hessian_cv_rel]
+  >> `EVERY bounded_packed_q_interval_valid_cv
+        (bounded_object_q_interval_list_scale_cv
+          semantic_center_derivative semantic_source_center_gradient)` by
+       metis_tac [bounded_packed_q_interval_valid_cv_list_scale]
+  >> `EVERY bounded_packed_q_interval_valid_cv
+        (bounded_object_q_taylor_unary_hessian_cv
+          semantic_box_derivative semantic_box_second
+          semantic_source_gradient_bounds semantic_source_hessian)` by
+       metis_tac [bounded_packed_q_interval_valid_cv_unary_hessian]
+  >> `LENGTH
+        (bounded_object_q_interval_list_scale_cv
+          semantic_center_derivative semantic_source_center_gradient) = 6` by
+       simp
+         [compute_boundedCase16594ObjectUnaryCoreEvalTheory.bounded_case16594_object_interval_list_scale_length]
+  >> `LENGTH
+        (bounded_object_q_taylor_unary_hessian_cv
+          semantic_box_derivative semantic_box_second
+          semantic_source_gradient_bounds semantic_source_hessian) = 21` by
+       metis_tac [bounded_object_q_taylor_unary_hessian_cv_length21]
+  >> PURE_REWRITE_TAC
+       [compute_boundedCase16594ObjectUnaryCompleteEvalTheory.bounded_case16594_object_state_unary_cv_def,
+        compute_boundedAnalyticObjectProgramSemanticsTheory.bounded_object_q_taylor_unary_def,
+        LET_THM]
+  >> BETA_TAC
+  >> simp [boolTheory.AND_CLAUSES]
+  >> irule
+       compute_boundedCase16594ObjectRecompleteRelationTheory.bounded_case16594_object_recomplete_runtime_semantic_equiv
+  >> simp []
+QED
+
 Theorem bounded_object_q_taylor_unary_semantic_valid:
   bounded_taylor_radius_pairs radii = SOME weights /\
   bounded_object_q_taylor_semantic_valid source /\
