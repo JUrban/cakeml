@@ -865,4 +865,152 @@ Proof
        [compute_boundedCase16594ObjectPolyStackInvariantTheory.bounded_object_q_taylor_semantic_valid_def]
 QED
 
+Theorem bounded_case16594_object_atan_semantic_selectors_encoded:
+  bounded_object_q_taylor_runtime_refines runtime_item semantic_state ==>
+  bounded_object_q_interval_encoded
+    (bounded_object_q_taylor_center semantic_state) /\
+  bounded_object_q_interval_encoded
+    (bounded_object_q_taylor_value_bound semantic_state)
+Proof
+  Cases_on `semantic_state`
+  >> simp
+       [compute_boundedCase16594ObjectPolyStackInvariantTheory.bounded_object_q_taylor_runtime_refines_def,
+        compute_boundedCase16594ObjectPolyStackInvariantTheory.bounded_object_q_taylor_semantic_valid_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_center_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_value_bound_def]
+  >> metis_tac
+       [compute_boundedCase16594ObjectRecompleteRelationTheory.bounded_packed_q_interval_valid_cv_object_encoded]
+QED
+
+Theorem bounded_case16594_object_atan_step_eval_runtime_refines:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_packed_q_interval_valid_cv center_result /\
+  bounded_packed_q_interval_valid_cv center_derivative /\
+  bounded_packed_q_interval_valid_cv box_derivative /\
+  bounded_packed_q_interval_valid_cv box_derivative_square /\
+  bounded_object_q_interval_encoded center_input /\
+  bounded_object_q_interval_encoded box_input /\
+  bounded_object_q_interval_encloses center_input
+    (bounded_object_q_taylor_center semantic_state) /\
+  bounded_object_q_interval_encloses box_input
+    (bounded_object_q_taylor_value_bound semantic_state) /\
+  bounded_case16594_object_atan_fixed_pure_contract center_input box_input
+    center_result center_square center_derivative box_square
+    box_derivative box_derivative_square /\
+  bounded_object_q_taylor_runtime_refines runtime_item semantic_state /\
+  16384 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_atn_step»
+        [from_cv (bounded_object_q_cv_list runtime_radii);
+         from_cv
+           (bounded_object_q_cv_list
+             ([center_input;box_input;center_result;center_square;
+               center_derivative;box_square;box_derivative;
+               box_derivative_square] ++ certificate_rest));
+         from_cv (Pair runtime_item stack_rest)]) (refs:hol_refs) =
+      (M_success
+        (Pair (Num 1)
+          (Pair
+            (Pair (from_cv runtime_result) (from_cv stack_rest))
+            (from_cv (bounded_object_q_cv_list certificate_rest)))),refs) /\
+    bounded_object_q_taylor_runtime_refines runtime_result
+      (bounded_object_q_taylor_atan semantic_radii weights center_result
+        center_derivative box_derivative box_derivative_square
+        semantic_state)
+Proof
+  strip_tac
+  >> drule
+       compute_boundedCase16594ObjectSqrtStepRuntimeEvalTheory.bounded_case16594_object_runtime_refines_selector_contract
+  >> disch_then
+       (qx_choose_then `runtime_domain`
+         (qx_choose_then `runtime_center`
+           (qx_choose_then `runtime_center_gradient`
+             (qx_choose_then `runtime_value_bound`
+               (qx_choose_then `runtime_gradient_bounds`
+                 (qx_choose_then `runtime_hessian` strip_assume_tac))))))
+  >> `bounded_object_q_interval_encoded
+        (bounded_object_q_taylor_center semantic_state) /\
+      bounded_object_q_interval_encoded
+        (bounded_object_q_taylor_value_bound semantic_state)` by
+       metis_tac [bounded_case16594_object_atan_semantic_selectors_encoded]
+  >> `bounded_object_q_interval_encloses center_input runtime_center /\
+      bounded_object_q_interval_encloses box_input runtime_value_bound` by
+       metis_tac
+         [compute_boundedObjectIntervalEnclosesEquivalenceTheory.bounded_object_q_interval_encloses_equiv_inner]
+  >> `bounded_packed_q_interval_encoded center_result /\
+      bounded_packed_q_interval_encoded center_derivative /\
+      bounded_packed_q_interval_encoded box_derivative /\
+      bounded_packed_q_interval_encoded box_derivative_square` by
+       metis_tac
+         [compute_boundedCase16594ObjectRecompleteRelationTheory.bounded_packed_q_interval_valid_cv_object_encoded,
+          compute_boundedCase16594ObjectNegEvalTheory.bounded_object_q_interval_encoded_packed]
+  >> mp_tac
+       (Q.INST
+         [`radii` |-> `runtime_radii`,
+          `runtime_center` |-> `runtime_center`,
+          `center_input` |-> `center_input`,
+          `box_input` |-> `box_input`,
+          `runtime_value_bound` |-> `runtime_value_bound`,
+          `center_result` |-> `center_result`,
+          `center_square` |-> `center_square`,
+          `center_derivative` |-> `center_derivative`,
+          `box_square` |-> `box_square`,
+          `box_derivative` |-> `box_derivative`,
+          `box_derivative_square` |-> `box_derivative_square`,
+          `center_gradient` |-> `runtime_center_gradient`,
+          `gradient_bounds` |-> `runtime_gradient_bounds`,
+          `packed_hessian` |-> `runtime_hessian`,
+          `domain_cv` |-> `runtime_domain`,
+          `certificate_rest` |-> `certificate_rest`,
+          `stack_rest` |-> `stack_rest`,
+          `clock` |-> `clock`, `refs` |-> `refs`]
+         bounded_case16594_object_atan_step_eval_generic)
+  >> impl_tac
+  >- (asm_rewrite_tac []
+      >> rpt conj_tac
+      >> fs [listTheory.EVERY_MEM]
+      >> metis_tac
+           [compute_boundedCase16594ObjectNegEvalTheory.bounded_object_q_interval_encoded_packed])
+  >> strip_tac
+  >> qexists_tac
+       `compute_boundedCase16594ObjectUnaryCompleteEval$bounded_case16594_object_state_unary_cv
+          runtime_radii runtime_domain center_result center_derivative
+          box_derivative
+          (bounded_object_q_atan_second_cv runtime_value_bound
+            box_derivative_square)
+          runtime_center_gradient runtime_gradient_bounds runtime_hessian`
+  >> conj_tac
+  >- (qpat_x_assum
+        `compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+          _ refs = _` mp_tac
+      >> asm_rewrite_tac [])
+  >> mp_tac
+       (Q.INST
+         [`semantic_radii` |-> `semantic_radii`,
+          `weights` |-> `weights`,
+          `runtime_radii` |-> `runtime_radii`,
+          `center_result` |-> `center_result`,
+          `center_derivative` |-> `center_derivative`,
+          `box_derivative` |-> `box_derivative`,
+          `box_derivative_square` |-> `box_derivative_square`,
+          `runtime_item` |-> `runtime_item`,
+          `semantic_state` |-> `semantic_state`,
+          `runtime_domain` |-> `runtime_domain`,
+          `runtime_center` |-> `runtime_center`,
+          `runtime_center_gradient` |-> `runtime_center_gradient`,
+          `runtime_value_bound` |-> `runtime_value_bound`,
+          `runtime_gradient_bounds` |-> `runtime_gradient_bounds`,
+          `runtime_hessian` |-> `runtime_hessian`]
+         bounded_case16594_object_atan_decomposition_runtime_refines)
+  >> impl_tac
+  >- asm_rewrite_tac []
+  >> strip_tac
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
