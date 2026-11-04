@@ -282,4 +282,80 @@ Proof
         LIST_REL_def]
 QED
 
+Theorem bounded_case16594_object_poly_dispatch_stack_runtime_refines:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  LENGTH runtime_center_boxes = 6 /\
+  LENGTH runtime_outer_boxes = 6 /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    runtime_center_boxes semantic_center_boxes /\
+  LIST_REL bounded_object_q_interval_cv_equiv
+    runtime_outer_boxes semantic_outer_boxes /\
+  EVERY bounded_packed_q_interval_valid_cv semantic_center_boxes /\
+  EVERY bounded_packed_q_interval_valid_cv semantic_outer_boxes /\
+  bounded_object_q_taylor_stack_runtime_refines
+    runtime_stack semantic_stack /\
+  bounded_analytic_instruction_of_cv runtime_source =
+    SOME (BoundedAnalyticPolynomial semantic_program) /\
+  bounded_object_q_poly_run semantic_radii weights
+    semantic_center_boxes semantic_outer_boxes semantic_program [] =
+      SOME [semantic_result] /\
+  4105 + LENGTH semantic_program < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_dispatch_step»
+        [from_cv (bounded_object_q_cv_list runtime_center_boxes);
+         from_cv (bounded_object_q_cv_list runtime_outer_boxes);
+         from_cv (bounded_object_q_cv_list runtime_radii);
+         from_cv (Num 0);from_cv runtime_source;from_cv certificates;
+         from_cv (bounded_object_q_cv_list runtime_stack)])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair (Num 1)
+          (Pair
+            (bounded_object_q_cv_list (runtime_result::runtime_stack))
+            certificates))),refs) /\
+    bounded_object_q_analytic_ordinary_step semantic_radii weights
+      semantic_center_boxes semantic_outer_boxes
+      (BoundedAnalyticPolynomial semantic_program)
+      (semantic_stack,semantic_certificates)
+      (semantic_result::semantic_stack,semantic_certificates) /\
+    bounded_object_q_taylor_stack_runtime_refines
+      (runtime_result::runtime_stack) (semantic_result::semantic_stack)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`runtime_radii` |-> `runtime_radii`,
+          `semantic_radii` |-> `semantic_radii`, `weights` |-> `weights`,
+          `runtime_center_boxes` |-> `runtime_center_boxes`,
+          `runtime_outer_boxes` |-> `runtime_outer_boxes`,
+          `semantic_center_boxes` |-> `semantic_center_boxes`,
+          `semantic_outer_boxes` |-> `semantic_outer_boxes`,
+          `runtime_stack` |-> `runtime_stack`,
+          `semantic_stack` |-> `semantic_stack`,
+          `runtime_source` |-> `runtime_source`,
+          `semantic_program` |-> `semantic_program`,
+          `semantic_result` |-> `semantic_result`,
+          `certificates` |-> `certificates`, `clock` |-> `clock - 1`,
+          `refs` |-> `refs`]
+         compute_boundedCase16594ObjectOrdinaryPolyInvariantTheory.bounded_case16594_object_ordinary_poly_eval_runtime_refines)
+  >> impl_tac >- (asm_rewrite_tac [] >> intLib.ARITH_TAC)
+  >> disch_then (qx_choose_then `runtime_result` strip_assume_tac)
+  >> qexists_tac `runtime_result`
+  >> conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectDispatchStepControlEvalTheory.bounded_case16594_object_dispatch_ordinary_eval
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> conj_tac
+  >- simp
+       [compute_boundedAnalyticObjectProgramStepRefinementTheory.bounded_object_q_analytic_ordinary_step_def]
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
