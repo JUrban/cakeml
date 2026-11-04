@@ -224,4 +224,115 @@ Proof
   >> asm_rewrite_tac []
 QED
 
+Theorem bounded_case16594_object_source1_dispatch_runtime_refines:
+  bounded_object_q_taylor_stack_runtime_refines
+      runtime_stack semantic_stack /\
+  4106 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_dispatch_step»
+        [from_cv bounded_case16594_object_cell0_center_boxes_cv;
+         from_cv bounded_case16594_object_cell0_outer_boxes_cv;
+         from_cv bounded_case16594_object_cell0_radii_cv;
+         from_cv (Num 0);
+         from_cv bounded_case16594_object_cell0_source1_cv;
+         from_cv certificates;
+         from_cv (bounded_object_q_cv_list runtime_stack)])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair (Num 1)
+          (Pair
+            (bounded_object_q_cv_list (runtime_result::runtime_stack))
+            certificates))),refs) /\
+    bounded_object_q_taylor_stack_runtime_refines
+      (runtime_result::runtime_stack)
+      (bounded_case16594_object_source1_result::semantic_stack)
+Proof
+  strip_tac
+  >> irule bounded_case16594_object_cell0_dispatch_poly_eval_runtime_refines
+  >> conj_tac
+  >- (qexists_tac `bounded_case16594_object_source1_poly_program`
+      >> simp
+           [compute_boundedCase16594ObjectPrefix8IdentityTheory.bounded_case16594_object_source1_decodes,
+            bounded_case16594_object_source1_semantic_trace,
+            compute_boundedCase16594ObjectPrefix8IdentityTheory.bounded_case16594_object_source1_poly_program_def]
+      >> intLib.ARITH_TAC)
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_source2_dispatch_runtime_refines:
+  bounded_object_q_taylor_stack_runtime_refines
+      runtime_stack semantic_stack /\
+  4106 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_dispatch_step»
+        [from_cv bounded_case16594_object_cell0_center_boxes_cv;
+         from_cv bounded_case16594_object_cell0_outer_boxes_cv;
+         from_cv bounded_case16594_object_cell0_radii_cv;
+         from_cv (Num 0);
+         from_cv bounded_case16594_object_cell0_source2_cv;
+         from_cv certificates;
+         from_cv (bounded_object_q_cv_list runtime_stack)])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair (Num 1)
+          (Pair
+            (bounded_object_q_cv_list (runtime_result::runtime_stack))
+            certificates))),refs) /\
+    bounded_object_q_taylor_stack_runtime_refines
+      (runtime_result::runtime_stack)
+      (bounded_case16594_object_source2_result::semantic_stack)
+Proof
+  strip_tac
+  >> irule bounded_case16594_object_cell0_dispatch_poly_eval_runtime_refines
+  >> conj_tac
+  >- (qexists_tac `bounded_case16594_object_source2_poly_program`
+      >> simp
+           [compute_boundedCase16594ObjectPrefix8IdentityTheory.bounded_case16594_object_source2_decodes,
+            bounded_case16594_object_source2_semantic_trace,
+            compute_boundedCase16594ObjectPrefix8IdentityTheory.bounded_case16594_object_source2_poly_program_def]
+      >> intLib.ARITH_TAC)
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_source4_dispatch_runtime_refines:
+  bounded_object_q_taylor_stack_runtime_refines
+      runtime_stack semantic_stack /\
+  4106 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_dispatch_step»
+        [from_cv bounded_case16594_object_cell0_center_boxes_cv;
+         from_cv bounded_case16594_object_cell0_outer_boxes_cv;
+         from_cv bounded_case16594_object_cell0_radii_cv;
+         from_cv (Num 0);
+         from_cv bounded_case16594_object_cell0_source4_cv;
+         from_cv certificates;
+         from_cv (bounded_object_q_cv_list runtime_stack)])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair (Num 1)
+          (Pair
+            (bounded_object_q_cv_list (runtime_result::runtime_stack))
+            certificates))),refs) /\
+    bounded_object_q_taylor_stack_runtime_refines
+      (runtime_result::runtime_stack)
+      (bounded_case16594_object_source4_result::semantic_stack)
+Proof
+  strip_tac
+  >> irule bounded_case16594_object_cell0_dispatch_poly_eval_runtime_refines
+  >> conj_tac
+  >- (qexists_tac `bounded_case16594_object_source4_poly_program`
+      >> simp
+           [compute_boundedCase16594ObjectPrefix8IdentityTheory.bounded_case16594_object_source4_decodes,
+            bounded_case16594_object_source4_semantic_trace,
+            compute_boundedCase16594ObjectPrefix8IdentityTheory.bounded_case16594_object_source4_poly_program_def]
+      >> intLib.ARITH_TAC)
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
