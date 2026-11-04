@@ -4,7 +4,9 @@
  * Unlike the earlier genuine-packet theorem, this layer contains no fixed
  * case-16594 certificate bytes or instruction index.  The evaluator guard
  * is generalized separately; this file establishes the reusable state
- * relation that its successful result must preserve.
+ * relation that its successful result must preserve.  Closed numerical
+ * checks are collected in a packet contract so that the evaluator plumbing
+ * is proved once while each production packet supplies only its data proof.
  *****************************************************************************)
 Theory compute_boundedCase16594ObjectCertifiedAtanDispatchInvariant
 Ancestors
@@ -35,6 +37,205 @@ Proof
        compute_boundedCase16594ObjectRuntimePreservationTheory.bounded_object_q_interval_cv_equiv_refl
   >> metis_tac
        [compute_boundedCase16594ObjectRecompleteRelationTheory.bounded_packed_q_interval_valid_cv_object_encoded]
+QED
+
+Definition bounded_case16594_object_atan_fixed_pure_contract_def:
+  bounded_case16594_object_atan_fixed_pure_contract center_input box_input
+      center_result center_square center_derivative box_square
+      box_derivative box_derivative_square <=>
+    compute_eval_pure 4096 bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_interval_atn_certificate»
+        [from_cv center_input;from_cv center_result]) = SOME (Num 1) /\
+    compute_eval_pure 4096 bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_interval_encloses»
+        [from_cv center_square;
+         App «candle_cv_q_interval_normalize»
+           [App «candle_cv_q_interval_square» [from_cv center_input]]]) =
+      SOME (Num 1) /\
+    compute_eval_pure 4096 bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_interval_inv_certificate»
+        [App «candle_cv_q_packed_object_atn_denominator»
+          [from_cv center_square];
+         from_cv center_derivative]) = SOME (Num 1) /\
+    compute_eval_pure 4096 bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_interval_encloses»
+        [from_cv box_square;
+         App «candle_cv_q_interval_normalize»
+           [App «candle_cv_q_interval_square» [from_cv box_input]]]) =
+      SOME (Num 1) /\
+    compute_eval_pure 4096 bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_interval_inv_certificate»
+        [App «candle_cv_q_packed_object_atn_denominator»
+          [from_cv box_square];
+         from_cv box_derivative]) = SOME (Num 1) /\
+    compute_eval_pure 4096 bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_interval_square_outer_certificate»
+        [from_cv box_derivative;from_cv box_derivative;
+         from_cv box_derivative_square]) = SOME (Num 1)
+End
+
+Definition bounded_case16594_object_atan_generic_check_expression_def:
+  bounded_case16594_object_atan_generic_check_expression
+      runtime_center runtime_value_bound center_input box_input
+      center_result center_square center_derivative box_square
+      box_derivative box_derivative_square =
+    App «candle_cv_bool_and»
+      [App «candle_cv_q_interval_atn_outer_certificate»
+        [from_cv runtime_center;from_cv center_input;
+         from_cv center_result];
+       App «candle_cv_bool_and»
+        [App «candle_cv_q_interval_square_outer_certificate»
+          [from_cv runtime_center;from_cv center_input;
+           from_cv center_square];
+         App «candle_cv_bool_and»
+          [App «candle_cv_q_interval_inv_certificate»
+            [App «candle_cv_q_packed_object_atn_denominator»
+              [from_cv center_square];
+             from_cv center_derivative];
+           App «candle_cv_bool_and»
+            [App «candle_cv_q_interval_square_outer_certificate»
+              [from_cv runtime_value_bound;from_cv box_input;
+               from_cv box_square];
+             App «candle_cv_bool_and»
+              [App «candle_cv_q_interval_inv_certificate»
+                [App «candle_cv_q_packed_object_atn_denominator»
+                  [from_cv box_square];
+                 from_cv box_derivative];
+               App «candle_cv_q_interval_square_outer_certificate»
+                [from_cv box_derivative;from_cv box_derivative;
+                 from_cv box_derivative_square]]]]]]
+End
+
+Theorem bounded_case16594_object_atan_outer_certificate_eval_generic:
+  bounded_object_q_interval_encoded source_input /\
+  bounded_object_q_interval_encoded word_input /\
+  bounded_object_q_interval_encloses word_input source_input /\
+  compute_eval_pure 4096 bounded_case16594_object_dispatch_cell0_ceqs
+    (App «candle_cv_q_interval_atn_certificate»
+      [from_cv word_input;from_cv output]) = SOME (Num 1) /\
+  4097 < clock ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_interval_atn_outer_certificate»
+        [from_cv source_input;from_cv word_input;from_cv output])
+      (refs:hol_refs) = (M_success (Num 1),refs)
+Proof
+  strip_tac
+  >> simp
+       [compute_boundedCase16594ObjectAtanOuterCertificateEvalTheory.bounded_case16594_object_q_interval_atn_outer_certificate_unfold,
+        compute_boundedCase16594ObjectAtanOuterCertificateEvalTheory.bounded_case16594_object_q_interval_atn_outer_certificate_body_def,
+        compute_evalTheory.subst_def]
+  >> irule
+       compute_boundedCase16594ObjectInverseCertificateEvalTheory.bounded_case16594_object_bool_and_true_argument_results
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectAtanOuterCertificateEvalTheory.bounded_case16594_object_q_interval_encloses_contract_eval
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> irule compute_evalPureTheory.compute_eval_pure_refines
+  >> qexists_tac `4096`
+  >> asm_rewrite_tac []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_case16594_object_square_outer_certificate_eval_generic:
+  bounded_object_q_interval_encoded source_input /\
+  bounded_object_q_interval_encoded word_input /\
+  bounded_object_q_interval_encloses word_input source_input /\
+  compute_eval_pure 4096 bounded_case16594_object_dispatch_cell0_ceqs
+    (App «candle_cv_q_interval_encloses»
+      [from_cv output;
+       App «candle_cv_q_interval_normalize»
+         [App «candle_cv_q_interval_square» [from_cv word_input]]]) =
+    SOME (Num 1) /\
+  4097 < clock ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_interval_square_outer_certificate»
+        [from_cv source_input;from_cv word_input;from_cv output])
+      (refs:hol_refs) = (M_success (Num 1),refs)
+Proof
+  strip_tac
+  >> simp
+       [compute_boundedCase16594ObjectAtanAlgebraicCertificateEvalTheory.bounded_case16594_object_q_interval_square_outer_certificate_unfold,
+        compute_boundedCase16594ObjectAtanAlgebraicCertificateEvalTheory.bounded_case16594_object_q_interval_square_outer_certificate_body_def,
+        compute_evalTheory.subst_def]
+  >> irule
+       compute_boundedCase16594ObjectInverseCertificateEvalTheory.bounded_case16594_object_bool_and_true_argument_results
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectAtanOuterCertificateEvalTheory.bounded_case16594_object_q_interval_encloses_contract_eval
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> irule compute_evalPureTheory.compute_eval_pure_refines
+  >> qexists_tac `4096`
+  >> asm_rewrite_tac []
+  >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_case16594_object_atan_generic_check_eval:
+  bounded_object_q_interval_encoded runtime_center /\
+  bounded_object_q_interval_encoded runtime_value_bound /\
+  bounded_object_q_interval_encoded center_input /\
+  bounded_object_q_interval_encoded box_input /\
+  bounded_object_q_interval_encloses center_input runtime_center /\
+  bounded_object_q_interval_encloses box_input runtime_value_bound /\
+  bounded_case16594_object_atan_fixed_pure_contract center_input box_input
+    center_result center_square center_derivative box_square
+    box_derivative box_derivative_square /\
+  4097 < clock ==>
+  compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (bounded_case16594_object_atan_generic_check_expression
+        runtime_center runtime_value_bound center_input box_input
+        center_result center_square center_derivative box_square
+        box_derivative box_derivative_square) (refs:hol_refs) =
+    (M_success (Num 1),refs)
+Proof
+  strip_tac
+  >> fs [bounded_case16594_object_atan_fixed_pure_contract_def]
+  >> rewrite_tac
+       [bounded_case16594_object_atan_generic_check_expression_def]
+  >> irule
+       compute_boundedCase16594ObjectInverseCertificateEvalTheory.bounded_case16594_object_bool_and_true_argument_results
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule bounded_case16594_object_atan_outer_certificate_eval_generic
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_boundedCase16594ObjectInverseCertificateEvalTheory.bounded_case16594_object_bool_and_true_argument_results
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule bounded_case16594_object_square_outer_certificate_eval_generic
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_boundedCase16594ObjectInverseCertificateEvalTheory.bounded_case16594_object_bool_and_true_argument_results
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule compute_evalPureTheory.compute_eval_pure_refines
+      >> qexists_tac `4096`
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_boundedCase16594ObjectInverseCertificateEvalTheory.bounded_case16594_object_bool_and_true_argument_results
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule bounded_case16594_object_square_outer_certificate_eval_generic
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> irule
+       compute_boundedCase16594ObjectInverseCertificateEvalTheory.bounded_case16594_object_bool_and_true_argument_results
+  >> conj_tac >- intLib.ARITH_TAC
+  >> conj_tac
+  >- (irule compute_evalPureTheory.compute_eval_pure_refines
+      >> qexists_tac `4096`
+      >> asm_rewrite_tac []
+      >> intLib.ARITH_TAC)
+  >> irule compute_evalPureTheory.compute_eval_pure_refines
+  >> qexists_tac `4096`
+  >> asm_rewrite_tac []
+  >> intLib.ARITH_TAC
 QED
 
 Theorem bounded_case16594_object_atan_decomposition_runtime_refines:
