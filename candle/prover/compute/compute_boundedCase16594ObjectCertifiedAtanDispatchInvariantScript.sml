@@ -11,7 +11,7 @@
 Theory compute_boundedCase16594ObjectCertifiedAtanDispatchInvariant
 Ancestors
   compute_boundedCase16594ObjectCertifiedSqrtDispatchInvariant
-  compute_boundedCase16594ObjectAtanStepSemanticEval
+  compute_boundedCase16594ObjectAtanDispatchSemanticEval
 Libs
   bossLib preamble intLib
 
@@ -1010,6 +1010,88 @@ Proof
   >> impl_tac
   >- asm_rewrite_tac []
   >> strip_tac
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_atan_dispatch_eval_runtime_refines:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_packed_q_interval_valid_cv center_result /\
+  bounded_packed_q_interval_valid_cv center_derivative /\
+  bounded_packed_q_interval_valid_cv box_derivative /\
+  bounded_packed_q_interval_valid_cv box_derivative_square /\
+  bounded_object_q_interval_encoded center_input /\
+  bounded_object_q_interval_encoded box_input /\
+  bounded_object_q_interval_encloses center_input
+    (bounded_object_q_taylor_center semantic_state) /\
+  bounded_object_q_interval_encloses box_input
+    (bounded_object_q_taylor_value_bound semantic_state) /\
+  bounded_case16594_object_atan_fixed_pure_contract center_input box_input
+    center_result center_square center_derivative box_square
+    box_derivative box_derivative_square /\
+  bounded_object_q_taylor_runtime_refines runtime_item semantic_state /\
+  16387 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_dispatch_step»
+        [from_cv center_boxes;from_cv outer_boxes;
+         from_cv (bounded_object_q_cv_list runtime_radii);
+         from_cv (Num 0);from_cv (Num 7);
+         from_cv
+           (bounded_object_q_cv_list
+             ([center_input;box_input;center_result;center_square;
+               center_derivative;box_square;box_derivative;
+               box_derivative_square] ++ certificate_rest));
+         from_cv (Pair runtime_item stack_rest)]) (refs:hol_refs) =
+      (M_success
+        (Pair (Num 1)
+          (Pair
+            (Pair (from_cv runtime_result) (from_cv stack_rest))
+            (from_cv (bounded_object_q_cv_list certificate_rest)))),refs) /\
+    bounded_object_q_taylor_runtime_refines runtime_result
+      (bounded_object_q_taylor_atan semantic_radii weights center_result
+        center_derivative box_derivative box_derivative_square
+        semantic_state)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`clock` |-> `clock - 3`, `refs` |-> `refs`,
+          `runtime_radii` |-> `runtime_radii`,
+          `semantic_radii` |-> `semantic_radii`,
+          `weights` |-> `weights`,
+          `center_input` |-> `center_input`,
+          `box_input` |-> `box_input`,
+          `center_result` |-> `center_result`,
+          `center_square` |-> `center_square`,
+          `center_derivative` |-> `center_derivative`,
+          `box_square` |-> `box_square`,
+          `box_derivative` |-> `box_derivative`,
+          `box_derivative_square` |-> `box_derivative_square`,
+          `certificate_rest` |-> `certificate_rest`,
+          `runtime_item` |-> `runtime_item`,
+          `semantic_state` |-> `semantic_state`,
+          `stack_rest` |-> `stack_rest`]
+         bounded_case16594_object_atan_step_eval_runtime_refines)
+  >> impl_tac
+  >- (asm_rewrite_tac [] >> intLib.ARITH_TAC)
+  >> disch_then (qx_choose_then `runtime_result` strip_assume_tac)
+  >> qexists_tac `runtime_result`
+  >> conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectDispatchStepControlEvalTheory.bounded_case16594_object_dispatch_ordinary_eval
+      >> conj_tac >- intLib.ARITH_TAC
+      >> irule
+           compute_boundedCase16594ObjectDispatchStepControlEvalTheory.bounded_case16594_object_ordinary_nonpair_eval
+      >> conj_tac >- intLib.ARITH_TAC
+      >> irule
+           compute_boundedCase16594ObjectAtanDispatchSemanticEvalTheory.bounded_case16594_object_nonpoly_atan_control_eval
+      >> conj_tac >- intLib.ARITH_TAC
+      >> `clock - 1 - 1 - 1 = clock - 3` by intLib.ARITH_TAC
+      >> asm_rewrite_tac [])
   >> asm_rewrite_tac []
 QED
 
