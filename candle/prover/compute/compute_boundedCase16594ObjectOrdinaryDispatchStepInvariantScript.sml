@@ -481,4 +481,177 @@ Proof
         LIST_REL_def]
 QED
 
+Theorem bounded_case16594_object_sqrt_dispatch_stack_runtime_refines:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_packed_q_interval_valid_cv runtime_center_root /\
+  bounded_packed_q_interval_valid_cv runtime_box_root /\
+  bounded_packed_q_interval_valid_cv runtime_center_derivative /\
+  bounded_packed_q_interval_valid_cv runtime_box_derivative /\
+  bounded_packed_q_interval_valid_cv runtime_box_second_reciprocal /\
+  runtime_center_root = bounded_interval64_object_q_cv word_center_root /\
+  runtime_box_root = bounded_interval64_object_q_cv word_box_root /\
+  runtime_center_derivative =
+    bounded_interval64_object_q_cv word_center_derivative /\
+  runtime_box_derivative =
+    bounded_interval64_object_q_cv word_box_derivative /\
+  runtime_box_second_reciprocal =
+    bounded_interval64_object_q_cv word_box_second_reciprocal /\
+  bounded_object_q_sqrt_certificate_exact
+    (bounded_object_q_taylor_center semantic_state) runtime_center_root /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_interval_add_cv runtime_center_root runtime_center_root)
+    runtime_center_derivative /\
+  bounded_object_q_sqrt_certificate_exact
+    (bounded_object_q_taylor_value_bound semantic_state) runtime_box_root /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_interval_add_cv runtime_box_root runtime_box_root)
+    runtime_box_derivative /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_interval_mul_cv
+      (bounded_object_q_interval_add_cv runtime_box_root runtime_box_root)
+      (bounded_object_q_interval_add_cv
+        (bounded_object_q_taylor_value_bound semantic_state)
+        (bounded_object_q_taylor_value_bound semantic_state)))
+    runtime_box_second_reciprocal /\
+  bounded_object_q_taylor_stack_runtime_refines
+    (runtime_state::runtime_rest) (semantic_state::semantic_rest) /\
+  8213 < clock ==>
+  ?runtime_result.
+    compute_eval clock bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_dispatch_step»
+        [from_cv center_boxes;from_cv outer_boxes;
+         from_cv (bounded_object_q_cv_list runtime_radii);
+         from_cv (Num 0);from_cv (Pair (Num 1) source_payload);
+         from_cv
+           (bounded_object_q_cv_list
+             ([runtime_center_root;runtime_box_root;
+               runtime_center_derivative;runtime_box_derivative;
+               runtime_box_second_reciprocal] ++ runtime_certificate_rest));
+         from_cv (bounded_object_q_cv_list (runtime_state::runtime_rest))])
+      (refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair (Num 1)
+          (Pair
+            (bounded_object_q_cv_list (runtime_result::runtime_rest))
+            (bounded_object_q_cv_list runtime_certificate_rest)))),refs) /\
+    bounded_object_q_analytic_ordinary_step semantic_radii weights
+      semantic_center_boxes semantic_outer_boxes BoundedAnalyticSqrt
+      (semantic_state::semantic_rest,
+       BoundedAnalytic64SqrtCertificate word_center_root word_box_root
+         word_center_derivative word_box_derivative
+         word_box_second_reciprocal::semantic_certificate_rest)
+      (bounded_object_q_taylor_sqrt semantic_radii weights
+         runtime_center_root runtime_center_derivative
+         runtime_box_derivative runtime_box_second_reciprocal semantic_state::
+         semantic_rest,
+       semantic_certificate_rest) /\
+    bounded_object_q_taylor_stack_runtime_refines
+      (runtime_result::runtime_rest)
+      (bounded_object_q_taylor_sqrt semantic_radii weights
+         runtime_center_root runtime_center_derivative
+         runtime_box_derivative runtime_box_second_reciprocal semantic_state::
+         semantic_rest)
+Proof
+  Cases_on `semantic_state`
+  >> rename1
+       `BoundedObjectQTaylor object_domain object_center object_center_gradient
+          object_value object_gradient_bounds object_hessian`
+  >> strip_tac
+  >> `bounded_object_q_sqrt_certificate_exact object_center
+        (bounded_interval64_object_q_cv word_center_root)` by
+       (qpat_x_assum
+          `bounded_object_q_sqrt_certificate_exact
+             (bounded_object_q_taylor_center _) _` mp_tac
+        >> asm_rewrite_tac
+             [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_center_def])
+  >> `bounded_object_q_sqrt_certificate_exact object_value
+        (bounded_interval64_object_q_cv word_box_root)` by
+       (qpat_x_assum
+          `bounded_object_q_sqrt_certificate_exact
+             (bounded_object_q_taylor_value_bound _) _` mp_tac
+        >> asm_rewrite_tac
+             [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_value_bound_def])
+  >> `bounded_object_q_positive_inv_certificate_exact
+        (bounded_object_q_interval_add_cv
+          (bounded_interval64_object_q_cv word_center_root)
+          (bounded_interval64_object_q_cv word_center_root))
+        (bounded_interval64_object_q_cv word_center_derivative)` by
+       (qpat_x_assum
+          `bounded_object_q_positive_inv_certificate_exact
+             (bounded_object_q_interval_add_cv runtime_center_root
+               runtime_center_root) runtime_center_derivative` mp_tac
+        >> asm_rewrite_tac [])
+  >> `bounded_object_q_positive_inv_certificate_exact
+        (bounded_object_q_interval_add_cv
+          (bounded_interval64_object_q_cv word_box_root)
+          (bounded_interval64_object_q_cv word_box_root))
+        (bounded_interval64_object_q_cv word_box_derivative)` by
+       (qpat_x_assum
+          `bounded_object_q_positive_inv_certificate_exact
+             (bounded_object_q_interval_add_cv runtime_box_root
+               runtime_box_root) runtime_box_derivative` mp_tac
+        >> asm_rewrite_tac [])
+  >> `bounded_object_q_positive_inv_certificate_exact
+        (bounded_object_q_interval_mul_cv
+          (bounded_object_q_interval_add_cv
+            (bounded_interval64_object_q_cv word_box_root)
+            (bounded_interval64_object_q_cv word_box_root))
+          (bounded_object_q_interval_add_cv object_value object_value))
+        (bounded_interval64_object_q_cv word_box_second_reciprocal)` by
+       (qpat_x_assum
+          `bounded_object_q_positive_inv_certificate_exact
+             (bounded_object_q_interval_mul_cv _ _) _` mp_tac
+        >> asm_rewrite_tac
+             [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_value_bound_def])
+  >> mp_tac
+       (Q.INST
+         [`runtime_radii` |-> `runtime_radii`,
+          `semantic_radii` |-> `semantic_radii`, `weights` |-> `weights`,
+          `center_root` |-> `runtime_center_root`,
+          `box_root` |-> `runtime_box_root`,
+          `center_derivative` |-> `runtime_center_derivative`,
+          `box_derivative` |-> `runtime_box_derivative`,
+          `box_second_reciprocal` |-> `runtime_box_second_reciprocal`,
+          `certificate_rest` |-> `runtime_certificate_rest`,
+          `runtime_item` |-> `runtime_state`,
+          `semantic_state` |->
+            `BoundedObjectQTaylor object_domain object_center
+               object_center_gradient object_value object_gradient_bounds
+               object_hessian`,
+          `stack_rest` |-> `bounded_object_q_cv_list runtime_rest`,
+          `center_boxes` |-> `center_boxes`,
+          `outer_boxes` |-> `outer_boxes`,
+          `source_payload` |-> `source_payload`,
+          `clock` |-> `clock`, `refs` |-> `refs`]
+         compute_boundedCase16594ObjectCertifiedSqrtDispatchInvariantTheory.bounded_case16594_object_sqrt_dispatch_eval_runtime_refines)
+  >> impl_tac
+  >- (asm_rewrite_tac
+       [compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_center_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_value_bound_def]
+      >> fs
+           [compute_boundedCase16594ObjectPolyStackInvariantTheory.bounded_object_q_taylor_stack_runtime_refines_def,
+            LIST_REL_def])
+  >> disch_then (qx_choose_then `runtime_result` strip_assume_tac)
+  >> qexists_tac `runtime_result`
+  >> conj_tac
+  >- (qpat_x_assum
+        `compute_eval _ _ _ _ = _` mp_tac
+      >> PURE_REWRITE_TAC
+           [compute_boundedPackedObjectEntryContractTheory.bounded_object_q_cv_list_def,
+            compute_execTheory.from_cv_def]
+      >> simp [])
+  >> conj_tac
+  >- fs
+       [compute_boundedAnalyticObjectProgramStepRefinementTheory.bounded_object_q_analytic_ordinary_step_def,
+        compute_boundedObjectTaylorEquivalenceTheory.bounded_object_q_taylor_value_bound_def]
+  >> fs
+       [compute_boundedCase16594ObjectPolyStackInvariantTheory.bounded_object_q_taylor_stack_runtime_refines_def,
+        LIST_REL_def]
+QED
+
 val _ = export_theory ();
