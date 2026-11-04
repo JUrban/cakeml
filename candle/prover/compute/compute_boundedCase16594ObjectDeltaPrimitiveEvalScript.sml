@@ -51,6 +51,63 @@ Proof
   >> simp [compute_execTheory.from_cv_def]
 QED
 
+Theorem bounded_case16594_object_compute_eval_app11_argument_results:
+  0 < clock /\
+  compute_eval clock ceqs expression0 (refs:hol_refs) =
+      (M_success (from_cv result0),refs) /\
+  compute_eval clock ceqs expression1 refs =
+      (M_success (from_cv result1),refs) /\
+  compute_eval clock ceqs expression2 refs =
+      (M_success (from_cv result2),refs) /\
+  compute_eval clock ceqs expression3 refs =
+      (M_success (from_cv result3),refs) /\
+  compute_eval clock ceqs expression4 refs =
+      (M_success (from_cv result4),refs) /\
+  compute_eval clock ceqs expression5 refs =
+      (M_success (from_cv result5),refs) /\
+  compute_eval clock ceqs expression6 refs =
+      (M_success (from_cv result6),refs) /\
+  compute_eval clock ceqs expression7 refs =
+      (M_success (from_cv result7),refs) /\
+  compute_eval clock ceqs expression8 refs =
+      (M_success (from_cv result8),refs) /\
+  compute_eval clock ceqs expression9 refs =
+      (M_success (from_cv result9),refs) /\
+  compute_eval clock ceqs expression10 refs =
+      (M_success (from_cv result10),refs) ==>
+  compute_eval clock ceqs
+      (App function_name
+        [expression0;expression1;expression2;expression3;expression4;
+         expression5;expression6;expression7;expression8;expression9;
+         expression10]) refs =
+    compute_eval clock ceqs
+      (App function_name
+        [from_cv result0;from_cv result1;from_cv result2;
+         from_cv result3;from_cv result4;from_cv result5;
+         from_cv result6;from_cv result7;from_cv result8;
+         from_cv result9;from_cv result10]) refs
+Proof
+  Cases_on `clock`
+  >> simp []
+  >> strip_tac
+  >> Cases_on `ALOOKUP ceqs function_name`
+  >- simp
+       [compute_evalTheory.compute_eval_def,compute_evalTheory.option_def,
+        holKernelTheory.raise_Failure_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> Cases_on `x`
+  >> Cases_on `LENGTH q = 11`
+  >> simp
+       [compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.option_def,compute_evalTheory.check_def,
+        holKernelTheory.raise_Failure_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_ignore_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
 Definition bounded_case16594_object_delta_six_body_def:
   bounded_case16594_object_delta_six_body =
     Pair (Var «a»)
