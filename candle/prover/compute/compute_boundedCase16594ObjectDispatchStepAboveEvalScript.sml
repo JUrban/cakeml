@@ -10,6 +10,7 @@ Ancestors
   compute_boundedCase16594ObjectSpecializedStepControlEval
   compute_boundedCase16594ObjectDispatchStepControlEval
   compute_boundedCase16594ObjectDispatchProgramTraceEval
+  compute_evalSuccessMonotonicity
 Libs
   bossLib preamble intLib
 
@@ -42,6 +43,31 @@ Proof
   rw [bounded_case16594_object_expression_eval_above_def]
   >> first_x_assum match_mp_tac
   >> intLib.ARITH_TAC
+QED
+
+Theorem bounded_case16594_object_dispatch_step_eval_suc_to_above:
+  compute_eval (SUC eval_floor)
+      bounded_case16594_object_dispatch_cell0_ceqs
+      (App «candle_cv_q_packed_object_dispatch_step»
+        [from_cv center_boxes;from_cv outer_boxes;from_cv radii;
+         from_cv code;from_cv source;from_cv certificates;from_cv stack])
+      (seed_refs:hol_refs) =
+    (M_success
+      (from_cv
+        (Pair (Num 1) (Pair next_stack next_certificates))),seed_refs) ==>
+  bounded_case16594_object_dispatch_step_eval_above eval_floor
+    center_boxes outer_boxes radii code source certificates stack
+    next_stack next_certificates
+Proof
+  rw [bounded_case16594_object_dispatch_step_eval_above_def]
+  >> irule
+       compute_evalSuccessMonotonicityTheory.compute_eval_success_mono
+  >> qexists_tac `SUC eval_floor`
+  >> conj_tac >- intLib.ARITH_TAC
+  >> irule
+       compute_evalSuccessMonotonicityTheory.compute_eval_success_change_state
+  >> qexists_tac `seed_refs`
+  >> first_assum ACCEPT_TAC
 QED
 
 Theorem bounded_case16594_object_dispatch_nonpair_eval_above:
