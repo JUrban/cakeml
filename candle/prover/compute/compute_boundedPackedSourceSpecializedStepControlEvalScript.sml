@@ -10,6 +10,7 @@
 Theory compute_boundedPackedSourceSpecializedStepControlEval
 Ancestors
   compute_boundedPackedSourceOrdinaryStepControlEval
+  compute_boundedPackedSourceProgramTraceEval
   compute_boundedCase16594SourceCVData
 Libs
   bossLib preamble intLib
