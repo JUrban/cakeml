@@ -260,6 +260,48 @@ Proof
         LIST_REL_def]
 QED
 
+Theorem bounded_case16594_object_pi_half_dispatch_stack_eval_above:
+  bounded_object_q_taylor_stack_runtime_refines
+    runtime_stack semantic_stack ==>
+  bounded_case16594_object_dispatch_step_eval_above 4106
+    center_boxes outer_boxes radii (Num 0) (Num 8) certificates
+    (bounded_object_q_cv_list runtime_stack)
+    (bounded_object_q_cv_list
+      (bounded_case16594_object_pi_half_runtime_cv::runtime_stack))
+    certificates /\
+  bounded_object_q_analytic_ordinary_step semantic_radii weights
+    semantic_center_boxes semantic_outer_boxes BoundedAnalyticPiHalf
+    (semantic_stack,semantic_certificates)
+    (bounded_case16594_object_pi_half_semantic::semantic_stack,
+     semantic_certificates) /\
+  bounded_object_q_taylor_stack_runtime_refines
+    (bounded_case16594_object_pi_half_runtime_cv::runtime_stack)
+    (bounded_case16594_object_pi_half_semantic::semantic_stack)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`runtime_stack` |-> `runtime_stack`,
+          `semantic_stack` |-> `semantic_stack`,
+          `center_boxes` |-> `center_boxes`,
+          `outer_boxes` |-> `outer_boxes`, `radii` |-> `radii`,
+          `certificates` |-> `certificates`,
+          `semantic_radii` |-> `semantic_radii`, `weights` |-> `weights`,
+          `semantic_center_boxes` |-> `semantic_center_boxes`,
+          `semantic_outer_boxes` |-> `semantic_outer_boxes`,
+          `semantic_certificates` |-> `semantic_certificates`,
+          `clock` |-> `SUC 4106`, `refs` |-> `(ARB:hol_refs)`]
+         compute_boundedCase16594ObjectPiHalfInvariantTheory.bounded_case16594_object_dispatch_pi_half_eval_runtime_refines)
+  >> impl_tac >- (asm_rewrite_tac [] >> intLib.ARITH_TAC)
+  >> strip_tac
+  >> conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectDispatchStepAboveEvalTheory.bounded_case16594_object_dispatch_step_eval_suc_to_above
+      >> qexists_tac `ARB`
+      >> first_assum ACCEPT_TAC)
+  >> asm_rewrite_tac []
+QED
+
 Theorem bounded_case16594_object_poly_dispatch_stack_eval_above:
   EVERY bounded_object_q_encoded runtime_radii /\
   LENGTH runtime_radii = 6 /\
