@@ -250,4 +250,162 @@ Proof
   >> first_assum ACCEPT_TAC
 QED
 
+Theorem bounded_case16594_object_canonical_atan_step_eval_above:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_analytic_instruction_refines 6 source BoundedAnalytic64Atan /\
+  bounded_packed_q_interval_valid_cv
+    (bounded_interval64_object_q_cv center_result) /\
+  bounded_packed_q_interval_valid_cv
+    (bounded_interval64_object_q_cv center_derivative) /\
+  bounded_packed_q_interval_valid_cv
+    (bounded_interval64_object_q_cv box_derivative) /\
+  bounded_packed_q_interval_valid_cv
+    (bounded_interval64_object_q_cv box_derivative_square) /\
+  bounded_object_q_interval_encoded
+    (bounded_interval64_object_q_cv center_input) /\
+  bounded_object_q_interval_encoded
+    (bounded_interval64_object_q_cv box_input) /\
+  bounded_interval64_atan_range center_input lower_reciprocal
+    upper_reciprocal = SOME center_result /\
+  bounded_object_q_interval_encloses
+    (bounded_interval64_object_q_cv center_input)
+    (bounded_object_q_taylor_center semantic_state) /\
+  bounded_object_q_interval_encloses
+    (bounded_interval64_object_q_cv box_input)
+    (bounded_object_q_taylor_value_bound semantic_state) /\
+  bounded_object_q_square_certificate_exact
+    (bounded_object_q_taylor_center semantic_state)
+    (bounded_interval64_object_q_cv center_input)
+    (bounded_interval64_object_q_cv center_square) /\
+  bounded_object_q_square_certificate_exact
+    (bounded_object_q_taylor_value_bound semantic_state)
+    (bounded_interval64_object_q_cv box_input)
+    (bounded_interval64_object_q_cv box_square) /\
+  bounded_object_q_inv_certificate_exact
+    (bounded_object_q_atan_denominator_cv
+      (bounded_interval64_object_q_cv center_square))
+    (bounded_interval64_object_q_cv center_derivative) /\
+  bounded_object_q_inv_certificate_exact
+    (bounded_object_q_atan_denominator_cv
+      (bounded_interval64_object_q_cv box_square))
+    (bounded_interval64_object_q_cv box_derivative) /\
+  bounded_object_q_square_certificate_exact
+    (bounded_interval64_object_q_cv box_derivative)
+    (bounded_interval64_object_q_cv box_derivative)
+    (bounded_interval64_object_q_cv box_derivative_square) /\
+  bounded_case16594_object_atan_fixed_pure_contract
+    (bounded_interval64_object_q_cv center_input)
+    (bounded_interval64_object_q_cv box_input)
+    (bounded_interval64_object_q_cv center_result)
+    (bounded_interval64_object_q_cv center_square)
+    (bounded_interval64_object_q_cv center_derivative)
+    (bounded_interval64_object_q_cv box_square)
+    (bounded_interval64_object_q_cv box_derivative)
+    (bounded_interval64_object_q_cv box_derivative_square) /\
+  bounded_object_q_taylor_stack_runtime_refines
+    (runtime_head::runtime_tail) (semantic_state::semantic_tail)
+  ==>
+  ?runtime_result.
+    bounded_case16594_object_dispatch_step_eval_above 524405
+      center_boxes outer_boxes (bounded_object_q_cv_list runtime_radii)
+      (Num 0) (bounded_case16594_analytic_instruction_cv source)
+      (bounded_object_q_cv_list
+        ([bounded_interval64_object_q_cv center_input;
+          bounded_interval64_object_q_cv box_input;
+          bounded_interval64_object_q_cv center_result;
+          bounded_interval64_object_q_cv center_square;
+          bounded_interval64_object_q_cv center_derivative;
+          bounded_interval64_object_q_cv box_square;
+          bounded_interval64_object_q_cv box_derivative;
+          bounded_interval64_object_q_cv box_derivative_square] ++
+         runtime_certificate_rest))
+      (bounded_object_q_cv_list (runtime_head::runtime_tail))
+      (bounded_object_q_cv_list (runtime_result::runtime_tail))
+      (bounded_object_q_cv_list runtime_certificate_rest) /\
+    bounded_object_q_analytic_step semantic_radii weights
+      semantic_center_boxes semantic_outer_boxes source BoundedAnalytic64Atan
+      (semantic_state::semantic_tail,
+       BoundedAnalytic64AtanCertificate lower_reciprocal upper_reciprocal
+         center_derivative box_derivative::semantic_certificate_rest)
+      (bounded_object_q_taylor_atan semantic_radii weights
+         (bounded_interval64_object_q_cv center_result)
+         (bounded_interval64_object_q_cv center_derivative)
+         (bounded_interval64_object_q_cv box_derivative)
+         (bounded_interval64_object_q_cv box_derivative_square)
+         semantic_state::semantic_tail,
+       semantic_certificate_rest) /\
+    bounded_object_q_taylor_stack_runtime_refines
+      (runtime_result::runtime_tail)
+      (bounded_object_q_taylor_atan semantic_radii weights
+         (bounded_interval64_object_q_cv center_result)
+         (bounded_interval64_object_q_cv center_derivative)
+         (bounded_interval64_object_q_cv box_derivative)
+         (bounded_interval64_object_q_cv box_derivative_square)
+         semantic_state::semantic_tail)
+Proof
+  strip_tac
+  >> fs
+    [compute_boundedAnalyticPreparedPlanRefinementTheory.bounded_analytic_instruction_refines_def]
+  >> mp_tac
+       (Q.INST
+         [`runtime_radii` |-> `runtime_radii`,
+          `semantic_radii` |-> `semantic_radii`, `weights` |-> `weights`,
+          `runtime_center_input` |->
+            `bounded_interval64_object_q_cv center_input`,
+          `runtime_box_input` |->
+            `bounded_interval64_object_q_cv box_input`,
+          `runtime_center_result` |->
+            `bounded_interval64_object_q_cv center_result`,
+          `runtime_center_square` |->
+            `bounded_interval64_object_q_cv center_square`,
+          `runtime_center_derivative` |->
+            `bounded_interval64_object_q_cv center_derivative`,
+          `runtime_box_square` |->
+            `bounded_interval64_object_q_cv box_square`,
+          `runtime_box_derivative` |->
+            `bounded_interval64_object_q_cv box_derivative`,
+          `runtime_box_derivative_square` |->
+            `bounded_interval64_object_q_cv box_derivative_square`,
+          `word_center_input` |-> `center_input`,
+          `word_box_input` |-> `box_input`,
+          `word_center_result` |-> `center_result`,
+          `word_center_square` |-> `center_square`,
+          `word_center_derivative` |-> `center_derivative`,
+          `word_box_square` |-> `box_square`,
+          `word_box_derivative` |-> `box_derivative`,
+          `word_box_derivative_square` |-> `box_derivative_square`,
+          `word_lower_reciprocal` |-> `lower_reciprocal`,
+          `word_upper_reciprocal` |-> `upper_reciprocal`,
+          `runtime_certificate_rest` |-> `runtime_certificate_rest`,
+          `runtime_state` |-> `runtime_head`,
+          `runtime_rest` |-> `runtime_tail`,
+          `semantic_state` |-> `semantic_state`,
+          `semantic_rest` |-> `semantic_tail`,
+          `semantic_certificate_rest` |-> `semantic_certificate_rest`,
+          `center_boxes` |-> `center_boxes`,
+          `outer_boxes` |-> `outer_boxes`]
+         compute_boundedCase16594ObjectOrdinaryDispatchStepAboveInvariantTheory.bounded_case16594_object_atan_dispatch_stack_eval_above)
+  >> impl_tac >- asm_rewrite_tac []
+  >> disch_then (qx_choose_then `runtime_result` strip_assume_tac)
+  >> qexists_tac `runtime_result`
+  >> conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectDispatchSemanticTraceTheory.bounded_case16594_object_dispatch_step_eval_above_weaken
+      >> qexists_tac `16387`
+      >> conj_tac
+      >- simp []
+      >> fs
+        [compute_boundedCase16594ObjectDispatchCanonicalSourceIdentityTheory.bounded_case16594_analytic_instruction_cv_def])
+  >> conj_tac
+  >- (simp
+       [compute_boundedAnalyticObjectCompleteDispatcherRefinementTheory.bounded_object_q_analytic_step_def,
+        compute_boundedAnalyticObjectOrdinaryDispatcherRefinementTheory.bounded_analytic64_ordinary_instruction_def]
+      >> first_assum ACCEPT_TAC)
+  >> first_assum ACCEPT_TAC
+QED
+
 val _ = export_theory ();
