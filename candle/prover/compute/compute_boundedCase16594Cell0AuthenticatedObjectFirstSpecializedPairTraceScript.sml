@@ -318,4 +318,263 @@ Proof
   >> asm_rewrite_tac []
 QED
 
+Definition bounded_case16594_prepared_suffix_after36_def:
+  bounded_case16594_prepared_suffix_after36 =
+    DROP 36 bounded_case16594_prepared_program
+End
+
+Theorem bounded_case16594_prepared_suffix_after35_unfold:
+  bounded_case16594_prepared_suffix_after35 =
+    BoundedAnalytic64FourCoordinateDelta 0 ::
+      bounded_case16594_prepared_suffix_after36
+Proof
+  simp
+    [bounded_case16594_prepared_suffix_after35_def,
+     bounded_case16594_prepared_suffix_after36_def]
+  >> EVAL_TAC
+QED
+
+Theorem bounded_case16594_object_source35_decode_and_refines:
+  bounded_analytic_instruction_of_cv bounded_case16594_object_source35_cv =
+      SOME (EL 35 bounded_case16594_program) /\
+  bounded_analytic_instruction_refines 6 (EL 35 bounded_case16594_program)
+    (BoundedAnalytic64FourCoordinateDelta 0)
+Proof
+  conj_tac
+  >- (rw
+        [compute_boundedCase16594ObjectSpecializedStepControlEvalTheory.bounded_case16594_object_source35_cv_def]
+      >> irule bounded_case16594_object_cv_nth_decodes
+      >> simp
+           [compute_boundedCase16594SourceCVDataTheory.bounded_case16594_source_program_cv_decodes]
+      >> EVAL_TAC)
+  >> simp
+       [compute_boundedAnalyticPreparedPlanRefinementTheory.bounded_analytic_instruction_refines_def,
+        compute_boundedCase16594ObjectSpecializedDispatchStepInvariantTheory.bounded_case16594_object_source35_specialization_ok]
+QED
+
+Definition bounded_case16594_source_prefix36_def:
+  bounded_case16594_source_prefix36 =
+    bounded_case16594_source_prefix35 ++ [EL 35 bounded_case16594_program]
+End
+
+Definition bounded_case16594_prepared_prefix36_def:
+  bounded_case16594_prepared_prefix36 =
+    bounded_case16594_prepared_prefix35 ++
+      [BoundedAnalytic64FourCoordinateDelta 0]
+End
+
+Definition bounded_case16594_prefix36_codes_cv_def:
+  bounded_case16594_prefix36_codes_cv =
+    bounded_case16594_trace_cv_list_append
+      bounded_case16594_prefix35_codes_cv (Pair (Num 1) (Num 0))
+End
+
+Definition bounded_case16594_prefix36_sources_cv_def:
+  bounded_case16594_prefix36_sources_cv =
+    bounded_case16594_trace_cv_list_append
+      bounded_case16594_prefix35_sources_cv
+      (Pair bounded_case16594_object_source35_cv (Num 0))
+End
+
+Theorem bounded_case16594_cell0_authenticated_object_prefix0_through35_trace:
+  ?word_after36 packets_after36 semantic_after36 runtime_stack_after36.
+    bounded_analytic64_program_runtime_certificate_trace
+      bounded_case16594_cell0_source_word_radii
+      bounded_case16594_cell0_source_word_center_environment
+      bounded_case16594_cell0_authenticated_word_box_environment
+      bounded_case16594_prepared_suffix_after36 word_after36 =
+        SOME
+          (bounded_case16594_cell0_authenticated_word_runtime_final_state,
+           packets_after36) /\
+    bounded_analytic64_state_covers_object_q word_after36 semantic_after36 /\
+    bounded_case16594_word_dispatch_packet_contracts
+      (SND word_after36) packets_after36 /\
+    bounded_case16594_object_dispatch_semantic_trace 524405
+      bounded_case16594_runtime_cell0_center_boxes_cv
+      bounded_case16594_runtime_cell0_outer_boxes_cv
+      bounded_case16594_runtime_cell0_radii_cv
+      bounded_case16594_cell0_source_word_radii
+      bounded_case16594_cell0_authenticated_word_weights
+      bounded_case16594_cell0_authenticated_object_center_environment
+      bounded_case16594_cell0_authenticated_object_box_environment
+      bounded_case16594_source_prefix36
+      bounded_case16594_prepared_prefix36
+      bounded_case16594_prefix36_codes_cv
+      bounded_case16594_prefix36_sources_cv
+      bounded_case16594_authenticated_fast_packets_cv
+      []
+      ([],bounded_case16594_cell0_source_word_certificates)
+      (Pair (Num 1)
+        (Pair (bounded_object_q_cv_list runtime_stack_after36)
+          (bounded_object_q_cv_list
+            (MAP bounded_interval64_object_q_cv packets_after36))))
+      semantic_after36
+Proof
+  mp_tac bounded_case16594_cell0_authenticated_object_prefix0_through34_trace
+  >> strip_tac
+  >> `bounded_object_q_taylor_stack_runtime_refines runtime_stack_after35
+        (FST semantic_after35)` by
+       metis_tac [bounded_case16594_named_semantic_trace_final_stack]
+  >> qpat_x_assum
+       `bounded_analytic64_program_runtime_certificate_trace _ _ _
+          bounded_case16594_prepared_suffix_after35 word_after35 = _`
+       mp_tac
+  >> rw [bounded_case16594_prepared_suffix_after35_unfold]
+  >> drule
+       compute_boundedAnalyticRuntimeCertificateTraceTheory.bounded_analytic64_program_runtime_certificate_trace_cons
+  >> disch_then
+       (qx_choose_then `packet35`
+         (qx_choose_then `word_after36`
+           (qx_choose_then `packets_after36` strip_assume_tac)))
+  >> `packet35 = [] /\ SND word_after36 = SND word_after35` by
+       metis_tac
+         [compute_boundedCase16594ObjectFirstSpecializedRuntimeDispatchInvariantTheory.bounded_case16594_product0_packet_state]
+  >> gvs []
+  >> `?word_result.
+        bounded_delta64_four_coordinate
+          bounded_case16594_cell0_source_word_radii
+          bounded_case16594_cell0_source_word_center_environment
+          bounded_case16594_cell0_authenticated_word_box_environment 0 =
+            SOME word_result` by
+       (Cases_on `word_after35`
+        >> fs
+             [compute_boundedAnalyticProgramTheory.bounded_analytic64_program_step_def]
+        >> every_case_tac
+        >> gvs [])
+  >> `bounded_case16594_object_delta_product_refinement_context
+        bounded_case16594_cell0_source_word_radii
+        bounded_case16594_cell0_authenticated_word_weights
+        bounded_case16594_cell0_authenticated_object_center_environment
+        bounded_case16594_cell0_authenticated_object_box_environment 0` by
+       (match_mp_tac
+          (Q.INST
+            [`coordinate` |-> `0`,
+             `object_center_environment` |->
+               `bounded_case16594_cell0_authenticated_object_center_environment`,
+             `object_outer_environment` |->
+               `bounded_case16594_cell0_authenticated_object_box_environment`,
+             `word_center_environment` |->
+               `bounded_case16594_cell0_source_word_center_environment`,
+             `word_outer_environment` |->
+               `bounded_case16594_cell0_authenticated_word_box_environment`,
+             `semantic_radii` |->
+               `bounded_case16594_cell0_source_word_radii`,
+             `weights` |->
+               `bounded_case16594_cell0_authenticated_word_weights`,
+             `word_result` |-> `word_result`]
+            compute_boundedCase16594ObjectFirstSpecializedRuntimeDispatchInvariantTheory.bounded_case16594_object_delta_product_refinement_context_from_word)
+        >> simp
+             [compute_boundedCase16594Cell0RuntimePayloadIdentityTheory.bounded_case16594_cell0_authenticated_payload_lengths,
+              compute_boundedCase16594Cell0AuthenticatedWordRuntimeTraceTheory.bounded_case16594_cell0_source_word_center_covers_authenticated,
+              compute_boundedCase16594Cell0AuthenticatedWordRuntimeTraceTheory.bounded_case16594_cell0_authenticated_word_box_covers_authenticated,
+              compute_boundedCase16594Cell0AuthenticatedWordObjectBridgeTheory.bounded_case16594_cell0_authenticated_word_radius_pairs])
+  >> mp_tac
+       (Q.INST
+         [`semantic_radii` |->
+            `bounded_case16594_cell0_source_word_radii`,
+          `weights` |->
+            `bounded_case16594_cell0_authenticated_word_weights`,
+          `semantic_center_boxes` |->
+            `bounded_case16594_cell0_authenticated_object_center_environment`,
+          `semantic_outer_boxes` |->
+            `bounded_case16594_cell0_authenticated_object_box_environment`,
+          `runtime_radii` |->
+            `bounded_case16594_cell0_authenticated_object_radii`,
+          `word_state` |-> `word_after35`,
+          `semantic_state` |-> `semantic_after35`,
+          `word_center_boxes` |->
+            `bounded_case16594_cell0_source_word_center_environment`,
+          `word_outer_boxes` |->
+            `bounded_case16594_cell0_authenticated_word_box_environment`,
+          `word_next` |-> `word_after36`,
+          `packet_rest` |-> `packets_after35`,
+          `runtime_stack` |-> `runtime_stack_after35`]
+         compute_boundedCase16594ObjectFirstSpecializedRuntimeDispatchInvariantTheory.bounded_case16594_object_joint_product0_runtime_step)
+  >> impl_tac
+  >- simp
+       [compute_boundedCase16594Cell0AuthenticatedObjectPrefix10TraceTheory.bounded_case16594_authenticated_object_radii_encoded,
+        compute_boundedCase16594Cell0RuntimePayloadIdentityTheory.bounded_case16594_cell0_authenticated_radii_equivalent,
+        compute_boundedCase16594Cell0AuthenticatedWordRuntimeTraceTheory.bounded_case16594_cell0_source_word_center_covers_authenticated,
+        compute_boundedCase16594Cell0AuthenticatedWordRuntimeTraceTheory.bounded_case16594_cell0_authenticated_word_box_covers_authenticated]
+  >> disch_then
+       (qx_choose_then `semantic_after36`
+         (qx_choose_then `runtime_stack_after36` strip_assume_tac))
+  >> `bounded_case16594_object_dispatch_step_eval_above 524405
+        bounded_case16594_runtime_cell0_center_boxes_cv
+        bounded_case16594_runtime_cell0_outer_boxes_cv
+        bounded_case16594_runtime_cell0_radii_cv
+        (Num 1) bounded_case16594_object_source35_cv
+        (bounded_object_q_cv_list
+          (MAP bounded_interval64_object_q_cv packets_after35))
+        (bounded_object_q_cv_list runtime_stack_after35)
+        (bounded_object_q_cv_list runtime_stack_after36)
+        (bounded_object_q_cv_list
+          (MAP bounded_interval64_object_q_cv packets_after35))` by
+       fs
+         [compute_boundedCase16594Cell0RuntimePayloadIdentityTheory.bounded_case16594_cell0_authenticated_center_payload_identity,
+          compute_boundedCase16594Cell0RuntimePayloadIdentityTheory.bounded_case16594_cell0_authenticated_box_payload_identity,
+          compute_boundedCase16594Cell0RuntimePayloadIdentityTheory.bounded_case16594_cell0_authenticated_radii_payload_identity]
+  >> `bounded_case16594_object_dispatch_semantic_trace 524405
+        bounded_case16594_runtime_cell0_center_boxes_cv
+        bounded_case16594_runtime_cell0_outer_boxes_cv
+        bounded_case16594_runtime_cell0_radii_cv
+        bounded_case16594_cell0_source_word_radii
+        bounded_case16594_cell0_authenticated_word_weights
+        bounded_case16594_cell0_authenticated_object_center_environment
+        bounded_case16594_cell0_authenticated_object_box_environment
+        [EL 35 bounded_case16594_program]
+        [BoundedAnalytic64FourCoordinateDelta 0]
+        (Pair (Num 1) (Num 0))
+        (Pair bounded_case16594_object_source35_cv (Num 0))
+        (bounded_object_q_cv_list
+          (MAP bounded_interval64_object_q_cv packets_after35))
+        runtime_stack_after35 semantic_after35
+        (Pair (Num 1)
+          (Pair (bounded_object_q_cv_list runtime_stack_after36)
+            (bounded_object_q_cv_list
+              (MAP bounded_interval64_object_q_cv packets_after35))))
+        semantic_after36` by
+       (simp
+          [compute_boundedCase16594ObjectDispatchSemanticTraceTheory.bounded_case16594_object_dispatch_semantic_trace_def,
+           bounded_case16594_object_source35_decode_and_refines]
+        >> metis_tac [])
+  >> `bounded_case16594_object_dispatch_semantic_trace 524405
+        bounded_case16594_runtime_cell0_center_boxes_cv
+        bounded_case16594_runtime_cell0_outer_boxes_cv
+        bounded_case16594_runtime_cell0_radii_cv
+        bounded_case16594_cell0_source_word_radii
+        bounded_case16594_cell0_authenticated_word_weights
+        bounded_case16594_cell0_authenticated_object_center_environment
+        bounded_case16594_cell0_authenticated_object_box_environment
+        bounded_case16594_source_prefix36
+        bounded_case16594_prepared_prefix36
+        bounded_case16594_prefix36_codes_cv
+        bounded_case16594_prefix36_sources_cv
+        bounded_case16594_authenticated_fast_packets_cv []
+        ([],bounded_case16594_cell0_source_word_certificates)
+        (Pair (Num 1)
+          (Pair (bounded_object_q_cv_list runtime_stack_after36)
+            (bounded_object_q_cv_list
+              (MAP bounded_interval64_object_q_cv packets_after35))))
+        semantic_after36` by
+       (rw
+          [bounded_case16594_source_prefix36_def,
+           bounded_case16594_prepared_prefix36_def,
+           bounded_case16594_prefix36_codes_cv_def,
+           bounded_case16594_prefix36_sources_cv_def]
+        >> irule
+             compute_boundedCase16594ObjectDispatchSemanticTraceAppendTheory.bounded_case16594_object_dispatch_semantic_trace_append
+        >> qexists_tac
+             `bounded_object_q_cv_list
+                (MAP bounded_interval64_object_q_cv packets_after35)`
+        >> qexists_tac `runtime_stack_after35`
+        >> qexists_tac `semantic_after35`
+        >> asm_rewrite_tac [])
+  >> qexists_tac `word_after36`
+  >> qexists_tac `packets_after35`
+  >> qexists_tac `semantic_after36`
+  >> qexists_tac `runtime_stack_after36`
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();

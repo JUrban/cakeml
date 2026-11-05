@@ -235,6 +235,155 @@ Proof
        [compute_boundedCase16594ObjectSpecializedDispatchStepInvariantTheory.bounded_case16594_object_delta_neg_refinement_context_def]
 QED
 
+Theorem bounded_case16594_object_delta_product_refinement_context_from_word:
+  coordinate < 6 /\
+  LENGTH object_center_environment = 6 /\
+  LENGTH object_outer_environment = 6 /\
+  LIST_REL bounded_interval64_covers_object_q
+    word_center_environment object_center_environment /\
+  LIST_REL bounded_interval64_covers_object_q
+    word_outer_environment object_outer_environment /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  bounded_delta64_four_coordinate semantic_radii word_center_environment
+    word_outer_environment coordinate = SOME word_result
+  ==>
+  bounded_case16594_object_delta_product_refinement_context
+    semantic_radii weights object_center_environment object_outer_environment
+    coordinate
+Proof
+  strip_tac
+  >> drule
+       compute_boundedAnalyticObjectDeltaFourCoordinateRefinementTheory.bounded_delta64_four_coordinate_trace
+  >> strip_tac
+  >> drule_all
+       compute_boundedAnalyticObjectDeltaStateSupportTheory.bounded_delta64_value_covers_object_q
+  >> strip_tac
+  >> drule_all
+       compute_boundedAnalyticObjectDeltaStateSupportTheory.bounded_delta64_pair_products_covers_object_q
+  >> strip_tac
+  >> drule_all
+       compute_boundedAnalyticObjectDeltaGradientRefinementTheory.bounded_delta64_gradient_from_products_covers_object_q
+  >> strip_tac
+  >> rename1
+       `bounded_object_q_delta_gradient_from_products_cv _ =
+          SOME object_center_delta_gradient`
+  >> drule_all
+       (Q.INST
+         [`word_environment` |-> `word_outer_environment`,
+          `object_environment` |-> `object_outer_environment`,
+          `word_result` |-> `word_box_delta_hessian`]
+         compute_boundedAnalyticObjectDeltaStateSupportTheory.bounded_delta64_hessian_covers_object_q)
+  >> strip_tac
+  >> rename1
+       `bounded_object_q_delta_hessian_cv object_outer_environment =
+          SOME object_box_delta_hessian`
+  >> drule_all
+       compute_boundedAnalyticObjectDeltaFourCoordinateRefinementTheory.bounded_delta64_four_coordinate_covers_object_q
+  >> strip_tac
+  >> `bounded_object_q_delta_four_coordinate_cv semantic_radii
+        object_center_environment object_outer_environment coordinate =
+      SOME
+        (bounded_object_q_taylor_complete_cv semantic_radii weights T
+          (bounded_case16594_object_delta_product_center_value_cv
+            object_center_environment coordinate)
+          (bounded_case16594_object_delta_product_center_gradient_cv
+            object_center_environment coordinate)
+          (bounded_case16594_object_delta_product_semantic_outer_hessian_cv
+            semantic_radii object_center_environment
+            object_outer_environment coordinate))` by
+       (irule
+          compute_boundedCase16594ObjectDeltaProductRefinementBridgeTheory.bounded_case16594_object_delta_product_semantic_environment
+        >> simp [])
+  >> gvs []
+  >> `EVERY bounded_packed_q_interval_valid_cv object_center_environment /\
+      EVERY bounded_packed_q_interval_valid_cv object_outer_environment` by
+       metis_tac
+         [compute_boundedPackedObjectSourceContractRefinementTheory.bounded_interval64_list_covers_packed_q_interval_valid_cv]
+  >> `EVERY bounded_packed_q_interval_valid_cv object_center_delta_gradient /\
+      EVERY bounded_packed_q_interval_valid_cv object_box_delta_hessian` by
+       metis_tac
+         [compute_boundedPackedObjectSourceContractRefinementTheory.bounded_interval64_list_covers_packed_q_interval_valid_cv]
+  >> `object_center_delta_gradient =
+        bounded_case16594_object_delta_product_center_delta_gradient_cv
+          object_center_environment` by
+       (Cases_on `object_center_environment` >> fs []
+        >> Cases_on `t` >> fs []
+        >> Cases_on `t'` >> fs []
+        >> Cases_on `t` >> fs []
+        >> Cases_on `t'` >> fs []
+        >> Cases_on `t` >> fs []
+        >> Cases_on `t'` >> fs []
+        >> gvs
+             [compute_boundedAnalyticObjectDeltaStateSupportTheory.bounded_object_q_delta_pair_products_cv_def,
+              compute_boundedCase16594ObjectDeltaGradientEvalTheory.bounded_case16594_object_delta_gradient_six_semantic,
+              compute_boundedCase16594ObjectDeltaProductSourceCompleteEvalTheory.bounded_case16594_object_delta_product_center_delta_gradient_cv_def])
+  >> `object_box_delta_hessian =
+        bounded_object_q_delta_hessian_six_cv
+          (EL 0 object_outer_environment) (EL 1 object_outer_environment)
+          (EL 2 object_outer_environment) (EL 3 object_outer_environment)
+          (EL 4 object_outer_environment) (EL 5 object_outer_environment)` by
+       (Cases_on `object_outer_environment` >> fs []
+        >> Cases_on `t` >> fs []
+        >> Cases_on `t'` >> fs []
+        >> Cases_on `t` >> fs []
+        >> Cases_on `t'` >> fs []
+        >> Cases_on `t` >> fs []
+        >> Cases_on `t'` >> fs
+             [compute_boundedAnalyticObjectDeltaStateSupportTheory.bounded_object_q_delta_hessian_cv_def])
+  >> gvs []
+  >> simp
+       [compute_boundedCase16594ObjectSpecializedDispatchStepInvariantTheory.bounded_case16594_object_delta_product_refinement_context_def,
+        compute_boundedCase16594ObjectDeltaProductJetEvalTheory.bounded_case16594_object_delta_gradient_six_length,
+        compute_boundedCase16594ObjectDeltaProductJetEvalTheory.bounded_case16594_object_delta_hessian_six_length]
+  >> `bounded_packed_q_interval_valid_cv
+        (bounded_case16594_object_delta_product_center_value_cv
+          object_center_environment coordinate) /\
+      EVERY bounded_packed_q_interval_valid_cv
+        (bounded_case16594_object_delta_product_center_gradient_cv
+          object_center_environment coordinate) /\
+      EVERY bounded_packed_q_interval_valid_cv
+        (bounded_case16594_object_delta_product_semantic_outer_hessian_cv
+          semantic_radii object_center_environment object_outer_environment
+          coordinate)` by
+       (Cases_on `word_result`
+        >> fs
+             [compute_boundedAnalyticObjectDeltaStateSupportTheory.bounded_object_q_taylor_complete_cv_def,
+              compute_boundedAnalyticObjectPolyProgramRefinementTheory.bounded_taylor64_covers_object_q_def,
+              compute_boundedAnalyticObjectRefinementTheory.bounded_taylor64_covers_object_q_state_def]
+        >> metis_tac
+             [compute_boundedPackedObjectSourceContractRefinementTheory.bounded_interval64_covers_packed_q_interval_valid_cv,
+              compute_boundedPackedObjectSourceContractRefinementTheory.bounded_interval64_list_covers_packed_q_interval_valid_cv])
+  >> simp
+       [compute_boundedCase16594ObjectDeltaProductSourceCompleteEvalTheory.bounded_case16594_object_delta_product_center_gradient_cv_def,
+        compute_boundedCase16594ObjectDeltaProductRefinementBridgeTheory.bounded_case16594_object_delta_product_semantic_outer_hessian_cv_def,
+        compute_boundedCase16594ObjectDeltaProductJetEvalTheory.bounded_case16594_object_delta_product_hessian_length,
+        compute_boundedCase16594ObjectDeltaProductHessianCompleteEvalTheory.bounded_case16594_object_delta_product_indices6_def]
+  >> `LENGTH
+        (bounded_case16594_object_delta_product_hessian_cv coordinate
+          (EL coordinate object_outer_environment)
+          (bounded_object_q_taylor_gradient_complete_cv semantic_radii
+            (bounded_case16594_object_delta_product_center_delta_gradient_cv
+              object_center_environment)
+            (bounded_object_q_delta_hessian_six_cv
+              (EL 0 object_outer_environment) (EL 1 object_outer_environment)
+              (EL 2 object_outer_environment) (EL 3 object_outer_environment)
+              (EL 4 object_outer_environment) (EL 5 object_outer_environment)))
+          bounded_case16594_object_delta_product_indices6
+          (bounded_object_q_delta_hessian_six_cv
+            (EL 0 object_outer_environment) (EL 1 object_outer_environment)
+            (EL 2 object_outer_environment) (EL 3 object_outer_environment)
+            (EL 4 object_outer_environment) (EL 5 object_outer_environment))) =
+      LENGTH bounded_case16594_object_delta_product_indices6` by
+       (irule
+          compute_boundedCase16594ObjectDeltaProductJetEvalTheory.bounded_case16594_object_delta_product_hessian_length
+        >> simp
+             [compute_boundedCase16594ObjectDeltaProductHessianCompleteEvalTheory.bounded_case16594_object_delta_product_indices6_def,
+              compute_boundedCase16594ObjectDeltaProductJetEvalTheory.bounded_case16594_object_delta_hessian_six_length])
+  >> gvs
+       [compute_boundedCase16594ObjectDeltaProductSourceCompleteEvalTheory.bounded_case16594_object_delta_product_center_delta_gradient_cv_def,
+        compute_boundedCase16594ObjectDeltaProductHessianCompleteEvalTheory.bounded_case16594_object_delta_product_indices6_def]
+QED
+
 Theorem bounded_case16594_object_joint_neg3_runtime_step:
   bounded_case16594_object_delta_neg_refinement_context
       semantic_radii weights semantic_center_boxes 3 /\
