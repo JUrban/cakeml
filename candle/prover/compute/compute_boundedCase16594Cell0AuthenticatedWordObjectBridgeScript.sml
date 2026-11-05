@@ -15,6 +15,7 @@ Ancestors
   compute_boundedPackedAnalyticNegativeBoundary
   compute_boundedCase16594FinalObjectBoundary
   compute_boundedPackedObjectAcceptRefinement
+  compute_boundedPackedObjectSourceContractRefinement
 Libs
   bossLib preamble wordsLib
 
@@ -166,6 +167,49 @@ Proof
   >> metis_tac
     [bounded_case16594_cell0_authenticated_word_radius_pairs,
      compute_boundedPackedObjectAcceptRefinementTheory.bounded_packed_object_completed_negative_refines_ordinary_accept6]
+QED
+
+Theorem bounded_case16594_cell0_authenticated_word_source_accept6:
+  ?object_domain object_center_value object_center_gradient
+   object_gradient_bounds object_hessian.
+    bounded_object_q_analytic_run
+      bounded_case16594_cell0_source_word_radii
+      bounded_case16594_cell0_authenticated_word_weights
+      bounded_case16594_cell0_authenticated_object_center_environment
+      bounded_case16594_cell0_authenticated_object_box_environment
+      bounded_case16594_program bounded_case16594_prepared_program
+      ([],bounded_case16594_cell0_source_word_certificates)
+      ([BoundedObjectQTaylor object_domain object_center_value
+          object_center_gradient
+          (bounded_object_q_taylor_value_complete_cv object_center_value
+            (bounded_object_q_taylor_error_cv
+              bounded_case16594_cell0_source_word_radii
+              object_center_gradient
+              bounded_case16594_cell0_authenticated_word_weights
+              object_hessian))
+          object_gradient_bounds object_hessian],[]) /\
+    bounded_taylor64_covers_object_q
+      bounded_case16594_cell0_authenticated_word_result
+      (BoundedObjectQTaylor object_domain object_center_value
+        object_center_gradient
+        (bounded_object_q_taylor_value_complete_cv object_center_value
+          (bounded_object_q_taylor_error_cv
+            bounded_case16594_cell0_source_word_radii
+            object_center_gradient
+            bounded_case16594_cell0_authenticated_word_weights
+            object_hessian))
+        object_gradient_bounds object_hessian) /\
+    bounded_packed_object_source_accept6
+      (MAP bounded_word64_object_q_cv
+        bounded_case16594_cell0_source_word_radii)
+      object_center_value object_center_gradient object_hessian
+Proof
+  mp_tac bounded_case16594_cell0_authenticated_word_ordinary_accept6
+  >> strip_tac
+  >> rpt (first_assum $ irule_at Any)
+  >> metis_tac
+    [bounded_case16594_cell0_authenticated_word_radius_pairs,
+     compute_boundedPackedObjectSourceContractRefinementTheory.bounded_packed_object_ordinary_accept_refines_source]
 QED
 
 val _ = export_theory ();
