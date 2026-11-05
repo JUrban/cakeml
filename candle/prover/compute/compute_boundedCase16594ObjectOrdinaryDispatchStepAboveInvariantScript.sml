@@ -10,6 +10,7 @@
 Theory compute_boundedCase16594ObjectOrdinaryDispatchStepAboveInvariant
 Ancestors
   compute_boundedCase16594ObjectAlgebraicDispatchInvariant
+  compute_boundedCase16594ObjectOrdinaryDispatchStepInvariant
   compute_boundedCase16594ObjectOrdinaryPolyInvariant
   compute_boundedCase16594ObjectDispatchStepAboveEval
 Libs
@@ -329,6 +330,248 @@ Proof
   >> conj_tac
   >- simp
        [compute_boundedAnalyticObjectProgramStepRefinementTheory.bounded_object_q_analytic_ordinary_step_def]
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_inverse_dispatch_stack_eval_above:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_packed_q_interval_valid_cv runtime_center_reciprocal /\
+  bounded_packed_q_interval_valid_cv runtime_box_reciprocal /\
+  runtime_center_reciprocal =
+    bounded_interval64_object_q_cv word_center_reciprocal /\
+  runtime_box_reciprocal =
+    bounded_interval64_object_q_cv word_box_reciprocal /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_taylor_center semantic_state)
+    runtime_center_reciprocal /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_taylor_value_bound semantic_state)
+    runtime_box_reciprocal /\
+  bounded_object_q_taylor_stack_runtime_refines
+    (runtime_state::runtime_rest) (semantic_state::semantic_rest) ==>
+  ?runtime_result.
+    bounded_case16594_object_dispatch_step_eval_above 8213
+      center_boxes outer_boxes (bounded_object_q_cv_list runtime_radii)
+      (Num 0) (Num 6)
+      (bounded_object_q_cv_list
+        ([runtime_center_reciprocal;runtime_box_reciprocal] ++
+           runtime_certificate_rest))
+      (bounded_object_q_cv_list (runtime_state::runtime_rest))
+      (bounded_object_q_cv_list (runtime_result::runtime_rest))
+      (bounded_object_q_cv_list runtime_certificate_rest) /\
+    bounded_object_q_analytic_ordinary_step semantic_radii weights
+      semantic_center_boxes semantic_outer_boxes BoundedAnalyticInverse
+      (semantic_state::semantic_rest,
+       BoundedAnalytic64InverseCertificate word_center_reciprocal
+         word_box_reciprocal::semantic_certificate_rest)
+      (bounded_object_q_taylor_inverse semantic_radii weights
+         runtime_center_reciprocal runtime_box_reciprocal semantic_state::
+         semantic_rest,
+       semantic_certificate_rest) /\
+    bounded_object_q_taylor_stack_runtime_refines
+      (runtime_result::runtime_rest)
+      (bounded_object_q_taylor_inverse semantic_radii weights
+         runtime_center_reciprocal runtime_box_reciprocal semantic_state::
+         semantic_rest)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`clock` |-> `SUC 8213`, `refs` |-> `(ARB:hol_refs)`]
+         compute_boundedCase16594ObjectOrdinaryDispatchStepInvariantTheory.bounded_case16594_object_inverse_dispatch_stack_runtime_refines)
+  >> impl_tac >- (asm_rewrite_tac [] >> intLib.ARITH_TAC)
+  >> disch_then (qx_choose_then `runtime_result` strip_assume_tac)
+  >> qexists_tac `runtime_result`
+  >> conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectDispatchStepAboveEvalTheory.bounded_case16594_object_dispatch_step_eval_suc_to_above
+      >> qexists_tac `ARB`
+      >> first_assum ACCEPT_TAC)
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_sqrt_dispatch_stack_eval_above:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_packed_q_interval_valid_cv runtime_center_root /\
+  bounded_packed_q_interval_valid_cv runtime_box_root /\
+  bounded_packed_q_interval_valid_cv runtime_center_derivative /\
+  bounded_packed_q_interval_valid_cv runtime_box_derivative /\
+  bounded_packed_q_interval_valid_cv runtime_box_second_reciprocal /\
+  runtime_center_root = bounded_interval64_object_q_cv word_center_root /\
+  runtime_box_root = bounded_interval64_object_q_cv word_box_root /\
+  runtime_center_derivative =
+    bounded_interval64_object_q_cv word_center_derivative /\
+  runtime_box_derivative =
+    bounded_interval64_object_q_cv word_box_derivative /\
+  runtime_box_second_reciprocal =
+    bounded_interval64_object_q_cv word_box_second_reciprocal /\
+  bounded_object_q_sqrt_certificate_exact
+    (bounded_object_q_taylor_center semantic_state) runtime_center_root /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_interval_add_cv runtime_center_root runtime_center_root)
+    runtime_center_derivative /\
+  bounded_object_q_sqrt_certificate_exact
+    (bounded_object_q_taylor_value_bound semantic_state) runtime_box_root /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_interval_add_cv runtime_box_root runtime_box_root)
+    runtime_box_derivative /\
+  bounded_object_q_positive_inv_certificate_exact
+    (bounded_object_q_interval_mul_cv
+      (bounded_object_q_interval_add_cv runtime_box_root runtime_box_root)
+      (bounded_object_q_interval_add_cv
+        (bounded_object_q_taylor_value_bound semantic_state)
+        (bounded_object_q_taylor_value_bound semantic_state)))
+    runtime_box_second_reciprocal /\
+  bounded_object_q_taylor_stack_runtime_refines
+    (runtime_state::runtime_rest) (semantic_state::semantic_rest) ==>
+  ?runtime_result.
+    bounded_case16594_object_dispatch_step_eval_above 8213
+      center_boxes outer_boxes (bounded_object_q_cv_list runtime_radii)
+      (Num 0) (Pair (Num 1) source_payload)
+      (bounded_object_q_cv_list
+        ([runtime_center_root;runtime_box_root;
+          runtime_center_derivative;runtime_box_derivative;
+          runtime_box_second_reciprocal] ++ runtime_certificate_rest))
+      (bounded_object_q_cv_list (runtime_state::runtime_rest))
+      (bounded_object_q_cv_list (runtime_result::runtime_rest))
+      (bounded_object_q_cv_list runtime_certificate_rest) /\
+    bounded_object_q_analytic_ordinary_step semantic_radii weights
+      semantic_center_boxes semantic_outer_boxes BoundedAnalyticSqrt
+      (semantic_state::semantic_rest,
+       BoundedAnalytic64SqrtCertificate word_center_root word_box_root
+         word_center_derivative word_box_derivative
+         word_box_second_reciprocal::semantic_certificate_rest)
+      (bounded_object_q_taylor_sqrt semantic_radii weights
+         runtime_center_root runtime_center_derivative
+         runtime_box_derivative runtime_box_second_reciprocal semantic_state::
+         semantic_rest,
+       semantic_certificate_rest) /\
+    bounded_object_q_taylor_stack_runtime_refines
+      (runtime_result::runtime_rest)
+      (bounded_object_q_taylor_sqrt semantic_radii weights
+         runtime_center_root runtime_center_derivative
+         runtime_box_derivative runtime_box_second_reciprocal semantic_state::
+         semantic_rest)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`clock` |-> `SUC 8213`, `refs` |-> `(ARB:hol_refs)`]
+         compute_boundedCase16594ObjectOrdinaryDispatchStepInvariantTheory.bounded_case16594_object_sqrt_dispatch_stack_runtime_refines)
+  >> impl_tac >- (asm_rewrite_tac [] >> intLib.ARITH_TAC)
+  >> disch_then (qx_choose_then `runtime_result` strip_assume_tac)
+  >> qexists_tac `runtime_result`
+  >> conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectDispatchStepAboveEvalTheory.bounded_case16594_object_dispatch_step_eval_suc_to_above
+      >> qexists_tac `ARB`
+      >> first_assum ACCEPT_TAC)
+  >> asm_rewrite_tac []
+QED
+
+Theorem bounded_case16594_object_atan_dispatch_stack_eval_above:
+  EVERY bounded_object_q_encoded runtime_radii /\
+  LENGTH runtime_radii = 6 /\
+  bounded_taylor_radius_pairs semantic_radii = SOME weights /\
+  LIST_REL bounded_case10173_q_cv_equiv runtime_radii
+    (MAP bounded_word64_object_q_cv semantic_radii) /\
+  bounded_packed_q_interval_valid_cv runtime_center_result /\
+  bounded_packed_q_interval_valid_cv runtime_center_derivative /\
+  bounded_packed_q_interval_valid_cv runtime_box_derivative /\
+  bounded_packed_q_interval_valid_cv runtime_box_derivative_square /\
+  bounded_object_q_interval_encoded runtime_center_input /\
+  bounded_object_q_interval_encoded runtime_box_input /\
+  runtime_center_input =
+    bounded_interval64_object_q_cv word_center_input /\
+  runtime_box_input = bounded_interval64_object_q_cv word_box_input /\
+  runtime_center_result =
+    bounded_interval64_object_q_cv word_center_result /\
+  runtime_center_square =
+    bounded_interval64_object_q_cv word_center_square /\
+  runtime_center_derivative =
+    bounded_interval64_object_q_cv word_center_derivative /\
+  runtime_box_square = bounded_interval64_object_q_cv word_box_square /\
+  runtime_box_derivative =
+    bounded_interval64_object_q_cv word_box_derivative /\
+  runtime_box_derivative_square =
+    bounded_interval64_object_q_cv word_box_derivative_square /\
+  bounded_interval64_atan_range word_center_input word_lower_reciprocal
+    word_upper_reciprocal = SOME word_center_result /\
+  bounded_object_q_interval_encloses runtime_center_input
+    (bounded_object_q_taylor_center semantic_state) /\
+  bounded_object_q_interval_encloses runtime_box_input
+    (bounded_object_q_taylor_value_bound semantic_state) /\
+  bounded_object_q_square_certificate_exact
+    (bounded_object_q_taylor_center semantic_state) runtime_center_input
+    runtime_center_square /\
+  bounded_object_q_square_certificate_exact
+    (bounded_object_q_taylor_value_bound semantic_state) runtime_box_input
+    runtime_box_square /\
+  bounded_object_q_inv_certificate_exact
+    (bounded_object_q_atan_denominator_cv runtime_center_square)
+    runtime_center_derivative /\
+  bounded_object_q_inv_certificate_exact
+    (bounded_object_q_atan_denominator_cv runtime_box_square)
+    runtime_box_derivative /\
+  bounded_object_q_square_certificate_exact runtime_box_derivative
+    runtime_box_derivative runtime_box_derivative_square /\
+  bounded_case16594_object_atan_fixed_pure_contract runtime_center_input
+    runtime_box_input runtime_center_result runtime_center_square
+    runtime_center_derivative runtime_box_square runtime_box_derivative
+    runtime_box_derivative_square /\
+  bounded_object_q_taylor_stack_runtime_refines
+    (runtime_state::runtime_rest) (semantic_state::semantic_rest) ==>
+  ?runtime_result.
+    bounded_case16594_object_dispatch_step_eval_above 16387
+      center_boxes outer_boxes (bounded_object_q_cv_list runtime_radii)
+      (Num 0) (Num 7)
+      (bounded_object_q_cv_list
+        ([runtime_center_input;runtime_box_input;runtime_center_result;
+          runtime_center_square;runtime_center_derivative;
+          runtime_box_square;runtime_box_derivative;
+          runtime_box_derivative_square] ++ runtime_certificate_rest))
+      (bounded_object_q_cv_list (runtime_state::runtime_rest))
+      (bounded_object_q_cv_list (runtime_result::runtime_rest))
+      (bounded_object_q_cv_list runtime_certificate_rest) /\
+    bounded_object_q_analytic_ordinary_step semantic_radii weights
+      semantic_center_boxes semantic_outer_boxes BoundedAnalyticAtan
+      (semantic_state::semantic_rest,
+       BoundedAnalytic64AtanCertificate word_lower_reciprocal
+         word_upper_reciprocal word_center_derivative word_box_derivative::
+         semantic_certificate_rest)
+      (bounded_object_q_taylor_atan semantic_radii weights
+         runtime_center_result runtime_center_derivative
+         runtime_box_derivative runtime_box_derivative_square semantic_state::
+         semantic_rest,
+       semantic_certificate_rest) /\
+    bounded_object_q_taylor_stack_runtime_refines
+      (runtime_result::runtime_rest)
+      (bounded_object_q_taylor_atan semantic_radii weights
+         runtime_center_result runtime_center_derivative
+         runtime_box_derivative runtime_box_derivative_square semantic_state::
+         semantic_rest)
+Proof
+  strip_tac
+  >> mp_tac
+       (Q.INST
+         [`clock` |-> `SUC 16387`, `refs` |-> `(ARB:hol_refs)`]
+         compute_boundedCase16594ObjectOrdinaryDispatchStepInvariantTheory.bounded_case16594_object_atan_dispatch_stack_runtime_refines)
+  >> impl_tac >- (asm_rewrite_tac [] >> intLib.ARITH_TAC)
+  >> disch_then (qx_choose_then `runtime_result` strip_assume_tac)
+  >> qexists_tac `runtime_result`
+  >> conj_tac
+  >- (irule
+        compute_boundedCase16594ObjectDispatchStepAboveEvalTheory.bounded_case16594_object_dispatch_step_eval_suc_to_above
+      >> qexists_tac `ARB`
+      >> first_assum ACCEPT_TAC)
   >> asm_rewrite_tac []
 QED
 
