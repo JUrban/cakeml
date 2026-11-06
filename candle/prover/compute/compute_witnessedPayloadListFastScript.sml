@@ -32,22 +32,22 @@ Definition compute_witnessed_payloads_fast_eval_def:
   compute_witnessed_payloads_fast_eval
       (approved_ceqs:(mlstring # (mlstring list # compute_exp)) list)
       (witness_name:mlstring) (entry:mlstring)
-      (checker:cv -> cv list -> bool) ceqs expression =
+      (checker:cv -> cv list -> cv option) ceqs expression =
     if ceqs <> approved_ceqs then NONE
     else
       case compute_literal_witnessed_payloads witness_name entry expression of
       | NONE => NONE
       | SOME (witness,payloads) =>
-          if checker witness payloads then SOME (Num 1) else NONE
+          checker witness payloads
 End
 
 Definition compute_witnessed_payloads_refines_def:
   compute_witnessed_payloads_refines approved_ceqs entry checker <=>
-    !expression witness payloads state.
+    !expression witness payloads result state.
       compute_literal_call_payloads entry expression = SOME payloads /\
-      checker witness payloads ==>
+      checker witness payloads = SOME result ==>
       compute_eval (compute_default_clock - 1) approved_ceqs expression state =
-        (M_success (from_cv (Num 1)),state)
+        (M_success (from_cv result),state)
 End
 
 Definition compute_witnessed_payload4_list_checker_def:
@@ -55,7 +55,7 @@ Definition compute_witnessed_payload4_list_checker_def:
     case payloads of
     | [payload1;payload2;payload3;payload4] =>
         checker witness payload1 payload2 payload3 payload4
-    | _ => F
+    | _ => NONE
 End
 
 Theorem compute_literal_witnessed_payloads_sound:
@@ -97,11 +97,11 @@ Proof
         combinTheory.o_DEF,
         ml_monadBaseTheory.st_ex_bind_def,
         ml_monadBaseTheory.st_ex_return_def]
-  >> qmatch_assum_rename_tac `checker witness payloads`
+  >> qmatch_assum_rename_tac `checker witness payloads = SOME result`
   >> qpat_x_assum
-       `!expression witness payloads state. _`
+       `!expression witness payloads result state. _`
        (qspecl_then
-         [`App entry (MAP from_cv payloads)`,`witness`,`payloads`,`s`]
+         [`App entry (MAP from_cv payloads)`,`witness`,`payloads`,`result`,`s`]
          mp_tac)
   >> CONV_TAC (DEPTH_CONV ETA_CONV)
   >> simp [computeTheory.compute_default_clock]
@@ -153,12 +153,12 @@ Proof
 QED
 
 Theorem compute_witnessed_payloads_fast_eval_hit[simp]:
-  checker witness payloads ==>
+  checker witness payloads = SOME result ==>
   compute_witnessed_payloads_fast_eval
       approved_ceqs witness_name entry checker approved_ceqs
       (Let witness_name (from_cv witness)
         (App entry (MAP from_cv payloads))) =
-    SOME (Num 1)
+    SOME result
 Proof
   simp [compute_witnessed_payloads_fast_eval_def]
 QED
@@ -172,7 +172,7 @@ Proof
 QED
 
 Theorem compute_witnessed_payloads_fast_eval_rejects_checker_miss[simp]:
-  ~checker witness payloads ==>
+  checker witness payloads = NONE ==>
   compute_witnessed_payloads_fast_eval
       approved_ceqs witness_name entry checker approved_ceqs
       (Let witness_name (from_cv witness)
@@ -217,15 +217,15 @@ Proof
 QED
 
 Theorem compute_witnessed_payload4_list_checker_rejects_short[simp]:
-  ~compute_witnessed_payload4_list_checker checker witness
-    [payload1;payload2;payload3]
+  compute_witnessed_payload4_list_checker checker witness
+    [payload1;payload2;payload3] = NONE
 Proof
   simp [compute_witnessed_payload4_list_checker_def]
 QED
 
 Theorem compute_witnessed_payload4_list_checker_rejects_extra[simp]:
-  ~compute_witnessed_payload4_list_checker checker witness
-    [payload1;payload2;payload3;payload4;payload5]
+  compute_witnessed_payload4_list_checker checker witness
+    [payload1;payload2;payload3;payload4;payload5] = NONE
 Proof
   simp [compute_witnessed_payload4_list_checker_def]
 QED
