@@ -2,12 +2,12 @@
  * Fixed-word trace on a box that actually encloses the authenticated
  * case-16594 cell-0 production payload.
  *
- * The initial DEVELOPMENT fixture is the exact directed rounding of the
- * native input export, but the production object entry deliberately carries
- * an additional one-unit scale-2^40 guard at several outer-box endpoints.
- * Expand every finite signed endpoint by one unit, prove that this uniformly
- * conservative box covers the authenticated object-q box, and evaluate the
- * unchanged 167-instruction checker with the unchanged typed certificates.
+ * The initial DEVELOPMENT fixture is the inward-rounded source word box.
+ * Coordinate 5 needs one upper-endpoint unit to cover the genuine exact
+ * source; every other endpoint already covers it.  Use precisely that minimal
+ * expansion, prove that it covers the authenticated object-q box, and
+ * evaluate the unchanged 167-instruction checker with the unchanged typed
+ * certificates.
  *****************************************************************************)
 Theory compute_boundedCase16594Cell0AuthenticatedWordRuntimeTrace
 Ancestors
@@ -19,6 +19,10 @@ Ancestors
   compute_boundedPackedObjectEntryContract
 Libs
   bossLib preamble wordsLib cv_transLib intLib
+
+fun development_stage name =
+  (print ("CANDLE_CASE16594_TIGHT_TRACE_STAGE " ^ name ^ "\n");
+   TextIO.flushOut TextIO.stdOut);
 
 Definition bounded_case16594_interval64_outward_one_def:
   bounded_case16594_interval64_outward_one
@@ -74,8 +78,24 @@ val bounded_case16594_cell0_source_word_certificates_def =
 
 Definition bounded_case16594_cell0_authenticated_word_box_environment_def:
   bounded_case16594_cell0_authenticated_word_box_environment =
-    MAP bounded_case16594_interval64_outward_one
-      bounded_case16594_cell0_source_word_box_environment
+    [BoundedInterval64
+       (BoundedSigned64 F 5690192576066w)
+       (BoundedSigned64 F 6013229092309w);
+     BoundedInterval64
+       (BoundedSigned64 F 4398046511104w)
+       (BoundedSigned64 F 4721083027347w);
+     BoundedInterval64
+       (BoundedSigned64 F 5690192576066w)
+       (BoundedSigned64 F 6013229092309w);
+     BoundedInterval64
+       (BoundedSigned64 F 4398046511104w)
+       (BoundedSigned64 F 5044119543587w);
+     BoundedInterval64
+       (BoundedSigned64 F 11652156938728w)
+       (BoundedSigned64 F 12074774848709w);
+     BoundedInterval64
+       (BoundedSigned64 F 5690192576066w)
+       (BoundedSigned64 F 6336265608550w)]
 End
 
 fun cv_list_elements tm =
@@ -108,6 +128,7 @@ val bounded_case16594_cell0_authenticated_object_box_environment_def =
   define_literal "bounded_case16594_cell0_authenticated_object_box_environment"
     ``:cv list`` object_box_environment_tm;
 
+val _ = development_stage "before_center_coverage";
 Theorem bounded_case16594_cell0_source_word_center_covers_authenticated:
   LIST_REL bounded_interval64_covers_object_q
     bounded_case16594_cell0_source_word_center_environment
@@ -128,6 +149,7 @@ Proof
   >> wordsLib.WORD_EVAL_TAC
   >> intLib.ARITH_TAC
 QED
+val _ = development_stage "after_center_coverage";
 
 Theorem bounded_case16594_cell0_authenticated_word_box_covers_authenticated:
   LIST_REL bounded_interval64_covers_object_q
@@ -151,6 +173,7 @@ Proof
   >> wordsLib.WORD_EVAL_TAC
   >> intLib.ARITH_TAC
 QED
+val _ = development_stage "after_box_coverage";
 
 val authenticated_box_eval =
   SIMP_CONV (srw_ss())
@@ -200,7 +223,9 @@ val _ =
      compute_boundedAnalyticRuntimeCertificateTraceCVTheory.from_compute_boundedAnalyticProgram_to_compute_boundedAnalyticProgram_bounded_analytic64_instruction_thm,
      compute_boundedAnalyticRuntimeCertificateTraceCVTheory.from_compute_boundedAnalyticProgram_to_compute_boundedAnalyticProgram_bounded_analytic64_certificate_thm];
 
+val _ = development_stage "before_runtime_cv_eval";
 val runtime_trace_literal_eval = time cv_eval runtime_trace_computation_tm;
+val _ = development_stage "after_runtime_cv_eval";
 val runtime_trace_eval =
   REWRITE_RULE [GSYM prepared_program_eval] runtime_trace_literal_eval;
 val runtime_trace_value_tm = rhs (concl runtime_trace_eval);
