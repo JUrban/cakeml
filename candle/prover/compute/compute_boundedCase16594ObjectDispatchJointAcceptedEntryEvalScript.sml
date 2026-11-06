@@ -14,6 +14,15 @@ Ancestors
 Libs
   bossLib preamble intLib
 
+Theorem bounded_case16594_object_joint_complete_runtime_payload_identity:
+  bounded_case16594_generic_prefix167_codes_cv =
+    bounded_case16594_dispatch_codes_cv /\
+  bounded_case16594_generic_prefix167_sources_cv =
+    bounded_case16594_source_program_cv
+Proof
+  EVAL_TAC
+QED
+
 Theorem bounded_case16594_object_joint_complete_accepted_entry_eval:
   EVERY bounded_object_q_encoded runtime_radii /\
   LENGTH runtime_radii = 6 /\
