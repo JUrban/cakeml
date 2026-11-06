@@ -12,10 +12,25 @@ Ancestors
   compute_boundedCase16594Cell0AuthenticatedFastObjectEntry
   compute_registeredCase16594Cell0AuthenticatedFastObjectEntry
 Libs
-  bossLib preamble
+  bossLib preamble wordsLib
 
 val bounded_case16594_cell0_authenticated_fast_object_entry_literal_eval =
-  EVAL
+  SIMP_CONV
+    (srw_ss())
+    [compute_boundedCase16594Cell0AuthenticatedFastObjectEntryTheory.bounded_case16594_cell0_authenticated_fast_object_entry_cexp_def,
+     compute_boundedCase16594ObjectDispatchCell0PayloadIdentityTheory.bounded_case16594_runtime_cell0_center_boxes_cv_def,
+     compute_boundedCase16594ObjectDispatchCell0PayloadIdentityTheory.bounded_case16594_runtime_cell0_outer_boxes_cv_def,
+     compute_boundedCase16594Cell0RuntimePayloadIdentityTheory.bounded_case16594_cell0_authenticated_object_radii_def,
+     compute_boundedCase16594ObjectDispatchCell0PayloadIdentityTheory.bounded_case16594_runtime_cell0_codes_cv_def,
+     compute_boundedCase16594ObjectDispatchCell0PayloadIdentityTheory.bounded_case16594_runtime_cell0_sources_cv_def,
+     compute_boundedCase16594Cell0FastCertificatePayloadTheory.bounded_case16594_cell0_fast_object_certificates_cv_def,
+     compute_boundedCase16594Cell0FastCertificatePayloadTheory.bounded_case16594_cell0_fast_object_certificates_def,
+     compute_boundedCase16594Cell0AuthenticatedWordRuntimeTraceTheory.bounded_case16594_cell0_authenticated_word_runtime_packets_def,
+     compute_boundedAnalyticObjectCertificateRefinementTheory.bounded_interval64_object_q_cv_def,
+     compute_boundedAnalyticObjectCertificateRefinementTheory.bounded_signed64_object_q_cv_def,
+     compute_boundedObjectIntervalRelationTheory.bounded_signed64_object_cv_def,
+     compute_boundedPackedObjectEntryContractTheory.bounded_object_q_cv_list_def,
+     compute_execTheory.from_cv_def]
     ``bounded_case16594_cell0_authenticated_fast_object_entry_cexp``;
 
 val bounded_case16594_cell0_authenticated_fast_object_entry_literal_tm =
