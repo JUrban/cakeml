@@ -279,4 +279,27 @@ Proof
   >> asm_rewrite_tac []
 QED
 
+Theorem bounded_case16594_direct_split_implies_join:
+  !current_index axis_index roots left_boxes right_boxes.
+    bounded_case16594_direct_boxes_split_exact_from current_index axis_index
+      roots left_boxes right_boxes ==>
+    bounded_case16594_direct_boxes_joinable left_boxes right_boxes /\
+    bounded_case16594_direct_boxes_join left_boxes right_boxes = roots
+Proof
+  Induct_on `roots`
+  >> simp
+       [bounded_case16594_direct_boxes_split_exact_from_def,
+        bounded_case16594_direct_boxes_joinable_def,
+        bounded_case16594_direct_boxes_join_def]
+  >> rpt gen_tac
+  >> every_case_tac
+  >> fs
+       [bounded_case16594_direct_boxes_split_exact_from_def,
+        bounded_case16594_direct_boxes_joinable_def,
+        bounded_case16594_direct_boxes_join_def]
+  >> rw []
+  >> fs []
+  >> metis_tac []
+QED
+
 val _ = export_theory ();
