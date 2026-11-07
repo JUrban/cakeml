@@ -4,18 +4,43 @@
 Theory compute_boundedCase16594WordWholeDirectProbeProg
 Ancestors
   compute_boundedCase16594WordWholeDirectExternalInputProg
-  compute_boundedCase16594Cell0WholeHolLightData
 Libs
   preamble ml_translatorLib ml_progLib basis
 
 val _ = translation_extends
   "compute_boundedCase16594WordWholeDirectExternalInputProg";
 
-fun translate_closed def =
-  def |> CONV_RULE (RAND_CONV EVAL) |> translate;
+(*
+ * Both [compute_exp] and [cv] deliberately use the HOL constructor names
+ * [Num] and [Pair].  A CakeML quotation cannot disambiguate those constructors
+ * from surrounding function applications, so keep every probe-side cv
+ * construction behind an explicitly typed, translated definition.
+ *)
+Definition bounded_case16594_direct_probe_cv_num_def:
+  bounded_case16594_direct_probe_cv_num (value:num) = (Num value : cv)
+End
 
-val _ = translate_closed
-  compute_boundedCase16594Cell0WholeHolLightDataTheory.bounded_case16594_cell0_whole_hol_light_result_def;
+Definition bounded_case16594_direct_probe_cv_pair_def:
+  bounded_case16594_direct_probe_cv_pair (left:cv) (right:cv) =
+    (Pair left right : cv)
+End
+
+Definition bounded_case16594_direct_probe_replace_cv_head_def:
+  (bounded_case16594_direct_probe_replace_cv_head replacement
+      (Pair head tail : cv) = Pair replacement tail) /\
+  (bounded_case16594_direct_probe_replace_cv_head replacement
+      (Num value : cv) = Num 0)
+End
+
+Definition bounded_case16594_direct_probe_drop_cv_head_def:
+  (bounded_case16594_direct_probe_drop_cv_head (Pair head tail : cv) = tail) /\
+  (bounded_case16594_direct_probe_drop_cv_head (Num value : cv) = Num 0)
+End
+
+val _ = translate bounded_case16594_direct_probe_cv_num_def;
+val _ = translate bounded_case16594_direct_probe_cv_pair_def;
+val _ = translate bounded_case16594_direct_probe_replace_cv_head_def;
+val _ = translate bounded_case16594_direct_probe_drop_cv_head_def;
 
 Quote main = cakeml:
   fun read_all path =
@@ -27,20 +52,20 @@ Quote main = cakeml:
       contents
     end
 
-  fun replace_cv_head replacement value =
-    case value of
-      Pair head tail => Pair replacement tail
-    | _ => Num 0
-
-  fun drop_cv_head value =
-    case value of
-      Pair head tail => tail
-    | _ => Num 0
-
   fun mutate_first_byte bytes =
     case bytes of
       [] => []
     | head::tail => #"\000"::tail
+
+  fun positive_verdict result =
+    case result of
+      None => "rejected\n"
+    | Some value => "accepted\n"
+
+  fun rejection_verdict result =
+    case result of
+      None => "accepted\n"
+    | Some value => "rejected\n"
 
   fun check_case16594_whole_direct mode certificate_path packed_cells_path
       tokens_path jobs_path =
@@ -53,25 +78,24 @@ Quote main = cakeml:
       val jobs_text = String.explode (read_all jobs_path)
     in
       case cv_pack_byte_tree certificate_bytes of
-        None => false
+        None => "rejected\n"
       | Some certificate =>
           case cv_flat_parse_list packed_cells_text of
-            None => false
+            None => "rejected\n"
           | Some packed_cells =>
               case cv_flat_parse_list tokens_text of
-                None => false
+                None => "rejected\n"
               | Some tokens =>
                   case cv_flat_parse_list jobs_text of
-                    None => false
+                    None => "rejected\n"
                   | Some jobs =>
                       let
                         val source_descriptor =
-                          Pair bounded_case16594_generic_prefix167_codes_cv
-                            (Pair
+                          bounded_case16594_direct_probe_cv_pair
+                            bounded_case16594_generic_prefix167_codes_cv
+                            (bounded_case16594_direct_probe_cv_pair
                               bounded_case16594_generic_prefix167_sources_cv
                               packed_cells)
-                        val expected = Some
-                          bounded_case16594_cell0_whole_hol_light_result
                         fun run certificate_value source_value dim_value
                             tokens_value jobs_value =
                           bounded_case16594_word_whole_direct_checker
@@ -79,63 +103,92 @@ Quote main = cakeml:
                             tokens_value jobs_value
                       in
                         if mode = "positive" then
-                          run certificate source_descriptor (Num 6)
-                            tokens jobs = expected
+                          positive_verdict
+                            (run certificate source_descriptor
+                              (bounded_case16594_direct_probe_cv_num 6)
+                              tokens jobs)
                         else if mode = "certificate" then
                           (case cv_pack_byte_tree
                               (mutate_first_byte certificate_bytes) of
-                             None => true
+                             None => "accepted\n"
                            | Some changed =>
-                               run changed source_descriptor (Num 6)
-                                 tokens jobs <> expected)
+                               rejection_verdict
+                                 (run changed source_descriptor
+                                   (bounded_case16594_direct_probe_cv_num 6)
+                                   tokens jobs))
                         else if mode = "source" then
-                          run certificate
-                            (Pair (Num 0)
-                              (Pair
-                                bounded_case16594_generic_prefix167_sources_cv
-                                packed_cells))
-                            (Num 6) tokens jobs <> expected
+                          rejection_verdict
+                            (run certificate
+                              (bounded_case16594_direct_probe_cv_pair
+                                (bounded_case16594_direct_probe_cv_num 0)
+                                (bounded_case16594_direct_probe_cv_pair
+                                  bounded_case16594_generic_prefix167_sources_cv
+                                  packed_cells))
+                              (bounded_case16594_direct_probe_cv_num 6)
+                              tokens jobs)
                         else if mode = "cell" then
-                          run certificate
-                            (Pair bounded_case16594_generic_prefix167_codes_cv
-                              (Pair
-                                bounded_case16594_generic_prefix167_sources_cv
-                                (replace_cv_head (Num 0) packed_cells)))
-                            (Num 6) tokens jobs <> expected
+                          rejection_verdict
+                            (run certificate
+                              (bounded_case16594_direct_probe_cv_pair
+                                bounded_case16594_generic_prefix167_codes_cv
+                                (bounded_case16594_direct_probe_cv_pair
+                                  bounded_case16594_generic_prefix167_sources_cv
+                                  (bounded_case16594_direct_probe_replace_cv_head
+                                    (bounded_case16594_direct_probe_cv_num 0)
+                                    packed_cells)))
+                              (bounded_case16594_direct_probe_cv_num 6)
+                              tokens jobs)
                         else if mode = "token" then
-                          run certificate source_descriptor (Num 6)
-                            (replace_cv_head (Num 999) tokens) jobs <>
-                            expected
+                          rejection_verdict
+                            (run certificate source_descriptor
+                              (bounded_case16594_direct_probe_cv_num 6)
+                              (bounded_case16594_direct_probe_replace_cv_head
+                                (bounded_case16594_direct_probe_cv_num 999)
+                                tokens) jobs)
                         else if mode = "job" then
-                          run certificate source_descriptor (Num 6) tokens
-                            (replace_cv_head (Num 0) jobs) <> expected
+                          rejection_verdict
+                            (run certificate source_descriptor
+                              (bounded_case16594_direct_probe_cv_num 6) tokens
+                              (bounded_case16594_direct_probe_replace_cv_head
+                                (bounded_case16594_direct_probe_cv_num 0)
+                                jobs))
                         else if mode = "dimension" then
-                          run certificate source_descriptor (Num 0)
-                            tokens jobs <> expected
+                          rejection_verdict
+                            (run certificate source_descriptor
+                              (bounded_case16594_direct_probe_cv_num 0)
+                              tokens jobs)
                         else if mode = "truncated-cells" then
-                          run certificate
-                            (Pair bounded_case16594_generic_prefix167_codes_cv
-                              (Pair
-                                bounded_case16594_generic_prefix167_sources_cv
-                                (drop_cv_head packed_cells)))
-                            (Num 6) tokens jobs <> expected
+                          rejection_verdict
+                            (run certificate
+                              (bounded_case16594_direct_probe_cv_pair
+                                bounded_case16594_generic_prefix167_codes_cv
+                                (bounded_case16594_direct_probe_cv_pair
+                                  bounded_case16594_generic_prefix167_sources_cv
+                                  (bounded_case16594_direct_probe_drop_cv_head
+                                    packed_cells)))
+                              (bounded_case16594_direct_probe_cv_num 6)
+                              tokens jobs)
                         else if mode = "truncated-jobs" then
-                          run certificate source_descriptor (Num 6) tokens
-                            (drop_cv_head jobs) <> expected
+                          rejection_verdict
+                            (run certificate source_descriptor
+                              (bounded_case16594_direct_probe_cv_num 6) tokens
+                              (bounded_case16594_direct_probe_drop_cv_head jobs))
                         else if mode = "truncated-tokens" then
-                          run certificate source_descriptor (Num 6)
-                            (drop_cv_head tokens) jobs <> expected
-                        else false
+                          rejection_verdict
+                            (run certificate source_descriptor
+                              (bounded_case16594_direct_probe_cv_num 6)
+                              (bounded_case16594_direct_probe_drop_cv_head
+                                tokens) jobs)
+                        else "rejected\n"
                       end
     end
 
   fun main u =
     case CommandLine.arguments () of
       [mode,certificate_path,packed_cells_path,tokens_path,jobs_path] =>
-        if check_case16594_whole_direct mode certificate_path
-             packed_cells_path tokens_path jobs_path
-        then TextIO.print "accepted\n"
-        else TextIO.print "rejected\n"
+        TextIO.print
+          (check_case16594_whole_direct mode certificate_path
+            packed_cells_path tokens_path jobs_path)
     | _ => TextIO.output TextIO.stdErr
         "usage: direct-checker MODE CERTIFICATE PACKED_CELLS TOKENS JOBS\n"
 
