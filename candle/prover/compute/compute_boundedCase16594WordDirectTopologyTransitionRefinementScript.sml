@@ -324,4 +324,47 @@ Proof
         ml_monadBaseTheory.st_ex_return_def]
 QED
 
+Theorem bounded_case16594_direct_topology_transition_eval:
+  !dimension token encoded_jobs active_stack remaining_jobs next_stack clock refs.
+    bounded_case16594_direct_topology_transition dimension token
+      encoded_jobs active_stack = SOME (remaining_jobs,next_stack) /\
+    dimension + 40 < clock ==>
+    compute_eval clock bounded_case16594_cell0_whole_combined_ceqs
+      (App
+        «candle_cv_q_dim_taylor_model_fixed_outer_variable_compact_transition»
+        [from_cv (Num dimension);from_cv token;from_cv encoded_jobs;
+         from_cv active_stack]) refs =
+      (M_success
+        (from_cv (Pair (Num 1) (Pair remaining_jobs next_stack))),refs)
+Proof
+  rpt gen_tac
+  >> Cases_on `token`
+  >- (fs
+       [compute_boundedCase16594WordDirectTopologyTheory.bounded_case16594_direct_topology_transition_def]
+      >> BasicProvers.EVERY_CASE_TAC
+      >> fs []
+      >> rpt strip_tac
+      >> fs []
+      >> qpat_x_assum `Pair _ _ = next_stack`
+           (fn th => SUBST_ALL_TAC (GSYM th))
+      >> PURE_REWRITE_TAC [compute_execTheory.from_cv_def]
+      >> irule
+           (PURE_REWRITE_RULE [compute_execTheory.from_cv_def]
+             bounded_case16594_direct_leaf_transition_eval)
+      >> fs [])
+  >> fs
+       [compute_boundedCase16594WordDirectTopologyTheory.bounded_case16594_direct_topology_transition_def]
+  >> BasicProvers.EVERY_CASE_TAC
+  >> fs []
+  >> rpt strip_tac
+  >> fs []
+  >> qpat_x_assum `Pair _ _ = next_stack`
+       (fn th => SUBST_ALL_TAC (GSYM th))
+  >> PURE_REWRITE_TAC [compute_execTheory.from_cv_def]
+  >> irule
+       (PURE_REWRITE_RULE [compute_execTheory.from_cv_def]
+         bounded_case16594_direct_internal_transition_eval)
+  >> asm_rewrite_tac []
+QED
+
 val _ = export_theory ();
