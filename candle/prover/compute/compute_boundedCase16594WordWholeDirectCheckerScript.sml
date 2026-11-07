@@ -108,4 +108,111 @@ Proof
   >> asm_rewrite_tac []
 QED
 
+Theorem bounded_case16594_word_whole_direct_checker_eval_clock:
+  bounded_case16594_word_whole_direct_checker certificate source_descriptor
+      (Num dimension) token_stream encoded_jobs = SOME result /\
+  524405 +
+      2 * bounded_case16594_object_cv_list_length
+        bounded_case16594_generic_prefix167_codes_cv + 875 + 20 < clock /\
+  bounded_case16594_direct_cv_list_length token_stream *
+      (dimension + 42) + 20 < clock ==>
+  compute_eval clock bounded_case16594_cell0_whole_combined_ceqs
+    (App «candle_cv_q_packed_object_whole_check»
+      [from_cv source_descriptor;from_cv (Num dimension);
+       from_cv token_stream;from_cv encoded_jobs])
+    (refs:hol_refs) = (M_success (from_cv result),refs)
+Proof
+  rpt strip_tac
+  >> imp_res_tac bounded_case16594_word_whole_direct_checker_contract
+  >> qpat_x_assum `source_descriptor = _` SUBST_ALL_TAC
+  >> qpat_x_assum `result = _` SUBST_ALL_TAC
+  >> qpat_x_assum `Num dimension = Num dimension'`
+       (fn th =>
+          assume_tac
+            (SYM (SIMP_RULE (srw_ss()) [compute_execTheory.cv_11] th)))
+  >> qpat_x_assum `dimension' = dimension` SUBST_ALL_TAC
+  >> rw
+       [compute_boundedCase16594Cell0WholeEvalTheory.bounded_case16594_cell0_whole_check_unfold]
+  >> simp
+       [compute_boundedCase16594Cell0WholeEvalTheory.bounded_case16594_cell0_whole_check_body_def,
+        compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `bounded_case16594_generic_prefix167_codes_cv`
+  >> conj_tac
+  >- simp
+       [compute_execTheory.from_cv_def,
+        Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.do_uop_def,compute_evalTheory.do_fst_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac
+       `Pair bounded_case16594_generic_prefix167_sources_cv packed_cells`
+  >> conj_tac
+  >- simp
+       [compute_execTheory.from_cv_def,
+        Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.do_uop_def,compute_evalTheory.do_snd_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `bounded_case16594_generic_prefix167_sources_cv`
+  >> conj_tac
+  >- simp
+       [compute_execTheory.from_cv_def,
+        Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.do_uop_def,compute_evalTheory.do_fst_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `packed_cells`
+  >> conj_tac
+  >- simp
+       [compute_execTheory.from_cv_def,
+        Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.do_uop_def,compute_evalTheory.do_snd_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> sg
+       `bounded_case16594_word_whole_direct_checker certificate
+          (Pair bounded_case16594_generic_prefix167_codes_cv
+            (Pair bounded_case16594_generic_prefix167_sources_cv
+              packed_cells)) (Num dimension) token_stream encoded_jobs =
+            SOME
+              (Pair (Num 1)
+                (Pair (Num 1) (Pair remaining_jobs final_stack))) /\
+        524405 +
+            2 * bounded_case16594_object_cv_list_length
+              bounded_case16594_generic_prefix167_codes_cv + 875 + 12 <
+          clock - 5 /\
+        bounded_case16594_direct_cv_list_length token_stream *
+            (dimension + 42) + 4 < clock - 5`
+  >- (rpt conj_tac >- asm_rewrite_tac [] >> intLib.ARITH_TAC)
+  >> imp_res_tac bounded_case16594_word_whole_direct_checker_pair_eval
+  >> qpat_x_assum `!state. _` (qspec_then `refs` assume_tac)
+  >> fs
+       [compute_boundedCase16594WordWholeCheckerTheory.bounded_case16594_word_topology_expression_def,
+        compute_execTheory.from_cv_def]
+QED
+
 val _ = export_theory ();
