@@ -67,6 +67,34 @@ Proof
      computeTheory.compute_default_clock]
 QED
 
+Theorem bounded_case16594_word_whole_jobs_checker_eval_clock:
+  bounded_case16594_word_whole_jobs_checker certificate
+      (Pair bounded_case16594_generic_prefix167_codes_cv
+        (Pair bounded_case16594_generic_prefix167_sources_cv packed_cells))
+      encoded_jobs /\
+  524405 +
+      2 * bounded_case16594_object_cv_list_length
+        bounded_case16594_generic_prefix167_codes_cv + 875 + 12 < clock ==>
+  compute_eval clock
+    bounded_case16594_cell0_whole_combined_ceqs
+    (App «candle_cv_q_packed_object_whole_jobs_check»
+      [from_cv bounded_case16594_generic_prefix167_codes_cv;
+       from_cv bounded_case16594_generic_prefix167_sources_cv;
+       from_cv packed_cells;from_cv encoded_jobs])
+    (refs:hol_refs) = (M_success (from_cv (Num 1)),refs)
+Proof
+  rpt strip_tac
+  >> imp_res_tac bounded_case16594_word_whole_jobs_checker_contract
+  >> gvs []
+  >> irule
+       (SIMP_RULE (srw_ss()) [compute_execTheory.from_cv_def]
+         compute_boundedCase16594WordWholeCellsMatcherTheory.bounded_case16594_word_whole_cells_match_eval_clock)
+  >> qexists_tac `rest`
+  >> qexists_tac `875`
+  >> asm_rewrite_tac []
+  >> intLib.ARITH_TAC
+QED
+
 Theorem bounded_case16594_word_whole_jobs_checker_eval:
   bounded_case16594_word_whole_jobs_checker certificate
       (Pair bounded_case16594_generic_prefix167_codes_cv
@@ -81,15 +109,20 @@ Theorem bounded_case16594_word_whole_jobs_checker_eval:
     (refs:hol_refs) = (M_success (from_cv (Num 1)),refs)
 Proof
   strip_tac
-  >> imp_res_tac bounded_case16594_word_whole_jobs_checker_contract
-  >> gvs []
-  >> irule
-       (SIMP_RULE (srw_ss()) [compute_execTheory.from_cv_def]
-         compute_boundedCase16594WordWholeCellsMatcherTheory.bounded_case16594_word_whole_cells_match_eval_clock)
-  >> qexists_tac `rest`
-  >> qexists_tac `875`
-  >> asm_rewrite_tac
+  >> sg
+       `bounded_case16594_word_whole_jobs_checker certificate
+          (Pair bounded_case16594_generic_prefix167_codes_cv
+            (Pair bounded_case16594_generic_prefix167_sources_cv
+              packed_cells)) encoded_jobs /\
+        524405 +
+            2 * bounded_case16594_object_cv_list_length
+              bounded_case16594_generic_prefix167_codes_cv + 875 + 12 <
+          compute_default_clock`
+  >- asm_rewrite_tac
        [bounded_case16594_word_whole_jobs_default_clock_capacity]
+  >> imp_res_tac bounded_case16594_word_whole_jobs_checker_eval_clock
+  >> asm_rewrite_tac
+       []
 QED
 
 Theorem bounded_case16594_word_whole_jobs_checker_rejects_source_code:
