@@ -111,4 +111,217 @@ Proof
         ml_monadBaseTheory.st_ex_return_def]
 QED
 
+Theorem bounded_case16594_direct_internal_transition_eval:
+  !dimension axis_index parent_boxes left_boxes right_boxes remaining_stack
+    encoded_jobs clock refs.
+    bounded_case16594_direct_cv_list_length parent_boxes = dimension /\
+    0 < axis_index /\ axis_index < dimension + 1 /\
+    bounded_case16594_direct_boxes_split_exact_from 1 axis_index
+      parent_boxes left_boxes right_boxes /\
+    dimension + 40 < clock ==>
+    compute_eval clock bounded_case16594_cell0_whole_combined_ceqs
+      (App
+        «candle_cv_q_dim_taylor_model_fixed_outer_variable_compact_transition»
+        [from_cv (Num dimension);
+         from_cv (Pair (Num axis_index) (Num 0));from_cv encoded_jobs;
+         from_cv (Pair right_boxes (Pair left_boxes remaining_stack))]) refs =
+      (M_success
+        (from_cv
+          (Pair (Num 1)
+            (Pair encoded_jobs (Pair parent_boxes remaining_stack)))),refs)
+Proof
+  rpt strip_tac
+  >> imp_res_tac bounded_case16594_direct_split_implies_join
+  >> imp_res_tac bounded_case16594_direct_split_preserves_lengths
+  >> rw
+       [compute_boundedCase16594Cell0WholeTopologyEvalTheory.bounded_case16594_cell0_whole_compact_transition_unfold]
+  >> simp
+       [compute_boundedCase16594Cell0WholeTopologyEvalTheory.bounded_case16594_cell0_whole_compact_transition_body_def,
+        compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv,
+        compute_boundedPackedObjectDotRecursiveEvalTheory.bounded_packed_compute_eval_if_ispair_pair]
+  >> rw
+       [SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+          (Q.INST [`left` |-> `Num axis_index`,`right` |-> `Num 0`]
+            compute_boundedPackedObjectDotRecursiveEvalTheory.bounded_packed_compute_eval_if_ispair_pair)]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `Num axis_index`
+  >> conj_tac
+  >- simp
+       [Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.do_uop_def,compute_evalTheory.do_fst_def,
+        compute_evalTheory.do_snd_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `Num 0`
+  >> conj_tac
+  >- simp
+       [Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.do_uop_def,compute_evalTheory.do_fst_def,
+        compute_evalTheory.do_snd_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `right_boxes`
+  >> conj_tac
+  >- simp
+       [Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.do_uop_def,compute_evalTheory.do_fst_def,
+        compute_evalTheory.do_snd_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `Pair left_boxes remaining_stack`
+  >> conj_tac
+  >- simp
+       [Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.do_uop_def,compute_evalTheory.do_fst_def,
+        compute_evalTheory.do_snd_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `left_boxes`
+  >> conj_tac
+  >- simp
+       [Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.do_uop_def,compute_evalTheory.do_fst_def,
+        compute_evalTheory.do_snd_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac `remaining_stack`
+  >> conj_tac
+  >- simp
+       [Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        compute_evalTheory.do_uop_def,compute_evalTheory.do_fst_def,
+        compute_evalTheory.do_snd_def,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       compute_boundedCase16594ObjectDispatchProgramTraceEvalTheory.bounded_case16594_object_compute_eval_let_result
+  >> conj_tac >- intLib.ARITH_TAC
+  >> qexists_tac
+       `bounded_case16594_direct_boxes_join left_boxes right_boxes`
+  >> conj_tac
+  >- (irule bounded_case16594_direct_boxes_join_eval
+      >> conj_tac >- intLib.ARITH_TAC
+      >> asm_rewrite_tac [])
+  >> simp [compute_evalTheory.subst_def,compute_execProofTheory.subst_from_cv]
+  >> irule
+       (SIMP_RULE (srw_ss()) [compute_execTheory.from_cv_def]
+         (Q.INST
+           [`left_result` |-> `Num 1`,
+            `right_result` |->
+              `Pair encoded_jobs
+                (Pair
+                  (bounded_case16594_direct_boxes_join
+                    left_boxes right_boxes) remaining_stack)`]
+           compute_boundedPackedObjectValueEvalTheory.bounded_packed_compute_eval_pair_from_results))
+  >> conj_tac
+  >- (irule
+       compute_boundedCase16594Cell0WholeJobsEvalTheory.bounded_case16594_cell0_whole_bool_and_true_one_eval
+      >> conj_tac >- intLib.ARITH_TAC
+      >> conj_tac
+      >- simp
+           [Once compute_evalTheory.compute_eval_def,
+            compute_evalTheory.compute_eval_def,
+            compute_evalTheory.do_binop_def,compute_evalTheory.do_eq_def,
+            ml_monadBaseTheory.st_ex_bind_def,
+            ml_monadBaseTheory.st_ex_return_def]
+      >> irule
+           compute_boundedCase16594Cell0WholeJobsEvalTheory.bounded_case16594_cell0_whole_bool_and_true_one_eval
+      >> conj_tac >- intLib.ARITH_TAC
+      >> conj_tac
+      >- simp
+           [Once compute_evalTheory.compute_eval_def,
+            compute_evalTheory.compute_eval_def,
+            compute_execProofTheory.compute_eval_from_cv,
+            compute_evalTheory.do_uop_def,
+            compute_evalTheory.do_ispair_def,
+            ml_monadBaseTheory.st_ex_bind_def,
+            ml_monadBaseTheory.st_ex_return_def]
+      >> irule
+           compute_boundedCase16594Cell0WholeJobsEvalTheory.bounded_case16594_cell0_whole_bool_and_true_one_eval
+      >> conj_tac >- intLib.ARITH_TAC
+      >> conj_tac
+      >- simp
+           [Once compute_evalTheory.compute_eval_def,
+            compute_evalTheory.compute_eval_def,
+            compute_execProofTheory.compute_eval_from_cv,
+            compute_evalTheory.do_uop_def,
+            compute_evalTheory.do_ispair_def,
+            ml_monadBaseTheory.st_ex_bind_def,
+            ml_monadBaseTheory.st_ex_return_def]
+      >> irule
+           compute_boundedCase16594Cell0WholeJobsEvalTheory.bounded_case16594_cell0_whole_bool_and_true_one_eval
+      >> conj_tac >- intLib.ARITH_TAC
+      >> conj_tac
+      >- (irule
+           compute_boundedPackedObjectFinishEvalTheory.bounded_packed_compute_eval_binop_eq_num_same
+          >> irule bounded_case16594_direct_cv_list_length_eval
+          >> intLib.ARITH_TAC)
+      >> irule
+           compute_boundedCase16594Cell0WholeJobsEvalTheory.bounded_case16594_cell0_whole_bool_and_true_one_eval
+      >> conj_tac >- intLib.ARITH_TAC
+      >> conj_tac
+      >- simp
+           [compute_evalTheory.compute_eval_def,
+            compute_evalTheory.do_binop_def,
+            compute_evalTheory.do_reln_def,
+            ml_monadBaseTheory.st_ex_bind_def,
+            ml_monadBaseTheory.st_ex_return_def]
+      >> irule
+           compute_boundedCase16594Cell0WholeJobsEvalTheory.bounded_case16594_cell0_whole_bool_and_true_one_eval
+      >> conj_tac >- intLib.ARITH_TAC
+      >> conj_tac
+      >- simp
+           [compute_evalTheory.compute_eval_def,
+            compute_evalTheory.do_binop_def,
+            compute_evalTheory.do_reln_def,
+            compute_evalTheory.do_arith_def,
+            ml_monadBaseTheory.st_ex_bind_def,
+            ml_monadBaseTheory.st_ex_return_def]
+      >> irule
+           (SIMP_RULE std_ss [compute_execTheory.from_cv_def]
+             bounded_case16594_direct_boxes_split_eval)
+      >> conj_tac >- intLib.ARITH_TAC
+      >> asm_rewrite_tac [])
+  >> simp
+       [Once compute_evalTheory.compute_eval_def,
+        compute_evalTheory.compute_eval_def,
+        compute_execProofTheory.compute_eval_from_cv,
+        ml_monadBaseTheory.st_ex_bind_def,
+        ml_monadBaseTheory.st_ex_return_def]
+QED
+
 val _ = export_theory ();
