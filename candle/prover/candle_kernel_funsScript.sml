@@ -5,7 +5,7 @@ Theory candle_kernel_funs
 Libs
   preamble helperLib ml_progLib[qualified] ml_monad_translatorLib[qualified]
 Ancestors
-  candle_kernel_vals candle_prover_inv ast_extras evaluate
+  candle_kernel_vals candle_kernelTypesProg candle_prover_inv ast_extras evaluate
   namespaceProps perms semanticPrimitivesProps misc[qualified]
   semanticPrimitives evaluateProps sptree holKernelProof
   ml_hol_kernel_funsProg candle_kernel_perms candle_kernelProg
