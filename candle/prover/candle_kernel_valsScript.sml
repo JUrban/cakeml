@@ -1004,8 +1004,8 @@ Proof
 QED
 
 Theorem types_v_head:
-  do_opapp [types_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [types_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     UNIT_TYPE () v
 Proof
@@ -1017,8 +1017,8 @@ Proof
 QED
 
 Theorem constants_v_head:
-  do_opapp [constants_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [constants_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     UNIT_TYPE () v
 Proof
@@ -1030,8 +1030,8 @@ Proof
 QED
 
 Theorem axioms_v_head:
-  do_opapp [axioms_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [axioms_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     UNIT_TYPE () v
 Proof
@@ -1043,8 +1043,8 @@ Proof
 QED
 
 Theorem mk_vartype_v_head:
-  do_opapp [mk_vartype_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [mk_vartype_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     ?x. STRING_TYPE x v
 Proof
@@ -1057,8 +1057,8 @@ Proof
 QED
 
 Theorem call_new_type_v_head:
-  do_opapp [call_new_type_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [call_new_type_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     PAIR_TYPE_HEAD STRING_TYPE_HEAD INT_HEAD v
 Proof
@@ -1102,8 +1102,8 @@ val prove_head_tac =
   \\ fs [PAIR_TYPE_HEAD_def,PAIR_TYPE_def];
 
 Theorem is_type_v_head:
-  do_opapp [is_type_v; w] = SOME (env, exp) ∧
-  evaluate s env [exp] = (s', res) ⇒
+  do_opapp [is_type_v; w] = SOME (env, opapp_exp) ∧
+  evaluate s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TYPE_TYPE_HEAD w
 Proof
@@ -1111,8 +1111,8 @@ Proof
 QED
 
 Theorem concl_v_head:
-  do_opapp [concl_v; v] = SOME (env, exp) ∧
-  evaluate s env [exp] = (s', res) ⇒
+  do_opapp [concl_v; v] = SOME (env, opapp_exp) ∧
+  evaluate s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD v
 Proof
@@ -1121,8 +1121,8 @@ QED
 
 Theorem trans_v_head:
   do_partial_app trans_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD v ∧ THM_TYPE_HEAD w
 Proof
@@ -1130,8 +1130,8 @@ Proof
 QED
 
 Theorem beta_v_head:
-  do_opapp [beta_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [beta_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1140,8 +1140,8 @@ QED
 
 Theorem call_variant_v_head:
   do_partial_app call_variant_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     LIST_TYPE_HEAD TERM_TYPE_HEAD v ∧
     TERM_TYPE_HEAD w
@@ -1151,8 +1151,8 @@ QED
 
 Theorem vsubst_v_head:
   do_partial_app vsubst_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     LIST_TYPE_HEAD (PAIR_TYPE_HEAD TERM_TYPE_HEAD TERM_TYPE_HEAD) v ∧
     TERM_TYPE_HEAD w
@@ -1161,8 +1161,8 @@ Proof
 QED
 
 Theorem dest_type_v_head:
-  do_opapp [dest_type_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [dest_type_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TYPE_TYPE_HEAD v
 Proof
@@ -1170,8 +1170,8 @@ Proof
 QED
 
 Theorem is_vartype_v_head:
-  do_opapp [is_vartype_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [is_vartype_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TYPE_TYPE_HEAD v
 Proof
@@ -1179,8 +1179,8 @@ Proof
 QED
 
 Theorem is_var_v_head:
-  do_opapp [is_var_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [is_var_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1188,8 +1188,8 @@ Proof
 QED
 
 Theorem is_const_v_head:
-  do_opapp [is_const_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [is_const_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1197,8 +1197,8 @@ Proof
 QED
 
 Theorem is_abs_v_head:
-  do_opapp [is_abs_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [is_abs_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1206,8 +1206,8 @@ Proof
 QED
 
 Theorem is_comb_v_head:
-  do_opapp [is_comb_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [is_comb_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1215,8 +1215,8 @@ Proof
 QED
 
 Theorem rand_v_head:
-  do_opapp [rand_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [rand_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1224,8 +1224,8 @@ Proof
 QED
 
 Theorem rator_v_head:
-  do_opapp [rator_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [rator_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1233,8 +1233,8 @@ Proof
 QED
 
 Theorem dest_var_v_head:
-  do_opapp [dest_var_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [dest_var_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1242,8 +1242,8 @@ Proof
 QED
 
 Theorem dest_const_v_head:
-  do_opapp [dest_const_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [dest_const_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1251,8 +1251,8 @@ Proof
 QED
 
 Theorem dest_comb_v_head:
-  do_opapp [dest_comb_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [dest_comb_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1260,8 +1260,8 @@ Proof
 QED
 
 Theorem dest_abs_v_head:
-  do_opapp [dest_abs_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [dest_abs_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1269,8 +1269,8 @@ Proof
 QED
 
 Theorem dest_vartype_v_head:
-  do_opapp [dest_vartype_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [dest_vartype_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TYPE_TYPE_HEAD v
 Proof
@@ -1278,8 +1278,8 @@ Proof
 QED
 
 Theorem dest_eq_v_head:
-  do_opapp [dest_eq_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [dest_eq_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1287,8 +1287,8 @@ Proof
 QED
 
 Theorem call_tyvars_v_head:
-  do_opapp [call_tyvars_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [call_tyvars_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TYPE_TYPE_HEAD v
 Proof
@@ -1296,8 +1296,8 @@ Proof
 QED
 
 Theorem call_type_vars_in_term_v_head:
-  do_opapp [call_type_vars_in_term_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [call_type_vars_in_term_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1305,8 +1305,8 @@ Proof
 QED
 
 Theorem new_basic_definition_v_head:
-  do_opapp [new_basic_definition_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [new_basic_definition_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1314,8 +1314,8 @@ Proof
 QED
 
 Theorem new_specification_v_head:
-  do_opapp [new_specification_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [new_specification_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD v
 Proof
@@ -1323,8 +1323,8 @@ Proof
 QED
 
 Theorem get_const_type_v_head:
-  do_opapp [get_const_type_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [get_const_type_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     STRING_TYPE_HEAD v
 Proof
@@ -1332,8 +1332,8 @@ Proof
 QED
 
 Theorem new_constant_v_head:
-  do_opapp [new_constant_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [new_constant_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     PAIR_TYPE_HEAD STRING_TYPE_HEAD TYPE_TYPE_HEAD v
 Proof
@@ -1341,8 +1341,8 @@ Proof
 QED
 
 Theorem mk_var_v_head:
-  do_opapp [mk_var_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [mk_var_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     PAIR_TYPE_HEAD STRING_TYPE_HEAD TYPE_TYPE_HEAD v
 Proof
@@ -1350,8 +1350,8 @@ Proof
 QED
 
 Theorem mk_comb_v_head:
-  do_opapp [mk_comb_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [mk_comb_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     PAIR_TYPE_HEAD TERM_TYPE_HEAD TERM_TYPE_HEAD v
 Proof
@@ -1359,8 +1359,8 @@ Proof
 QED
 
 Theorem get_type_arity_v_head:
-  do_opapp [get_type_arity_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [get_type_arity_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     STRING_TYPE_HEAD v
 Proof
@@ -1368,8 +1368,8 @@ Proof
 QED
 
 Theorem mk_type_v_head:
-  do_opapp [mk_type_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [mk_type_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     PAIR_TYPE_HEAD STRING_TYPE_HEAD (LIST_TYPE_HEAD TYPE_TYPE_HEAD) v
 Proof
@@ -1377,8 +1377,8 @@ Proof
 QED
 
 Theorem refl_v_head:
-  do_opapp [refl_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [refl_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1386,8 +1386,8 @@ Proof
 QED
 
 Theorem mk_const_v_head:
-  do_opapp [mk_const_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [mk_const_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     PAIR_TYPE_HEAD STRING_TYPE_HEAD
       (LIST_TYPE_HEAD (PAIR_TYPE_HEAD TYPE_TYPE_HEAD TYPE_TYPE_HEAD)) v
@@ -1396,8 +1396,8 @@ Proof
 QED
 
 Theorem freesl_v_head:
-  do_opapp [freesl_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [freesl_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     LIST_TYPE_HEAD TERM_TYPE_HEAD v
 Proof
@@ -1405,8 +1405,8 @@ Proof
 QED
 
 Theorem assume_v_head:
-  do_opapp [assume_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [assume_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1414,8 +1414,8 @@ Proof
 QED
 
 Theorem hyp_v_head:
-  do_opapp [hyp_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [hyp_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD v
 Proof
@@ -1423,8 +1423,8 @@ Proof
 QED
 
 Theorem dest_thm_v_head:
-  do_opapp [dest_thm_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [dest_thm_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD v
 Proof
@@ -1432,8 +1432,8 @@ Proof
 QED
 
 Theorem mk_comb_1_v_head:
-  do_opapp [mk_comb_1_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [mk_comb_1_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     PAIR_TYPE_HEAD THM_TYPE_HEAD THM_TYPE_HEAD v
 Proof
@@ -1441,8 +1441,8 @@ Proof
 QED
 
 Theorem new_basic_type_definition_v_head:
-  do_opapp [new_basic_type_definition_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [new_basic_type_definition_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     (PAIR_TYPE_HEAD STRING_TYPE_HEAD $
        PAIR_TYPE_HEAD STRING_TYPE_HEAD $
@@ -1453,8 +1453,8 @@ QED
 
 Theorem call_type_subst_v_head:
   do_partial_app call_type_subst_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     LIST_TYPE_HEAD (PAIR_TYPE_HEAD TYPE_TYPE_HEAD TYPE_TYPE_HEAD) v ∧
     TYPE_TYPE_HEAD w
@@ -1464,8 +1464,8 @@ QED
 
 Theorem inst_v_head:
   do_partial_app inst_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     LIST_TYPE_HEAD (PAIR_TYPE_HEAD TYPE_TYPE_HEAD TYPE_TYPE_HEAD) v ∧
     TERM_TYPE_HEAD w
@@ -1475,8 +1475,8 @@ QED
 
 Theorem abs_v_head:
   do_partial_app abs_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD w ∧
     TERM_TYPE_HEAD v
@@ -1486,8 +1486,8 @@ QED
 
 Theorem eq_mp_v_head:
   do_partial_app eq_mp_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD v ∧
     THM_TYPE_HEAD w
@@ -1497,8 +1497,8 @@ QED
 
 Theorem deduct_antisym_rule_v_head:
   do_partial_app deduct_antisym_rule_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD v ∧
     THM_TYPE_HEAD w
@@ -1508,8 +1508,8 @@ QED
 
 Theorem inst_type_v_head:
   do_partial_app inst_type_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD w ∧
     LIST_TYPE_HEAD (PAIR_TYPE_HEAD TYPE_TYPE_HEAD TYPE_TYPE_HEAD) v
@@ -1519,8 +1519,8 @@ QED
 
 Theorem inst_1_v_head:
   do_partial_app inst_1_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD w ∧
     LIST_TYPE_HEAD (PAIR_TYPE_HEAD TERM_TYPE_HEAD TERM_TYPE_HEAD) v
@@ -1529,8 +1529,8 @@ Proof
 QED
 
 Theorem new_axiom_v_head:
-  do_opapp [new_axiom_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [new_axiom_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1538,8 +1538,8 @@ Proof
 QED
 
 Theorem call_type_of_v_head:
-  do_opapp [call_type_of_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [call_type_of_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1548,8 +1548,8 @@ QED
 
 Theorem call_vfree_in_v_head:
   do_partial_app call_vfree_in_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v ∧
     TERM_TYPE_HEAD w
@@ -1559,8 +1559,8 @@ QED
 
 Theorem call_freesin_v_head:
   do_partial_app call_freesin_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [g; w] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     LIST_TYPE_HEAD TERM_TYPE_HEAD v ∧
     TERM_TYPE_HEAD w
@@ -1569,8 +1569,8 @@ Proof
 QED
 
 Theorem mk_abs_v_head:
-  do_opapp [mk_abs_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [mk_abs_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     PAIR_TYPE_HEAD TERM_TYPE_HEAD TERM_TYPE_HEAD v
 Proof
@@ -1578,8 +1578,8 @@ Proof
 QED
 
 Theorem call_frees_v_head:
-  do_opapp [call_frees_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [call_frees_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     TERM_TYPE_HEAD v
 Proof
@@ -1587,8 +1587,8 @@ Proof
 QED
 
 Theorem Kernel_print_thm_v_head:
-  do_opapp [Kernel_print_thm_v; v] = SOME (env, exp) ∧
-  evaluate ^s env [exp] = (s', res) ⇒
+  do_opapp [Kernel_print_thm_v; v] = SOME (env, opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s', res) ⇒
     ^safe_error_goal ∨
     THM_TYPE_HEAD v
 Proof
@@ -1597,8 +1597,8 @@ QED
 
 Theorem compute_add_v_head:
   do_partial_app compute_add_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env,exp) ∧
-  evaluate ^s env [exp] = (s',res) ⇒
+  do_opapp [g; w] = SOME (env,opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s',res) ⇒
     ^safe_error_goal ∨
     LIST_TYPE_HEAD THM_TYPE_HEAD v ∧
     TERM_TYPE_HEAD w
@@ -1608,8 +1608,8 @@ QED
 
 Theorem compute_v_head:
   do_partial_app compute_v v = SOME g ∧
-  do_opapp [g; w] = SOME (env,exp) ∧
-  evaluate ^s env [exp] = (s',res) ⇒
+  do_opapp [g; w] = SOME (env,opapp_exp) ∧
+  evaluate ^s env [opapp_exp] = (s',res) ⇒
     ^safe_error_goal ∨
     PAIR_TYPE_HEAD (LIST_TYPE_HEAD THM_TYPE_HEAD)
                    (LIST_TYPE_HEAD THM_TYPE_HEAD) v ∧
