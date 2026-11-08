@@ -7,7 +7,7 @@ Libs
 Ancestors
   candle_kernel_vals perms misc[qualified] semanticPrimitives
   semanticPrimitivesProps sptree evaluate namespaceProps
-  evaluateProps candle_kernelProg candle_prover_inv
+  evaluateProps candle_kernelProg candle_directComputeKernelProg candle_prover_inv
   ml_hol_kernel_funsProg ast_extras
 
 
