@@ -51,7 +51,8 @@ val EqualityType_TYPE = EqualityType_rule [] ``:type``;
    invariant rather than adding a second exception declaration. *)
 val _ = get_type_inv ``:hol_exn``;
 val _ = register_type ``:update``;
-val HOL_EXN_TYPE_def = theorem"HOL_EXN_TYPE_def";
+val HOL_EXN_TYPE_def =
+  candle_kernelTypesProgTheory.HOL_EXN_TYPE_def;
 
 (* add an abbreviation mapping hol_type to type for HOL Light *)
 
