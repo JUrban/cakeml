@@ -996,7 +996,7 @@ QED
 Theorem perms_ok_cv_t_v[simp]:
   perms_ok ps cv_t_v
 Proof
-  mp_tac candle_kernelProgTheory.cv_t_v_thm
+  mp_tac candle_directComputeKernelProgTheory.cv_t_v_thm
   \\ qabbrev_tac ‘a = cv_t_v’ \\ EVAL_TAC
   \\ rw[perms_ok_def, astTheory.pat_bindings_def, perms_ok_env_def]
 QED
@@ -1004,7 +1004,7 @@ QED
 Theorem perms_ok_cv_f_v[simp]:
   perms_ok ps cv_f_v
 Proof
-  mp_tac candle_kernelProgTheory.cv_f_v_thm
+  mp_tac candle_directComputeKernelProgTheory.cv_f_v_thm
   \\ qabbrev_tac ‘a = cv_f_v’ \\ EVAL_TAC
   \\ rw[perms_ok_def, astTheory.pat_bindings_def, perms_ok_env_def]
 QED
