@@ -4,7 +4,7 @@
  *)
 Theory candle_prover_inv
 Ancestors
-  candle_kernel_vals ast_extras evaluate namespaceProps perms
+  candle_kernel_vals candle_kernelTypesProg ast_extras evaluate namespaceProps perms
   holKernelProof[qualified] semanticPrimitivesProps
   misc[qualified] semanticPrimitives evaluateProps sptree
   candle_kernelProg ml_hol_kernel_funsProg
