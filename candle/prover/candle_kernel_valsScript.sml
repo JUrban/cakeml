@@ -3,7 +3,7 @@
  *)
 Theory candle_kernel_vals
 Ancestors
-  ml_translator ml_hol_kernel_funsProg candle_kernelProg
+  ml_translator candle_kernelTypesProg ml_hol_kernel_funsProg candle_kernelProg
   semanticPrimitives semanticPrimitivesProps namespaceProps
   evaluateProps ast_extras holKernelProof evaluate perms
 Libs
@@ -120,11 +120,22 @@ Proof
   fs [kernel_locs_def]
 QED
 
+fun optional_context_ref_def
+      (cn : {Thy : string, Name : string, Ty : hol_type}) =
+  SOME (fetch (#Thy cn) (#Name cn ^ "_def"))
+  handle HOL_ERR _ =>
+    (print ("CANDLE_KERNEL_VALS_SYMBOLIC_CONTEXT_REF " ^
+            #Thy cn ^ "$" ^ #Name cn ^ "\n");
+     NONE)
+
 val context_refs_defs = the_context_def |> concl |> find_terms (listSyntax.is_length)
   |> map (dest_thy_const o listSyntax.dest_length)
-  |> map (fn cn => fetch (#Thy cn) (#Name cn ^ "_def"))
+  |> List.mapPartial optional_context_ref_def
 
-Theorem refs_defs = LIST_CONJ (cv_t_refs_def :: cv_f_refs_def :: context_refs_defs)
+Theorem refs_defs = LIST_CONJ
+  (candle_directComputeKernelProgTheory.cv_t_refs_def ::
+   candle_directComputeKernelProgTheory.cv_f_refs_def ::
+   context_refs_defs)
 
 Theorem kernel_locs = IN_kernel_locs |>
   SIMP_RULE (srw_ss()) [the_type_constants_def,
