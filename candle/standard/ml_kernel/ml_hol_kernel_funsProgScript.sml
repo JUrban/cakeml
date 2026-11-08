@@ -9,7 +9,7 @@ Ancestors
   ml_translator ml_pmatch patternMatches ast evaluate
   semanticPrimitives ml_prog evaluate set_sep cf cfStore
   cfHeapsBase ml_monadBase ml_monad_translator holKernel
-  basisProg
+  compute_boundedCase16594WordWholeDirectFastChainProg
   holAxiomsSyntax (* for setting up the context *)
   runtime_check (* Adds runtime type checks *)
   holKernelPmatch[qualified]
@@ -22,7 +22,12 @@ val _ = temp_delsimps ["NORMEQ_CONV"]
 
 val _ = temp_delsimps ["lift_disj_eq", "lift_imp_disj"]
 
-val _ = translation_extends "basisProg"
+(* Preserve the proved direct nonlinear checker as a saved prefix of the
+   program state.  Its callback remains an ordinary top-level value; the
+   Candle kernel installs it behind [compute] only after the kernel's monadic
+   primitives have been translated. *)
+val _ = translation_extends
+  "compute_boundedCase16594WordWholeDirectFastChainProg"
 
 val _ = (use_full_type_names := false);
 
