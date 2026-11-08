@@ -35,7 +35,10 @@ val _ = hide "abs";
 
 Type state = ``:'ffi semanticPrimitives$state``
 
-(* construct type refinement invariants *)
+(* The type refinement invariants and datatype declarations were installed by
+   [candle_kernelTypesProg] before the reflected checker program.  Normal type
+   registration is idempotent, so retain these calls as executable checks that
+   the inherited translator state contains the expected kernel types. *)
 
 val _ = register_type “:type”;
 val _ = register_type “:term”;
@@ -44,7 +47,9 @@ val _ = register_type “:thm”;
 (* check ``:type`` is known to be an EqualityType *)
 val EqualityType_TYPE = EqualityType_rule [] ``:type``;
 
-val _ = register_exn_type ``:hol_exn``;
+(* Exception registration is not idempotent; consume the already registered
+   invariant rather than adding a second exception declaration. *)
+val _ = get_type_inv ``:hol_exn``;
 val _ = register_type ``:update``;
 val HOL_EXN_TYPE_def = theorem"HOL_EXN_TYPE_def";
 

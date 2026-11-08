@@ -5,9 +5,9 @@ Theory compute_boundedProg
 Libs
   preamble ml_translatorLib ml_progLib
 Ancestors
-  basisProg compute_bounded
+  candle_kernelTypesProg compute_bounded
 
-val _ = translation_extends "basisProg";
+val _ = translation_extends "candle_kernelTypesProg";
 
 val _ = register_type ``:bounded128``;
 val _ = register_type ``:bounded192``;
